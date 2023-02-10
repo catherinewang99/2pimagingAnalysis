@@ -42,7 +42,7 @@ class Session:
         self.plot_mean_F()
 
         self.normalize_all_by_baseline()
-        self.normalize_z_score()        
+        # self.normalize_z_score()        
 
         
     def plot_mean_F(self):
@@ -250,9 +250,11 @@ class Session:
         
         for i in range(self.num_neurons):
             
-            nmean = np.mean([self.dff[0, t][i, :7] for t in range(self.num_trials)]).copy()
+            # nmean = np.mean([self.dff[0, t][i, :7] for t in range(self.num_trials)]).copy()
             
             for j in range(self.num_trials):
+                
+                nmean = np.mean(self.dff[0, j][i, :7])
                 self.dff[0, j][i] = (self.dff[0, j][i] - nmean) / nmean
         
         return None

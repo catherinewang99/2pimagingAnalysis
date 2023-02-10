@@ -14,7 +14,7 @@ from matplotlib.pyplot import figure
 
 # from neuralFuncs import plot_average_PSTH
 path = r'F:\data\BAYLORCW021\python\2023_01_25'
-i = 6
+i = 5
 layer = scio.loadmat(r'{}\layer_{}.mat'.format(path, i))
 behavior = scio.loadmat(r'{}\behavior.mat'.format(path))
 l1 = session.Session(layer, i, behavior)
@@ -48,7 +48,7 @@ l1 = session.Session(layer, i, behavior)
 #     l1.plot_PSTH(i)
     
 # Get population average plots
-l1.plot_contra_ipsi_pop()
+# l1.plot_contra_ipsi_pop()
 
 # Plot rasters for delay selective neurons:
 
@@ -62,7 +62,7 @@ for n in l1.get_delay_selective():
         # plt.show()
     # l1.plot_selectivity(n)
     l1.plot_raster_and_PSTH(n)
-    l1.plot_raster_and_PSTH(n, opto=True)
+    # l1.plot_raster_and_PSTH(n, opto=True)
 
     
     
