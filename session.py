@@ -31,6 +31,11 @@ class Session:
         
         self.i_good_trials = cat(behavior['i_good_trials']) - 1 # zero indexing in python
         
+        if self.i_good_trials[-1] > self.num_trials:
+            
+            print('More Bpod trials than 2 photon trials')
+            self.i_good_trials = [i for i in self.i_good_trials if i < self.num_trials]
+        
         self.L_correct = cat(behavior['L_hit_tmp'])
         self.R_correct = cat(behavior['R_hit_tmp'])
         
@@ -138,7 +143,6 @@ class Session:
             # L_av_dff += [self.normalize_by_baseline(self.dff[0, i][neuron_num, :self.time_cutoff])]
             L_av_dff += [self.dff[0, i][neuron_num, :self.time_cutoff]]
             
-
             
         return R_av_dff, L_av_dff
     
@@ -551,8 +555,6 @@ class Session:
         stack = np.vstack((r_trace, np.ones(self.time_cutoff), l_trace))
         stack = np.vstack((r_trace, l_trace))
 
-        
-
 
         
         R_av, L_av = np.mean(R, axis = 0), np.mean(L, axis = 0)
@@ -582,6 +584,84 @@ class Session:
         plt.show()
         
 
+    def plot_rasterPSTH_sidebyside(self, neuron_num):
+        
+        R, L = self.get_trace_matrix(neuron_num)
+        r, l = self.get_trace_matrix(neuron_num)
+        title = "Neuron {}: Raster and PSTH".format(neuron_num)
+
+        
+        f, axarr = plt.subplots(4, sharex=True)
+        
+        r_trace, l_trace = np.matrix(r), np.matrix(l)
+        
+        stack = np.vstack((r_trace, np.ones(self.time_cutoff), l_trace))
+        stack = np.vstack((r_trace, l_trace))
+
+
+        
+        R_av, L_av = np.mean(R, axis = 0), np.mean(L, axis = 0)
+        
+        left_err = np.std(L, axis=0) / np.sqrt(len(L)) 
+        right_err = np.std(R, axis=0) / np.sqrt(len(R))
+                    
+
+        axarr[0, 0].matshow(stack, cmap='gray', interpolation='nearest', aspect='auto')
+        axarr[0, 0].axis('off')
+        
+        axarr[1, 0].plot(L_av, 'r-')
+        axarr[1, 0].plot(R_av, 'b-')
+        
+        x = range(self.time_cutoff)
+
+        axarr[1, 0].fill_between(x, L_av - left_err, 
+                 L_av + left_err,
+                 color=['#ffaeb1'])
+        axarr[1, 0].fill_between(x, R_av - right_err, 
+                 R_av + right_err,
+                 color=['#b4b2dc'])
+        
+        axarr[0,0].set_title(title)
+        
+    
+        R, L = self.get_opto_trace_matrix(neuron_num)
+        r, l = self.get_opto_trace_matrix(neuron_num)
+        title = "Neuron {}: Opto Raster and PSTH".format(neuron_num)
+
+                
+        r_trace, l_trace = np.matrix(r), np.matrix(l)
+        
+        stack = np.vstack((r_trace, np.ones(self.time_cutoff), l_trace))
+        stack = np.vstack((r_trace, l_trace))
+
+
+        
+        R_av, L_av = np.mean(R, axis = 0), np.mean(L, axis = 0)
+        
+        left_err = np.std(L, axis=0) / np.sqrt(len(L)) 
+        right_err = np.std(R, axis=0) / np.sqrt(len(R))
+                    
+
+        axarr[0, 1].matshow(stack, cmap='gray', interpolation='nearest', aspect='auto')
+        axarr[0, 1].axis('off')
+        
+        axarr[1, 1].plot(L_av, 'r-')
+        axarr[1, 1].plot(R_av, 'b-')
+        
+        x = range(self.time_cutoff)
+
+        axarr[1, 1].fill_between(x, L_av - left_err, 
+                 L_av + left_err,
+                 color=['#ffaeb1'])
+        axarr[1, 1].fill_between(x, R_av - right_err, 
+                 R_av + right_err,
+                 color=['#b4b2dc'])
+        
+        axarr[0,1].set_title(title)
+        
+        plt.show()
+
+        
         
         
         

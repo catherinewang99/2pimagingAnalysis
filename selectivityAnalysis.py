@@ -17,10 +17,10 @@ from matplotlib.pyplot import figure
 
 # l1 = session.Session(path, 5)
 
-path = r'F:\data\BAYLORCW022\python\2023_01_22'
+path = r'F:\data\BAYLORCW021\python\2023_02_08'
 
-l1 = session.Session(path, 3)
-l1.crop_trials(160)
+l1 = session.Session(path, 4)
+# l1.crop_trials(160)
 
 # l2 = session.Session(layer_2, 2, behavior)
 # l1.crop_trials(250)
