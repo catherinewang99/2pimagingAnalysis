@@ -10,10 +10,15 @@ from numpy import concatenate as cat
 import matplotlib.pyplot as plt
 from scipy import stats
 import copy
+import scipy.io as scio
 
 class Session:
     
-    def __init__(self, layer_og, layer_num, behavior):
+    def __init__(self, path, layer_num):
+        
+
+        layer_og = scio.loadmat(r'{}\layer_{}.mat'.format(path, layer_num))
+        behavior = scio.loadmat(r'{}\behavior.mat'.format(path))
         
         layer = copy.deepcopy(layer_og)
         
@@ -40,9 +45,10 @@ class Session:
         self.stim_ON = cat(behavior['StimDur_tmp']) == 1
 
         self.plot_mean_F()
-
+        
+        # self.normalize_all_by_neural_baseline()
         self.normalize_all_by_baseline()
-        # self.normalize_z_score()        
+        self.normalize_z_score()        
 
         
     def plot_mean_F(self):
@@ -244,6 +250,21 @@ class Session:
             
         return (trace - mean) / mean # norm by F0
     
+    def normalize_all_by_neural_baseline(self):
+        
+        # Normalize all neurons by neural trial-averaged F0
+        
+        for i in range(self.num_neurons):
+            
+            nmean = np.mean([self.dff[0, t][i, :7] for t in range(self.num_trials)]).copy()
+            
+            for j in range(self.num_trials):
+                
+                # nmean = np.mean(self.dff[0, j][i, :7])
+                self.dff[0, j][i] = (self.dff[0, j][i] - nmean) / nmean
+        
+        return None
+    
     def normalize_all_by_baseline(self):
         
         # Normalize all neurons by individual trial-averaged F0
@@ -275,9 +296,11 @@ class Session:
         selective_neurons = []
         for neuron in range(self.num_neurons):
             right, left = self.get_trace_matrix(neuron)
-            tstat, p_val = stats.ttest_ind(np.mean(left, axis = 0)[21:28], np.mean(right, axis = 0)[21:28])
-            p_measure = 0.01/self.num_neurons
-            # p_measure = 0.05
+            left_ = [l[21:28] for l in left]
+            right_ = [r[21:28] for r in right]
+            tstat, p_val = stats.ttest_ind(np.mean(left_, axis = 1), np.mean(right_, axis = 1))
+            # p_measure = 0.01/self.num_neurons
+            p_measure = 0.05
             # p_measure = 0.0001
             if p_val < p_measure:
                 selective_neurons += [neuron]

@@ -13,12 +13,14 @@ import session
 from matplotlib.pyplot import figure
 
 # from neuralFuncs import plot_average_PSTH
-path = r'F:\data\BAYLORCW021\python\2023_01_25'
-i = 5
-layer = scio.loadmat(r'{}\layer_{}.mat'.format(path, i))
-behavior = scio.loadmat(r'{}\behavior.mat'.format(path))
-l1 = session.Session(layer, i, behavior)
-# l1.crop_trials(245, end = 330)
+# path = r'F:\data\BAYLORCW021\python\2023_01_25'
+
+# l1 = session.Session(path, 5)
+
+path = r'F:\data\BAYLORCW022\python\2023_01_22'
+
+l1 = session.Session(path, 3)
+l1.crop_trials(160)
 
 # l2 = session.Session(layer_2, 2, behavior)
 # l1.crop_trials(250)
@@ -30,7 +32,7 @@ l1 = session.Session(layer, i, behavior)
 
 # View the neurons
 # for i in range(l1.num_neurons):
-#     l1.plot_PSTH(i)
+#     l1.plot_raster_and_PSTH(i)
 
 # for i in range(l2.num_neurons):
 #     l2.plot_PSTH(i)
