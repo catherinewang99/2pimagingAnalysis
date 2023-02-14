@@ -300,11 +300,11 @@ class Session:
         selective_neurons = []
         for neuron in range(self.num_neurons):
             right, left = self.get_trace_matrix(neuron)
-            left_ = [l[21:28] for l in left]
-            right_ = [r[21:28] for r in right]
+            left_ = [l[17:28] for l in left]
+            right_ = [r[17:28] for r in right]
             tstat, p_val = stats.ttest_ind(np.mean(left_, axis = 1), np.mean(right_, axis = 1))
             # p_measure = 0.01/self.num_neurons
-            p_measure = 0.05
+            p_measure = 0.01
             # p_measure = 0.0001
             if p_val < p_measure:
                 selective_neurons += [neuron]
@@ -588,10 +588,10 @@ class Session:
         
         R, L = self.get_trace_matrix(neuron_num)
         r, l = self.get_trace_matrix(neuron_num)
-        title = "Neuron {}: Raster and PSTH".format(neuron_num)
+        title = "Neuron {}: Control".format(neuron_num)
 
         
-        f, axarr = plt.subplots(4, sharex=True)
+        f, axarr = plt.subplots(2,2, sharex='col', sharey = 'row')
         
         r_trace, l_trace = np.matrix(r), np.matrix(l)
         
@@ -611,6 +611,9 @@ class Session:
         
         axarr[1, 0].plot(L_av, 'r-')
         axarr[1, 0].plot(R_av, 'b-')
+        axarr[1, 0].axvline(7, linestyle = '--')
+        axarr[1, 0].axvline(13, linestyle = '--')
+        axarr[1, 0].axvline(28, linestyle = '--')
         
         x = range(self.time_cutoff)
 
@@ -626,7 +629,7 @@ class Session:
     
         R, L = self.get_opto_trace_matrix(neuron_num)
         r, l = self.get_opto_trace_matrix(neuron_num)
-        title = "Neuron {}: Opto Raster and PSTH".format(neuron_num)
+        title = "Neuron {}: Opto".format(neuron_num)
 
                 
         r_trace, l_trace = np.matrix(r), np.matrix(l)
@@ -634,10 +637,9 @@ class Session:
         stack = np.vstack((r_trace, np.ones(self.time_cutoff), l_trace))
         stack = np.vstack((r_trace, l_trace))
 
-
-        
         R_av, L_av = np.mean(R, axis = 0), np.mean(L, axis = 0)
-        
+        vmax = max(cat([R_av, L_av]))
+
         left_err = np.std(L, axis=0) / np.sqrt(len(L)) 
         right_err = np.std(R, axis=0) / np.sqrt(len(R))
                     
@@ -647,6 +649,10 @@ class Session:
         
         axarr[1, 1].plot(L_av, 'r-')
         axarr[1, 1].plot(R_av, 'b-')
+        axarr[1, 1].axvline(7, linestyle = '--')
+        axarr[1, 1].axvline(13, linestyle = '--')
+        axarr[1, 1].axvline(28, linestyle = '--')
+        axarr[1, 1].hlines(y=vmax, xmin=13, xmax=18, linewidth=10, color='lightblue')
         
         x = range(self.time_cutoff)
 
