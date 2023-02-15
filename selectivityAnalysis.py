@@ -19,7 +19,7 @@ from matplotlib.pyplot import figure
 
 path = r'F:\data\BAYLORCW021\python\2023_01_26'
 
-l1 = session.Session(path, 1)
+l1 = session.Session(path, 4)
 # l1.crop_trials(160)
 
 # l2 = session.Session(layer_2, 2, behavior)
