@@ -14,7 +14,7 @@ import scipy.io as scio
 
 class Session:
     
-    def __init__(self, path, layer_num):
+    def __init__(self, path, layer_num, guang=False):
         
 
         layer_og = scio.loadmat(r'{}\layer_{}.mat'.format(path, layer_num))
@@ -25,7 +25,8 @@ class Session:
         self.layer_num = layer_num
         self.dff = layer['dff']
         self.num_neurons = layer['dff'][0,0].shape[0]
-        self.num_trials = layer['dff'].shape[1]
+
+        self.num_trials = layer['dff'].shape[1] 
         self.time_cutoff = 40
         self.recording_loc = 'l'
         
@@ -51,10 +52,16 @@ class Session:
 
         self.plot_mean_F()
         
-        # self.normalize_all_by_neural_baseline()
-        self.normalize_all_by_baseline()
-        self.normalize_z_score()        
+        if guang:
+            # Guang's data
+            self.num_neurons = layer['dff'][0,0].shape[1]  # Guang's data
 
+            for t in range(self.num_trials):
+                self.dff[0, t] = self.dff[0, t].T
+            
+        # self.normalize_all_by_neural_baseline()
+        # self.normalize_all_by_baseline()
+        # self.normalize_z_score()    
         
     def plot_mean_F(self):
         

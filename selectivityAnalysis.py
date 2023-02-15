@@ -17,9 +17,9 @@ from matplotlib.pyplot import figure
 
 # l1 = session.Session(path, 5)
 
-path = r'F:\data\BAYLORCW021\python\2023_01_27'
+path = r'F:\data\GC225\python\2022_02_14'
 
-l1 = session.Session(path, 5)
+l1 = session.Session(path, 1, guang=True)
 # l1.crop_trials(160)
 
 # l2 = session.Session(layer_2, 2, behavior)
@@ -64,7 +64,8 @@ for n in l1.get_delay_selective():
 
 #         # plt.show()
 #     # l1.plot_selectivity(n)
-        l1.plot_rasterPSTH_sidebyside(n)
+    l1.plot_raster_and_PSTH(n)
+        # l1.plot_rasterPSTH_sidebyside(n)
 
     
     
