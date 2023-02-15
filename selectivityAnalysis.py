@@ -17,7 +17,7 @@ from matplotlib.pyplot import figure
 
 # l1 = session.Session(path, 5)
 
-path = r'F:\data\BAYLORCW021\python\2023_01_26'
+path = r'F:\data\BAYLORCW021\python\2023_01_27'
 
 l1 = session.Session(path, 4)
 # l1.crop_trials(160)

@@ -63,7 +63,7 @@ class Session:
                 self.dff[0, t] = self.dff[0, t].T
         else:
             # self.normalize_all_by_neural_baseline()
-            # self.normalize_all_by_baseline()
+            self.normalize_all_by_baseline()
             self.normalize_z_score()    
         
     def plot_mean_F(self):
@@ -268,8 +268,9 @@ class Session:
         
         # Normalize all neurons by neural trial-averaged F0
         
-        for i in range(self.num_neurons):
-            
+        # for i in range(self.num_neurons):
+        for i in self.good_neurons:
+
             nmean = np.mean([self.dff[0, t][i, :7] for t in range(self.num_trials)]).copy()
             
             for j in range(self.num_trials):
@@ -284,6 +285,7 @@ class Session:
         # Normalize all neurons by individual trial-averaged F0
         
         for i in range(self.num_neurons):
+        # for i in self.good_neurons:
             
             # nmean = np.mean([self.dff[0, t][i, :7] for t in range(self.num_trials)]).copy()
             
