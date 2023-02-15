@@ -58,10 +58,10 @@ class Session:
 
             for t in range(self.num_trials):
                 self.dff[0, t] = self.dff[0, t].T
-            
-        # self.normalize_all_by_neural_baseline()
-        # self.normalize_all_by_baseline()
-        # self.normalize_z_score()    
+        else:
+            # self.normalize_all_by_neural_baseline()
+            # self.normalize_all_by_baseline()
+            self.normalize_z_score()    
         
     def plot_mean_F(self):
         
@@ -553,11 +553,10 @@ class Session:
             R, L = self.get_opto_trace_matrix(neuron_num)
             r, l = self.get_opto_trace_matrix(neuron_num)
             title = "Neuron {}: Opto Raster and PSTH".format(neuron_num)
-
-
-        vmin, vmax = min(cat(cat((r,l)))), max(cat(cat((r,l))))
         
         r_trace, l_trace = np.matrix(r), np.matrix(l)
+        
+        r_trace, l_trace = r_trace[:, 3:], l_trace[:, 3:]
         
         stack = np.vstack((r_trace, np.ones(self.time_cutoff), l_trace))
         stack = np.vstack((r_trace, l_trace))
@@ -568,6 +567,8 @@ class Session:
         
         left_err = np.std(L, axis=0) / np.sqrt(len(L)) 
         right_err = np.std(R, axis=0) / np.sqrt(len(R))
+        
+        R_av, L_av, left_err, right_err = R_av[3:], L_av[3:], left_err[3:], right_err[3:]
                     
 
         f, axarr = plt.subplots(2, sharex=True)
@@ -579,7 +580,8 @@ class Session:
         axarr[1].plot(R_av, 'b-')
         
         x = range(self.time_cutoff)
-
+        x = x[3:]
+        
         axarr[1].fill_between(x, L_av - left_err, 
                  L_av + left_err,
                  color=['#ffaeb1'])
