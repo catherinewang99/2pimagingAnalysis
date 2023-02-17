@@ -308,7 +308,7 @@ class Session:
         
         return None
 
-    def get_delay_selective(self):
+    def get_delay_selective(self, p = 0.01):
         selective_neurons = []
         # for neuron in range(self.num_neurons):
         for neuron in self.good_neurons:
@@ -316,10 +316,10 @@ class Session:
             left_ = [l[17:28] for l in left]
             right_ = [r[17:28] for r in right]
             tstat, p_val = stats.ttest_ind(np.mean(left_, axis = 1), np.mean(right_, axis = 1))
-            # p_measure = 0.01/self.num_neurons
-            p_measure = 0.01
-            # p_measure = 0.0001
-            if p_val < p_measure:
+            # p = 0.01/self.num_neurons
+            # p = 0.01
+            # p = 0.0001
+            if p_val < p:
                 selective_neurons += [neuron]
         print("Total delay selective neurons: ", len(selective_neurons))
         self.selective_neurons = selective_neurons

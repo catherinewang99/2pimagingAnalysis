@@ -17,9 +17,15 @@ from matplotlib.pyplot import figure
 
 # l1 = session.Session(path, 5)
 
-path = r'F:\data\BAYLORCW021\python\2023_01_27'
+path = r'F:\data\BAYLORCW021\python\2023_02_15'
 
-l1 = session.Session(path, 4)
+l1 = session.Session(path,3)
+
+
+
+path = r'F:\data\GC225\python\2022_02_14'
+
+gc = session.Session(path, 4, guang = True)
 # l1.crop_trials(160)
 
 # l2 = session.Session(layer_2, 2, behavior)
@@ -57,18 +63,27 @@ l1 = session.Session(path, 4)
 
 # Plot rasters for delay selective neurons:
 
-for n in l1.get_delay_selective():
+# for n in gc.get_delay_selective(p = 0.01/gc.num_neurons):
+# #     # if l1.filter_by_deltas(n):
+
+
+
+# #         # plt.show()
+# #     # l1.plot_selectivity(n)
+#     gc.plot_raster_and_PSTH(n)
+#         # l1.plot_rasterPSTH_sidebyside(n)
+
+    
+for n in l1.get_delay_selective(p = 0.01):
 #     # if l1.filter_by_deltas(n):
 
 
 
 #         # plt.show()
 #     # l1.plot_selectivity(n)
-    l1.plot_raster_and_PSTH(n)
-        # l1.plot_rasterPSTH_sidebyside(n)
+         l1.plot_rasterPSTH_sidebyside(n)
 
-    
-    
+        
     
     
     
