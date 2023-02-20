@@ -64,7 +64,7 @@ class Session:
         else:
             # self.normalize_all_by_neural_baseline()
             self.normalize_all_by_baseline()
-            self.normalize_z_score()    
+            # self.normalize_z_score()    
         
     def plot_mean_F(self):
         
