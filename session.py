@@ -65,7 +65,7 @@ class Session:
         else:
             # self.normalize_all_by_neural_baseline()
             self.normalize_all_by_baseline()
-            # self.normalize_z_score()    
+            self.normalize_z_score()    
         
     def plot_mean_F(self):
         
@@ -390,7 +390,7 @@ class Session:
     
         return avg_l > avg_r, test_l, test_r
 
-    def plot_selectivity(self, neuron_num):
+    def plot_selectivity(self, neuron_num, plot=True):
         
         R, L = self.get_trace_matrix(neuron_num)
         pref, l, r = self.screen_preference(neuron_num)
@@ -401,12 +401,15 @@ class Session:
             sel = np.mean(left_trace, axis = 0) - np.mean(right_trace, axis=0)
         else:
             sel = np.mean(right_trace, axis = 0) - np.mean(left_trace, axis=0)
-            
-        direction = 'Left' if pref else 'Right'
-        plt.plot(range(self.time_cutoff), sel, 'b-')
-        plt.axhline(y=0)
-        plt.title('Selectivity of neuron {}: {} selective'.format(neuron_num, direction))
-        plt.show()
+        
+        if plot:
+            direction = 'Left' if pref else 'Right'
+            plt.plot(range(self.time_cutoff), sel, 'b-')
+            plt.axhline(y=0)
+            plt.title('Selectivity of neuron {}: {} selective'.format(neuron_num, direction))
+            plt.show()
+        
+        return sel
     
     def contra_ipsi_pop(self):
         
