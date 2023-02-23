@@ -35,11 +35,6 @@ class Session:
         
         self.i_good_trials = cat(behavior['i_good_trials']) - 1 # zero indexing in python
         
-        if self.i_good_trials[-1] > self.num_trials:
-            
-            print('More Bpod trials than 2 photon trials')
-            self.i_good_trials = [i for i in self.i_good_trials if i < self.num_trials]
-        
         self.L_correct = cat(behavior['L_hit_tmp'])
         self.R_correct = cat(behavior['R_hit_tmp'])
         
@@ -53,6 +48,12 @@ class Session:
         
         self.stim_ON = cat(behavior['StimDur_tmp']) == 1
 
+        if self.i_good_trials[-1] > self.num_trials:
+            
+            print('More Bpod trials than 2 photon trials')
+            self.i_good_trials = [i for i in self.i_good_trials if i < self.num_trials]
+            self.stim_ON = self.stim_ON[:self.num_trials]
+        
         self.plot_mean_F()
         
         if guang:
