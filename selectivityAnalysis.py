@@ -23,9 +23,9 @@ l1 = session.Session(path, 6)
 
 
 
-path = r'F:\data\GC225\python\2022_02_14'
+# path = r'F:\data\GC225\python\2022_02_14'
 
-gc = session.Session(path, 4, guang = True)
+# gc = session.Session(path, 4, guang = True)
 # l1.crop_trials(160)
 
 # l2 = session.Session(layer_2, 2, behavior)
@@ -74,14 +74,14 @@ for i in range(10):
 #         # l1.plot_rasterPSTH_sidebyside(n)
 
     
-for n in l1.get_response_selective():
-#     # if l1.filter_by_deltas(n):
+# for n in l1.get_response_selective():
+# #     # if l1.filter_by_deltas(n):
 
 
 
-#         # plt.show()
-#     # l1.plot_selectivity(n)
-          l1.plot_rasterPSTH_sidebyside(n)
+# #         # plt.show()
+# #     # l1.plot_selectivity(n)
+#           l1.plot_rasterPSTH_sidebyside(n)
 
         
     

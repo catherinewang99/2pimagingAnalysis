@@ -14,7 +14,7 @@ import session
 from matplotlib.pyplot import figure
 from numpy import concatenate as cat
 
-path = r'F:\data\BAYLORCW021\python\2023_02_08'
+path = r'F:\data\BAYLORCW021\python\2023_02_15'
 
 ### TOTAL NUMBER OF NEURONS: ###
 
@@ -43,22 +43,66 @@ non_stim_dff = l1.dff[0][~l1.stim_ON]
 # plt.legend()
 
 ### Average dff during stim period
-delay_stim = cat([stim_dff[f][:, 13:28] for f in range(stim_dff.shape[0])])
-delay_nostim = cat([non_stim_dff[f][:, 13:28] for f in range(non_stim_dff.shape[0])])
-x=range(15)
-stim = np.mean(delay_stim, axis = 0)
-nostim = np.mean(delay_nostim, axis = 0)
+# delay_stim = cat([stim_dff[f][:, 13:28] for f in range(stim_dff.shape[0])])
+# delay_nostim = cat([non_stim_dff[f][:, 13:28] for f in range(non_stim_dff.shape[0])])
+# x=range(15)
+# stim = np.mean(delay_stim, axis = 0)
+# nostim = np.mean(delay_nostim, axis = 0)
 
-stim_err = np.std(delay_stim, axis=0) / np.sqrt(len(delay_stim)) 
-nostim_err = np.std(delay_nostim, axis=0) / np.sqrt(len(delay_nostim))
+# stim_err = np.std(delay_stim, axis=0) / np.sqrt(len(delay_stim)) 
+# nostim_err = np.std(delay_nostim, axis=0) / np.sqrt(len(delay_nostim))
 
-plt.plot(stim, 'r-')
-plt.plot(nostim, 'b-')
+# plt.plot(stim, 'r-')
+# plt.plot(nostim, 'b-')
 
             
-plt.fill_between(x, stim - stim_err, 
-          stim + stim_err,
-          color=['#ffaeb1'])
-plt.fill_between(x, nostim - nostim_err, 
-          nostim + nostim_err,
-          color=['#b4b2dc'])
+# plt.fill_between(x, stim - stim_err, 
+#           stim + stim_err,
+#           color=['#ffaeb1'])
+# plt.fill_between(x, nostim - nostim_err, 
+#           nostim + nostim_err,
+#           color=['#b4b2dc'])
+
+### Histogram of F values before finding F0
+
+n0 = [l1.dff[0,t][0, :] for t in range(l1.num_trials)]
+plt.hist(cat(n0), bins = 'auto')
+
+plt.axvline(x=np.quantile(cat(n0), q=0.10), color='r')
+
+f0 = [np.mean(l1.dff[0,t][0, :7]) for t in range(l1.num_trials)]
+f01 = [np.quantile(l1.dff[0,t][0, :], q=0.10) for t in range(l1.num_trials)]
+
+for f in f0:
+    # print(f)
+    plt.axvline(x=f, color='g', linewidth=0.2)
+    
+plt.show()
+
+plt.hist(cat(n0), bins = 'auto')
+
+for i in range(len(f0)):
+    
+    plt.axvline(x=f0[i], color='g', linewidth=0.2)
+    plt.axvline(x=f01[i], color='r', linewidth=0.2)
+
+
+plt.show()
+plt.hist(f0, alpha = 0.5, color = 'r')
+plt.hist(f01, alpha = 0.5, color='g')
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

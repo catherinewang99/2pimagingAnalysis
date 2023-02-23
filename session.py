@@ -65,6 +65,8 @@ class Session:
         else:
             # self.normalize_all_by_neural_baseline()
             self.normalize_all_by_baseline()
+            # self.normalize_by_histogram()
+            # self.normalize_all_by_histogram()
             self.normalize_z_score()    
         
     def plot_mean_F(self):
@@ -293,6 +295,35 @@ class Session:
             for j in range(self.num_trials):
                 
                 nmean = np.mean(self.dff[0, j][i, :7])
+                self.dff[0, j][i] = (self.dff[0, j][i] - nmean) / nmean
+        
+        return None
+
+    def normalize_by_histogram(self):
+        
+        # Normalize all neurons by individual trial-averaged F0
+        
+        for i in range(self.num_neurons):
+        # for i in self.good_neurons:
+            
+            nmean = np.quantile(cat([self.dff[0,t][i, :] for t in range(self.num_trials)]), q=0.10)
+            
+            for j in range(self.num_trials):
+                
+                self.dff[0, j][i] = (self.dff[0, j][i] - nmean) / nmean
+        
+        return None
+    
+    def normalize_all_by_histogram(self):
+        
+        # Normalize all neurons by individual trial-averaged F0
+        
+        for i in range(self.num_neurons):
+                        
+            for j in range(self.num_trials):
+               
+                nmean = np.quantile(self.dff[0, j][i, :], q=0.10)
+
                 self.dff[0, j][i] = (self.dff[0, j][i] - nmean) / nmean
         
         return None
