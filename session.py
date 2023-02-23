@@ -329,7 +329,10 @@ class Session:
         selective_neurons = []
         for neuron in range(self.num_neurons):
             right, left = self.get_trace_matrix(neuron)
-            tstat, p_val = stats.ttest_ind(np.mean(left, axis = 0)[29:38], np.mean(right, axis = 0)[29:38])
+            left_ = [l[29:38] for l in left]
+            right_ = [r[29:38] for r in right]
+            tstat, p_val = stats.ttest_ind(np.mean(left_, axis = 1), np.mean(right_, axis = 1))
+            # tstat, p_val = stats.ttest_ind(np.mean(left, axis = 0)[29:38], np.mean(right, axis = 0)[29:38])
             p_measure = 0.01/self.num_neurons
             # p_measure = 0.01
             # p_measure = 0.0001
@@ -343,7 +346,10 @@ class Session:
         selective_neurons = []
         for neuron in range(self.num_neurons):
             right, left = self.get_trace_matrix(neuron)
-            tstat, p_val = stats.ttest_ind(np.mean(left, axis = 0)[7:13], np.mean(right, axis = 0)[7:13])
+            left_ = [l[7:13] for l in left]
+            right_ = [r[7:13] for r in right]
+            tstat, p_val = stats.ttest_ind(np.mean(left_, axis = 1), np.mean(right_, axis = 1))
+            # tstat, p_val = stats.ttest_ind(np.mean(left, axis = 0)[7:13], np.mean(right, axis = 0)[7:13])
             p_measure = 0.01/self.num_neurons
             # p_measure = 0.01
             # p_measure = 0.0001

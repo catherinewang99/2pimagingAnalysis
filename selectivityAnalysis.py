@@ -19,7 +19,7 @@ from matplotlib.pyplot import figure
 
 path = r'F:\data\BAYLORCW021\python\2023_02_15'
 
-l1 = session.Session(path, 2)
+l1 = session.Session(path, 6)
 
 
 
@@ -74,14 +74,14 @@ for i in range(10):
 #         # l1.plot_rasterPSTH_sidebyside(n)
 
     
-# for n in l1.get_delay_selective(p = 0.01):
-# #     # if l1.filter_by_deltas(n):
+for n in l1.get_response_selective():
+#     # if l1.filter_by_deltas(n):
 
 
 
-# #         # plt.show()
-# #     # l1.plot_selectivity(n)
-#          l1.plot_rasterPSTH_sidebyside(n)
+#         # plt.show()
+#     # l1.plot_selectivity(n)
+          l1.plot_rasterPSTH_sidebyside(n)
 
         
     
