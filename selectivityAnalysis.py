@@ -74,7 +74,7 @@ l1 = session.Session(path, 6)
 #         # l1.plot_rasterPSTH_sidebyside(n)
 
     
-for n in l1.get_delay_selective(0.01):
+for n in l1.get_response_selective():
 #     # if l1.filter_by_deltas(n):
 
 

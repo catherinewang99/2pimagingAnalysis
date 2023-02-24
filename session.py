@@ -647,7 +647,7 @@ class Session:
         title = "Neuron {}: Control".format(neuron_num)
 
         
-        f, axarr = plt.subplots(2,2, sharex='col', sharey = 'row')
+        # f, axarr = plt.subplots(2,2, sharex='col', sharey = 'row')
         f, axarr = plt.subplots(2,2, sharex='col')
         
         r_trace, l_trace = np.matrix(r), np.matrix(l)
