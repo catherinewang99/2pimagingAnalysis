@@ -16,9 +16,9 @@ from numpy import concatenate as cat
 
 
 class Behavior():
-    def __init__(self, path):
+    def __init__(self, path, single=False):
         
-        # Path is the folder "/.../python/" that contains all the sessions and python compatible mat data
+        # If not single: path is the folder "/.../python/" that contains all the sessions and python compatible mat data
         
         total_sessions = 0
         
@@ -41,31 +41,53 @@ class Behavior():
         
         self.stim_ON = dict()
         
-        for i in os.listdir(path):
-            if os.path.isdir(os.path.join(path, i)):
-                for j in os.listdir(os.path.join(path, i)):
-                    if 'behavior' in j:
-                        behavior_old = scio.loadmat(os.path.join(path, i, j))
-                        behavior = behavior_old.copy()
-                        self.sessions += [i]
-                        self.i_good_trials[total_sessions] = cat(behavior['i_good_trials']) - 1 # zero indexing in python
+        if not single:
+        
+            for i in os.listdir(path):
+                if os.path.isdir(os.path.join(path, i)):
+                    for j in os.listdir(os.path.join(path, i)):
+                        if 'behavior' in j:
+                            behavior_old = scio.loadmat(os.path.join(path, i, j))
+                            behavior = behavior_old.copy()
+                            self.sessions += [i]
+                            self.i_good_trials[total_sessions] = cat(behavior['i_good_trials']) - 1 # zero indexing in python
+    
+                            self.L_correct[total_sessions] = cat(behavior['L_hit_tmp'])
+                            self.R_correct[total_sessions] = cat(behavior['R_hit_tmp'])
+                            
+                            self.early_lick[total_sessions] = cat(behavior['LickEarly_tmp'])
+                            
+                            self.L_wrong[total_sessions] = cat(behavior['L_miss_tmp'])
+                            self.R_wrong[total_sessions] = cat(behavior['R_miss_tmp'])
+                            
+                            self.L_ignore[total_sessions] = cat(behavior['L_ignore_tmp'])
+                            self.R_ignore[total_sessions] = cat(behavior['R_ignore_tmp'])
+                            
+                            self.stim_ON[total_sessions] = np.where(cat(behavior['StimDur_tmp']) == 1)
+                            total_sessions += 1
+    
+                            
+            self.total_sessions = total_sessions
+        
+        elif single:
+            behavior_old = scio.loadmat(os.path.join(path, 'behavior.mat'))
+            behavior = behavior_old.copy()
 
-                        self.L_correct[total_sessions] = cat(behavior['L_hit_tmp'])
-                        self.R_correct[total_sessions] = cat(behavior['R_hit_tmp'])
-                        
-                        self.early_lick[total_sessions] = cat(behavior['LickEarly_tmp'])
-                        
-                        self.L_wrong[total_sessions] = cat(behavior['L_miss_tmp'])
-                        self.R_wrong[total_sessions] = cat(behavior['R_miss_tmp'])
-                        
-                        self.L_ignore[total_sessions] = cat(behavior['L_ignore_tmp'])
-                        self.R_ignore[total_sessions] = cat(behavior['R_ignore_tmp'])
-                        
-                        self.stim_ON[total_sessions] = np.where(cat(behavior['StimDur_tmp']) == 1)
-                        total_sessions += 1
+            self.i_good_trials[total_sessions] = cat(behavior['i_good_trials']) - 1 # zero indexing in python
 
-                        
-        self.total_sessions = total_sessions
+            self.L_correct[total_sessions] = cat(behavior['L_hit_tmp'])
+            self.R_correct[total_sessions] = cat(behavior['R_hit_tmp'])
+            
+            self.early_lick[total_sessions] = cat(behavior['LickEarly_tmp'])
+            
+            self.L_wrong[total_sessions] = cat(behavior['L_miss_tmp'])
+            self.R_wrong[total_sessions] = cat(behavior['R_miss_tmp'])
+            
+            self.L_ignore[total_sessions] = cat(behavior['L_ignore_tmp'])
+            self.R_ignore[total_sessions] = cat(behavior['R_ignore_tmp'])
+            
+            self.stim_ON[total_sessions] = np.where(cat(behavior['StimDur_tmp']) == 1)
+            self.total_sessions += 1
 
     def plot_performance_over_sessions(self):
         
@@ -156,8 +178,9 @@ class Behavior():
         plt.title('Early lick rate over time')
         plt.xticks(range(self.total_sessions), self.sessions, rotation = 45)
         plt.show()
-            
-            
+    
+
+    
 
 
                         

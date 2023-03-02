@@ -11,14 +11,14 @@ for j = 1:length(lst)
         mkdir([path 'python\' strjoin(namesplit(2:4), '_')])
         
         % Get neural data
-        lyrs = size(obj.roi_plane,2);
-        for i = 1:lyrs
-            center = obj.roi_plane{1, i}.center;
-            dff = obj.roi_plane{1, i}.F;
-            skew = obj.roi_plane{1, i}.skew;
-
-            save([path, 'python\' strjoin(namesplit(2:4), '_') '\layer_', int2str(i), '.mat'], 'center', 'dff', 'skew')
-        end 
+%         lyrs = size(obj.roi_plane,2);
+%         for i = 1:lyrs
+%             center = obj.roi_plane{1, i}.center;
+%             dff = obj.roi_plane{1, i}.F;
+%             skew = obj.roi_plane{1, i}.skew;
+% 
+%             save([path, 'python\' strjoin(namesplit(2:4), '_') '\layer_', int2str(i), '.mat'], 'center', 'dff', 'skew')
+%         end 
 
         % Get behavioral data
         
