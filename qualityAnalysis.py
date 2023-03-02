@@ -14,7 +14,7 @@ import session
 from matplotlib.pyplot import figure
 from numpy import concatenate as cat
 
-path = r'F:\data\BAYLORCW021\python\2023_02_15'
+path = r'F:\data\BAYLORCW021\python\2023_02_13'
 
 ### TOTAL NUMBER OF NEURONS: ###
 
@@ -67,31 +67,37 @@ non_stim_dff = l1.dff[0][~l1.stim_ON]
 
 f, axarr = plt.subplots(1,2, sharex='col')
 
-# r_trace, l_trace = np.matrix(r), np.matrix(l)
-
-# stack = np.vstack((r_trace, np.ones(self.time_cutoff), l_trace))
-# stack = np.vstack((r_trace, l_trace))
-
-# time_aligned_dff = [stim_dff[i][:, 40] for i in range(50)]
-
-stack = np.array([])
+stack = np.zeros(40)
 
 for neuron in range(stim_dff[0].shape[0]):
     dfftrial = []
     for trial in range(stim_dff.shape[0]):
         dfftrial += [stim_dff[trial][neuron, :40]]
-    
-    stack = np.vstack()
+    # if not stack:
+    #     stack = np.mean(np.array(dfftrial), axis=0)
+    # else:
+    stack = np.vstack((stack, np.mean(np.array(dfftrial), axis=0)))
 
-R_av, L_av = np.mean(R, axis = 0), np.mean(L, axis = 0)
+axarr[0].matshow(stack[1:], cmap='gray', interpolation='nearest', aspect='auto')
+axarr[0].axis('off')
+axarr[0].set_title('Opto')
 
-left_err = np.std(L, axis=0) / np.sqrt(len(L)) 
-right_err = np.std(R, axis=0) / np.sqrt(len(R))
-            
+stack = np.zeros(40)
 
-axarr[0, 0].matshow(stack, cmap='gray', interpolation='nearest', aspect='auto')
-axarr[0, 0].axis('off')
+for neuron in range(non_stim_dff[0].shape[0]):
+    dfftrial = []
+    for trial in range(non_stim_dff.shape[0]):
+        dfftrial += [non_stim_dff[trial][neuron, :40]]
+    # if not stack:
+    #     stack = np.mean(np.array(dfftrial), axis=0)
+    # else:
+    stack = np.vstack((stack, np.mean(np.array(dfftrial), axis=0)))
 
+axarr[1].matshow(stack[1:], cmap='gray', interpolation='nearest', aspect='auto')
+axarr[1].axis('off')
+axarr[1].set_title('Control')
+
+plt.show()
 
 ### Histogram of F values before finding F0
 
