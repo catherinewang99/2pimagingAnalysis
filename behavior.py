@@ -213,15 +213,15 @@ class Behavior():
         Ropto += [np.sum([self.R_correct[i][t] for t in opto]) / 
                  np.sum([(self.R_correct[i][t] + self.R_wrong[i][t] + self.R_ignore[i][t]) for t in opto])]
         
-        plt.plot(cat((Lreg, Lopto)), 'r-')
+        plt.plot(cat((Lreg, Lopto)), 'r-', marker='o')
         # plt.plot(Lopto, 'r--')
         
-        plt.plot(cat((Rreg, Ropto)), 'b-')
+        plt.plot(cat((Rreg, Ropto)), 'b-', marker='o')
         # plt.plot(Ropto, 'b--')
         
-        plt.title('Late delay optogenetic effect')
-        plt.xticks([0, 1], ['Control', 'Opto'])
-        plt.ylim(0.2, 1)
+        plt.title('Late delay optogenetic effect on Right ALM')
+        plt.xticks([0, 1], ['Control', 'Late Delay Epoch'])
+        plt.ylim(0, 1)
         plt.show()       
         
     

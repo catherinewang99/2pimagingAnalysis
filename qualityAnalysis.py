@@ -63,33 +63,37 @@ non_stim_dff = l1.dff[0][~l1.stim_ON]
 #           nostim + nostim_err,
 #           color=['#b4b2dc'])
 
+### Heat map of neurons during stim vs. control
+
+
+
 ### Histogram of F values before finding F0
 
-n0 = [l1.dff[0,t][0, :] for t in range(l1.num_trials)]
-plt.hist(cat(n0), bins = 'auto')
+# n0 = [l1.dff[0,t][0, :] for t in range(l1.num_trials)]
+# plt.hist(cat(n0), bins = 'auto')
 
-plt.axvline(x=np.quantile(cat(n0), q=0.10), color='r')
+# plt.axvline(x=np.quantile(cat(n0), q=0.10), color='r')
 
-f0 = [np.mean(l1.dff[0,t][0, :7]) for t in range(l1.num_trials)]
-f01 = [np.quantile(l1.dff[0,t][0, :], q=0.10) for t in range(l1.num_trials)]
+# f0 = [np.mean(l1.dff[0,t][0, :7]) for t in range(l1.num_trials)]
+# f01 = [np.quantile(l1.dff[0,t][0, :], q=0.10) for t in range(l1.num_trials)]
 
-for f in f0:
-    # print(f)
-    plt.axvline(x=f, color='g', linewidth=0.2)
+# for f in f0:
+#     # print(f)
+#     plt.axvline(x=f, color='g', linewidth=0.2)
     
-plt.show()
+# plt.show()
 
-plt.hist(cat(n0), bins = 'auto')
+# plt.hist(cat(n0), bins = 'auto')
 
-for i in range(len(f0)):
+# for i in range(len(f0)):
     
-    plt.axvline(x=f0[i], color='g', linewidth=0.2)
-    plt.axvline(x=f01[i], color='r', linewidth=0.2)
+#     plt.axvline(x=f0[i], color='g', linewidth=0.2)
+#     plt.axvline(x=f01[i], color='r', linewidth=0.2)
 
 
-plt.show()
-plt.hist(f0, alpha = 0.5, color = 'r')
-plt.hist(f01, alpha = 0.5, color='g')
+# plt.show()
+# plt.hist(f0, alpha = 0.5, color = 'r')
+# plt.hist(f01, alpha = 0.5, color='g')
 
 
 
