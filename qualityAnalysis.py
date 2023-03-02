@@ -65,6 +65,32 @@ non_stim_dff = l1.dff[0][~l1.stim_ON]
 
 ### Heat map of neurons during stim vs. control
 
+f, axarr = plt.subplots(1,2, sharex='col')
+
+# r_trace, l_trace = np.matrix(r), np.matrix(l)
+
+# stack = np.vstack((r_trace, np.ones(self.time_cutoff), l_trace))
+# stack = np.vstack((r_trace, l_trace))
+
+# time_aligned_dff = [stim_dff[i][:, 40] for i in range(50)]
+
+stack = np.array([])
+
+for neuron in range(stim_dff[0].shape[0]):
+    dfftrial = []
+    for trial in range(stim_dff.shape[0]):
+        dfftrial += [stim_dff[trial][neuron, :40]]
+    
+    stack = np.vstack()
+
+R_av, L_av = np.mean(R, axis = 0), np.mean(L, axis = 0)
+
+left_err = np.std(L, axis=0) / np.sqrt(len(L)) 
+right_err = np.std(R, axis=0) / np.sqrt(len(R))
+            
+
+axarr[0, 0].matshow(stack, cmap='gray', interpolation='nearest', aspect='auto')
+axarr[0, 0].axis('off')
 
 
 ### Histogram of F values before finding F0
