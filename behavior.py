@@ -87,7 +87,7 @@ class Behavior():
             self.R_ignore[total_sessions] = cat(behavior['R_ignore_tmp'])
             
             self.stim_ON[total_sessions] = np.where(cat(behavior['StimDur_tmp']) == 1)
-            self.total_sessions += 1
+            self.total_sessions = 1
 
     def plot_performance_over_sessions(self):
         
@@ -179,7 +179,51 @@ class Behavior():
         plt.xticks(range(self.total_sessions), self.sessions, rotation = 45)
         plt.show()
     
+    def plot_single_session(self):
+         
+        Lreg = []
+        Rreg = []
+        
+        Lopto = []
+        Ropto = []
+         
+        i=0            
+        
+        igood = self.i_good_trials[i]
+        opto = self.stim_ON[i][0]
+        igood_opto = np.setdiff1d(igood, opto)
+        
+        # Filter out early lick
+        opto = [o for o in opto if not self.early_lick[i][o]]
+        igood_opto = [j for j in igood_opto if not self.early_lick[i][j]]
 
+        # if not only_opto:
+        Lreg += [np.sum([self.L_correct[i][t] for t in igood_opto]) / 
+                 np.sum([(self.L_correct[i][t] + self.L_wrong[i][t] + self.L_ignore[i][t]) for t in igood_opto])]
+
+        Rreg += [np.sum([self.R_correct[i][t] for t in igood_opto]) / 
+                 np.sum([(self.R_correct[i][t] + self.R_wrong[i][t] + self.R_ignore[i][t]) for t in igood_opto])]
+            
+        # if only_opto:
+        # opto_p += [np.sum([(self.L_correct[i][t] + self.R_correct[i][t]) for t in opto]) / len(opto)]
+        
+        Lopto += [np.sum([self.L_correct[i][t] for t in opto]) / 
+                 np.sum([(self.L_correct[i][t] + self.L_wrong[i][t] + self.L_ignore[i][t]) for t in opto])]
+        
+        Ropto += [np.sum([self.R_correct[i][t] for t in opto]) / 
+                 np.sum([(self.R_correct[i][t] + self.R_wrong[i][t] + self.R_ignore[i][t]) for t in opto])]
+        
+        plt.plot(cat((Lreg, Lopto)), 'r-')
+        # plt.plot(Lopto, 'r--')
+        
+        plt.plot(cat((Rreg, Ropto)), 'b-')
+        # plt.plot(Ropto, 'b--')
+        
+        plt.title('Late delay optogenetic effect')
+        plt.xticks([0, 1], ['Control', 'Opto'])
+        plt.ylim(0.2, 1)
+        plt.show()       
+        
     
 
 
