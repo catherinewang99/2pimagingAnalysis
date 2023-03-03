@@ -13,8 +13,9 @@ import matplotlib.pyplot as plt
 import session
 from matplotlib.pyplot import figure
 from numpy import concatenate as cat
+from sklearn.preprocessing import normalize
 
-path = r'F:\data\BAYLORCW021\python\2023_02_13'
+path = r'F:\data\BAYLORCW021\python\2023_02_15'
 
 ### TOTAL NUMBER OF NEURONS: ###
 
@@ -73,14 +74,14 @@ for neuron in range(stim_dff[0].shape[0]):
     dfftrial = []
     for trial in range(stim_dff.shape[0]):
         dfftrial += [stim_dff[trial][neuron, :40]]
-    # if not stack:
-    #     stack = np.mean(np.array(dfftrial), axis=0)
-    # else:
+
     stack = np.vstack((stack, np.mean(np.array(dfftrial), axis=0)))
 
-axarr[0].matshow(stack[1:], cmap='gray', interpolation='nearest', aspect='auto')
+stack = normalize(stack[1:])
+axarr[0].matshow(stack, cmap='gray', interpolation='nearest', aspect='auto')
 axarr[0].axis('off')
 axarr[0].set_title('Opto')
+axarr[0].axvline(x=13, c='b')
 
 stack = np.zeros(40)
 
@@ -88,12 +89,12 @@ for neuron in range(non_stim_dff[0].shape[0]):
     dfftrial = []
     for trial in range(non_stim_dff.shape[0]):
         dfftrial += [non_stim_dff[trial][neuron, :40]]
-    # if not stack:
-    #     stack = np.mean(np.array(dfftrial), axis=0)
-    # else:
+
     stack = np.vstack((stack, np.mean(np.array(dfftrial), axis=0)))
 
-axarr[1].matshow(stack[1:], cmap='gray', interpolation='nearest', aspect='auto')
+stack = normalize(stack[1:])
+
+axarr[1].matshow(stack, cmap='gray', interpolation='nearest', aspect='auto')
 axarr[1].axis('off')
 axarr[1].set_title('Control')
 

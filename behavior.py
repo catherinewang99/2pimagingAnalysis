@@ -210,8 +210,12 @@ class Behavior():
         Lopto += [np.sum([self.L_correct[i][t] for t in opto]) / 
                  np.sum([(self.L_correct[i][t] + self.L_wrong[i][t] + self.L_ignore[i][t]) for t in opto])]
         
+        L_opto_num = len([(self.L_correct[i][t] + self.L_wrong[i][t] + self.L_ignore[i][t]) for t in opto])
+        
         Ropto += [np.sum([self.R_correct[i][t] for t in opto]) / 
                  np.sum([(self.R_correct[i][t] + self.R_wrong[i][t] + self.R_ignore[i][t]) for t in opto])]
+        
+        R_opto_num =len([(self.R_correct[i][t] + self.R_wrong[i][t] + self.R_ignore[i][t]) for t in opto])
         
         plt.plot(cat((Lreg, Lopto)), 'r-', marker='o')
         # plt.plot(Lopto, 'r--')
@@ -224,6 +228,7 @@ class Behavior():
         plt.ylim(0, 1)
         plt.show()       
         
+        return L_opto_num, R_opto_num
     
 
 
