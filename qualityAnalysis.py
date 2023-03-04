@@ -66,7 +66,7 @@ non_stim_dff = l1.dff[0][~l1.stim_ON]
 
 ### Heat map of neurons during stim vs. control
 
-f, axarr = plt.subplots(1,2, sharex='col')
+f, axarr = plt.subplots(2,2, sharex='col')
 
 stack = np.zeros(40)
 
@@ -78,10 +78,13 @@ for neuron in range(stim_dff[0].shape[0]):
     stack = np.vstack((stack, np.mean(np.array(dfftrial), axis=0)))
 
 stack = normalize(stack[1:])
-axarr[0].matshow(stack, cmap='gray', interpolation='nearest', aspect='auto')
-axarr[0].axis('off')
-axarr[0].set_title('Opto')
-axarr[0].axvline(x=13, c='b')
+axarr[0,0].matshow(stack, cmap='gray', interpolation='nearest', aspect='auto')
+axarr[0,0].axis('off')
+axarr[0,0].set_title('Opto')
+axarr[0,0].axvline(x=13, c='b', linewidth = 0.5)
+axarr[1,0].plot(np.mean(stack, axis = 0))
+axarr[1,0].set_ylim(top=0.2)
+axarr[1,0].axvline(x=13, c='b', linewidth = 0.5)
 
 stack = np.zeros(40)
 
@@ -94,12 +97,14 @@ for neuron in range(non_stim_dff[0].shape[0]):
 
 stack = normalize(stack[1:])
 
-axarr[1].matshow(stack, cmap='gray', interpolation='nearest', aspect='auto')
-axarr[1].axis('off')
-axarr[1].set_title('Control')
+axarr[0,1].matshow(stack, cmap='gray', interpolation='nearest', aspect='auto')
+axarr[0,1].axis('off')
+axarr[0,1].set_title('Control')
+
+axarr[1,1].plot(np.mean(stack, axis = 0))
+axarr[1,1].set_ylim(top=0.2)
 
 plt.show()
-
 ### Histogram of F values before finding F0
 
 # n0 = [l1.dff[0,t][0, :] for t in range(l1.num_trials)]

@@ -11,6 +11,8 @@ import matplotlib.pyplot as plt
 from scipy import stats
 import copy
 import scipy.io as scio
+from sklearn.preprocessing import normalize
+
 
 class Session:
     
@@ -331,12 +333,15 @@ class Session:
     def normalize_z_score(self):
         
         # Normalize by mean of all neurons in layer
-        overall_mean = np.mean(cat([cat(i) for i in self.dff[0]])).copy()
-        std = np.std(cat([cat(i) for i in self.dff[0]])).copy()
         
-        for i in range(self.num_trials):
-            for j in range(self.num_neurons):
-                self.dff[0, i][j] = (self.dff[0, i][j] - overall_mean) / std
+        # overall_mean = np.mean(cat([cat(i) for i in self.dff[0]])).copy()
+        # std = np.std(cat([cat(i) for i in self.dff[0]])).copy()
+        
+        # for i in range(self.num_trials):
+        #     for j in range(self.num_neurons):
+        #         self.dff[0, i][j] = (self.dff[0, i][j] - overall_mean) / std
+                
+        self.dff = normalize(self.dff)
         
         return None
 
