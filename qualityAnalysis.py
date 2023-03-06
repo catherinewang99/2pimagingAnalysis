@@ -15,7 +15,7 @@ from matplotlib.pyplot import figure
 from numpy import concatenate as cat
 from sklearn.preprocessing import normalize
 
-path = r'F:\data\BAYLORCW021\python\2023_02_15'
+path = r'F:\data\BAYLORCW021\python\2023_02_13'
 
 ### TOTAL NUMBER OF NEURONS: ###
 
