@@ -15,7 +15,7 @@ from matplotlib.pyplot import figure
 from numpy import concatenate as cat
 from sklearn.preprocessing import normalize
 
-path = r'F:\data\BAYLORCW022\python\2023_03_06'
+path = r'F:\data\BAYLORCW021\python\2023_03_20'
 
 ### TOTAL NUMBER OF NEURONS: ###
 
@@ -29,7 +29,7 @@ path = r'F:\data\BAYLORCW022\python\2023_03_06'
 
 ### EFFECT OF OPTO INHIBITION ###
 
-l1 = session.Session(path, 5)
+l1 = session.Session(path, 3)
 
 stim_dff = l1.dff[0][l1.stim_ON]
 non_stim_dff = l1.dff[0][~l1.stim_ON]

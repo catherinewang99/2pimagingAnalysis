@@ -26,7 +26,7 @@ m_sam = []
 
 for i in range(5):
     
-    path = r'F:\data\BAYLORCW021\python\2023_02_15'
+    path = r'F:\data\BAYLORCW021\python\2023_03_20'
     l1 = session.Session(path, i+1)
     
     path = r'F:\data\GC225\python\2022_02_14'

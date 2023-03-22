@@ -17,9 +17,9 @@ from matplotlib.pyplot import figure
 
 # l1 = session.Session(path, 5)
 
-path = r'F:\data\BAYLORCW022\python\2023_03_06'
+path = r'F:\data\BAYLORCW021\python\2023_03_20'
 
-l1 = session.Session(path, 5)
+l1 = session.Session(path, 6)
 
 
 
