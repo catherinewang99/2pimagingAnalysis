@@ -29,7 +29,7 @@ class Session:
         self.num_neurons = layer['dff'][0,0].shape[0]
 
         self.num_trials = layer['dff'].shape[1] 
-        self.time_cutoff = 40
+        self.time_cutoff = 40 if 'CW024' not in path else 70
         self.recording_loc = 'l'
         self.skew = layer['skew']
         
