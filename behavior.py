@@ -230,6 +230,9 @@ class Behavior():
         
         return L_opto_num, R_opto_num
     
+    def plot_licks_single_sess(self):
+        
+        return None
 
 
                         
