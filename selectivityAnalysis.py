@@ -17,9 +17,9 @@ from matplotlib.pyplot import figure
 
 # l1 = session.Session(path, 5)
 
-path = r'F:\data\BAYLORCW024\python\2023_03_22'
+path = r'F:\data\BAYLORCW021\python\2023_04_06'
 
-l1 = session.Session(path, 5)
+l1 = session.Session(path, 6)
 
 
 
@@ -58,8 +58,8 @@ l1 = session.Session(path, 5)
 # Get population average plots
 # l1.plot_contra_ipsi_pop()
 
-for i in range(10):
-    l1.plot_rasterPSTH_sidebyside(i)
+# for i in range(10):
+#     l1.plot_rasterPSTH_sidebyside(i)
 
 # Plot rasters for delay selective neurons:
 
