@@ -92,6 +92,9 @@ for j = 1:length(lst)
                 StimDur_tmp(i_solo_trial,:) = 0;
                 StimOnTime_tmp(i_solo_trial,:) = 0;
             end
+
+
+            % Lick information
                         
         end
 
