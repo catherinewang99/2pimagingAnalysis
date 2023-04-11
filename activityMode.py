@@ -20,6 +20,66 @@ class Mode(Session):
         # Inherit all parameters and functions of session.py
         super().__init__(self, path, layer_num) 
         
+        for n in range(self.num_neurons):
+            r, l = self.get_trace_matrix(n)
+            rerr, lerr = self.get_trace_matrix_error(n)
+            if n == 0:
+                self.PSTH_r_correct = np.reshape(cat(r), (1,-1))
+                self.PSTH_l_correct = np.reshape(cat(l), (1,-1))
+                self.PSTH_r_error = np.reshape(cat(r_err), (1,-1))
+                self.PSTH_l_error = np.reshape(cat(l_err), (1,-1))
+            else:
+                self.PSTH_r_correct = np.concatenate((self.PSTH_r_correct, np.reshape(cat(r), (1,-1))), axis = 0)
+                self.PSTH_l_correct = np.concatenate((self.PSTH_l_correct, np.reshape(cat(l), (1,-1))), axis = 0)
+                self.PSTH_r_error = np.concatenate((self.PSTH_r_error, np.reshape(cat(r_err), (1,-1))), axis = 0)
+                self.PSTH_l_error = np.concatenate((self.PSTH_l_error, np.reshape(cat(l_err), (1,-1))), axis = 0)              
+        
+        self.T_cue_aligned_sel
+    
+    def lick_incorrect_direction(self, direction):
+        ## Returns list of indices of lick left correct trials
+        
+        # TODO: Check what error trials mean in this case
+        if direction == 'l':
+            idx = np.where(self.L_wrong == 1)[0]
+        elif direction == 'r':
+            idx = np.where(self.R_wrong == 1)[0]
+        else:
+            raise Exception("Sorry, only 'r' or 'l' input accepted!")
+            
+        early_idx = np.where(self.early_lick == 1)[0]
+        
+        idx = [i for i in idx if i not in early_idx]
+        
+        idx = [i for i in idx if i in self.i_good_trials]
+        
+        return idx
+    
+    def get_trace_matrix_error(self, neuron_num):
+        
+        ## Returns matrix of all trial firing rates of a single neuron for lick left
+        ## and lick right trials. Firing rates are normalized with individual trial
+        ## baselines as well as overall firing rate z-score normalized.
+        
+        right_trials = self.lick_incorrect_direction('r')
+        left_trials = self.lick_incorrect_direction('l')
+        
+        # Filter out opto trials
+        right_trials = [r for r in right_trials if not self.stim_ON[r]]
+        left_trials = [r for r in left_trials if not self.stim_ON[r]]
+        
+        R_av_dff = []
+        for i in right_trials:
+            # R_av_dff += [self.normalize_by_baseline(self.dff[0, i][neuron_num, :self.time_cutoff])]
+            R_av_dff += [self.dff[0, i][neuron_num, :self.time_cutoff]]
+
+        L_av_dff = []
+        for i in left_trials:
+            # L_av_dff += [self.normalize_by_baseline(self.dff[0, i][neuron_num, :self.time_cutoff])]
+            L_av_dff += [self.dff[0, i][neuron_num, :self.time_cutoff]]
+            
+            
+        return R_av_dff, L_av_dff
     
     def basis_col(self, A):
         # Bases
