@@ -22,7 +22,7 @@ class Mode(Session):
         
         for n in range(self.num_neurons):
             r, l = self.get_trace_matrix(n)
-            rerr, lerr = self.get_trace_matrix_error(n)
+            r_err, l_err = self.get_trace_matrix_error(n)
             if n == 0:
                 self.PSTH_r_correct = np.reshape(cat(r), (1,-1))
                 self.PSTH_l_correct = np.reshape(cat(l), (1,-1))
