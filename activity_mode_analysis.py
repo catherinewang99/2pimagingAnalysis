@@ -16,19 +16,28 @@ from matplotlib.pyplot import figure
 import numpy as np
 
 # from neuralFuncs import plot_average_PSTH
-path = r'F:\data\BAYLORCW021\python\2023_01_25'
+# path = r'F:\data\BAYLORCW021\python\2023_01_25'
 
-l1 = session.Session(path, 5)
+# l1 = session.Session(path, 5)
 
-# path = r'F:\data\BAYLORCW021\python\2023_04_06'
+path = r'F:\data\BAYLORCW021\python\2023_04_06'
 
-# l1 = Mode(path, 3)
+l1 = Mode(path, 3)
 
 
-# orthonormal_basis, var_allDim = l1.func_compute_activity_modes_DRT(l1.PSTH_r_correct, 
-#                                                                     l1.PSTH_l_correct, 
-#                                                                     l1.PSTH_r_error, 
-#                                                                     l1.PSTH_l_error)
+orthonormal_basis, var_allDim = l1.func_compute_activity_modes_DRT(l1.PSTH_r_correct, 
+                                                                    l1.PSTH_l_correct, 
+                                                                    l1.PSTH_r_error, 
+                                                                    l1.PSTH_l_error)
 
+activityRL = np.concatenate((l1.PSTH_r_correct, l1.PSTH_l_correct), axis=1)
+activityRL = activityRL - np.mean(activityRL, axis=1, keepdims=True) # remove?
+u, s, v = np.linalg.svd(activityRL.T)
+proj_allDim = activityRL.T @ v
+
+
+# t_sample, t_delay = 7, 13
 # wt = (l1.PSTH_r_correct + l1.PSTH_r_error) / 2 - (l1.PSTH_l_correct + l1.PSTH_l_error) / 2
 
+# i_t = np.where((l1.T_cue_aligned_sel > t_sample) & (l1.T_cue_aligned_sel < t_delay))[0]
+# CD_stim_mode = np.mean(wt[:, i_t], axis=1)

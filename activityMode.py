@@ -13,6 +13,7 @@ import scipy.io as scio
 from sklearn.preprocessing import normalize
 from session import Session
 import sympy
+import time
 
 class Mode(Session):
     
@@ -23,16 +24,18 @@ class Mode(Session):
         for n in range(self.num_neurons):
             r, l = self.get_trace_matrix(n)
             r_err, l_err = self.get_trace_matrix_error(n)
+            r, l, r_err, l_err = np.mean(np.array(r), axis = 0), np.mean(np.array(l), axis = 0), np.mean(np.array(r_err), axis = 0), np.mean(np.array(l_err), axis = 0)
+
             if n == 0:
-                self.PSTH_r_correct = np.reshape(cat(r), (1,-1))
-                self.PSTH_l_correct = np.reshape(cat(l), (1,-1))
-                self.PSTH_r_error = np.reshape(cat(r_err), (1,-1))
-                self.PSTH_l_error = np.reshape(cat(l_err), (1,-1))
+                self.PSTH_r_correct = np.reshape(r, (1,-1))
+                self.PSTH_l_correct = np.reshape(l, (1,-1))
+                self.PSTH_r_error = np.reshape(r_err, (1,-1))
+                self.PSTH_l_error = np.reshape(l_err, (1,-1))
             else:
-                self.PSTH_r_correct = np.concatenate((self.PSTH_r_correct, np.reshape(cat(r), (1,-1))), axis = 0)
-                self.PSTH_l_correct = np.concatenate((self.PSTH_l_correct, np.reshape(cat(l), (1,-1))), axis = 0)
-                self.PSTH_r_error = np.concatenate((self.PSTH_r_error, np.reshape(cat(r_err), (1,-1))), axis = 0)
-                self.PSTH_l_error = np.concatenate((self.PSTH_l_error, np.reshape(cat(l_err), (1,-1))), axis = 0)              
+                self.PSTH_r_correct = np.concatenate((self.PSTH_r_correct, np.reshape(r, (1,-1))), axis = 0)
+                self.PSTH_l_correct = np.concatenate((self.PSTH_l_correct, np.reshape(l, (1,-1))), axis = 0)
+                self.PSTH_r_error = np.concatenate((self.PSTH_r_error, np.reshape(r_err, (1,-1))), axis = 0)
+                self.PSTH_l_error = np.concatenate((self.PSTH_l_error, np.reshape(l_err, (1,-1))), axis = 0)              
         
         self.T_cue_aligned_sel = np.arange(cutoff)
         self.time_epochs = time_epochs
@@ -109,7 +112,7 @@ class Mode(Session):
             
         return R_av_dff, L_av_dff
     
-    def basis_col(A):
+    def basis_col(self, A):
         # Bases
     
         # basis_col(A) produces a basis for the subspace of Eucldiean n-space 
@@ -162,7 +165,7 @@ class Mode(Session):
     
         return basis
     
-    def is_orthogonal_set(A):
+    def is_orthogonal_set(self, A):
         """
         Orthogonal Sets
     
@@ -187,7 +190,7 @@ class Mode(Session):
             else:
                 return 0
     
-    def is_orthonormal_set(A):
+    def is_orthonormal_set(self, A):
         """
         Orthonormal Sets
     
@@ -214,7 +217,7 @@ class Mode(Session):
             else:
                 return 0
         else:
-            if is_orthogonal_set(A) == 1:
+            if self.is_orthogonal_set(A) == 1:
                 length_counter = 0
                 for i in range(n):
                     if np.abs(np.linalg.norm(A[:, i]) - 1) <= tolerance:
@@ -230,7 +233,7 @@ class Mode(Session):
 
 
         
-    def Gram_Schmidt_process(A):
+    def Gram_Schmidt_process(self, A):
         """
         Gram-Schmidt Process
         
@@ -259,13 +262,13 @@ class Mode(Session):
         else:
             flag = 0
     
-            if is_orthonormal_set(A) == 1:
-                orthonormal_basis = A
+            if self.is_orthonormal_set(A) == 1:
+                self.orthonormal_basis = A
                 flag = 1
     
             if flag == 0:
                 if np.linalg.matrix_rank(A) != n:
-                    A = basis_col(A)
+                    A = self.basis_col(A)
                 
                 matrix_size = np.shape(A)
                 m = matrix_size[0]
@@ -351,7 +354,7 @@ class Mode(Session):
         
         i_t1 = np.where((T_cue_aligned_sel > (t_response-1)) & (T_cue_aligned_sel < t_response))[0]
         i_t2 = np.where((T_cue_aligned_sel > t_response) & (T_cue_aligned_sel < (t_response+1)))[0]
-        GoDirction_mode = np.mean(wt[:, i_t2], axis=1) - np.mean(wt[:, i_t1], axis=1)
+        GoDirection_mode = np.mean(wt[:, i_t2], axis=1) - np.mean(wt[:, i_t1], axis=1)
 
         
         CD_stim_mode = CD_stim_mode / np.linalg.norm(CD_stim_mode)
@@ -361,15 +364,29 @@ class Mode(Session):
         CD_delay_mode = CD_delay_mode / np.linalg.norm(CD_delay_mode)
         CD_go_mode = CD_go_mode / np.linalg.norm(CD_go_mode)
         Ramping_mode = Ramping_mode / np.linalg.norm(Ramping_mode)
-        GoDirection_mode = GoDirection_mode / np.linalg.norm(GoDirction_mode)
+        GoDirection_mode = GoDirection_mode / np.linalg.norm(GoDirection_mode)
         
-        orthonormal_basis = Gram_Schmidt_process(np.concatenate((CD_stim_mode, CD_choice_mode, CD_outcome_mode, CD_sample_mode, CD_delay_mode, CD_go_mode, Ramping_mode, GoDirction_mode, v), axis=1))
+        # Reshape all activity modes
+        
+        CD_stim_mode = np.reshape(CD_stim_mode, (-1, 1)) 
+        CD_choice_mode = np.reshape(CD_choice_mode, (-1, 1)) 
+        CD_outcome_mode = np.reshape(CD_outcome_mode, (-1, 1))
+        CD_sample_mode = np.reshape(CD_sample_mode, (-1, 1)) 
+        CD_delay_mode = np.reshape(CD_delay_mode, (-1, 1)) 
+        CD_go_mode = np.reshape(CD_go_mode, (-1, 1)) 
+        Ramping_mode = np.reshape(Ramping_mode, (-1, 1)) 
+        GoDirection_mode = np.reshape(GoDirection_mode, (-1, 1)) 
+        
+        start_time = time.time()
+        input_ = np.concatenate((CD_stim_mode, CD_choice_mode, CD_outcome_mode, CD_sample_mode, CD_delay_mode, CD_go_mode, Ramping_mode, GoDirection_mode, v), axis=1)
+        orthonormal_basis = self.Gram_Schmidt_process(input_)
         
         proj_allDim = np.dot(activityRL, orthonormal_basis)
         var_allDim = np.sum(proj_allDim**2, axis=0)
         
         var_allDim = var_allDim / np.sum(var_allDim)
         
+        print("Runtime: {} secs".format(time.time() - start_time))
         return orthonormal_basis, var_allDim
 
     
