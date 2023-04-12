@@ -379,9 +379,10 @@ class Mode(Session):
         
         start_time = time.time()
         input_ = np.concatenate((CD_stim_mode, CD_choice_mode, CD_outcome_mode, CD_sample_mode, CD_delay_mode, CD_go_mode, Ramping_mode, GoDirection_mode, v), axis=1)
-        orthonormal_basis = self.Gram_Schmidt_process(input_)
+        # orthonormal_basis = self.Gram_Schmidt_process(input_)
+        orthonormal_basis, _ = np.linalg.qr(input_)  # lmao
         
-        proj_allDim = np.dot(activityRL, orthonormal_basis)
+        proj_allDim = np.dot(activityRL.T, orthonormal_basis)
         var_allDim = np.sum(proj_allDim**2, axis=0)
         
         var_allDim = var_allDim / np.sum(var_allDim)
