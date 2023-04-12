@@ -29,7 +29,9 @@ class Session:
         self.num_neurons = layer['dff'][0,0].shape[0]
 
         self.num_trials = layer['dff'].shape[1] 
-        self.time_cutoff = 40 if 'CW024' not in path else 70
+        
+        self.time_cutoff = self.determine_cutoff()
+        
         self.recording_loc = 'l'
         self.skew = layer['skew']
         
@@ -71,6 +73,20 @@ class Session:
             # self.normalize_all_by_histogram()
             self.normalize_z_score()    
         
+    def determine_cutoff(self):
+        
+        cutoff = 1e10
+        
+        for t in range(self.num_trials):
+            
+            if self.dff[0, t].shape[1] < cutoff:
+                
+                cutoff = self.dff[0, t].shape[1]
+        
+        print("Minimum cutoff is {}".format(cutoff))
+        
+        return cutoff
+    
     def plot_mean_F(self):
         
         # Plots mean F for all neurons over trials in session
@@ -296,7 +312,7 @@ class Session:
             
             for j in range(self.num_trials):
                 
-                nmean = np.mean(self.dff[0, j][i, :7])
+                nmean = np.mean(self.dff[0, j][i, 3:7]) # later cutoff because of transient activation
                 self.dff[0, j][i] = (self.dff[0, j][i] - nmean) / nmean
         
         return None

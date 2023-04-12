@@ -58,8 +58,8 @@ l1 = session.Session(path, 6)
 # Get population average plots
 # l1.plot_contra_ipsi_pop()
 
-# for i in range(10):
-#     l1.plot_rasterPSTH_sidebyside(i)
+for i in range(10):
+    l1.plot_rasterPSTH_sidebyside(i)
 
 # Plot rasters for delay selective neurons:
 
