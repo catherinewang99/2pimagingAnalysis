@@ -16,9 +16,9 @@ import sympy
 
 class Mode(Session):
     
-    def __init__(self, path, layer_num, time_epochs = [7, 13, 28]):
+    def __init__(self, path, layer_num, time_epochs = [7, 13, 28], cutoff = 40):
         # Inherit all parameters and functions of session.py
-        super().__init__(self, path, layer_num) 
+        super().__init__(path, layer_num) 
         
         for n in range(self.num_neurons):
             r, l = self.get_trace_matrix(n)
@@ -34,7 +34,10 @@ class Mode(Session):
                 self.PSTH_r_error = np.concatenate((self.PSTH_r_error, np.reshape(cat(r_err), (1,-1))), axis = 0)
                 self.PSTH_l_error = np.concatenate((self.PSTH_l_error, np.reshape(cat(l_err), (1,-1))), axis = 0)              
         
-        self.T_cue_aligned_sel
+        self.T_cue_aligned_sel = np.arange(cutoff)
+        self.time_epochs = time_epochs
+        
+        self.start_t = 3
     
     def lick_incorrect_direction(self, direction):
         ## Returns list of indices of lick left correct trials
@@ -81,7 +84,32 @@ class Mode(Session):
             
         return R_av_dff, L_av_dff
     
-    def basis_col(self, A):
+    def get_opto_trace_matrix_error(self, neuron_num):
+        
+        
+        right_trials = self.lick_incorrect_direction('r')
+        left_trials = self.lick_incorrect_direction('l')
+        
+        # Filter for opto trials
+        right_trials = [r for r in right_trials if self.stim_ON[r]]
+        left_trials = [r for r in left_trials if self.stim_ON[r]]
+
+        
+        R_av_dff = []
+        for i in right_trials:
+            
+            R_av_dff += [self.dff[0, i][neuron_num, :self.time_cutoff]]
+        
+        L_av_dff = []
+        for i in left_trials:
+
+            L_av_dff += [self.dff[0, i][neuron_num, :self.time_cutoff]]
+            
+        
+            
+        return R_av_dff, L_av_dff
+    
+    def basis_col(A):
         # Bases
     
         # basis_col(A) produces a basis for the subspace of Eucldiean n-space 
@@ -134,7 +162,7 @@ class Mode(Session):
     
         return basis
     
-    def is_orthogonal_set(self, A):
+    def is_orthogonal_set(A):
         """
         Orthogonal Sets
     
@@ -186,7 +214,7 @@ class Mode(Session):
             else:
                 return 0
         else:
-            if self.is_orthogonal_set(A) == 1:
+            if is_orthogonal_set(A) == 1:
                 length_counter = 0
                 for i in range(n):
                     if np.abs(np.linalg.norm(A[:, i]) - 1) <= tolerance:
@@ -237,7 +265,7 @@ class Mode(Session):
     
             if flag == 0:
                 if np.linalg.matrix_rank(A) != n:
-                    A = self.basis_col(A)
+                    A = basis_col(A)
                 
                 matrix_size = np.shape(A)
                 m = matrix_size[0]
@@ -257,7 +285,9 @@ class Mode(Session):
     
         return orthonormal_basis
     
-    def func_compute_activity_modes_DRT(PSTH_yes_correct, PSTH_no_correct, PSTH_yes_error, PSTH_no_error, T_cue_aligned_sel, time_epochs):
+    def func_compute_activity_modes_DRT(self, PSTH_yes_correct, PSTH_no_correct, PSTH_yes_error, PSTH_no_error, 
+                                        T_cue_aligned_sel = np.arange(40), 
+                                        time_epochs = [7, 13, 28]):
     
         # Inputs: Left Right Correct Error traces of ALL neurons that are selective
         #           time stamps for analysis?
@@ -277,7 +307,7 @@ class Mode(Session):
         proj_allDim = activityRL.T @ v
     
         # Variance of each dimension normalized
-        var_s = np.square(np.diag(s[0:proj_allDim.shape[1], :]))
+        var_s = np.square(np.diag(s[0:proj_allDim.shape[1]]))
         var_allDim = var_s / np.sum(var_s)
     
         # Relevant choice dims
@@ -292,37 +322,37 @@ class Mode(Session):
 
     
         wt = (PSTH_yes_correct + PSTH_yes_error) / 2 - (PSTH_no_correct + PSTH_no_error) / 2
-        i_t = np.where((T_cue_aligned_sel[0, :] > t_sample) & (T_cue_aligned_sel[0, :] < t_delay))[0]
+        i_t = np.where((T_cue_aligned_sel > t_sample) & (T_cue_aligned_sel < t_delay))[0]
         CD_stim_mode = np.mean(wt[:, i_t], axis=1)
     
         wt = (PSTH_yes_correct + PSTH_no_error) / 2 - (PSTH_no_correct + PSTH_yes_error) / 2
-        i_t = np.where((T_cue_aligned_sel[0, :] > t_delay) & (T_cue_aligned_sel[0, :] < t_response))[0]
+        i_t = np.where((T_cue_aligned_sel > t_delay) & (T_cue_aligned_sel < t_response))[0]
         CD_choice_mode = np.mean(wt[:, i_t], axis=1)
-    
+        
         wt = (PSTH_yes_correct + PSTH_no_correct) / 2 - (PSTH_yes_error + PSTH_no_error) / 2
-        i_t = np.where((T_cue_aligned_sel[0, :] > t_response) & (T_cue_aligned_sel[0, :] < (t_response + 1.3)))[0]
+        i_t = np.where((T_cue_aligned_sel > t_response) & (T_cue_aligned_sel < (t_response + 12)))[0]
         CD_outcome_mode = np.mean(wt[:, i_t], axis=1)
-    
+        
+       
         wt = PSTH_yes_correct - PSTH_no_correct
-        
-        i_t = np.where((T_cue_aligned_sel[0, :] > (t_sample + 0.2)) & (T_cue_aligned_sel[0, :] < (t_sample + 0.4)))[0]
+        i_t = np.where((T_cue_aligned_sel > (t_sample + 1)) & (T_cue_aligned_sel < (t_sample + 3)))[0]
         CD_sample_mode = np.mean(wt[:, i_t], axis=1)
-    
-        i_t = np.where((T_cue_aligned_sel[0, :] > (t_response - 0.3)) & (T_cue_aligned_sel[0, :] < (t_response - 0.1)))[0]
-        CD_delay_mode = np.mean(wt[:, i_t], axis=1)
-    
-        i_t = np.where((T_cue_aligned_sel[0, :] > (t_response + 0.1)) & (T_cue_aligned_sel[0, :] < (t_response + 0.3)))[0]
-        CD_go_mode = np.mean(wt[:, i_t], axis=1)
-    
-        wt = (PSTH_yes_correct + PSTH_no_correct)/2
         
-        i_t1 = np.where((T_cue_aligned_sel[0, :] > (t_sample-0.3)) & (T_cue_aligned_sel[0, :] < (t_sample-0.1)))[0]
-        i_t2 = np.where((T_cue_aligned_sel[0, :] > (t_response-0.3)) & (T_cue_aligned_sel[0, :] < (t_response-0.1)))[0]
+        i_t = np.where((T_cue_aligned_sel > (t_response - 3)) & (T_cue_aligned_sel < (t_response - 1)))[0]
+        CD_delay_mode = np.mean(wt[:, i_t], axis=1)
+        
+        i_t = np.where((T_cue_aligned_sel > (t_response + 1)) & (T_cue_aligned_sel < (t_response + 3)))[0]
+        CD_go_mode = np.mean(wt[:, i_t], axis=1)
+        
+        wt = (PSTH_yes_correct + PSTH_no_correct)/2
+        i_t1 = np.where((T_cue_aligned_sel > (t_sample-3)) & (T_cue_aligned_sel < (t_sample-1)))[0]
+        i_t2 = np.where((T_cue_aligned_sel > (t_response-3)) & (T_cue_aligned_sel < (t_response-1)))[0]
         Ramping_mode = np.mean(wt[:, i_t2], axis=1) - np.mean(wt[:, i_t1], axis=1)
         
-        i_t1 = np.where((T_cue_aligned_sel[0, :] > (t_response-0.1)) & (T_cue_aligned_sel[0, :] < t_response))[0]
-        i_t2 = np.where((T_cue_aligned_sel[0, :] > t_response) & (T_cue_aligned_sel[0, :] < (t_response+0.1)))[0]
+        i_t1 = np.where((T_cue_aligned_sel > (t_response-1)) & (T_cue_aligned_sel < t_response))[0]
+        i_t2 = np.where((T_cue_aligned_sel > t_response) & (T_cue_aligned_sel < (t_response+1)))[0]
         GoDirction_mode = np.mean(wt[:, i_t2], axis=1) - np.mean(wt[:, i_t1], axis=1)
+
         
         CD_stim_mode = CD_stim_mode / np.linalg.norm(CD_stim_mode)
         CD_choice_mode = CD_choice_mode / np.linalg.norm(CD_choice_mode)
@@ -339,6 +369,8 @@ class Mode(Session):
         var_allDim = np.sum(proj_allDim**2, axis=0)
         
         var_allDim = var_allDim / np.sum(var_allDim)
+        
+        return orthonormal_basis, var_allDim
 
     
     
