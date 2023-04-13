@@ -21,7 +21,7 @@ path = r'F:\data\BAYLORCW021\python\2023_04_06'
 path = r'F:\data\BAYLORCW027\python\2023_04_12'
 
 l1 = session.Session(path, 4)
-l1.crop_trials(100,120)
+l1.crop_trials(108, 111)
 
 
 

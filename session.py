@@ -58,22 +58,24 @@ class Session:
             self.i_good_trials = [i for i in self.i_good_trials if i < self.num_trials]
             self.stim_ON = self.stim_ON[:self.num_trials]
         
-        self.plot_mean_F()
         
-        # TODO: add measure that automatically crops out water leak trials before norming
+        # measure that automatically crops out water leak trials before norming
+        if not self.find_low_mean_F():
         
-        if guang:
-            # Guang's data
-            self.num_neurons = layer['dff'][0,0].shape[1]  # Guang's data
+            self.plot_mean_F()
 
-            for t in range(self.num_trials):
-                self.dff[0, t] = self.dff[0, t].T
-        else:
-            # self.normalize_all_by_neural_baseline()
-            self.normalize_all_by_baseline()
-            # self.normalize_by_histogram()
-            # self.normalize_all_by_histogram()
-            self.normalize_z_score()    
+            if guang:
+                # Guang's data
+                self.num_neurons = layer['dff'][0,0].shape[1]  # Guang's data
+    
+                for t in range(self.num_trials):
+                    self.dff[0, t] = self.dff[0, t].T
+            else:
+                # self.normalize_all_by_neural_baseline()
+                self.normalize_all_by_baseline()
+                # self.normalize_by_histogram()
+                # self.normalize_all_by_histogram()
+                self.normalize_z_score()    
         
     def determine_cutoff(self):
         
@@ -89,6 +91,35 @@ class Session:
         
         return cutoff
     
+    def find_low_mean_F(self):
+        
+        # Reject outliers based on medians
+        meanf = np.array([])
+        for trial in range(self.num_trials):
+            meanf = np.append(meanf, np.mean(cat(self.dff[0, trial])))
+        
+        med = np.median(meanf) # median approach
+        
+        trial_idx = np.where(meanf < 10)[0]
+        
+        if trial_idx.size == 0:
+            
+            return None
+        
+        else:
+        
+            self.crop_trials(0, singles=True, arr = trial_idx)
+            print(trial_idx)
+            return 1
+        
+    def reject_outliers(data, m = 2.):
+        
+        d = np.abs(data - np.median(data))
+        mdev = np.median(d)
+        s = d/mdev if mdev else np.zero(len(d))
+        
+        return data[s<m]
+    
     def plot_mean_F(self):
         
         # Plots mean F for all neurons over trials in session
@@ -100,12 +131,12 @@ class Session:
         plt.title("Mean F for layer {}".format(self.layer_num))
         plt.show()
 
-    def crop_trials(self, trial_num, end=True):
+    def crop_trials(self, trial_num, end=False, singles = False, arr = []):
         
         # If called, crops out all trials after given trial number
         # Can optionally crop from trial_num to end indices
         
-        if end:
+        if not end:
             
             self.L_correct = self.L_correct[:trial_num]
             self.R_correct = self.R_correct[:trial_num]
@@ -116,33 +147,60 @@ class Session:
             self.num_trials = trial_num
             self.stim_ON = self.stim_ON[:trial_num]
             
-            self.normalize_all_by_baseline()
-            self.normalize_z_score()    
+            # self.normalize_all_by_baseline()
+            # self.normalize_z_score()    
 
             
-            self.plot_mean_F()
+            # self.plot_mean_F()
+            
+        
+        elif singles:
+            
+            self.L_correct = np.delete(self.L_correct, arr)
+            self.R_correct = np.delete(self.R_correct, arr)
+            
+            self.dff = np.delete(self.dff, arr)
+            self.dff = np.reshape(self.dff, (1,-1))
+            
+            igoodremove = np.where(self.i_good_trials == arr)[0]
+            self.i_good_trials = np.delete(self.i_good_trials, igoodremove)
+            self.num_trials = self.num_trials - len(arr)            
+            self.stim_ON = np.delete(self.stim_ON, arr)
+
+            # self.normalize_all_by_baseline()
+            # self.normalize_z_score()   
+
+            # self.plot_mean_F()
             
         else:
             
-            self.L_correct = np.append(self.L_correct[:trial_num], self.L_correct[end:])
-            self.R_correct = np.append(self.R_correct[:trial_num], self.R_correct[end:])
+            arr = np.arange(trial_num, end)
+
+            self.L_correct = np.delete(self.L_correct, arr)
+            self.R_correct = np.delete(self.R_correct, arr)
             
-            self.dff = np.append(self.dff[:, :trial_num], self.dff[:, end:])
+            self.dff = np.delete(self.dff, arr)
+            self.dff = np.reshape(self.dff, (1,-1))
             
-            self.i_good_trials = [i for i in self.i_good_trials if i < trial_num or i > end]
-            self.num_trials = trial_num            
-            self.stim_ON = np.append(self.stim_ON[:trial_num], self.stim_ON[end:])
+            igoodremove = np.where(self.i_good_trials == arr)[0]
+            self.i_good_trials = np.delete(self.i_good_trials, igoodremove)
+            self.num_trials = self.num_trials - len(arr)            
+            self.stim_ON = np.delete(self.stim_ON, arr)
+            
+            # self.i_good_trials = [i for i in self.i_good_trials if i < trial_num or i > end]
+            # self.num_trials = trial_num            
+            # self.stim_ON = np.append(self.stim_ON[:trial_num], self.stim_ON[end:])
 
-            self.normalize_all_by_baseline()
-            self.normalize_z_score()   
+            # self.normalize_all_by_baseline()
+            # self.normalize_z_score()   
 
-            self.plot_mean_F()
+            # self.plot_mean_F()
 
+        self.plot_mean_F()
+
+        self.normalize_all_by_baseline()
+        self.normalize_z_score()    
         
-        # self.normalize_all_by_baseline()
-        # self.normalize_z_score()    
-        
-        # self.plot_mean_F()
         
         print('New number of good trials: {}'.format(len(self.i_good_trials)))
     

@@ -29,10 +29,11 @@ path = r'F:\data\BAYLORCW027\python\2023_04_12'
 
 # print(total_n)
 
+
 ### EFFECT OF OPTO INHIBITION ###
 
-l1 = session.Session(path, 3)
-l1.crop_trials(80,90)
+l1 = session.Session(path, 4)
+# l1.crop_trials(108,end=111)
 
 stim_dff = l1.dff[0][l1.stim_ON]
 non_stim_dff = l1.dff[0][~l1.stim_ON]
