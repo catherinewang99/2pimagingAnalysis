@@ -22,13 +22,15 @@ import numpy as np
 
 path = r'F:\data\BAYLORCW021\python\2023_04_06'
 
-l1 = Mode(path, 3)
-
-
+l1 = Mode(path, 6)
 orthonormal_basis, var_allDim = l1.func_compute_activity_modes_DRT(l1.PSTH_r_correct, 
                                                                     l1.PSTH_l_correct, 
                                                                     l1.PSTH_r_error, 
                                                                     l1.PSTH_l_error)
+# a, b = l1.plot_activity_modes()
+
+
+### DEBUGGING MATERIAL ###
 
 # activityRL = np.concatenate((l1.PSTH_r_correct, l1.PSTH_l_correct), axis=1)
 # activityRL = activityRL - np.mean(activityRL, axis=1, keepdims=True) # remove?
@@ -47,3 +49,8 @@ orthonormal_basis, var_allDim = l1.func_compute_activity_modes_DRT(l1.PSTH_r_cor
 
 # input_ = np.concatenate((CD_stim_mode, v), axis=1)
 # orthonormal_basis = self.Gram_Schmidt_process(input_)
+
+# orthonormal_basis, var_allDim = l1.func_compute_activity_modes_DRT(l1.PSTH_r_correct, 
+#                                                                     l1.PSTH_l_correct, 
+#                                                                     l1.PSTH_r_error, 
+#                                                                     l1.PSTH_l_error)

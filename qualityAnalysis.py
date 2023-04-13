@@ -15,7 +15,9 @@ from matplotlib.pyplot import figure
 from numpy import concatenate as cat
 from sklearn.preprocessing import normalize
 
-path = r'F:\data\BAYLORCW021\python\2023_04_06'
+# path = r'F:\data\BAYLORCW021\python\2023_04_06'
+
+path = r'F:\data\BAYLORCW027\python\2023_04_12'
 
 ### TOTAL NUMBER OF NEURONS: ###
 
@@ -29,7 +31,8 @@ path = r'F:\data\BAYLORCW021\python\2023_04_06'
 
 ### EFFECT OF OPTO INHIBITION ###
 
-l1 = session.Session(path, 1)
+l1 = session.Session(path, 3)
+l1.crop_trials(80,90)
 
 stim_dff = l1.dff[0][l1.stim_ON]
 non_stim_dff = l1.dff[0][~l1.stim_ON]
@@ -68,12 +71,14 @@ non_stim_dff = l1.dff[0][~l1.stim_ON]
 
 f, axarr = plt.subplots(2,2, sharex='col')
 
-stack = np.zeros(40)
+
+
+stack = np.zeros(l1.time_cutoff)
 
 for neuron in range(stim_dff[0].shape[0]):
     dfftrial = []
     for trial in range(stim_dff.shape[0]):
-        dfftrial += [stim_dff[trial][neuron, :40]]
+        dfftrial += [stim_dff[trial][neuron, :l1.time_cutoff]]
 
     stack = np.vstack((stack, np.mean(np.array(dfftrial), axis=0)))
 
@@ -86,12 +91,12 @@ axarr[1,0].plot(np.mean(stack, axis = 0))
 axarr[1,0].set_ylim(top=0.2)
 axarr[1,0].axvline(x=13, c='b', linewidth = 0.5)
 
-stack = np.zeros(40)
+stack = np.zeros(l1.time_cutoff)
 
 for neuron in range(non_stim_dff[0].shape[0]):
     dfftrial = []
     for trial in range(non_stim_dff.shape[0]):
-        dfftrial += [non_stim_dff[trial][neuron, :40]]
+        dfftrial += [non_stim_dff[trial][neuron, :l1.time_cutoff]]
 
     stack = np.vstack((stack, np.mean(np.array(dfftrial), axis=0)))
 

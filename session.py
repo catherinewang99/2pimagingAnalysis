@@ -60,6 +60,8 @@ class Session:
         
         self.plot_mean_F()
         
+        # TODO: add measure that automatically crops out water leak trials before norming
+        
         if guang:
             # Guang's data
             self.num_neurons = layer['dff'][0,0].shape[1]  # Guang's data
@@ -112,6 +114,12 @@ class Session:
             
             self.i_good_trials = [i for i in self.i_good_trials if i < trial_num]
             self.num_trials = trial_num
+            self.stim_ON = self.stim_ON[:trial_num]
+            
+            self.normalize_all_by_baseline()
+            self.normalize_z_score()    
+
+            
             self.plot_mean_F()
             
         else:
@@ -122,7 +130,12 @@ class Session:
             self.dff = np.append(self.dff[:, :trial_num], self.dff[:, end:])
             
             self.i_good_trials = [i for i in self.i_good_trials if i < trial_num or i > end]
-            self.num_trials = trial_num
+            self.num_trials = trial_num            
+            self.stim_ON = np.append(self.stim_ON[:trial_num], self.stim_ON[end:])
+
+            self.normalize_all_by_baseline()
+            self.normalize_z_score()   
+
             self.plot_mean_F()
 
         

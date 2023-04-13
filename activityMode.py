@@ -17,7 +17,7 @@ import time
 
 class Mode(Session):
     
-    def __init__(self, path, layer_num, time_epochs = [7, 13, 28], cutoff = 40):
+    def __init__(self, path, layer_num, time_epochs = [7, 13, 28]):
         # Inherit all parameters and functions of session.py
         super().__init__(path, layer_num) 
         
@@ -37,7 +37,7 @@ class Mode(Session):
                 self.PSTH_r_error = np.concatenate((self.PSTH_r_error, np.reshape(r_err, (1,-1))), axis = 0)
                 self.PSTH_l_error = np.concatenate((self.PSTH_l_error, np.reshape(l_err, (1,-1))), axis = 0)              
         
-        self.T_cue_aligned_sel = np.arange(cutoff)
+        self.T_cue_aligned_sel = np.arange(self.time_cutoff)
         self.time_epochs = time_epochs
         
         self.start_t = 3
@@ -288,9 +288,7 @@ class Mode(Session):
     
         return orthonormal_basis
     
-    def func_compute_activity_modes_DRT(self, PSTH_yes_correct, PSTH_no_correct, PSTH_yes_error, PSTH_no_error, 
-                                        T_cue_aligned_sel = np.arange(40), 
-                                        time_epochs = [7, 13, 28]):
+    def func_compute_activity_modes_DRT(self, PSTH_yes_correct, PSTH_no_correct, PSTH_yes_error, PSTH_no_error):
     
         # Inputs: Left Right Correct Error traces of ALL neurons that are selective
         #           time stamps for analysis?
@@ -299,6 +297,9 @@ class Mode(Session):
         #           activity variance of each dimension (nx1)
         
         # Actual method uses SVD decomposition
+        
+        T_cue_aligned_sel = self.T_cue_aligned_sel 
+        time_epochs = self.time_epochs
     
         t_sample = time_epochs[0]
         t_delay = time_epochs[1]
@@ -391,5 +392,45 @@ class Mode(Session):
         return orthonormal_basis, var_allDim
 
     
-    
+    def plot_activity_modes(self):
+        # plot activity modes
+        # all trials
+        orthonormal_basis, var_allDim = self.func_compute_activity_modes_DRT(self.PSTH_r_correct, 
+                                                                            self.PSTH_l_correct, 
+                                                                            self.PSTH_r_error, 
+                                                                            self.PSTH_l_error)
+        
+        activityRL_all = np.concatenate((self.PSTH_r_correct, 
+                                         self.PSTH_l_correct, 
+                                         self.PSTH_r_error, 
+                                         self.PSTH_l_error), axis=1)
+        
+        T_cue_aligned_sel = self.T_cue_aligned_sel
+        
+        # Correct trials
+        activityRL = np.concatenate((self.PSTH_r_correct, self.PSTH_l_correct), axis=1)
+        activityRL = activityRL - np.tile(np.mean(activityRL_all, axis=1)[:, None], (1, activityRL.shape[1]))  # remove mean
+        proj_allDim = np.dot(activityRL.T, orthonormal_basis)
+        
+        # Error trials
+        activityRL_err = np.concatenate((self.PSTH_r_error, self.PSTH_l_error), axis=1)
+        activityRL_err = activityRL_err - np.tile(np.mean(activityRL_all, axis=1)[:, None], (1, activityRL_err.shape[1]))  # remove mean (from correct trials)
+        proj_allDim_err = np.dot(activityRL_err.T, orthonormal_basis)
+        
+        fig, axs = plt.subplots(4, 4, figsize=(12, 16))
+        for i_pc in range(16):
+            ax = axs.flatten()[i_pc]
+            ax.plot(T_cue_aligned_sel, proj_allDim[:len(T_cue_aligned_sel), i_pc], 'b')
+            ax.plot(T_cue_aligned_sel, proj_allDim[len(T_cue_aligned_sel):, i_pc], 'r')
+            ax.plot(T_cue_aligned_sel, proj_allDim_err[:len(T_cue_aligned_sel), i_pc], color=[.7, .7, 1])
+            ax.plot(T_cue_aligned_sel, proj_allDim_err[len(T_cue_aligned_sel):, i_pc], color=[1, .7, .7])
+            ax.set_title("Mode {}".format(i_pc + 1))
+            
+        axs[0, 0].set_ylabel('Activity proj.')
+        axs[3, 0].set_xlabel('Time')
+        
+        return proj_allDim[:len(T_cue_aligned_sel), i_pc], proj_allDim[len(T_cue_aligned_sel):, i_pc]
+        # plt.show()
+
+        
     
