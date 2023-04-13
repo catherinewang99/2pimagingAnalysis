@@ -63,7 +63,7 @@ class Behavior():
                             self.L_ignore[total_sessions] = cat(behavior['L_ignore_tmp'])
                             self.R_ignore[total_sessions] = cat(behavior['R_ignore_tmp'])
                             
-                            self.stim_ON[total_sessions] = np.where(cat(behavior['StimDur_tmp']) == 1)
+                            self.stim_ON[total_sessions] = np.where(cat(behavior['StimDur_tmp']) > 0)
                             total_sessions += 1
     
                             
@@ -86,7 +86,7 @@ class Behavior():
             self.L_ignore[total_sessions] = cat(behavior['L_ignore_tmp'])
             self.R_ignore[total_sessions] = cat(behavior['R_ignore_tmp'])
             
-            self.stim_ON[total_sessions] = np.where(cat(behavior['StimDur_tmp']) == 1)
+            self.stim_ON[total_sessions] = np.where(cat(behavior['StimDur_tmp']) > 0)
             self.total_sessions = 1
 
     def plot_performance_over_sessions(self):

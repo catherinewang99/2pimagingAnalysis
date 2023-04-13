@@ -29,15 +29,25 @@ class Mode(Session):
             r_err_train, l_err_train, r_err_test, l_err_test = self.train_test_split_data(r_err, l_err)
 
             if n == 0:
-                self.PSTH_r_correct = np.reshape(r, (1,-1))
-                self.PSTH_l_correct = np.reshape(l, (1,-1))
-                self.PSTH_r_error = np.reshape(r_err, (1,-1))
-                self.PSTH_l_error = np.reshape(l_err, (1,-1))
+                self.PSTH_r_train_correct = np.reshape(r_train, (1,-1))
+                self.PSTH_l_train_correct = np.reshape(l_train, (1,-1))
+                self.PSTH_r_train_error = np.reshape(r_err_train, (1,-1))
+                self.PSTH_l_train_error = np.reshape(l_err_train, (1,-1))
+
+                self.PSTH_r_test_correct = np.reshape(r_test, (1,-1))
+                self.PSTH_l_test_correct = np.reshape(l_test, (1,-1))
+                self.PSTH_r_test_error = np.reshape(r_err_test, (1,-1))
+                self.PSTH_l_test_error = np.reshape(l_err_test, (1,-1))
             else:
-                self.PSTH_r_correct = np.concatenate((self.PSTH_r_correct, np.reshape(r, (1,-1))), axis = 0)
-                self.PSTH_l_correct = np.concatenate((self.PSTH_l_correct, np.reshape(l, (1,-1))), axis = 0)
-                self.PSTH_r_error = np.concatenate((self.PSTH_r_error, np.reshape(r_err, (1,-1))), axis = 0)
-                self.PSTH_l_error = np.concatenate((self.PSTH_l_error, np.reshape(l_err, (1,-1))), axis = 0)              
+                self.PSTH_r_train_correct = np.concatenate((self.PSTH_r_train_correct, np.reshape(r_train, (1,-1))), axis = 0)
+                self.PSTH_l_train_correct = np.concatenate((self.PSTH_l_train_correct, np.reshape(l_train, (1,-1))), axis = 0)
+                self.PSTH_r_train_error = np.concatenate((self.PSTH_r_train_error, np.reshape(r_err_train, (1,-1))), axis = 0)
+                self.PSTH_l_train_error = np.concatenate((self.PSTH_l_train_error, np.reshape(l_err_train, (1,-1))), axis = 0) 
+
+                self.PSTH_r_test_correct = np.concatenate((self.PSTH_r_test_correct, np.reshape(r_test, (1,-1))), axis = 0)
+                self.PSTH_l_test_correct = np.concatenate((self.PSTH_l_test_correct, np.reshape(l_test, (1,-1))), axis = 0)
+                self.PSTH_r_test_error = np.concatenate((self.PSTH_r_test_error, np.reshape(r_err_test, (1,-1))), axis = 0)
+                self.PSTH_l_test_error = np.concatenate((self.PSTH_l_test_error, np.reshape(l_err_test, (1,-1))), axis = 0)
         
         self.T_cue_aligned_sel = np.arange(self.time_cutoff)
         self.time_epochs = time_epochs
@@ -410,27 +420,32 @@ class Mode(Session):
     def plot_activity_modes(self):
         # plot activity modes
         # all trials
-        orthonormal_basis, var_allDim = self.func_compute_activity_modes_DRT(self.PSTH_r_correct, 
-                                                                            self.PSTH_l_correct, 
-                                                                            self.PSTH_r_error, 
-                                                                            self.PSTH_l_error)
+        orthonormal_basis, var_allDim = self.func_compute_activity_modes_DRT(self.PSTH_r_train_correct, 
+                                                                            self.PSTH_l_train_correct, 
+                                                                            self.PSTH_r_train_error, 
+                                                                            self.PSTH_l_train_error)
         
-        activityRL_all = np.concatenate((self.PSTH_r_correct, 
-                                         self.PSTH_l_correct, 
-                                         self.PSTH_r_error, 
-                                         self.PSTH_l_error), axis=1)
+        activityRL_train= np.concatenate((self.PSTH_r_train_correct, 
+                                        self.PSTH_l_train_correct, 
+                                        self.PSTH_r_train_error, 
+                                        self.PSTH_l_train_error), axis=1)
+
+        activityRL_test= np.concatenate((self.PSTH_r_test_correct, 
+                                        self.PSTH_l_test_correct), axis=1)
+        
+        activityRLerr_test = np.concatenate((self.PSTH_r_test_error, 
+                                             self.PSTH_l_test_error), axis = 1)
+        
         
         T_cue_aligned_sel = self.T_cue_aligned_sel
         
         # Correct trials
-        activityRL = np.concatenate((self.PSTH_r_correct, self.PSTH_l_correct), axis=1)
-        activityRL = activityRL - np.tile(np.mean(activityRL_all, axis=1)[:, None], (1, activityRL.shape[1]))  # remove mean
-        proj_allDim = np.dot(activityRL.T, orthonormal_basis)
+        activityRL_test = activityRL_test - np.tile(np.mean(activityRL_train, axis=1)[:, None], (1, activityRL_test.shape[1]))  # remove mean
+        proj_allDim = np.dot(activityRL_test.T, orthonormal_basis)
         
         # Error trials
-        activityRL_err = np.concatenate((self.PSTH_r_error, self.PSTH_l_error), axis=1)
-        activityRL_err = activityRL_err - np.tile(np.mean(activityRL_all, axis=1)[:, None], (1, activityRL_err.shape[1]))  # remove mean (from correct trials)
-        proj_allDim_err = np.dot(activityRL_err.T, orthonormal_basis)
+        activityRLerr_test = activityRLerr_test - np.tile(np.mean(activityRL_train, axis=1)[:, None], (1, activityRLerr_test.shape[1]))  # remove mean
+        proj_allDim_err = np.dot(activityRLerr_test.T, orthonormal_basis)
         
         fig, axs = plt.subplots(4, 4, figsize=(12, 16))
         for i_pc in range(16):
@@ -446,6 +461,9 @@ class Mode(Session):
         
         return proj_allDim[:len(T_cue_aligned_sel), i_pc], proj_allDim[len(T_cue_aligned_sel):, i_pc]
         # plt.show()
-
+        
+    def plot_behaviorally_relevant_modes(self):
+        
+        return None
         
     
