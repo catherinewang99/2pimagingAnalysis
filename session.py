@@ -60,8 +60,8 @@ class Session:
         
         
         # measure that automatically crops out water leak trials before norming
-        if not self.find_low_mean_F():
-        
+        # if not self.find_low_mean_F():
+        if True:
             self.plot_mean_F()
 
             if guang:

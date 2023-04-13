@@ -24,7 +24,9 @@ class Mode(Session):
         for n in range(self.num_neurons):
             r, l = self.get_trace_matrix(n)
             r_err, l_err = self.get_trace_matrix_error(n)
-            r, l, r_err, l_err = np.mean(np.array(r), axis = 0), np.mean(np.array(l), axis = 0), np.mean(np.array(r_err), axis = 0), np.mean(np.array(l_err), axis = 0)
+            
+            r_train, l_train, r_test, l_test = self.train_test_split_data(r, l)
+            r_err_train, l_err_train, r_err_test, l_err_test = self.train_test_split_data(r_err, l_err)
 
             if n == 0:
                 self.PSTH_r_correct = np.reshape(r, (1,-1))
@@ -288,6 +290,19 @@ class Mode(Session):
     
         return orthonormal_basis
     
+    def train_test_split_data(self, r, l):
+        
+        r_idx, l_idx = np.random.permutation(np.arange(len(r))), np.random.permutation(np.arange(len(l)))
+        
+        r_train_idx, l_train_idx = r_idx[:round(len(r) / 2)], l_idx[:round(len(l) / 2)]
+        
+        r_test_idx, l_test_idx = r_idx[round(len(r) / 2):], l_idx[round(len(l) / 2):]
+        
+        r_train, l_train = np.mean(np.array(r)[r_train_idx], axis = 0), np.mean(np.array(l)[l_train_idx], axis = 0)
+        r_test, l_test = np.mean(np.array(r)[r_test_idx], axis = 0), np.mean(np.array(l)[l_test_idx], axis = 0)
+        
+        return r_train, l_train, r_test, l_test
+    
     def func_compute_activity_modes_DRT(self, PSTH_yes_correct, PSTH_no_correct, PSTH_yes_error, PSTH_no_error):
     
         # Inputs: Left Right Correct Error traces of ALL neurons that are selective
@@ -381,7 +396,7 @@ class Mode(Session):
         start_time = time.time()
         input_ = np.concatenate((CD_stim_mode, CD_choice_mode, CD_outcome_mode, CD_sample_mode, CD_delay_mode, CD_go_mode, Ramping_mode, GoDirection_mode, v), axis=1)
         # orthonormal_basis = self.Gram_Schmidt_process(input_)
-        _, orthonormal_basis = np.linalg.qr(input_)  # lmao
+        _, orthonormal_basis = np.linalg.qr(input_, mode='complete')  # lmao
         
         proj_allDim = np.dot(activityRL.T, orthonormal_basis)
         var_allDim = np.sum(proj_allDim**2, axis=0)
