@@ -302,6 +302,8 @@ class Mode(Session):
     
     def train_test_split_data(self, r, l):
         
+        # Splits data into train and test sets (50/50 split)
+        
         r_idx, l_idx = np.random.permutation(np.arange(len(r))), np.random.permutation(np.arange(len(l)))
         
         r_train_idx, l_train_idx = r_idx[:round(len(r) / 2)], l_idx[:round(len(l) / 2)]
@@ -462,8 +464,118 @@ class Mode(Session):
         return proj_allDim[:len(T_cue_aligned_sel), i_pc], proj_allDim[len(T_cue_aligned_sel):, i_pc]
         # plt.show()
         
+    def func_plot_mean_and_sem(self, x, y, line_color='b', face_color='b', edge_color='k', sem_option=1, n_std=1):
+        
+        """
+        :param x: 1D numpy array with length m (m features)
+        :param y: 2D numpy array with shape (n, m) (n observations, m features)
+        :param line_color: line color (default 'b')
+        :param face_color: face color (default 'b')
+        :param edge_color: edge color (default 'k')
+        :param sem_option: standard error option (1: sem, 2: std, 3: bootstrapping) (default 1)
+        :param n_std: standard deviation multiplier (default 1)
+        :return: tuple of (x_line, y_line, x_area, y_area)
+        """
+    
+        x_line = x
+        y_line = np.mean(y, axis=0)
+    
+        if sem_option == 1:
+            y_sem = np.std(y, axis=0) / np.sqrt(y.shape[0])
+        elif sem_option == 2:
+            y_sem = np.std(y, axis=0)
+        elif sem_option == 3:
+            y_tmp = np.zeros((1000, y.shape[1]))
+            for i in range(1000):
+                y_isample = np.random.choice(y.shape[0], size=y.shape[0], replace=True)
+                y_tmp[i, :] = np.mean(y[y_isample, :], axis=0)
+            y_sem = np.std(y_tmp, axis=0)
+        else:
+            y_sem = np.std(y, axis=0) / np.sqrt(y.shape[0])
+    
+        x_area = np.hstack([x, x[::-1]])
+        y_area = np.hstack([y_line + y_sem, y_line[::-1] - y_sem[::-1]])
+    
+        if edge_color is not None and face_color is not None:
+            plt.fill(x_area, y_area, face_color, edgecolor=edge_color, alpha=0.5)
+            plt.plot(x_line, y_line, color=line_color, linewidth=2)
+    
+        return x_line, y_line, x_area, y_area
+            
+        
+        
     def plot_behaviorally_relevant_modes(self):
+        # plot behaviorally relevant activity modes only
+        # separates trials into train vs test sets
+        mode_ID = [1, 2, 6, 3, 7, 8, 9]
+        mode_name = ['stimulus', 'choice', 'action', 'outcome', 'ramping', 'go', 'response']
+        
+        orthonormal_basis, var_allDim = self.func_compute_activity_modes_DRT(self.PSTH_r_train_correct, 
+                                                                            self.PSTH_l_train_correct, 
+                                                                            self.PSTH_r_train_error, 
+                                                                            self.PSTH_l_train_error)
+        
+        activityRL_train= np.concatenate((self.PSTH_r_train_correct, 
+                                        self.PSTH_l_train_correct, 
+                                        self.PSTH_r_train_error, 
+                                        self.PSTH_l_train_error), axis=1)
+
+        activityRL_test= np.concatenate((self.PSTH_r_test_correct, 
+                                        self.PSTH_l_test_correct), axis=1)
+        
+        activityRLerr_test = np.concatenate((self.PSTH_r_test_error, 
+                                             self.PSTH_l_test_error), axis = 1)
+        
+        
+        T_cue_aligned_sel = self.T_cue_aligned_sel
+        
+        # Correct trials
+        activityRL_test = activityRL_test - np.tile(np.mean(activityRL_train, axis=1)[:, None], (1, activityRL_test.shape[1]))  # remove mean
+        proj_allDim = np.dot(activityRL_test.T, orthonormal_basis)
+        var_allDim = np.sum(proj_allDim ** 2, axis=0)
+        var_allDim /= np.sum(var_allDim)
+        
+        
+        # Error trials
+        activityRLerr_test = activityRLerr_test - np.tile(np.mean(activityRL_train, axis=1)[:, None], (1, activityRLerr_test.shape[1]))  # remove mean
+        proj_allDim_err = np.dot(activityRLerr_test.T, orthonormal_basis)
+        
+        plt.figure()
+        plt.bar(np.array(mode_ID), var_allDim[mode_ID-1])
+        plt.xlabel('Activity modes')
+        plt.ylabel('Frac var.')
+        plt.title(f'Total Cross Validated Var Explained: {np.sum(var_allDim[mode_ID]):.4f}')
+        
+        n_plot = 0
+        plt.figure()
+        for i_mode in mode_ID:
+            n_plot += 1
+            print(f'ploting mode {n_plot}')
+            
+            proj_iPC_allBtstrp = np.zeros((20, activityRL_test.shape[1]))
+            projErr_iPC_allBtstrp = np.zeros((20, activityRLerr_test.shape[1]))
+            for i_btstrp in range(20):
+                i_sample = np.random.choice(range(activityRL_test.shape[0]), activityRL_test.shape[0], replace=True)
+                proj_iPC_allBtstrp[i_btstrp,:] = np.dot(activityRL_test[i_sample,:], orthonormal_basis[i_sample, i_mode])
+                projErr_iPC_allBtstrp[i_btstrp,:] = np.dot(activityRLerr_test[i_sample,:], orthonormal_basis[i_sample, i_mode])
+            
+            plt.subplot(2, 4, n_plot)
+            self.func_plot_mean_and_sem(T_cue_aligned_sel, projErr_iPC_allBtstrp[:,:T_cue_aligned_sel.shape[1]], [.4,.4,1], [.8,.8,1], 'n', 2)
+            self.func_plot_mean_and_sem(T_cue_aligned_sel projErr_iPC_allBtstrp[:,T_cue_aligned_sel.shape[1]:], [1,.4,.4], [1,.8,.8], 'n', 2)
+            self.func_plot_mean_and_sem(T_cue_aligned_sel, proj_iPC_allBtstrp[:,:T_cue_aligned_sel.shape[1]], 'b', [.6,.6,1], 'n', 2)
+            self.func_plot_mean_and_sem(T_cue_aligned_sel, proj_iPC_allBtstrp[:,T_cue_aligned_sel.shape[1]:], 'r', [1,.6,.6], 'n', 2)
+            
+            y_scale = np.mean(np.concatenate((proj_iPC_allBtstrp, projErr_iPC_allBtstrp)))
+            plt.plot([-2.6,-2.6],[min(y_scale), max(y_scale)]*1.2,'k:', [-1.3,-1.3],[min(y_scale), max(y_scale)]*1.2,'k:', [0,0],[min(y_scale), max(y_scale)]*1.2,'k:')
+            plt.xlim([-3.2, 2.2])
+            plt.title(f'mode {mode_name[n_plot]}')
+            
+        plt.subplot(2, 4, 1)
+        plt.ylabel('Activity proj.')
+        plt.xlabel('Time')
         
         return None
-        
+
+
+
     

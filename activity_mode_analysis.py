@@ -27,8 +27,8 @@ l1 = Mode(path, 6)
 #                                                                     l1.PSTH_l_correct, 
 #                                                                     l1.PSTH_r_error, 
 #                                                                     l1.PSTH_l_error)
-a, b = l1.plot_activity_modes()
-
+# a, b = l1.plot_activity_modes()
+l1.plot_behaviorally_relevant_modes()
 
 ### DEBUGGING MATERIAL ###
 
