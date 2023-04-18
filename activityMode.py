@@ -507,7 +507,7 @@ class Mode(Session):
     def plot_behaviorally_relevant_modes(self):
         # plot behaviorally relevant activity modes only
         # separates trials into train vs test sets
-        mode_ID = [1, 2, 6, 3, 7, 8, 9]
+        mode_ID = np.array([1, 2, 6, 3, 7, 8, 9])
         mode_name = ['stimulus', 'choice', 'action', 'outcome', 'ramping', 'go', 'response']
         
         orthonormal_basis, var_allDim = self.func_compute_activity_modes_DRT(self.PSTH_r_train_correct, 
@@ -541,7 +541,7 @@ class Mode(Session):
         proj_allDim_err = np.dot(activityRLerr_test.T, orthonormal_basis)
         
         plt.figure()
-        plt.bar(np.array(mode_ID), var_allDim[mode_ID-1])
+        plt.bar(mode_ID, var_allDim[mode_ID-1])
         plt.xlabel('Activity modes')
         plt.ylabel('Frac var.')
         plt.title(f'Total Cross Validated Var Explained: {np.sum(var_allDim[mode_ID]):.4f}')
@@ -561,7 +561,7 @@ class Mode(Session):
             
             plt.subplot(2, 4, n_plot)
             self.func_plot_mean_and_sem(T_cue_aligned_sel, projErr_iPC_allBtstrp[:,:T_cue_aligned_sel.shape[1]], [.4,.4,1], [.8,.8,1], 'n', 2)
-            self.func_plot_mean_and_sem(T_cue_aligned_sel projErr_iPC_allBtstrp[:,T_cue_aligned_sel.shape[1]:], [1,.4,.4], [1,.8,.8], 'n', 2)
+            self.func_plot_mean_and_sem(T_cue_aligned_sel, projErr_iPC_allBtstrp[:,T_cue_aligned_sel.shape[1]:], [1,.4,.4], [1,.8,.8], 'n', 2)
             self.func_plot_mean_and_sem(T_cue_aligned_sel, proj_iPC_allBtstrp[:,:T_cue_aligned_sel.shape[1]], 'b', [.6,.6,1], 'n', 2)
             self.func_plot_mean_and_sem(T_cue_aligned_sel, proj_iPC_allBtstrp[:,T_cue_aligned_sel.shape[1]:], 'r', [1,.6,.6], 'n', 2)
             
