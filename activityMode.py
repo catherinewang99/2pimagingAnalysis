@@ -380,8 +380,8 @@ class Mode(Session):
         i_t2 = np.where((T_cue_aligned_sel > (t_response-3)) & (T_cue_aligned_sel < (t_response-1)))[0]
         Ramping_mode = np.mean(wt[:, i_t2], axis=1) - np.mean(wt[:, i_t1], axis=1)
         
-        i_t1 = np.where((T_cue_aligned_sel > (t_response-1)) & (T_cue_aligned_sel < t_response))[0]
-        i_t2 = np.where((T_cue_aligned_sel > t_response) & (T_cue_aligned_sel < (t_response+1)))[0]
+        i_t1 = np.where((T_cue_aligned_sel > (t_response-2)) & (T_cue_aligned_sel < t_response))[0]
+        i_t2 = np.where((T_cue_aligned_sel > t_response) & (T_cue_aligned_sel < (t_response+2)))[0]
         GoDirection_mode = np.mean(wt[:, i_t2], axis=1) - np.mean(wt[:, i_t1], axis=1)
 
         
@@ -412,6 +412,7 @@ class Mode(Session):
         
         proj_allDim = np.dot(activityRL.T, orthonormal_basis)
         var_allDim = np.sum(proj_allDim**2, axis=0)
+        var_allDim = var_allDim[~np.isnan(var_allDim)]
         
         var_allDim = var_allDim / np.sum(var_allDim)
         
@@ -533,6 +534,8 @@ class Mode(Session):
         activityRL_test = activityRL_test - np.tile(np.mean(activityRL_train, axis=1)[:, None], (1, activityRL_test.shape[1]))  # remove mean
         proj_allDim = np.dot(activityRL_test.T, orthonormal_basis)
         var_allDim = np.sum(proj_allDim ** 2, axis=0)
+        var_allDim = var_allDim[~np.isnan(var_allDim)]
+
         var_allDim /= np.sum(var_allDim)
         
         

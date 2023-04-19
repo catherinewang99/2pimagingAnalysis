@@ -23,11 +23,11 @@ import numpy as np
 path = r'F:\data\BAYLORCW021\python\2023_04_06'
 
 l1 = Mode(path, 6)
-# orthonormal_basis, var_allDim = l1.func_compute_activity_modes_DRT(l1.PSTH_r_correct, 
-#                                                                     l1.PSTH_l_correct, 
-#                                                                     l1.PSTH_r_error, 
-#                                                                     l1.PSTH_l_error)
-# a, b = l1.plot_activity_modes()
+# orthonormal_basis, var_allDim= l1.func_compute_activity_modes_DRT(l1.PSTH_r_train_correct, 
+#                                                                     l1.PSTH_l_train_correct, 
+#                                                                     l1.PSTH_r_train_error, 
+#                                                                     l1.PSTH_l_train_error)
+a, b = l1.plot_activity_modes()
 l1.plot_behaviorally_relevant_modes()
 
 ### DEBUGGING MATERIAL ###
