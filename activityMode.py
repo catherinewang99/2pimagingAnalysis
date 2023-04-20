@@ -24,30 +24,40 @@ class Mode(Session):
         for n in range(self.num_neurons):
             r, l = self.get_trace_matrix(n)
             r_err, l_err = self.get_trace_matrix_error(n)
+            r_opto, l_opto = self.get_opto_trace_matrix(n)
             
             r_train, l_train, r_test, l_test = self.train_test_split_data(r, l)
             r_err_train, l_err_train, r_err_test, l_err_test = self.train_test_split_data(r_err, l_err)
+            r_opto_train, l_opto_train, r_opto_test, l_opto_test = self.train_test_split_data(r_opto, l_opto)
 
             if n == 0:
                 self.PSTH_r_train_correct = np.reshape(r_train, (1,-1))
                 self.PSTH_l_train_correct = np.reshape(l_train, (1,-1))
                 self.PSTH_r_train_error = np.reshape(r_err_train, (1,-1))
                 self.PSTH_l_train_error = np.reshape(l_err_train, (1,-1))
+                self.PSTH_r_train_opto = np.reshape(r_opto_train, (1,-1))
+                self.PSTH_l_train_opto = np.reshape(l_opto_train, (1,-1))
 
                 self.PSTH_r_test_correct = np.reshape(r_test, (1,-1))
                 self.PSTH_l_test_correct = np.reshape(l_test, (1,-1))
                 self.PSTH_r_test_error = np.reshape(r_err_test, (1,-1))
                 self.PSTH_l_test_error = np.reshape(l_err_test, (1,-1))
+                self.PSTH_r_test_opto = np.reshape(r_opto_test, (1,-1))
+                self.PSTH_l_test_opto = np.reshape(l_opto_test, (1,-1))
             else:
                 self.PSTH_r_train_correct = np.concatenate((self.PSTH_r_train_correct, np.reshape(r_train, (1,-1))), axis = 0)
                 self.PSTH_l_train_correct = np.concatenate((self.PSTH_l_train_correct, np.reshape(l_train, (1,-1))), axis = 0)
                 self.PSTH_r_train_error = np.concatenate((self.PSTH_r_train_error, np.reshape(r_err_train, (1,-1))), axis = 0)
-                self.PSTH_l_train_error = np.concatenate((self.PSTH_l_train_error, np.reshape(l_err_train, (1,-1))), axis = 0) 
+                self.PSTH_l_train_error = np.concatenate((self.PSTH_l_train_error, np.reshape(l_err_train, (1,-1))), axis = 0)
+                self.PSTH_r_train_opto = np.concatenate((self.PSTH_r_train_error, np.reshape(r_opto_train, (1,-1))), axis = 0)
+                self.PSTH_l_train_opto = np.concatenate((self.PSTH_l_train_error, np.reshape(l_opto_train, (1,-1))), axis = 0)
 
                 self.PSTH_r_test_correct = np.concatenate((self.PSTH_r_test_correct, np.reshape(r_test, (1,-1))), axis = 0)
                 self.PSTH_l_test_correct = np.concatenate((self.PSTH_l_test_correct, np.reshape(l_test, (1,-1))), axis = 0)
                 self.PSTH_r_test_error = np.concatenate((self.PSTH_r_test_error, np.reshape(r_err_test, (1,-1))), axis = 0)
                 self.PSTH_l_test_error = np.concatenate((self.PSTH_l_test_error, np.reshape(l_err_test, (1,-1))), axis = 0)
+                self.PSTH_r_test_opto = np.concatenate((self.PSTH_r_test_error, np.reshape(r_opto_test, (1,-1))), axis = 0)
+                self.PSTH_l_test_opto = np.concatenate((self.PSTH_l_test_error, np.reshape(l_opto_test, (1,-1))), axis = 0)
         
         self.T_cue_aligned_sel = np.arange(self.time_cutoff)
         self.time_epochs = time_epochs
@@ -408,7 +418,7 @@ class Mode(Session):
         start_time = time.time()
         input_ = np.concatenate((CD_stim_mode, CD_choice_mode, CD_outcome_mode, CD_sample_mode, CD_delay_mode, CD_go_mode, Ramping_mode, GoDirection_mode, v), axis=1)
         # orthonormal_basis = self.Gram_Schmidt_process(input_)
-        _, orthonormal_basis = np.linalg.qr(input_, mode='complete')  # lmao
+        orthonormal_basis, _ = np.linalg.qr(input_, mode='complete')  # lmao
         
         proj_allDim = np.dot(activityRL.T, orthonormal_basis)
         var_allDim = np.sum(proj_allDim**2, axis=0)
@@ -417,30 +427,54 @@ class Mode(Session):
         var_allDim = var_allDim / np.sum(var_allDim)
         
         print("Runtime: {} secs".format(time.time() - start_time))
-        return orthonormal_basis, var_allDim
+        return orthonormal_basis, var_allDim, input_
 
     
-    def plot_activity_modes(self):
+    def plot_activity_modes(self, opto=False):
         # plot activity modes
         # all trials
-        orthonormal_basis, var_allDim = self.func_compute_activity_modes_DRT(self.PSTH_r_train_correct, 
-                                                                            self.PSTH_l_train_correct, 
-                                                                            self.PSTH_r_train_error, 
-                                                                            self.PSTH_l_train_error)
         
-        activityRL_train= np.concatenate((self.PSTH_r_train_correct, 
-                                        self.PSTH_l_train_correct, 
-                                        self.PSTH_r_train_error, 
-                                        self.PSTH_l_train_error), axis=1)
-
-        activityRL_test= np.concatenate((self.PSTH_r_test_correct, 
-                                        self.PSTH_l_test_correct), axis=1)
+        if not opto:
+            orthonormal_basis, var_allDim = self.func_compute_activity_modes_DRT(self.PSTH_r_train_correct, 
+                                                                                self.PSTH_l_train_correct, 
+                                                                                self.PSTH_r_train_error, 
+                                                                                self.PSTH_l_train_error)
+            
+            activityRL_train= np.concatenate((self.PSTH_r_train_correct, 
+                                            self.PSTH_l_train_correct, 
+                                            self.PSTH_r_train_error, 
+                                            self.PSTH_l_train_error), axis=1)
+    
+            activityRL_test= np.concatenate((self.PSTH_r_test_correct, 
+                                            self.PSTH_l_test_correct), axis=1)
+            
+            activityRLerr_test = np.concatenate((self.PSTH_r_test_error, 
+                                                 self.PSTH_l_test_error), axis = 1)
+            
+            
+            T_cue_aligned_sel = self.T_cue_aligned_sel
         
-        activityRLerr_test = np.concatenate((self.PSTH_r_test_error, 
-                                             self.PSTH_l_test_error), axis = 1)
+        elif opto:
+            
+            # TODO: should I only train on correct trials?
+            orthonormal_basis, var_allDim = self.func_compute_activity_modes_DRT(self.PSTH_r_train_correct, 
+                                                                                self.PSTH_l_train_correct, 
+                                                                                self.PSTH_r_train_error, 
+                                                                                self.PSTH_l_train_error)
+            activityRL_train= np.concatenate((self.PSTH_r_train_correct, 
+                                            self.PSTH_l_train_correct, 
+                                            self.PSTH_r_train_error, 
+                                            self.PSTH_l_train_error), axis=1)
+    
+            activityRL_test= np.concatenate((self.PSTH_r_test_correct, 
+                                            self.PSTH_l_test_correct), axis=1)
+            
+            activityRLerr_test = np.concatenate((self.PSTH_r_test_opto, 
+                                                 self.PSTH_l_test_opto), axis = 1)
+            
+            
+            T_cue_aligned_sel = self.T_cue_aligned_sel
         
-        
-        T_cue_aligned_sel = self.T_cue_aligned_sel
         
         # Correct trials
         activityRL_test = activityRL_test - np.tile(np.mean(activityRL_train, axis=1)[:, None], (1, activityRL_test.shape[1]))  # remove mean
@@ -464,45 +498,7 @@ class Mode(Session):
         
         return proj_allDim[:len(T_cue_aligned_sel), i_pc], proj_allDim[len(T_cue_aligned_sel):, i_pc]
         # plt.show()
-        
-    def func_plot_mean_and_sem(self, x, y, line_color='b', face_color='b', edge_color='k', sem_option=1, n_std=1):
-        
-        """
-        :param x: 1D numpy array with length m (m features)
-        :param y: 2D numpy array with shape (n, m) (n observations, m features)
-        :param line_color: line color (default 'b')
-        :param face_color: face color (default 'b')
-        :param edge_color: edge color (default 'k')
-        :param sem_option: standard error option (1: sem, 2: std, 3: bootstrapping) (default 1)
-        :param n_std: standard deviation multiplier (default 1)
-        :return: tuple of (x_line, y_line, x_area, y_area)
-        """
-    
-        x_line = x
-        y_line = np.mean(y, axis=0)
-    
-        if sem_option == 1:
-            y_sem = np.std(y, axis=0) / np.sqrt(y.shape[0])
-        elif sem_option == 2:
-            y_sem = np.std(y, axis=0)
-        elif sem_option == 3:
-            y_tmp = np.zeros((1000, y.shape[1]))
-            for i in range(1000):
-                y_isample = np.random.choice(y.shape[0], size=y.shape[0], replace=True)
-                y_tmp[i, :] = np.mean(y[y_isample, :], axis=0)
-            y_sem = np.std(y_tmp, axis=0)
-        else:
-            y_sem = np.std(y, axis=0) / np.sqrt(y.shape[0])
-    
-        x_area = np.hstack([x, x[::-1]])
-        y_area = np.hstack([y_line + y_sem, y_line[::-1] - y_sem[::-1]])
-    
-        if edge_color is not None and face_color is not None:
-            plt.fill(x_area, y_area, face_color, edgecolor=edge_color, alpha=0.5)
-            plt.plot(x_line, y_line, color=line_color, linewidth=2)
-    
-        return x_line, y_line, x_area, y_area
-            
+
         
         
     def plot_behaviorally_relevant_modes(self):
@@ -553,23 +549,26 @@ class Mode(Session):
         plt.figure()
         for i_mode in mode_ID:
             n_plot += 1
-            print(f'ploting mode {n_plot}')
+            print(f'plotting mode {n_plot}')
             
             proj_iPC_allBtstrp = np.zeros((20, activityRL_test.shape[1]))
             projErr_iPC_allBtstrp = np.zeros((20, activityRLerr_test.shape[1]))
             for i_btstrp in range(20):
                 i_sample = np.random.choice(range(activityRL_test.shape[0]), activityRL_test.shape[0], replace=True)
-                proj_iPC_allBtstrp[i_btstrp,:] = np.dot(activityRL_test[i_sample,:], orthonormal_basis[i_sample, i_mode])
-                projErr_iPC_allBtstrp[i_btstrp,:] = np.dot(activityRLerr_test[i_sample,:], orthonormal_basis[i_sample, i_mode])
+                proj_iPC_allBtstrp[i_btstrp,:] = np.dot(activityRL_test[i_sample,:].T, orthonormal_basis[i_sample, i_mode])
+                projErr_iPC_allBtstrp[i_btstrp,:] = np.dot(activityRLerr_test[i_sample,:].T, orthonormal_basis[i_sample, i_mode])
             
             plt.subplot(2, 4, n_plot)
-            self.func_plot_mean_and_sem(T_cue_aligned_sel, projErr_iPC_allBtstrp[:,:T_cue_aligned_sel.shape[1]], [.4,.4,1], [.8,.8,1], 'n', 2)
-            self.func_plot_mean_and_sem(T_cue_aligned_sel, projErr_iPC_allBtstrp[:,T_cue_aligned_sel.shape[1]:], [1,.4,.4], [1,.8,.8], 'n', 2)
-            self.func_plot_mean_and_sem(T_cue_aligned_sel, proj_iPC_allBtstrp[:,:T_cue_aligned_sel.shape[1]], 'b', [.6,.6,1], 'n', 2)
-            self.func_plot_mean_and_sem(T_cue_aligned_sel, proj_iPC_allBtstrp[:,T_cue_aligned_sel.shape[1]:], 'r', [1,.6,.6], 'n', 2)
+            self.func_plot_mean_and_sem(T_cue_aligned_sel, projErr_iPC_allBtstrp[:,:len(T_cue_aligned_sel)], [.4,.4,1], [.8,.8,1], 'w', 2)
+            self.func_plot_mean_and_sem(T_cue_aligned_sel, projErr_iPC_allBtstrp[:,len(T_cue_aligned_sel):], [1,.4,.4], [1,.8,.8], 'w', 2)
+            self.func_plot_mean_and_sem(T_cue_aligned_sel, proj_iPC_allBtstrp[:,:len(T_cue_aligned_sel)], 'b', [.6,.6,1], 'w', 2)
+            self.func_plot_mean_and_sem(T_cue_aligned_sel, proj_iPC_allBtstrp[:,len(T_cue_aligned_sel):], 'r', [1,.6,.6], 'w', 2)
             
-            y_scale = np.mean(np.concatenate((proj_iPC_allBtstrp, projErr_iPC_allBtstrp)))
-            plt.plot([-2.6,-2.6],[min(y_scale), max(y_scale)]*1.2,'k:', [-1.3,-1.3],[min(y_scale), max(y_scale)]*1.2,'k:', [0,0],[min(y_scale), max(y_scale)]*1.2,'k:')
+            # y_scale = np.mean(np.concatenate((proj_iPC_allBtstrp, projErr_iPC_allBtstrp)))
+            # plt.plot([-2.6,-2.6],[min(y_scale), max(y_scale)]*1.2,'k:') 
+            # plt.plot([-1.3,-1.3],[min(y_scale), max(y_scale)]*1.2,'k:')
+            # plt.plot([0,0],[min(y_scale), max(y_scale)]*1.2,'k:')
+            
             plt.xlim([-3.2, 2.2])
             plt.title(f'mode {mode_name[n_plot]}')
             
@@ -579,6 +578,42 @@ class Mode(Session):
         
         return None
 
-
-
+    def func_plot_mean_and_sem(self, x, y, line_color='b', face_color='b', edge_color='k', sem_option=1, n_std=1):
+        
+        """
+        :param x: 1D numpy array with length m (m features)
+        :param y: 2D numpy array with shape (n, m) (n observations, m features)
+        :param line_color: line color (default 'b')
+        :param face_color: face color (default 'b')
+        :param edge_color: edge color (default 'k')
+        :param sem_option: standard error option (1: sem, 2: std, 3: bootstrapping) (default 1)
+        :param n_std: standard deviation multiplier (default 1)
+        :return: tuple of (x_line, y_line, x_area, y_area)
+        """
+    
+        x_line = x
+        y_line = np.mean(y, axis=0)
+    
+        if sem_option == 1:
+            y_sem = np.std(y, axis=0) / np.sqrt(y.shape[0])
+        elif sem_option == 2:
+            y_sem = np.std(y, axis=0)
+        elif sem_option == 3:
+            y_tmp = np.zeros((1000, y.shape[1]))
+            for i in range(1000):
+                y_isample = np.random.choice(y.shape[0], size=y.shape[0], replace=True)
+                y_tmp[i, :] = np.mean(y[y_isample, :], axis=0)
+            y_sem = np.std(y_tmp, axis=0)
+        else:
+            y_sem = np.std(y, axis=0) / np.sqrt(y.shape[0])
+    
+        x_area = np.hstack([x, x[::-1]])
+        y_area = np.hstack([y_line + y_sem, y_line[::-1] - y_sem[::-1]])
+    
+        if edge_color is not None and face_color is not None:
+            plt.fill(x_area, y_area, face_color, edgecolor=edge_color, alpha=0.5)
+            plt.plot(x_line, y_line, color=line_color, linewidth=2)
+    
+        return x_line, y_line, x_area, y_area
+            
     
