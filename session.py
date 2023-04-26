@@ -50,7 +50,7 @@ class Session:
         self.L_ignore = cat(behavior['L_ignore_tmp'])
         self.R_ignore = cat(behavior['R_ignore_tmp'])
         
-        self.stim_ON = cat(behavior['StimDur_tmp']) == 1
+        self.stim_ON = cat(behavior['StimDur_tmp']) > 0
 
         if self.i_good_trials[-1] > self.num_trials:
             

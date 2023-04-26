@@ -20,8 +20,9 @@ from matplotlib.pyplot import figure
 path = r'F:\data\BAYLORCW021\python\2023_04_06'
 path = r'F:\data\BAYLORCW027\python\2023_04_12'
 
-l1 = session.Session(path, 4)
-l1.crop_trials(108, 111)
+path = r'F:\data\BAYLORCW021\python\2023_04_25'
+
+l1 = session.Session(path, 2)
 
 
 
@@ -77,10 +78,10 @@ for i in range(10):
 
     
 # for n in l1.get_delay_selective():
-# #     # if l1.filter_by_deltas(n):
+# # #     # if l1.filter_by_deltas(n):
 
-# #         # plt.show()
-# #     # l1.plot_selectivity(n)
+# # #         # plt.show()
+# # #     # l1.plot_selectivity(n)
 #           l1.plot_rasterPSTH_sidebyside(n)
 
         
