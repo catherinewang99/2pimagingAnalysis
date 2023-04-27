@@ -100,7 +100,7 @@ class Session:
         
         med = np.median(meanf) # median approach
         
-        trial_idx = np.where(meanf < 10)[0]
+        trial_idx = np.where(meanf < 50)[0]
         
         if trial_idx.size == 0:
             
@@ -109,7 +109,7 @@ class Session:
         else:
         
             self.crop_trials(0, singles=True, arr = trial_idx)
-            print(trial_idx)
+            print('Water leak trials: {}'.format(trial_idx))
             return 1
         
     def reject_outliers(data, m = 2.):
