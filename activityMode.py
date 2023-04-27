@@ -593,7 +593,7 @@ class Mode(Session):
             ax.plot(T_cue_aligned_sel, proj_allDim_err[len(T_cue_aligned_sel):, i_pc], color=[1, .7, .7])
             ax.set_title("Mode {}".format(i_pc + 1))
             
-        axs[0, 0].set_ylabel('Activity proj.')
+        axs[0, 0].set_ylabel('Activity proj. with opto trials')
         axs[3, 0].set_xlabel('Time')
         
         return proj_allDim[:len(T_cue_aligned_sel), i_pc], proj_allDim[len(T_cue_aligned_sel):, i_pc]
@@ -601,9 +601,7 @@ class Mode(Session):
         
 
     
-    
-    ### FIX ME BELOW ###
-    
+        
     def plot_behaviorally_relevant_modes(self):
         # plot behaviorally relevant activity modes only
         # separates trials into train vs test sets
@@ -673,10 +671,84 @@ class Mode(Session):
             # plt.plot([0,0],[min(y_scale), max(y_scale)]*1.2,'k:')
             
             # plt.xlim([-3.2, 2.2])
-            plt.title(f'mode {mode_name[n_plot]}')
-            
+            plt.title(f'mode {mode_name[n_plot-1]}')
+
         plt.subplot(2, 4, 1)
         plt.ylabel('Activity proj.')
+        plt.xlabel('Time')
+        
+        return None
+    
+    def plot_behaviorally_relevant_modes_opto(self):
+        # plot behaviorally relevant activity modes only
+        # separates trials into train vs test sets
+        mode_ID = np.array([1, 2, 6, 3, 7, 8, 9])
+        mode_name = ['stimulus', 'choice', 'action', 'outcome', 'ramping', 'go', 'response']
+        
+        orthonormal_basis, var_allDim = self.func_compute_activity_modes_DRT([self.PSTH_r_train_correct, 
+                                                                            self.PSTH_l_train_correct], ctl=True)
+        
+        activityRL_train= np.concatenate((self.PSTH_r_train_correct, 
+                                        self.PSTH_l_train_correct), axis=1)
+
+        activityRL_test= np.concatenate((self.PSTH_r_test_correct, 
+                                        self.PSTH_l_test_correct), axis=1)
+        
+        activityRLerr_test = np.concatenate((self.PSTH_r_test_opto, 
+                                             self.PSTH_l_test_opto), axis = 1)
+        
+        
+        T_cue_aligned_sel = self.T_cue_aligned_sel
+        
+        # Correct trials
+        activityRL_test = activityRL_test - np.tile(np.mean(activityRL_train, axis=1)[:, None], (1, activityRL_test.shape[1]))  # remove mean
+        proj_allDim = np.dot(activityRL_test.T, orthonormal_basis)
+        var_allDim = np.sum(proj_allDim ** 2, axis=0)
+        var_allDim = var_allDim[~np.isnan(var_allDim)]
+
+        var_allDim /= np.sum(var_allDim)
+        
+        
+        # Error trials
+        activityRLerr_test = activityRLerr_test - np.tile(np.mean(activityRL_train, axis=1)[:, None], (1, activityRLerr_test.shape[1]))  # remove mean
+        proj_allDim_err = np.dot(activityRLerr_test.T, orthonormal_basis)
+        
+        plt.figure()
+        plt.bar(mode_ID, var_allDim[mode_ID-1])
+        plt.xlabel('Activity modes')
+        plt.ylabel('Frac var.')
+        plt.title(f'Total Cross Validated Var Explained: {np.sum(var_allDim[mode_ID]):.4f}')
+        
+        n_plot = 0
+        plt.figure()
+        for i_mode in mode_ID:
+            n_plot += 1
+
+            print(f'plotting mode {n_plot}')
+            
+            proj_iPC_allBtstrp = np.zeros((20, activityRL_test.shape[1]))
+            projErr_iPC_allBtstrp = np.zeros((20, activityRLerr_test.shape[1]))
+            for i_btstrp in range(20):
+                i_sample = np.random.choice(range(activityRL_test.shape[0]), activityRL_test.shape[0], replace=True)
+                proj_iPC_allBtstrp[i_btstrp,:] = np.dot(activityRL_test[i_sample,:].T, orthonormal_basis[i_sample, i_mode])
+                projErr_iPC_allBtstrp[i_btstrp,:] = np.dot(activityRLerr_test[i_sample,:].T, orthonormal_basis[i_sample, i_mode])
+            
+            plt.subplot(2, 4, n_plot)
+            self.func_plot_mean_and_sem(T_cue_aligned_sel, projErr_iPC_allBtstrp[:,:len(T_cue_aligned_sel)], '#6666ff', '#ccccff', 2)
+            self.func_plot_mean_and_sem(T_cue_aligned_sel, projErr_iPC_allBtstrp[:,len(T_cue_aligned_sel):], '#ff6666', '#ffcccc', 2)
+            self.func_plot_mean_and_sem(T_cue_aligned_sel, proj_iPC_allBtstrp[:,:len(T_cue_aligned_sel)], 'b', '#9999ff', 2)
+            self.func_plot_mean_and_sem(T_cue_aligned_sel, proj_iPC_allBtstrp[:,len(T_cue_aligned_sel):], 'r', '#ff9999', 2)
+            
+            # y_scale = np.mean(np.concatenate((proj_iPC_allBtstrp, projErr_iPC_allBtstrp)))
+            # plt.plot([-2.6,-2.6],[min(y_scale), max(y_scale)]*1.2,'k:') 
+            # plt.plot([-1.3,-1.3],[min(y_scale), max(y_scale)]*1.2,'k:')
+            # plt.plot([0,0],[min(y_scale), max(y_scale)]*1.2,'k:')
+            
+            # plt.xlim([-3.2, 2.2])
+            plt.title(f'mode {mode_name[n_plot-1]}')
+
+        plt.subplot(2, 4, 1)
+        plt.ylabel('Activity proj. with opto trials')
         plt.xlabel('Time')
         
         return None

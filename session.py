@@ -60,8 +60,8 @@ class Session:
         
         
         # measure that automatically crops out water leak trials before norming
-        # if not self.find_low_mean_F():
-        if True:
+        if not self.find_low_mean_F():
+
             self.plot_mean_F()
 
             if guang:
@@ -104,7 +104,7 @@ class Session:
         
         if trial_idx.size == 0:
             
-            return None
+            return 0
         
         else:
         
@@ -136,7 +136,7 @@ class Session:
         # If called, crops out all trials after given trial number
         # Can optionally crop from trial_num to end indices
         
-        if not end:
+        if not end and not singles:
             
             self.L_correct = self.L_correct[:trial_num]
             self.R_correct = self.R_correct[:trial_num]
@@ -162,7 +162,7 @@ class Session:
             self.dff = np.delete(self.dff, arr)
             self.dff = np.reshape(self.dff, (1,-1))
             
-            igoodremove = np.where(self.i_good_trials == arr)[0]
+            igoodremove = np.where(np.in1d(self.i_good_trials, arr))[0]
             self.i_good_trials = np.delete(self.i_good_trials, igoodremove)
             self.num_trials = self.num_trials - len(arr)            
             self.stim_ON = np.delete(self.stim_ON, arr)
@@ -182,7 +182,7 @@ class Session:
             self.dff = np.delete(self.dff, arr)
             self.dff = np.reshape(self.dff, (1,-1))
             
-            igoodremove = np.where(self.i_good_trials == arr)[0]
+            igoodremove = np.where(np.in1d(self.i_good_trials, arr))[0]
             self.i_good_trials = np.delete(self.i_good_trials, igoodremove)
             self.num_trials = self.num_trials - len(arr)            
             self.stim_ON = np.delete(self.stim_ON, arr)

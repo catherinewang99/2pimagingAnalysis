@@ -18,7 +18,8 @@ from sklearn.preprocessing import normalize
 # path = r'F:\data\BAYLORCW021\python\2023_04_06'
 
 path = r'F:\data\BAYLORCW027\python\2023_04_12'
-path = r'F:\data\BAYLORCW021\python\2023_04_25'
+path = r'F:\data\BAYLORCW021\python\2023_01_20'
+l1 = session.Session(path, 3)
 
 ### TOTAL NUMBER OF NEURONS: ###
 
