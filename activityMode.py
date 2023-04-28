@@ -25,10 +25,12 @@ class Mode(Session):
             r, l = self.get_trace_matrix(n)
             r_err, l_err = self.get_trace_matrix_error(n)
             r_opto, l_opto = self.get_opto_trace_matrix(n)
+            r_opto_err, l_opto_err = self.get_opto_trace_matrix(n, error=True)
             
             r_train, l_train, r_test, l_test = self.train_test_split_data(r, l)
             r_err_train, l_err_train, r_err_test, l_err_test = self.train_test_split_data(r_err, l_err)
             r_opto_train, l_opto_train, r_opto_test, l_opto_test = self.train_test_split_data(r_opto, l_opto)
+            r_opto_err_train, l_opto_err_train, r_opto_err_test, l_opto_err_test = self.train_test_split_data(r_opto_err, l_opto_err)
             
             if n == 0:
                 self.PSTH_r_train_correct = np.reshape(r_train, (1,-1))
@@ -37,6 +39,8 @@ class Mode(Session):
                 self.PSTH_l_train_error = np.reshape(l_err_train, (1,-1))
                 self.PSTH_r_train_opto = np.reshape(r_opto_train, (1,-1))
                 self.PSTH_l_train_opto = np.reshape(l_opto_train, (1,-1))
+                self.PSTH_r_train_opto_err = np.reshape(r_opto_err_train, (1,-1))
+                self.PSTH_l_train_opto_err = np.reshape(l_opto_err_train, (1,-1))
 
                 self.PSTH_r_test_correct = np.reshape(r_test, (1,-1))
                 self.PSTH_l_test_correct = np.reshape(l_test, (1,-1))
@@ -44,6 +48,8 @@ class Mode(Session):
                 self.PSTH_l_test_error = np.reshape(l_err_test, (1,-1))
                 self.PSTH_r_test_opto = np.reshape(r_opto_test, (1,-1))
                 self.PSTH_l_test_opto = np.reshape(l_opto_test, (1,-1))
+                self.PSTH_r_test_opto_err = np.reshape(r_opto_err_test, (1,-1))
+                self.PSTH_l_test_opto_err = np.reshape(l_opto_err_test, (1,-1))
             else:
                 self.PSTH_r_train_correct = np.concatenate((self.PSTH_r_train_correct, np.reshape(r_train, (1,-1))), axis = 0)
                 self.PSTH_l_train_correct = np.concatenate((self.PSTH_l_train_correct, np.reshape(l_train, (1,-1))), axis = 0)
@@ -51,13 +57,17 @@ class Mode(Session):
                 self.PSTH_l_train_error = np.concatenate((self.PSTH_l_train_error, np.reshape(l_err_train, (1,-1))), axis = 0)
                 self.PSTH_r_train_opto = np.concatenate((self.PSTH_r_train_opto, np.reshape(r_opto_train, (1,-1))), axis = 0)
                 self.PSTH_l_train_opto = np.concatenate((self.PSTH_l_train_opto, np.reshape(l_opto_train, (1,-1))), axis = 0)
-
+                self.PSTH_r_train_opto_err = np.concatenate((self.PSTH_r_train_opto_err, np.reshape(r_opto_err_train, (1,-1))), axis = 0)
+                self.PSTH_l_train_opto_err = np.concatenate((self.PSTH_l_train_opto_err, np.reshape(l_opto_err_train, (1,-1))), axis = 0)
+                
                 self.PSTH_r_test_correct = np.concatenate((self.PSTH_r_test_correct, np.reshape(r_test, (1,-1))), axis = 0)
                 self.PSTH_l_test_correct = np.concatenate((self.PSTH_l_test_correct, np.reshape(l_test, (1,-1))), axis = 0)
                 self.PSTH_r_test_error = np.concatenate((self.PSTH_r_test_error, np.reshape(r_err_test, (1,-1))), axis = 0)
                 self.PSTH_l_test_error = np.concatenate((self.PSTH_l_test_error, np.reshape(l_err_test, (1,-1))), axis = 0)
                 self.PSTH_r_test_opto = np.concatenate((self.PSTH_r_test_opto, np.reshape(r_opto_test, (1,-1))), axis = 0)
                 self.PSTH_l_test_opto = np.concatenate((self.PSTH_l_test_opto, np.reshape(l_opto_test, (1,-1))), axis = 0)
+                self.PSTH_r_test_opto_err = np.concatenate((self.PSTH_r_test_opto_err, np.reshape(r_opto_err_test, (1,-1))), axis = 0)
+                self.PSTH_l_test_opto_err = np.concatenate((self.PSTH_l_test_opto_err, np.reshape(l_opto_err_test, (1,-1))), axis = 0)
         
         self.T_cue_aligned_sel = np.arange(self.time_cutoff)
         self.time_epochs = time_epochs
@@ -555,7 +565,7 @@ class Mode(Session):
         return proj_allDim[:len(T_cue_aligned_sel), i_pc], proj_allDim[len(T_cue_aligned_sel):, i_pc]
 
 
-    def plot_activity_modes_opto(self):
+    def plot_activity_modes_opto(self, error = False):
         
         T_cue_aligned_sel = self.T_cue_aligned_sel
 
@@ -573,7 +583,10 @@ class Mode(Session):
         activityRLerr_test = np.concatenate((self.PSTH_r_test_opto, 
                                              self.PSTH_l_test_opto), axis = 1)
         
-
+        if error:
+            
+            activityRLerr_test = np.concatenate((self.PSTH_r_test_opto_err, 
+                                                 self.PSTH_l_test_opto_err), axis = 1)
     
     
         # Correct trials
@@ -679,7 +692,7 @@ class Mode(Session):
         
         return None
     
-    def plot_behaviorally_relevant_modes_opto(self):
+    def plot_behaviorally_relevant_modes_opto(self, error=False):
         # plot behaviorally relevant activity modes only
         # separates trials into train vs test sets
         mode_ID = np.array([1, 2, 6, 3, 7, 8, 9])
@@ -696,7 +709,10 @@ class Mode(Session):
         
         activityRLerr_test = np.concatenate((self.PSTH_r_test_opto, 
                                              self.PSTH_l_test_opto), axis = 1)
-        
+        if error:
+            
+            activityRLerr_test = np.concatenate((self.PSTH_r_test_opto_err, 
+                                                 self.PSTH_l_test_opto_err), axis = 1)
         
         T_cue_aligned_sel = self.T_cue_aligned_sel
         

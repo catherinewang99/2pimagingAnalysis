@@ -24,7 +24,7 @@ import numpy as np
 path = r'F:\data\BAYLORCW021\python\2023_03_03'
 path = r'F:\data\BAYLORCW021\python\2023_02_13'
 path = r'F:\data\BAYLORCW021\python\2023_04_27'
-path = r'F:\data\BAYLORCW021\python\2023_04_06'
+# path = r'F:\data\BAYLORCW021\python\2023_04_06'
 
 
 l1 = Mode(path, 6)
@@ -36,8 +36,10 @@ l1 = Mode(path, 6)
 # a, b = l1.plot_activity_modes_ctl()
 a, b = l1.plot_activity_modes_opto()
 
+a, b = l1.plot_activity_modes_opto(error=True)
+
 # l1.plot_behaviorally_relevant_modes()
-l1.plot_behaviorally_relevant_modes_opto()
+# l1.plot_behaviorally_relevant_modes_opto(error=True)
 
 ### DEBUGGING MATERIAL ###
 

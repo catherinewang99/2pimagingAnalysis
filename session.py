@@ -107,9 +107,9 @@ class Session:
             return 0
         
         else:
-        
-            self.crop_trials(0, singles=True, arr = trial_idx)
             print('Water leak trials: {}'.format(trial_idx))
+
+            self.crop_trials(0, singles=True, arr = trial_idx)
             return 1
         
     def reject_outliers(data, m = 2.):
