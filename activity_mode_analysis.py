@@ -20,21 +20,23 @@ import numpy as np
 
 # l1 = session.Session(path, 5)
 
-# path = r'F:\data\BAYLORCW021\python\2023_04_06'
-path = r'F:\data\BAYLORCW021\python\2023_04_25'
+
+path = r'F:\data\BAYLORCW021\python\2023_03_03'
+path = r'F:\data\BAYLORCW021\python\2023_02_13'
+path = r'F:\data\BAYLORCW021\python\2023_04_27'
+path = r'F:\data\BAYLORCW021\python\2023_04_06'
 
 
 l1 = Mode(path, 6)
-# orthonormal_basis, var_allDim= l1.func_compute_activity_modes_DRT(l1.PSTH_r_train_correct, 
-#                                                                     l1.PSTH_l_train_correct, 
-#                                                                     l1.PSTH_r_train_error, 
-#                                                                     l1.PSTH_l_train_error)
 
 
-a, b = l1.plot_activity_modes_ctl()
+# a, b = l1.plot_activity_modes_err()
+
+
+# a, b = l1.plot_activity_modes_ctl()
 a, b = l1.plot_activity_modes_opto()
 
-l1.plot_behaviorally_relevant_modes()
+# l1.plot_behaviorally_relevant_modes()
 l1.plot_behaviorally_relevant_modes_opto()
 
 ### DEBUGGING MATERIAL ###

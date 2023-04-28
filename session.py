@@ -222,6 +222,24 @@ class Session:
         
         return idx
     
+    def lick_incorrect_direction(self, direction):
+        ## Returns list of indices of lick left correct trials
+        
+        if direction == 'l':
+            idx = np.where(self.L_wrong == 1)[0]
+        elif direction == 'r':
+            idx = np.where(self.R_wrong == 1)[0]
+        else:
+            raise Exception("Sorry, only 'r' or 'l' input accepted!")
+            
+        early_idx = np.where(self.early_lick == 1)[0]
+        
+        idx = [i for i in idx if i not in early_idx]
+        
+        idx = [i for i in idx if i in self.i_good_trials]
+        
+        return idx
+    
     def get_trace_matrix(self, neuron_num):
         
         ## Returns matrix of all trial firing rates of a single neuron for lick left
@@ -248,11 +266,15 @@ class Session:
             
         return R_av_dff, L_av_dff
     
-    def get_opto_trace_matrix(self, neuron_num):
+    def get_opto_trace_matrix(self, neuron_num, error=False):
         
         
         right_trials = self.lick_correct_direction('r')
         left_trials = self.lick_correct_direction('l')
+        
+        if error:
+            right_trials = self.lick_incorrect_direction('r')
+            left_trials = self.lick_incorrect_direction('l')
         
         # Filter for opto trials
         right_trials = [r for r in right_trials if self.stim_ON[r]]

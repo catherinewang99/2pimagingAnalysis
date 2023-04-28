@@ -20,9 +20,9 @@ from matplotlib.pyplot import figure
 path = r'F:\data\BAYLORCW027\python\2023_04_12'
 
 path = r'F:\data\BAYLORCW021\python\2023_04_25'
-path = r'F:\data\BAYLORCW021\python\2023_04_06'
+path = r'F:\data\BAYLORCW021\python\2023_04_27'
 
-l1 = session.Session(path, 4)
+l1 = session.Session(path, 6)
 
 
 
@@ -62,7 +62,7 @@ l1 = session.Session(path, 4)
 # l1.plot_contra_ipsi_pop()
 
 # for i in range(10):
-    # l1.plot_rasterPSTH_sidebyside(i)
+#     l1.plot_rasterPSTH_sidebyside(i)
 
 # Plot rasters for delay selective neurons:
 

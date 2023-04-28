@@ -316,9 +316,9 @@ class Mode(Session):
         
         r_idx, l_idx = np.random.permutation(np.arange(len(r))), np.random.permutation(np.arange(len(l)))
         
-        r_train_idx, l_train_idx = r_idx[:round(len(r) * 2 / 3)], l_idx[:round(len(l) * 2 / 3)]
+        r_train_idx, l_train_idx = r_idx[:round(len(r) / 2)], l_idx[:round(len(l) / 2)]
         
-        r_test_idx, l_test_idx = r_idx[round(len(r) / 3):], l_idx[round(len(l) / 3):]
+        r_test_idx, l_test_idx = r_idx[round(len(r) / 2):], l_idx[round(len(l) / 2):]
         
         r_train, l_train = np.mean(np.array(r)[r_train_idx], axis = 0), np.mean(np.array(l)[l_train_idx], axis = 0)
         r_test, l_test = np.mean(np.array(r)[r_test_idx], axis = 0), np.mean(np.array(l)[l_test_idx], axis = 0)
