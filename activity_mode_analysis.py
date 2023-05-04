@@ -38,8 +38,8 @@ a, b = l1.plot_activity_modes_opto()
 
 a, b = l1.plot_activity_modes_opto(error=True)
 
-# l1.plot_behaviorally_relevant_modes()
-# l1.plot_behaviorally_relevant_modes_opto(error=True)
+l1.plot_behaviorally_relevant_modes()
+l1.plot_behaviorally_relevant_modes_opto(error=True)
 
 ### DEBUGGING MATERIAL ###
 
