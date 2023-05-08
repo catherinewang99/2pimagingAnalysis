@@ -838,16 +838,48 @@ class Session:
         
         plt.show()
 
+    def plot_number_of_sig_neurons(self):
         
+        contra = np.zeros(self.time_cutoff)
+        ipsi = np.zeros(self.time_cutoff)
         
+        for t in range(self.time_cutoff):
+            
+            sig_neurons = []
+
+            for n in range(self.num_neurons):
+                
+                r, l = self.get_trace_matrix(n)
+                r, l = np.matrix(r), np.matrix(l)
+                t, p = stats.ttest_ind(r[:, t], l[:, t])
+                
+                if p < 0.01:
+                     
+                    if np.mean(r[:, t]) < np.mean(l[:, t]):
+                        sig_neurons += [1]  # ipsi
+                        
+                    elif np.mean(r[:, t]) > np.mean(l[:, t]):
+                        sig_neurons += [-1]  # contra
+                    
+                    else:
+                        print("Error on neuron {} at time {}".format(n,t))
+
+                else:
+                    
+                    sig_neurons += [0]
+            
+            contra[t] = sum(np.array(sig_neurons) == -1)
+            ipsi[t] = sum(np.array(sig_neurons) == 1)
+
+        plt.bar(np.range(self.time_cutoff), contra, color = 'b', label = 'contra')
+        plt.bar(np.range(self.time_cutoff), -ipsi, color = 'r', label = 'ipsi')
+        plt.axvline(7)
+        plt.axvline(13)
+        plt.axvline(28)
         
-        
-        
-        
-        
-        
-        
-        
+        plt.ylabel('Number of sig sel neurons')
+        plt.xlabel('Time')
+        plt.legend()
         
         
         
