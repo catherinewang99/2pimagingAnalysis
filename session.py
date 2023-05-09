@@ -12,6 +12,7 @@ from scipy import stats
 import copy
 import scipy.io as scio
 from sklearn.preprocessing import normalize
+from matplotlib.pyplot import figure
 
 
 class Session:
@@ -454,13 +455,13 @@ class Session:
         
         return None
 
-    def get_delay_selective(self, p = 0.01):
+    def get_epoch_selective(self, epoch, p = 0.01):
         selective_neurons = []
         # for neuron in range(self.num_neurons):
         for neuron in self.good_neurons:
             right, left = self.get_trace_matrix(neuron)
-            left_ = [l[17:28] for l in left]
-            right_ = [r[17:28] for r in right]
+            left_ = [l[epoch] for l in left]
+            right_ = [r[epoch] for r in right]
             tstat, p_val = stats.ttest_ind(np.mean(left_, axis = 1), np.mean(right_, axis = 1))
             # p = 0.01/self.num_neurons
             # p = 0.01
@@ -471,57 +472,6 @@ class Session:
         self.selective_neurons = selective_neurons
         return selective_neurons
    
-    def get_response_selective(self):
-        selective_neurons = []
-        for neuron in range(self.num_neurons):
-            right, left = self.get_trace_matrix(neuron)
-            left_ = [l[29:38] for l in left]
-            right_ = [r[29:38] for r in right]
-            tstat, p_val = stats.ttest_ind(np.mean(left_, axis = 1), np.mean(right_, axis = 1))
-            # tstat, p_val = stats.ttest_ind(np.mean(left, axis = 0)[29:38], np.mean(right, axis = 0)[29:38])
-            p_measure = 0.01/self.num_neurons
-            p_measure = 0.01
-            # p_measure = 0.0001
-            if p_val < p_measure:
-                selective_neurons += [neuron]
-        print("Total response selective neurons: ", len(selective_neurons))
-        self.selective_neurons = selective_neurons
-        return selective_neurons
- 
-    def get_sample_selective(self):
-        selective_neurons = []
-        for neuron in range(self.num_neurons):
-            right, left = self.get_trace_matrix(neuron)
-            left_ = [l[7:13] for l in left]
-            right_ = [r[7:13] for r in right]
-            tstat, p_val = stats.ttest_ind(np.mean(left_, axis = 1), np.mean(right_, axis = 1))
-            # tstat, p_val = stats.ttest_ind(np.mean(left, axis = 0)[7:13], np.mean(right, axis = 0)[7:13])
-            p_measure = 0.01/self.num_neurons
-            p_measure = 0.01
-            # p_measure = 0.0001
-            if p_val < p_measure:
-                selective_neurons += [neuron]
-        print("Total sample selective neurons: ", len(selective_neurons))
-        self.selective_neurons = selective_neurons
-        return selective_neurons
-    
-    
-    def get_wholetrial_selective(self):
-        selective_neurons = []
-        for neuron in range(self.num_neurons):
-            right, left = self.get_trace_matrix(neuron)
-            left_ = [l for l in left]
-            right_ = [r for r in right]
-            tstat, p_val = stats.ttest_ind(np.mean(left_, axis = 1), np.mean(right_, axis = 1))
-            # tstat, p_val = stats.ttest_ind(np.mean(left, axis = 0)[7:13], np.mean(right, axis = 0)[7:13])
-            p_measure = 0.01/self.num_neurons
-            p_measure = 0.01
-            # p_measure = 0.0001
-            if p_val < p_measure:
-                selective_neurons += [neuron]
-        print("Total sample selective neurons: ", len(selective_neurons))
-        self.selective_neurons = selective_neurons
-        return selective_neurons
     
     def screen_preference(self, neuron_num, epoch, samplesize = 10):
 
@@ -577,17 +527,8 @@ class Session:
     def contra_ipsi_pop(self, epoch):
         
         # Returns the neuron ids for contra and ipsi populations
-        if len(epoch) == self.time_cutoff:
-            selective_neurons = self.get_wholetrial_selective()
-        elif 10 in epoch:
-            selective_neurons = self.get_sample_selective()
-        elif 24 in epoch:
-            selective_neurons = self.get_delay_selective()
-        elif 30 in epoch:
-            selective_neurons = self.get_response_selective()
-        else:
-            print("Error, epoch not recognized.")
-        
+
+        selective_neurons = self.get_epoch_selective(epoch)
         
         contra_neurons = []
         ipsi_neurons = []
@@ -609,13 +550,12 @@ class Session:
                 if self.recording_loc == 'l':
 
                     if pref:
-                        # print(pref)
-                        print("Ipsi_preferring: {}".format(neuron_num))
+                        # print("Ipsi_preferring: {}".format(neuron_num))
                         ipsi_neurons += [neuron_num]
                         ipsi_LR['l'] += [L[i] for i in test_l]
                         ipsi_LR['r'] += [R[i] for i in test_r]
                     else:
-                        print("Contra preferring: {}".format(neuron_num))
+                        # print("Contra preferring: {}".format(neuron_num))
                         contra_neurons += [neuron_num] 
                         contra_LR['l'] += [L[i] for i in test_l]
                         contra_LR['r'] += [R[i] for i in test_r]
@@ -796,7 +736,7 @@ class Session:
         r, l = self.get_trace_matrix(neuron_num)
         title = "Neuron {}: Control".format(neuron_num)
 
-        
+
         # f, axarr = plt.subplots(2,2, sharex='col', sharey = 'row')
         f, axarr = plt.subplots(2,2, sharex='col')
         
@@ -920,11 +860,115 @@ class Session:
         plt.legend()
         
         
-    # def selectivity_table_by_epoch(self):
-    #     f, axarr = plt.subplots(4,3, sharex='col')
+    def selectivity_table_by_epoch(self):
+        
+        # Plots fractions of contra/ipsi neurons and their overall trace
 
+        f, axarr = plt.subplots(4,3, sharex='col', figsize=(10,10))
+        epochs = [range(self.time_cutoff), range(8,14), range(19,28), range(29,self.time_cutoff)]
+        x = np.arange(-5.97,4,0.2)[:self.time_cutoff]
+        titles = ['Whole-trial', 'Sample', 'Delay', 'Response']
         
+        for i in range(4):
+            
+            contra_neurons, ipsi_neurons, contra_trace, ipsi_trace = self.contra_ipsi_pop(epochs[i])
+
+            # Bar plot
+            axarr[i, 0].bar([1,2], [len(contra_neurons)/self.num_neurons,
+                                    len(ipsi_neurons)/self.num_neurons], 
+                            color = ['b', 'r'])
+            
+            axarr[i, 0].set_ylim(0,1)
+            axarr[i, 0].set_title(titles[i])
+            
+            if len(ipsi_neurons) != 0:
+            
+                overall_R, overall_L = ipsi_trace['r'], ipsi_trace['l']
+                
+                R_av, L_av = np.mean(overall_R, axis = 0), np.mean(overall_L, axis = 0)
+                
+                left_err = np.std(overall_L, axis=0) / np.sqrt(len(overall_L)) 
+                right_err = np.std(overall_R, axis=0) / np.sqrt(len(overall_R))
+                            
+                axarr[i, 2].plot(x, L_av, 'r-')
+                axarr[i, 2].plot(x, R_av, 'b-')
+                        
+                axarr[i, 2].fill_between(x, L_av - left_err, 
+                         L_av + left_err,
+                         color=['#ffaeb1'])
+                axarr[i, 2].fill_between(x, R_av - right_err, 
+                         R_av + right_err,
+                         color=['#b4b2dc'])
+                axarr[i, 2].set_title("Ipsi-preferring neurons")
+            
+            else:
+                print('No ipsi selective neurons')
         
-        
-        
+            if len(contra_neurons) != 0:
     
+                overall_R, overall_L = contra_trace['r'], contra_trace['l']
+                
+                R_av, L_av = np.mean(overall_R, axis = 0), np.mean(overall_L, axis = 0)
+                
+                left_err = np.std(overall_L, axis=0) / np.sqrt(len(overall_L)) 
+                right_err = np.std(overall_R, axis=0) / np.sqrt(len(overall_R))
+                            
+                axarr[i, 1].plot(x, L_av, 'r-')
+                axarr[i, 1].plot(x, R_av, 'b-')
+                        
+                axarr[i, 1].fill_between(x, L_av - left_err, 
+                          L_av + left_err,
+                          color=['#ffaeb1'])
+                axarr[i, 1].fill_between(x, R_av - right_err, 
+                          R_av + right_err,
+                          color=['#b4b2dc'])
+                axarr[i, 1].set_title("Contra-preferring neurons")
+
+            else:
+                print('No contra selective neurons')
+
+    def plot_table_selectivity(self):
+        
+        f, axarr = plt.subplots(1,5, sharex='col', figsize=(18,14))
+        
+        epochs = [range(self.time_cutoff), range(8,14), range(19,28), range(29,self.time_cutoff)]
+        x = np.arange(-5.97,4,0.2)[:self.time_cutoff]
+        titles = ['Whole-trial', 'Sample', 'Delay', 'Response']
+        
+        num_epochs = []
+        
+        for i in range(4):
+            
+            contra_neurons, ipsi_neurons, contra_trace, ipsi_trace = self.contra_ipsi_pop(epochs[i])
+            
+            if len(contra_neurons) == 0:
+                
+                nonpref, pref = ipsi_trace['r'], ipsi_trace['l']
+                
+            elif len(ipsi_neurons) == 0:
+                nonpref, pref = contra_trace['l'], contra_trace['r']
+
+            else:
+                nonpref, pref = cat((ipsi_trace['r'], contra_trace['l'])), cat((ipsi_trace['l'], contra_trace['r']))
+                
+                
+            sel = np.mean(pref, axis = 0) - np.mean(nonpref, axis = 0)
+            
+            err = np.std(pref, axis=0) / np.sqrt(len(pref)) 
+            err += np.std(nonpref, axis=0) / np.sqrt(len(nonpref))
+                        
+            axarr[i + 1].plot(x, sel, 'b-')
+                    
+            axarr[i + 1].fill_between(x, sel - err, 
+                      sel + err,
+                      color=['#b4b2dc'])
+
+            axarr[i + 1].set_title(titles[i])
+            
+            num_epochs += [len(contra_neurons) + len(ipsi_neurons)]
+
+        # Bar plot
+        axarr[0].bar([1,2,3], np.array(num_epochs[1:]) / sum(num_epochs[1:]), color = ['dimgray', 'darkgray', 'gainsboro'])
+        
+        axarr[0].set_ylim(0,1)
+        axarr[0].set_title('Among all ALM neurons')
