@@ -25,11 +25,13 @@ path = r'F:\data\BAYLORCW021\python\2023_04_25'
 # path = r'F:\data\BAYLORCW021\python\2023_05_03'
 
 
-l1 = session.Session(path, 3)
+l1 = session.Session(path, 2)
 
-l1.plot_number_of_sig_neurons()
+# l1.plot_number_of_sig_neurons()
 
-        
+l1.plot_contra_ipsi_pop(epoch = range(8,14))
+
+    
     
     
     
