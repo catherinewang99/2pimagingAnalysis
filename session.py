@@ -928,6 +928,7 @@ class Session:
 
             else:
                 print('No contra selective neurons')
+        plt.show()
 
     def plot_table_selectivity(self):
         
@@ -1020,4 +1021,4 @@ class Session:
         axarr[1].matshow(-normalize(contra_mat[1:]), aspect="auto", cmap='jet')
         axarr[1].set_title('Contra-preferring neurons')
                 
-                
+        plt.show()

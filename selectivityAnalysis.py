@@ -25,11 +25,11 @@ path = r'F:\data\BAYLORCW021\python\2023_04_25'
 # path = r'F:\data\BAYLORCW021\python\2023_05_03'
 
 
-# l1 = session.Session(path, 6)
+l1 = session.Session(path, 6)
 
-# l1.plot_table_selectivity()
+l1.plot_table_selectivity()
 
-# l1.population_sel_timecourse()
+l1.population_sel_timecourse()
 
 l1.plot_number_of_sig_neurons()
 
