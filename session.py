@@ -13,6 +13,8 @@ import copy
 import scipy.io as scio
 from sklearn.preprocessing import normalize
 from matplotlib.pyplot import figure
+from matplotlib.colors import ListedColormap
+from sklearn.preprocessing import normalize
 
 
 class Session:
@@ -858,7 +860,7 @@ class Session:
         plt.ylabel('Number of sig sel neurons')
         plt.xlabel('Time')
         plt.legend()
-        
+        plt.show()
         
     def selectivity_table_by_epoch(self):
         
@@ -929,7 +931,7 @@ class Session:
 
     def plot_table_selectivity(self):
         
-        f, axarr = plt.subplots(1,5, sharex='col', figsize=(18,14))
+        f, axarr = plt.subplots(1,5, sharex='col', figsize=(20,10))
         
         epochs = [range(self.time_cutoff), range(8,14), range(19,28), range(29,self.time_cutoff)]
         x = np.arange(-5.97,4,0.2)[:self.time_cutoff]
@@ -972,3 +974,50 @@ class Session:
         
         axarr[0].set_ylim(0,1)
         axarr[0].set_title('Among all ALM neurons')
+        
+        plt.show()
+        
+    def population_sel_timecourse(self):
+        
+        f, axarr = plt.subplots(2, 1, sharex='col', figsize=(20,15))
+        epochs = [range(14,28), range(21,self.time_cutoff), range(29,self.time_cutoff)]
+        x = np.arange(-5.97,4,0.2)[:self.time_cutoff]
+        titles = ['Preparatory', 'Prep + response', 'Response']
+        
+        sig_n = dict()
+        sig_n['c'] = []
+        sig_n['i'] = []
+        contra_mat = np.zeros(self.time_cutoff)
+        ipsi_mat = np.zeros(self.time_cutoff)
+        
+        for i in range(3):
+            
+            # contra_neurons, ipsi_neurons, contra_trace, ipsi_trace = self.contra_ipsi_pop(epochs[i])
+            
+            for n in self.get_epoch_selective(epochs[i]):
+                                
+                r, l = self.get_trace_matrix(n)
+                r, l = np.array(r), np.array(l)
+                side = 'c' if np.mean(r[:, epochs[i]]) > np.mean(l[:,epochs[i]]) else 'i'
+                
+                r, l = np.mean(r,axis=0), np.mean(l,axis=0)
+                
+                if side == 'c' and n not in sig_n['c']:
+                    
+                    sig_n['c'] += [n]
+    
+                    contra_mat = np.vstack((contra_mat, r - l))
+
+                if side == 'i' and n not in sig_n['i']:
+                    
+                    sig_n['i'] += [n]
+
+                    ipsi_mat = np.vstack((ipsi_mat, l - r))
+
+        axarr[0].matshow(normalize(ipsi_mat[1:]), aspect="auto", cmap='jet')
+        axarr[0].set_title('Ipsi-preferring neurons')
+        
+        axarr[1].matshow(-normalize(contra_mat[1:]), aspect="auto", cmap='jet')
+        axarr[1].set_title('Contra-preferring neurons')
+                
+                

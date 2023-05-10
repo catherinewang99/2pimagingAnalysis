@@ -25,17 +25,16 @@ path = r'F:\data\BAYLORCW021\python\2023_04_25'
 # path = r'F:\data\BAYLORCW021\python\2023_05_03'
 
 
-l1 = session.Session(path, 4)
+# l1 = session.Session(path, 6)
 
-# l1.plot_number_of_sig_neurons()
+# l1.plot_table_selectivity()
 
-# l1.plot_contra_ipsi_pop(epoch = range(9,17))
+# l1.population_sel_timecourse()
 
-# l1.selectivity_table_by_epoch()
+l1.plot_number_of_sig_neurons()
 
-l1.plot_table_selectivity()
-    
-    
-    
+l1.selectivity_table_by_epoch()
+
+
     
     
