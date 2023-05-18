@@ -26,9 +26,9 @@ import behavior
 # b.plot_LR_performance_over_sessions()
 # b.plot_early_lick()
 
-# b = behavior.Behavior('F:\data\BAYLORCW021\python')
-# b.plot_LR_performance_over_sessions()
-# b.plot_early_lick()
+b = behavior.Behavior('F:\data\BAYLORCW021\python')
+b.plot_LR_performance_over_sessions()
+b.plot_early_lick()
 
 # b = behavior.Behavior('F:\data\BAYLORCW024\python')
 # b.plot_LR_performance_over_sessions()
@@ -39,8 +39,8 @@ import behavior
 # b = behavior.Behavior(r'F:\data\BAYLORCW022\python\2023_03_04', single=True)
 # b.plot_single_session()
 
-b = behavior.Behavior(r'F:\data\BAYLORCW021\python\2023_04_25', single=True)
-b.plot_single_session()
+# b = behavior.Behavior(r'F:\data\BAYLORCW021\python\2023_05_17', single=True)
+# b.plot_single_session_multidose()
 
 # b = behavior.Behavior(r'F:\data\BAYLORCW027\python\2023_04_10', single=True)
 # b.plot_single_session()

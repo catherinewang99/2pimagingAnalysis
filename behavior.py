@@ -16,7 +16,7 @@ from numpy import concatenate as cat
 
 
 class Behavior():
-    def __init__(self, path, single=False):
+    def __init__(self, path, single=False, behavior_only=False):
         
         # If not single: path is the folder "/.../python/" that contains all the sessions and python compatible mat data
         
@@ -40,6 +40,7 @@ class Behavior():
         self.R_ignore = dict()
         
         self.stim_ON = dict()
+        self.stim_level = dict()
         
         if not single:
         
@@ -63,7 +64,11 @@ class Behavior():
                             self.L_ignore[total_sessions] = cat(behavior['L_ignore_tmp'])
                             self.R_ignore[total_sessions] = cat(behavior['R_ignore_tmp'])
                             
-                            self.stim_ON[total_sessions] = np.where(cat(behavior['StimDur_tmp']) > 0)
+                            if not behavior_only:
+                            
+                                self.stim_ON[total_sessions] = np.where(cat(behavior['StimDur_tmp']) > 0)
+                                # self.stim_level[total_sessions] = cat(behavior['StimLevel'])
+
                             total_sessions += 1
     
                             
@@ -87,6 +92,7 @@ class Behavior():
             self.R_ignore[total_sessions] = cat(behavior['R_ignore_tmp'])
             
             self.stim_ON[total_sessions] = np.where(cat(behavior['StimDur_tmp']) > 0)
+            self.stim_level[total_sessions] = cat(behavior['StimLevel'])
             self.total_sessions = 1
 
     def plot_performance_over_sessions(self):
@@ -230,6 +236,66 @@ class Behavior():
         
         return L_opto_num, R_opto_num
     
+    
+    
+    def plot_single_session_multidose(self):
+         
+        Lreg = []
+        Rreg = []
+        
+        Lopto = []
+        Ropto = []
+        
+        L_opto_num, R_opto_num = 0, 0
+         
+        i=0            
+        
+        igood = self.i_good_trials[i]
+        opto = self.stim_ON[i][0]
+        igood_opto = np.setdiff1d(igood, opto)
+        
+        opto_levels = np.array(list(set(self.stim_level[0]))) 
+        
+        # Filter out early lick
+        opto = [o for o in opto if not self.early_lick[i][o]]
+        igood_opto = [j for j in igood_opto if not self.early_lick[i][j]]
+
+        Lreg += [np.sum([self.L_correct[i][t] for t in igood_opto]) / 
+                 np.sum([(self.L_correct[i][t] + self.L_wrong[i][t] + self.L_ignore[i][t]) for t in igood_opto])]
+
+        Rreg += [np.sum([self.R_correct[i][t] for t in igood_opto]) / 
+                 np.sum([(self.R_correct[i][t] + self.R_wrong[i][t] + self.R_ignore[i][t]) for t in igood_opto])]
+            
+        for level in opto_levels:
+            if level == 0:
+                continue
+            
+            opto = np.where(self.stim_level[0] == level)
+            
+            Lopto += [np.sum([self.L_correct[i][t] for t in opto]) / 
+                     np.sum([(self.L_correct[i][t] + self.L_wrong[i][t] + self.L_ignore[i][t]) for t in opto])]
+            
+            L_opto_num += len([(self.L_correct[i][t] + self.L_wrong[i][t] + self.L_ignore[i][t]) for t in opto])
+            
+            Ropto += [np.sum([self.R_correct[i][t] for t in opto]) / 
+                     np.sum([(self.R_correct[i][t] + self.R_wrong[i][t] + self.R_ignore[i][t]) for t in opto])]
+            
+            R_opto_num += len([(self.R_correct[i][t] + self.R_wrong[i][t] + self.R_ignore[i][t]) for t in opto])
+        
+        plt.plot(cat((Lreg, Lopto)), 'r-', marker='o')
+        # plt.plot(Lopto, 'r--')
+        
+        plt.plot(cat((Rreg, Ropto)), 'b-', marker='o')
+        # plt.plot(Ropto, 'b--')
+        
+        plt.title('Late delay optogenetic effect on unilateral ALM')
+        ticks = ['{} AOM'.format(x) for x in opto_levels[1:]]
+        print(ticks)
+        plt.xticks(range(len(opto_levels)), ['Control'] + ticks)
+        plt.ylim(0, 1)
+        plt.show()       
+        
+        return L_opto_num, R_opto_num
     def plot_licks_single_sess(self):
         
         return None
