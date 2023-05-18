@@ -22,19 +22,20 @@ from matplotlib.pyplot import figure
 path = r'F:\data\BAYLORCW021\python\2023_04_25'
 # path = r'F:\data\BAYLORCW021\python\2023_04_27'
 
-path = r'F:\data\BAYLORCW021\python\2023_02_08'
+# path = r'F:\data\BAYLORCW021\python\2023_02_08'
 
 
-l1 = session.Session(path, 6)
+l1 = session.Session(path, 4)
 
-l1.plot_table_selectivity()
+# l1.plot_table_selectivity()
 
-l1.population_sel_timecourse()
+# l1.population_sel_timecourse()
 
-l1.plot_number_of_sig_neurons()
+# l1.plot_number_of_sig_neurons()
 
-l1.selectivity_table_by_epoch()
+# l1.selectivity_table_by_epoch()
 
+l1.selectivity_optogenetics()
 
     
     

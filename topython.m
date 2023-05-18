@@ -1,5 +1,5 @@
 addpath('F:\data')
-path = 'F:\data\BAYLORCW027\';
+path = 'F:\data\BAYLORCW021\';
 
 mkdir([path 'python'])
 
@@ -88,9 +88,12 @@ for j = 1:length(lst)
                 
                 StimDur_tmp(i_solo_trial,:) = round((t_laser_off-t_laser_on)*10)/10;
                 StimOnTime_tmp(i_solo_trial,:) = t_laser_on;
+                StimLevel(i_solo_trial,:) = AOM_input_tmp;
             else
                 StimDur_tmp(i_solo_trial,:) = 0;
                 StimOnTime_tmp(i_solo_trial,:) = 0;
+                StimLevel(i_solo_trial,:) = 0;
+
             end
 
 
@@ -102,9 +105,9 @@ for j = 1:length(lst)
 
 
 
-        save([path 'python\' strjoin(namesplit(2:4), '_') '\behavior.mat'], 'R_hit_tmp', 'R_miss_tmp', 'R_ignore_tmp', 'L_hit_tmp', 'L_miss_tmp', 'L_ignore_tmp', 'LickEarly_tmp', 'i_good_trials', 'StimDur_tmp')
+        save([path 'python\' strjoin(namesplit(2:4), '_') '\behavior.mat'], 'R_hit_tmp', 'R_miss_tmp', 'R_ignore_tmp', 'L_hit_tmp', 'L_miss_tmp', 'L_ignore_tmp', 'LickEarly_tmp', 'i_good_trials', 'StimDur_tmp', 'StimLevel')
         
-        clearvars AOM_data_tmp StimDur_tmp StimOnTime_tmp
+        clearvars AOM_data_tmp StimDur_tmp StimOnTime_tmp StimLevel
 
     end
 end

@@ -297,6 +297,50 @@ class Session:
         
             
         return R_av_dff, L_av_dff
+    
+    def get_trace_matrix_multiple(self, neuron_nums, opto=False, error=False, both=False):
+        
+        ## Returns matrix of average firing rates of a list of neurons for lick left
+        ## and lick right trials. Firing rates are normalized with individual trial
+        ## baselines as well as overall firing rate z-score normalized.
+        
+        R, L = [], []
+        
+        for neuron_num in neuron_nums:
+            if both:
+                right_trials = cat((self.lick_correct_direction('r'), self.lick_incorrect_direction('r')))
+                left_trials = cat((self.lick_correct_direction('l'), self.lick_incorrect_direction('l')))
+            
+            elif not error:
+                right_trials = self.lick_correct_direction('r')
+                left_trials = self.lick_correct_direction('l')
+            elif error:
+                right_trials = self.lick_incorrect_direction('r')
+                left_trials = self.lick_incorrect_direction('l')
+                
+            # Filter out opto trials
+            if not opto:
+                right_trials = [r for r in right_trials if not self.stim_ON[r]]
+                left_trials = [r for r in left_trials if not self.stim_ON[r]]
+            elif opto:
+                right_trials = [r for r in right_trials if self.stim_ON[r]]
+                left_trials = [r for r in left_trials if self.stim_ON[r]]           
+                
+            
+            R_av_dff = []
+            for i in right_trials:
+                # R_av_dff += [self.normalize_by_baseline(self.dff[0, i][neuron_num, :self.time_cutoff])]
+                R_av_dff += [self.dff[0, i][neuron_num, :self.time_cutoff]]
+    
+            L_av_dff = []
+            for i in left_trials:
+                # L_av_dff += [self.normalize_by_baseline(self.dff[0, i][neuron_num, :self.time_cutoff])]
+                L_av_dff += [self.dff[0, i][neuron_num, :self.time_cutoff]]
+            
+            R += [np.mean(R_av_dff, axis = 0)]
+            L += [np.mean(L_av_dff, axis = 0)]
+            
+        return np.array(R), np.array(L)
 
     def plot_PSTH(self, neuron_num, opto = False):
         
@@ -470,7 +514,7 @@ class Session:
             # p = 0.0001
             if p_val < p:
                 selective_neurons += [neuron]
-        print("Total delay selective neurons: ", len(selective_neurons))
+        # print("Total delay selective neurons: ", len(selective_neurons))
         self.selective_neurons = selective_neurons
         return selective_neurons
    
@@ -876,8 +920,8 @@ class Session:
             contra_neurons, ipsi_neurons, contra_trace, ipsi_trace = self.contra_ipsi_pop(epochs[i])
 
             # Bar plot
-            axarr[i, 0].bar([1,2], [len(contra_neurons)/self.num_neurons,
-                                    len(ipsi_neurons)/self.num_neurons], 
+            axarr[i, 0].bar([1,2], [len(contra_neurons)/len(self.selective_neurons),
+                                    len(ipsi_neurons)/len(self.selective_neurons)], 
                             color = ['b', 'r'])
             
             axarr[i, 0].set_ylim(0,1)
@@ -1015,10 +1059,102 @@ class Session:
 
                     ipsi_mat = np.vstack((ipsi_mat, l - r))
 
-        axarr[0].matshow(normalize(ipsi_mat[1:]), aspect="auto", cmap='jet')
+        axarr[0].matshow((ipsi_mat[1:]), aspect="auto", cmap='jet')
         axarr[0].set_title('Ipsi-preferring neurons')
         
-        axarr[1].matshow(-normalize(contra_mat[1:]), aspect="auto", cmap='jet')
+        axarr[1].matshow(-(contra_mat[1:]), aspect="auto", cmap='jet')
         axarr[1].set_title('Contra-preferring neurons')
                 
+        plt.show()
+
+
+    def selectivity_optogenetics(self):
+        
+        f, axarr = plt.subplots(1,1, sharex='col', figsize=(10,10))
+        
+        x = np.arange(-5.97,4,0.2)[:self.time_cutoff]
+
+        # Get delay selective neurons
+        contra_neurons, ipsi_neurons, contra_trace, ipsi_trace = self.contra_ipsi_pop(range(19,28)) 
+        
+        if len(contra_neurons) == 0:
+            
+            nonpref, pref = ipsi_trace['r'], ipsi_trace['l']
+            optonp, optop = self.get_trace_matrix_multiple(ipsi_neurons, opto=True, both=True)
+            # errnp, errpref = self.get_trace_matrix_multiple(ipsi_neurons, opto=True, error=True)
+            
+        elif len(ipsi_neurons) == 0:
+            
+            nonpref, pref = contra_trace['l'], contra_trace['r']
+            optop, optonp = self.get_trace_matrix_multiple(contra_neurons, opto=True, both=True)
+            # errpref, errnp = self.get_trace_matrix_multiple(contra_neurons, opto=True, error=True)
+
+        else:
+            
+            nonpref, pref = cat((ipsi_trace['r'], contra_trace['l'])), cat((ipsi_trace['l'], contra_trace['r']))
+            optonp, optop = self.get_trace_matrix_multiple(ipsi_neurons, opto=True, both=True)
+            optop1, optonp1 = self.get_trace_matrix_multiple(contra_neurons, opto = True, both=True)
+            optonp, optop = cat((optonp, optonp1)), cat((optop, optop1))
+            
+            # errnp, errpref = self.get_trace_matrix_multiple(ipsi_neurons, opto=True, error=True)
+            # errpref1, errnp1 = self.get_trace_matrix_multiple(contra_neurons, opto=True, error=True)
+            # errpref, errnp = cat((errpref, errpref1)), cat((errnp, errnp1))
+
+            
+        sel = np.mean(pref, axis = 0) - np.mean(nonpref, axis = 0)
+        err = np.std(pref, axis=0) / np.sqrt(len(pref)) 
+        err += np.std(nonpref, axis=0) / np.sqrt(len(nonpref))
+        
+        selo = np.mean(optop, axis = 0) - np.mean(optonp, axis = 0)
+        erro = np.std(optop, axis=0) / np.sqrt(len(optop)) 
+        erro += np.std(optonp, axis=0) / np.sqrt(len(optonp))  
+
+        axarr.plot(x, sel, 'black')
+                
+        axarr.fill_between(x, sel - err, 
+                  sel + err,
+                  color=['darkgray'])
+        
+        axarr.plot(x, selo, 'b-')
+                
+        axarr.fill_between(x, selo - erro, 
+                  selo + erro,
+                  color=['#b4b2dc'])       
+
+        axarr.set_title('Optogenetic effect on selectivity')                  
+        
+        # axarr[0].plot(x, sel, 'black')
+                
+        # axarr[0].fill_between(x, sel - err, 
+        #           sel + err,
+        #           color=['darkgray'])
+        
+        # axarr[0].plot(x, selo, 'b-')
+                
+        # axarr[0].fill_between(x, selo - erro, 
+        #           selo + erro,
+        #           color=['#b4b2dc'])       
+
+        # axarr[0].set_title('Optogenetic effect on selectivity')
+        
+        # selo = np.mean(errpref, axis = 0) - np.mean(errnp, axis = 0)
+        # erro = np.std(errpref, axis=0) / np.sqrt(len(errpref)) 
+        # erro += np.std(errnp, axis=0) / np.sqrt(len(errnp)) 
+        
+        # axarr[1].plot(x, sel, 'black')
+                
+        # axarr[1].fill_between(x, sel - err, 
+        #           sel + err,
+        #           color=['darkgray'])
+        
+        # axarr[1].plot(x, selo, 'b-')
+                
+        # axarr[1].fill_between(x, selo - erro, 
+        #           selo + erro,
+        #           color=['#b4b2dc'])   
+
+        # axarr[1].set_title('Incorrect trials')
+        
+
+        
         plt.show()

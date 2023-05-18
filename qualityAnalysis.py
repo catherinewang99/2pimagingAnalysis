@@ -15,10 +15,10 @@ from matplotlib.pyplot import figure
 from numpy import concatenate as cat
 from sklearn.preprocessing import normalize
 
-# path = r'F:\data\BAYLORCW021\python\2023_04_06'
+path = r'F:\data\BAYLORCW021\python\2023_04_06'
 
-path = r'F:\data\BAYLORCW027\python\2023_05_05'
-# path = r'F:\data\BAYLORCW021\python\2023_04_27'
+# path = r'F:\data\BAYLORCW027\python\2023_05_05'
+# path = r'F:\data\BAYLORCW021\python\2023_04_25'
 
 # path = r'F:\data\BAYLORCW022\python\2023_03_06'
 # path = r'F:\data\BAYLORCW021\python\2023_05_03'
