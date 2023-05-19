@@ -42,6 +42,9 @@ class Behavior():
         self.stim_ON = dict()
         self.stim_level = dict()
         
+        self.delay_duration = dict()
+        self.protocol = dict()
+        
         if not single:
         
             for i in os.listdir(path):
@@ -51,7 +54,6 @@ class Behavior():
                             behavior_old = scio.loadmat(os.path.join(path, i, j))
                             behavior = behavior_old.copy()
                             self.sessions += [i]
-                            self.i_good_trials[total_sessions] = cat(behavior['i_good_trials']) - 1 # zero indexing in python
     
                             self.L_correct[total_sessions] = cat(behavior['L_hit_tmp'])
                             self.R_correct[total_sessions] = cat(behavior['R_hit_tmp'])
@@ -63,11 +65,18 @@ class Behavior():
                             
                             self.L_ignore[total_sessions] = cat(behavior['L_ignore_tmp'])
                             self.R_ignore[total_sessions] = cat(behavior['R_ignore_tmp'])
-                            
-                            if not behavior_only:
+                           
+                            if behavior_only:
+                                
+                                self.delay_duration[total_sessions] = cat(cat(cat(behavior['delay_duration'])))
+                                self.protocol[total_sessions] = cat(cat(behavior['protocol']))
+                                
+                            elif not behavior_only:
                             
                                 self.stim_ON[total_sessions] = np.where(cat(behavior['StimDur_tmp']) > 0)
                                 # self.stim_level[total_sessions] = cat(behavior['StimLevel'])
+                                self.i_good_trials[total_sessions] = cat(behavior['i_good_trials']) - 1 # zero indexing in python
+
 
                             total_sessions += 1
     
@@ -92,8 +101,10 @@ class Behavior():
             self.R_ignore[total_sessions] = cat(behavior['R_ignore_tmp'])
             
             self.stim_ON[total_sessions] = np.where(cat(behavior['StimDur_tmp']) > 0)
-            self.stim_level[total_sessions] = cat(behavior['StimLevel'])
+            if 'StimLevel' in behavior.keys():
+                self.stim_level[total_sessions] = cat(behavior['StimLevel'])
             self.total_sessions = 1
+            
 
     def plot_performance_over_sessions(self):
         
@@ -115,11 +126,12 @@ class Behavior():
             opto_p += [np.sum([(self.L_correct[i][t] + self.R_correct[i][t]) for t in opto]) / len(opto)]
 
             
-        plt.plot(reg, 'g-')
-        plt.plot(opto_p, 'r-')
+        plt.plot(reg, 'g-', label='control')
+        plt.plot(opto_p, 'r-', label = 'opto')
         plt.title('Performance over time')
         plt.xticks(range(self.total_sessions), self.sessions, rotation = 45)
         plt.axhline(0.5)
+        plt.legend()
         plt.show()
         
         
@@ -296,9 +308,79 @@ class Behavior():
         plt.show()       
         
         return L_opto_num, R_opto_num
+    
+    
     def plot_licks_single_sess(self):
-        
+        # JH Plot
         return None
+
+    def learning_progression(self):
+        
+        # Figures showing learning over protocol
+        
+        f, axarr = plt.subplots(3, 1, sharex='col', figsize=(10,15))
+        
+        # Concatenate all sessions
+        delay_duration = np.array([])
+        correctarr = np.array([])
+        earlylicksarr = np.array([])
+        num_trials = []
+        
+        for sess in range(self.total_sessions):
+            delay_duration = np.append(delay_duration, self.delay_duration[sess])
+            
+            correct = self.L_correct[sess] + self.R_correct[sess]
+            correct = np.convolve(correct, np.ones(30)/30, mode = 'same')
+            correctarr = np.append(correctarr, correct)
+            
+            earlylicks = np.convolve(self.early_lick[sess], np.ones(20)/20, mode = 'same')
+            earlylicksarr = np.append(earlylicksarr, earlylicks)
+            
+            num_trials += [len(self.L_correct[sess])]
+            
+        # Protocol
+        
+        axarr[0].plot(delay_duration, 'r')
+        axarr[0].set_ylabel('Delay duration (s)')
+        
+        # Performance
+        
+        axarr[1].plot(correctarr, 'g')        
+        axarr[1].set_ylabel('% correct')
+        
+        # Early licking
+        
+        axarr[2].plot(earlylicksarr, 'b')        
+        axarr[2].set_ylabel('% Early licks')
+        axarr[2].set_xlabel('Trials')
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
 
 
                         
