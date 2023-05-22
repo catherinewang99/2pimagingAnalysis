@@ -20,10 +20,16 @@ import behavior
 
 # behavior = scio.loadmat(r'E:\data\BAYLORCW022\python\2022_12_15\behavior.mat')
 
-### Plot WT learning progression
+### Plot learning progression
 
-b = behavior.Behavior('F:\data\BAYLORCW028\python_behavior', behavior_only=True)
+# b = behavior.Behavior('F:\data\Behavior data\BAYLORCW028\python_behavior', behavior_only=True)
+# b.learning_progression()
+
+b = behavior.Behavior('F:\data\Behavior data\BAYLORCW029\python_behavior', behavior_only=True)
 b.learning_progression()
+
+# b = behavior.Behavior('F:\data\BAYLORCW021\python_behavior', behavior_only=True)
+# b.learning_progression()
 
 ### Plot over all imaging sessions
 

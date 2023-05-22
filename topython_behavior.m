@@ -1,14 +1,14 @@
 addpath('F:\data')
-path = 'F:\data\BAYLORCW028\';
+path = 'F:\data\Behavior data\BAYLORCW021';
 
-mkdir([path 'python_behavior'])
+mkdir([path '\python_behavior'])
 
 lst = dir(path);
 for j = 1:length(lst)
     if contains(lst(j).name, 'behavior.mat')
         load([lst(j).folder '\' lst(j).name])
         namesplit = split(lst(j).name, '_');
-        mkdir([path 'python_behavior\' strjoin(namesplit(2:4), '_')])
+        mkdir([path '\python_behavior\' namesplit{2}])
         
         % Get behavioral data
         
@@ -94,7 +94,7 @@ for j = 1:length(lst)
             end
         end
         
-        save([path 'python_behavior\' strjoin(namesplit(2:4), '_') '\behavior.mat'], 'R_hit_tmp', 'R_miss_tmp', 'R_ignore_tmp', 'L_hit_tmp', 'L_miss_tmp', 'L_ignore_tmp', 'LickEarly_tmp', 'i_good_trials', 'protocol', 'delay_duration')
+        save([path '\python_behavior\' namesplit{2} '\behavior.mat'], 'R_hit_tmp', 'R_miss_tmp', 'R_ignore_tmp', 'L_hit_tmp', 'L_miss_tmp', 'L_ignore_tmp', 'LickEarly_tmp', 'i_good_trials', 'protocol', 'delay_duration')
         
         clearvars delay_duration
     end

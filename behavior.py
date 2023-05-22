@@ -318,7 +318,7 @@ class Behavior():
         
         # Figures showing learning over protocol
         
-        f, axarr = plt.subplots(3, 1, sharex='col', figsize=(10,15))
+        f, axarr = plt.subplots(3, 1, sharex='col', figsize=(20,15))
         
         # Concatenate all sessions
         delay_duration = np.array([])
@@ -327,26 +327,33 @@ class Behavior():
         num_trials = []
         
         for sess in range(self.total_sessions):
-            delay_duration = np.append(delay_duration, self.delay_duration[sess])
+            
+            delay = np.convolve(self.delay_duration[sess], np.ones(50)/50, mode = 'same')
+            delay_duration = np.append(delay_duration, delay[50:-50])
+
+            # delay_duration = np.append(delay_duration, self.delay_duration[sess])
             
             correct = self.L_correct[sess] + self.R_correct[sess]
-            correct = np.convolve(correct, np.ones(30)/30, mode = 'same')
-            correctarr = np.append(correctarr, correct)
+            correct = np.convolve(correct, np.ones(50)/50, mode = 'same')
+            correctarr = np.append(correctarr, correct[50:-50])
             
-            earlylicks = np.convolve(self.early_lick[sess], np.ones(20)/20, mode = 'same')
-            earlylicksarr = np.append(earlylicksarr, earlylicks)
+            earlylicks = np.convolve(self.early_lick[sess], np.ones(50)/50, mode = 'same')
+            earlylicksarr = np.append(earlylicksarr, earlylicks[50:-50])
             
-            num_trials += [len(self.L_correct[sess])]
-            
+            num_trials += [len(self.L_correct[sess])-100]
+        num_trials = np.cumsum(num_trials)
+        
         # Protocol
         
         axarr[0].plot(delay_duration, 'r')
         axarr[0].set_ylabel('Delay duration (s)')
+
         
         # Performance
         
         axarr[1].plot(correctarr, 'g')        
         axarr[1].set_ylabel('% correct')
+        axarr[1].axhline(y=0.7, alpha = 0.5, color='orange')
         
         # Early licking
         
@@ -355,7 +362,12 @@ class Behavior():
         axarr[2].set_xlabel('Trials')
         
         
+        # Denote separate sessions
         
+        for num in num_trials:
+            axarr[0].axvline(num, color = 'grey', alpha=0.5, ls = '--')
+            axarr[1].axvline(num, color = 'grey', alpha=0.5, ls = '--')
+            axarr[2].axvline(num, color = 'grey', alpha=0.5, ls = '--')
         
         
         
