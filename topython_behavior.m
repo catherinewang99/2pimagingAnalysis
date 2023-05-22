@@ -1,5 +1,5 @@
 addpath('F:\data')
-path = 'F:\data\Behavior data\BAYLORCW021';
+path = 'F:\data\Behavior data\BAYLORCW027';
 
 mkdir([path '\python_behavior'])
 
@@ -61,9 +61,18 @@ for j = 1:length(lst)
                 end
 
             elseif isfield(obj.eventsHistory{i_solo_trial, 1}.States, 'DelayPeriod')
+
                 delay_duration{i_solo_trial} = obj.eventsHistory{i_solo_trial, 1}.States.DelayPeriod(2) - obj.eventsHistory{i_solo_trial, 1}.States.DelayPeriod(1); 
+
                 if  ~isnan(obj.eventsHistory{i_solo_trial, 1}.States.EarlyLickSample) | ~isnan(obj.eventsHistory{i_solo_trial, 1}.States.EarlyLickDelay)
                     LickEarly_tmp(i_solo_trial) = 1;
+                    
+                    if ~isnan(obj.eventsHistory{i_solo_trial, 1}.States.EarlyLickDelay)
+                    
+                        
+
+                    end
+
                 end
 
             else

@@ -21,7 +21,7 @@ class Behavior():
         # If not single: path is the folder "/.../python/" that contains all the sessions and python compatible mat data
         
         total_sessions = 0
-        
+        self.path = path
         self.sessions = []
         
         self.opto_trials = dict()
@@ -314,7 +314,7 @@ class Behavior():
         # JH Plot
         return None
 
-    def learning_progression(self):
+    def learning_progression(self, window = 50, save=False):
         
         # Figures showing learning over protocol
         
@@ -328,19 +328,19 @@ class Behavior():
         
         for sess in range(self.total_sessions):
             
-            delay = np.convolve(self.delay_duration[sess], np.ones(50)/50, mode = 'same')
-            delay_duration = np.append(delay_duration, delay[50:-50])
+            delay = np.convolve(self.delay_duration[sess], np.ones(window)/window, mode = 'same')
+            delay_duration = np.append(delay_duration, delay[window:-window])
 
             # delay_duration = np.append(delay_duration, self.delay_duration[sess])
             
             correct = self.L_correct[sess] + self.R_correct[sess]
-            correct = np.convolve(correct, np.ones(50)/50, mode = 'same')
-            correctarr = np.append(correctarr, correct[50:-50])
+            correct = np.convolve(correct, np.ones(window)/window, mode = 'same')
+            correctarr = np.append(correctarr, correct[window:-window])
             
-            earlylicks = np.convolve(self.early_lick[sess], np.ones(50)/50, mode = 'same')
-            earlylicksarr = np.append(earlylicksarr, earlylicks[50:-50])
+            earlylicks = np.convolve(self.early_lick[sess], np.ones(window)/window, mode = 'same')
+            earlylicksarr = np.append(earlylicksarr, earlylicks[window:-window])
             
-            num_trials += [len(self.L_correct[sess])-100]
+            num_trials += [len(self.L_correct[sess])-(window*2)]
         num_trials = np.cumsum(num_trials)
         
         # Protocol
@@ -354,6 +354,7 @@ class Behavior():
         axarr[1].plot(correctarr, 'g')        
         axarr[1].set_ylabel('% correct')
         axarr[1].axhline(y=0.7, alpha = 0.5, color='orange')
+        axarr[1].set_ylim(0, 1)
         
         # Early licking
         
@@ -369,7 +370,8 @@ class Behavior():
             axarr[1].axvline(num, color = 'grey', alpha=0.5, ls = '--')
             axarr[2].axvline(num, color = 'grey', alpha=0.5, ls = '--')
         
-        
+        if save:
+            plt.savefig(self.path + r'\learningcurve.pdf')
         
         
         

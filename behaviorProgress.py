@@ -22,14 +22,17 @@ import behavior
 
 ### Plot learning progression
 
-# b = behavior.Behavior('F:\data\Behavior data\BAYLORCW028\python_behavior', behavior_only=True)
+b = behavior.Behavior('F:\data\Behavior data\BAYLORCW028\python_behavior', behavior_only=True)
+b.learning_progression(save=True)
+
+# b = behavior.Behavior('F:\data\Behavior data\BAYLORCW029\python_behavior', behavior_only=True)
 # b.learning_progression()
 
-b = behavior.Behavior('F:\data\Behavior data\BAYLORCW029\python_behavior', behavior_only=True)
-b.learning_progression()
+b = behavior.Behavior('F:\data\Behavior data\BAYLORCW021\python_behavior', behavior_only=True)
+b.learning_progression(window = 100, save=True)
 
-# b = behavior.Behavior('F:\data\BAYLORCW021\python_behavior', behavior_only=True)
-# b.learning_progression()
+b = behavior.Behavior('F:\data\Behavior data\BAYLORCW027\python_behavior', behavior_only=True)
+b.learning_progression(window = 50, save=True)
 
 ### Plot over all imaging sessions
 
