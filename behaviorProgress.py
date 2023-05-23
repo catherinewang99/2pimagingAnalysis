@@ -22,17 +22,17 @@ import behavior
 
 ### Plot learning progression
 
-b = behavior.Behavior('F:\data\Behavior data\BAYLORCW028\python_behavior', behavior_only=True)
-b.learning_progression(save=True)
+# b = behavior.Behavior('F:\data\Behavior data\BAYLORCW028\python_behavior', behavior_only=True)
+# b.learning_progression(save=True)
 
-# b = behavior.Behavior('F:\data\Behavior data\BAYLORCW029\python_behavior', behavior_only=True)
-# b.learning_progression()
+b = behavior.Behavior('F:\data\Behavior data\BAYLORCW029\python_behavior', behavior_only=True)
+b.learning_progression()
 
-b = behavior.Behavior('F:\data\Behavior data\BAYLORCW021\python_behavior', behavior_only=True)
-b.learning_progression(window = 100, save=True)
+# b = behavior.Behavior('F:\data\Behavior data\BAYLORCW021\python_behavior', behavior_only=True)
+# b.learning_progression(window = 100, save=True)
 
-b = behavior.Behavior('F:\data\Behavior data\BAYLORCW027\python_behavior', behavior_only=True)
-b.learning_progression(window = 50, save=True)
+# b = behavior.Behavior('F:\data\Behavior data\BAYLORCW027\python_behavior', behavior_only=True)
+# b.learning_progression(window = 50, save=True)
 
 ### Plot over all imaging sessions
 
@@ -51,10 +51,10 @@ b.learning_progression(window = 50, save=True)
 ### Plot single session performance - diagnostic session
 
 # b = behavior.Behavior(r'F:\data\BAYLORCW022\python\2023_03_04', single=True)
-# b.plot_single_session()
+# b.plot_single_session(save=True)
 
 # b = behavior.Behavior(r'F:\data\BAYLORCW021\python\2023_05_17', single=True)
-# b.plot_single_session_multidose()
+# b.plot_single_session_multidose(save=True)
 
 # b = behavior.Behavior(r'F:\data\BAYLORCW027\python\2023_04_10', single=True)
 # b.plot_single_session()
@@ -62,5 +62,5 @@ b.learning_progression(window = 50, save=True)
 # b = behavior.Behavior(r'F:\data\BAYLORCW027\python\2023_04_11', single=True)
 # b.plot_single_session()
 
-# b = behavior.Behavior(r'F:\data\BAYLORCW021\python\2023_04_27', single=True)
-# b.plot_single_session()
+# b = behavior.Behavior(r'F:\data\BAYLORCW021\python\2023_04_25', single=True)
+# b.plot_single_session(save=True)

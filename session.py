@@ -15,23 +15,45 @@ from sklearn.preprocessing import normalize
 from matplotlib.pyplot import figure
 from matplotlib.colors import ListedColormap
 from sklearn.preprocessing import normalize
-
+import os
 
 class Session:
     
-    def __init__(self, path, layer_num, guang=False):
+    def __init__(self, path, layer_num='all', guang=False):
         
+        if layer_num != 'all':
+            
+            layer_og = scio.loadmat(r'{}\layer_{}.mat'.format(path, layer_num))
+            layer = copy.deepcopy(layer_og)
+            self.dff = layer['dff']
 
-        layer_og = scio.loadmat(r'{}\layer_{}.mat'.format(path, layer_num))
+        else:
+            # Load all layers
+            self.dff = None
+            for layer in os.listdir(path):
+                if 'layer' in layer:
+                    layer_og = scio.loadmat(r'{}\{}'.format(path, layer))
+                    layer = copy.deepcopy(layer_og)
+                    
+                    if self.dff == None:
+                        
+                        
+                        self.dff = layer['dff']
+                        self.num_trials = layer['dff'].shape[1] 
+                    else:
+
+                        for t in range(self.num_trials):
+                            add = layer['dff'][0, t]
+                            self.dff[0, t] = np.vstack((self.dff[0, t], add))
+                        
+        
         behavior = scio.loadmat(r'{}\behavior.mat'.format(path))
         
-        layer = copy.deepcopy(layer_og)
-        
         self.layer_num = layer_num
-        self.dff = layer['dff']
-        self.num_neurons = layer['dff'][0,0].shape[0]
 
-        self.num_trials = layer['dff'].shape[1] 
+        self.num_neurons = self.dff[0,0].shape[0]
+
+        self.num_trials = self.dff.shape[1] 
         
         self.time_cutoff = self.determine_cutoff()
         

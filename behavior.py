@@ -197,7 +197,7 @@ class Behavior():
         plt.xticks(range(self.total_sessions), self.sessions, rotation = 45)
         plt.show()
     
-    def plot_single_session(self):
+    def plot_single_session(self, save=False):
          
         Lreg = []
         Rreg = []
@@ -244,13 +244,17 @@ class Behavior():
         plt.title('Late delay optogenetic effect on unilateral ALM')
         plt.xticks([0, 1], ['Control', 'Late Delay Epoch'])
         plt.ylim(0, 1)
-        plt.show()       
+        
+        if save:
+            plt.savefig(self.path + 'stim_behavioral_effect.jpg')
+        
+        plt.show()
         
         return L_opto_num, R_opto_num
     
     
     
-    def plot_single_session_multidose(self):
+    def plot_single_session_multidose(self, save=False):
          
         Lreg = []
         Rreg = []
@@ -305,8 +309,11 @@ class Behavior():
         print(ticks)
         plt.xticks(range(len(opto_levels)), ['Control'] + ticks)
         plt.ylim(0, 1)
-        plt.show()       
+        if save:
+            plt.savefig(self.path + 'stimDOSE_behavioral_effect.jpg')
         
+        plt.show()       
+
         return L_opto_num, R_opto_num
     
     
@@ -371,7 +378,7 @@ class Behavior():
             axarr[2].axvline(num, color = 'grey', alpha=0.5, ls = '--')
         
         if save:
-            plt.savefig(self.path + r'\learningcurve.pdf')
+            plt.savefig(self.path + r'\learningcurve.png')
         
         
         

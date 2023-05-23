@@ -15,7 +15,7 @@ from matplotlib.pyplot import figure
 from numpy import concatenate as cat
 from sklearn.preprocessing import normalize
 
-path = r'F:\data\BAYLORCW021\python\2023_04_06'
+path = r'F:\data\BAYLORCW021\python\2023_04_27'
 
 # path = r'F:\data\BAYLORCW027\python\2023_05_05'
 # path = r'F:\data\BAYLORCW021\python\2023_04_25'
@@ -37,7 +37,7 @@ path = r'F:\data\BAYLORCW021\python\2023_04_06'
 
 ### EFFECT OF OPTO INHIBITION ###
 
-l1 = session.Session(path, 4)
+l1 = session.Session(path)
 # l1.crop_trials(108,end=111)
 
 stim_dff = l1.dff[0][l1.stim_ON]
@@ -114,6 +114,8 @@ axarr[0,1].set_title('Control')
 
 axarr[1,1].plot(np.mean(stack, axis = 0))
 axarr[1,1].set_ylim(top=0.2)
+
+# plt.savefig(path + r'dff_contrastim.jpg')
 
 plt.show()
 ### Histogram of F values before finding F0
