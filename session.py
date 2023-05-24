@@ -48,7 +48,7 @@ class Session:
                         
         
         behavior = scio.loadmat(r'{}\behavior.mat'.format(path))
-        
+        self.path = path
         self.layer_num = layer_num
 
         self.num_neurons = self.dff[0,0].shape[0]
@@ -525,8 +525,8 @@ class Session:
 
     def get_epoch_selective(self, epoch, p = 0.01):
         selective_neurons = []
-        # for neuron in range(self.num_neurons):
-        for neuron in self.good_neurons:
+        for neuron in range(self.num_neurons):
+        # for neuron in self.good_neurons:
             right, left = self.get_trace_matrix(neuron)
             left_ = [l[epoch] for l in left]
             right_ = [r[epoch] for r in right]
@@ -884,11 +884,12 @@ class Session:
 
 ### EPHYS PLOTS TO MY DATA ###
 
-    def plot_number_of_sig_neurons(self):
+    def plot_number_of_sig_neurons(self, save=False):
         
         contra = np.zeros(self.time_cutoff)
         ipsi = np.zeros(self.time_cutoff)
-        
+        x = np.arange(-5.97,4,0.2)[:self.time_cutoff]
+
         for t in range(self.time_cutoff):
             
             sig_neurons = []
@@ -917,22 +918,26 @@ class Session:
             contra[t] = sum(np.array(sig_neurons) == -1)
             ipsi[t] = sum(np.array(sig_neurons) == 1)
 
-        plt.bar(range(self.time_cutoff), contra, color = 'b', label = 'contra')
-        plt.bar(range(self.time_cutoff), -ipsi, color = 'r', label = 'ipsi')
-        plt.axvline(7)
-        plt.axvline(13)
-        plt.axvline(28)
+        plt.bar(x, contra, color = 'b', edgecolor = 'white', width = 0.2, label = 'contra')
+        plt.bar(x, -ipsi, color = 'r',edgecolor = 'white', width = 0.2, label = 'ipsi')
+        plt.axvline(-4.3)
+        plt.axvline(-3)
+        plt.axvline(0)
         
         plt.ylabel('Number of sig sel neurons')
-        plt.xlabel('Time')
+        plt.xlabel('Time from Go cue (s)')
         plt.legend()
+        
+        if save:
+            plt.savefig(self.path + r'number_sig_neurons.png')
+        
         plt.show()
         
-    def selectivity_table_by_epoch(self):
+    def selectivity_table_by_epoch(self, save=False):
         
         # Plots fractions of contra/ipsi neurons and their overall trace
 
-        f, axarr = plt.subplots(4,3, sharex='col', figsize=(10,10))
+        f, axarr = plt.subplots(4,3, sharex='col', figsize=(14, 12))
         epochs = [range(self.time_cutoff), range(8,14), range(19,28), range(29,self.time_cutoff)]
         x = np.arange(-5.97,4,0.2)[:self.time_cutoff]
         titles = ['Whole-trial', 'Sample', 'Delay', 'Response']
@@ -942,7 +947,7 @@ class Session:
             contra_neurons, ipsi_neurons, contra_trace, ipsi_trace = self.contra_ipsi_pop(epochs[i])
 
             # Bar plot
-            axarr[i, 0].bar([1,2], [len(contra_neurons)/len(self.selective_neurons),
+            axarr[i, 0].bar(['Contra', 'Ipsi'], [len(contra_neurons)/len(self.selective_neurons),
                                     len(ipsi_neurons)/len(self.selective_neurons)], 
                             color = ['b', 'r'])
             
@@ -994,11 +999,20 @@ class Session:
 
             else:
                 print('No contra selective neurons')
+                
+        axarr[0,0].set_ylabel('Proportion of neurons')
+        axarr[0,1].set_ylabel('dF/F0')
+        axarr[3,1].set_xlabel('Time from Go cue (s)')
+        axarr[3,2].set_xlabel('Time from Go cue (s)')
+        
+        if save:
+            plt.savefig(self.path + r'contra_ipsi_SDR_table.png')
+        
         plt.show()
 
-    def plot_table_selectivity(self):
+    def plot_three_selectivity(self,save=False):
         
-        f, axarr = plt.subplots(1,5, sharex='col', figsize=(20,10))
+        f, axarr = plt.subplots(1,5, sharex='col', figsize=(21,5))
         
         epochs = [range(self.time_cutoff), range(8,14), range(19,28), range(29,self.time_cutoff)]
         x = np.arange(-5.97,4,0.2)[:self.time_cutoff]
@@ -1037,14 +1051,19 @@ class Session:
             num_epochs += [len(contra_neurons) + len(ipsi_neurons)]
 
         # Bar plot
-        axarr[0].bar([1,2,3], np.array(num_epochs[1:]) / sum(num_epochs[1:]), color = ['dimgray', 'darkgray', 'gainsboro'])
+        axarr[0].bar(['S', 'D', 'R'], np.array(num_epochs[1:]) / sum(num_epochs[1:]), color = ['dimgray', 'darkgray', 'gainsboro'])
         
         axarr[0].set_ylim(0,1)
         axarr[0].set_title('Among all ALM neurons')
         
+        axarr[0].set_ylabel('Proportion of neurons')
+        axarr[1].set_ylabel('Selectivity')
+        axarr[2].set_xlabel('Time from Go cue (s)')
+        
+        
         plt.show()
         
-    def population_sel_timecourse(self):
+    def population_sel_timecourse(self, save=True):
         
         f, axarr = plt.subplots(2, 1, sharex='col', figsize=(20,15))
         epochs = [range(14,28), range(21,self.time_cutoff), range(29,self.time_cutoff)]
@@ -1086,13 +1105,16 @@ class Session:
         
         axarr[1].matshow(-(contra_mat[1:]), aspect="auto", cmap='jet')
         axarr[1].set_title('Contra-preferring neurons')
-                
+        
+        if save:
+            plt.savefig(self.path + r'population_selectivity_overtime.jpg')
+        
         plt.show()
 
 
-    def selectivity_optogenetics(self):
+    def selectivity_optogenetics(self, save=False):
         
-        f, axarr = plt.subplots(1,1, sharex='col', figsize=(10,10))
+        f, axarr = plt.subplots(1,1, sharex='col', figsize=(5,5))
         
         x = np.arange(-5.97,4,0.2)[:self.time_cutoff]
 
@@ -1144,7 +1166,8 @@ class Session:
                   color=['#b4b2dc'])       
 
         axarr.set_title('Optogenetic effect on selectivity')                  
-        
+        axarr.set_xlabel('Time from Go cue (s)')
+        axarr.set_ylabel('Selectivity')
         # axarr[0].plot(x, sel, 'black')
                 
         # axarr[0].fill_between(x, sel - err, 
@@ -1177,6 +1200,64 @@ class Session:
 
         # axarr[1].set_title('Incorrect trials')
         
+        if save:
+            plt.savefig(self.path + r'opto_effect_on_selectivity.png')
 
         
         plt.show()
+        
+### Quality analysis section ###
+        
+    def all_neurons_heatmap(self, save=False):
+        
+        f, axarr = plt.subplots(2,2, sharex='col')
+        # x = np.arange(-5.97,4,0.2)[:self.time_cutoff]
+
+        stim_dff = self.dff[0][self.stim_ON]
+        non_stim_dff = self.dff[0][~self.stim_ON]
+
+        stack = np.zeros(self.time_cutoff)
+
+        for neuron in range(stim_dff[0].shape[0]):
+            dfftrial = []
+            for trial in range(stim_dff.shape[0]):
+                dfftrial += [stim_dff[trial][neuron, :self.time_cutoff]]
+
+            stack = np.vstack((stack, np.mean(np.array(dfftrial), axis=0)))
+
+        stack = normalize(stack[1:])
+        axarr[0,0].matshow(stack, cmap='gray', interpolation='nearest', aspect='auto')
+        axarr[0,0].axis('off')
+        axarr[0,0].set_title('Opto')
+        axarr[0,0].axvline(x=13, c='b', linewidth = 0.5)
+        axarr[1,0].plot(np.mean(stack, axis = 0))
+        axarr[1,0].set_ylim(top=0.2)
+        axarr[1,0].axvline(x=13, c='b', linewidth = 0.5)
+
+        stack = np.zeros(self.time_cutoff)
+
+        for neuron in range(non_stim_dff[0].shape[0]):
+            dfftrial = []
+            for trial in range(non_stim_dff.shape[0]):
+                dfftrial += [non_stim_dff[trial][neuron, :self.time_cutoff]]
+
+            stack = np.vstack((stack, np.mean(np.array(dfftrial), axis=0)))
+
+        stack = normalize(stack[1:])
+
+        axarr[0,1].matshow(stack, cmap='gray', interpolation='nearest', aspect='auto')
+        axarr[0,1].axis('off')
+        axarr[0,1].set_title('Control')
+
+        axarr[1,1].plot(np.mean(stack, axis = 0))
+        axarr[1,1].set_ylim(top=0.2)
+        axarr[1,0].set_ylabel('dF/F0')
+        # axarr[1,0].set_xlabel('Time from Go cue (s)')
+
+        if save:
+            plt.savefig(self.path + r'dff_contra_stimall.jpg')
+
+        plt.show()
+    
+        return None
+    

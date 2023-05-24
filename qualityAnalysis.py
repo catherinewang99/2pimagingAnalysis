@@ -15,10 +15,10 @@ from matplotlib.pyplot import figure
 from numpy import concatenate as cat
 from sklearn.preprocessing import normalize
 
-path = r'F:\data\BAYLORCW021\python\2023_04_27'
+path = r'F:\data\BAYLORCW021\python\2023_04_06'
 
 # path = r'F:\data\BAYLORCW027\python\2023_05_05'
-# path = r'F:\data\BAYLORCW021\python\2023_04_25'
+path = r'F:\data\BAYLORCW021\python\2023_04_27'
 
 # path = r'F:\data\BAYLORCW022\python\2023_03_06'
 # path = r'F:\data\BAYLORCW021\python\2023_05_03'
@@ -35,15 +35,35 @@ path = r'F:\data\BAYLORCW021\python\2023_04_27'
 # print(total_n)
 
 
+### Total number of selective neurons per category ###
+
+# path = r'F:\data\BAYLORCW021\python\2023_04_27'
+# trained = session.Session(path)
+# path = r'F:\data\BAYLORCW021\python\2023_02_08'
+# naive = session.Session(path)
+
+# trained_num = []
+# naive_num = []
+
+# epochs = [range(naive.time_cutoff), range(8,14), range(19,28), range(29,naive.time_cutoff)]
+titles = ['Whole-trial', 'Sample', 'Delay', 'Response']
+        
+# for e in epochs:
+#     trained_num += [len(trained.get_epoch_selective(e)) / trained.num_neurons]        
+#     naive_num += [len(naive.get_epoch_selective(e)) / naive.num_neurons]        
+
+plt.plot(titles, trained_num, label='Trained', marker = 'o')
+plt.plot(titles, naive_num, label = 'Naive', marker = 'o')
+plt.ylabel('Proportion of selective ROIs')
+plt.legend()
 ### EFFECT OF OPTO INHIBITION ###
 
-l1 = session.Session(path)
+
 # l1.crop_trials(108,end=111)
 
-stim_dff = l1.dff[0][l1.stim_ON]
-non_stim_dff = l1.dff[0][~l1.stim_ON]
 
 ### Histogram of average dff during stim period
+
 # delay_stim = cat(cat([stim_dff[f][:, 13:28] for f in range(stim_dff.shape[0])]))
 # delay_nostim = cat(cat([non_stim_dff[f][:, 13:28] for f in range(non_stim_dff.shape[0])]))
 
@@ -75,49 +95,8 @@ non_stim_dff = l1.dff[0][~l1.stim_ON]
 
 ### Heat map of neurons during stim vs. control
 
-f, axarr = plt.subplots(2,2, sharex='col')
+# l1.all_neurons_heatmap()
 
-
-
-stack = np.zeros(l1.time_cutoff)
-
-for neuron in range(stim_dff[0].shape[0]):
-    dfftrial = []
-    for trial in range(stim_dff.shape[0]):
-        dfftrial += [stim_dff[trial][neuron, :l1.time_cutoff]]
-
-    stack = np.vstack((stack, np.mean(np.array(dfftrial), axis=0)))
-
-stack = normalize(stack[1:])
-axarr[0,0].matshow(stack, cmap='gray', interpolation='nearest', aspect='auto')
-axarr[0,0].axis('off')
-axarr[0,0].set_title('Opto')
-axarr[0,0].axvline(x=13, c='b', linewidth = 0.5)
-axarr[1,0].plot(np.mean(stack, axis = 0))
-axarr[1,0].set_ylim(top=0.2)
-axarr[1,0].axvline(x=13, c='b', linewidth = 0.5)
-
-stack = np.zeros(l1.time_cutoff)
-
-for neuron in range(non_stim_dff[0].shape[0]):
-    dfftrial = []
-    for trial in range(non_stim_dff.shape[0]):
-        dfftrial += [non_stim_dff[trial][neuron, :l1.time_cutoff]]
-
-    stack = np.vstack((stack, np.mean(np.array(dfftrial), axis=0)))
-
-stack = normalize(stack[1:])
-
-axarr[0,1].matshow(stack, cmap='gray', interpolation='nearest', aspect='auto')
-axarr[0,1].axis('off')
-axarr[0,1].set_title('Control')
-
-axarr[1,1].plot(np.mean(stack, axis = 0))
-axarr[1,1].set_ylim(top=0.2)
-
-# plt.savefig(path + r'dff_contrastim.jpg')
-
-plt.show()
 ### Histogram of F values before finding F0
 
 # n0 = [l1.dff[0,t][0, :] for t in range(l1.num_trials)]

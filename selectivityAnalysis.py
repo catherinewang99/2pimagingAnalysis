@@ -19,15 +19,17 @@ from matplotlib.pyplot import figure
 
 # path = r'F:\data\BAYLORCW027\python\2023_05_05'
 
-path = r'F:\data\BAYLORCW021\python\2023_04_25'
+# path = r'F:\data\BAYLORCW021\python\2023_05_03'
+path = r'F:\data\BAYLORCW021\python\2023_02_08'
+
 # path = r'F:\data\BAYLORCW021\python\2023_04_27'
 
 # path = r'F:\data\BAYLORCW021\python\2023_02_08'
 
 
-l1 = session.Session(path, 4)
+l1 = session.Session(path)
 
-# l1.plot_table_selectivity()
+# l1.plot_three_selectivity()
 
 # l1.population_sel_timecourse()
 

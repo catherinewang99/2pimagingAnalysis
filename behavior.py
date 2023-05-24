@@ -235,15 +235,17 @@ class Behavior():
         
         R_opto_num =len([(self.R_correct[i][t] + self.R_wrong[i][t] + self.R_ignore[i][t]) for t in opto])
         
-        plt.plot(cat((Lreg, Lopto)), 'r-', marker='o')
+        plt.plot(cat((Lreg, Lopto)), 'r-', marker='o', label='Left')
         # plt.plot(Lopto, 'r--')
         
-        plt.plot(cat((Rreg, Ropto)), 'b-', marker='o')
+        plt.plot(cat((Rreg, Ropto)), 'b-', marker='o', label='Right')
         # plt.plot(Ropto, 'b--')
         
         plt.title('Late delay optogenetic effect on unilateral ALM')
         plt.xticks([0, 1], ['Control', 'Late Delay Epoch'])
         plt.ylim(0, 1)
+        plt.xlabel('Proportion correct')
+        plt.legend()
         
         if save:
             plt.savefig(self.path + 'stim_behavioral_effect.jpg')
@@ -298,17 +300,20 @@ class Behavior():
             
             R_opto_num += len([(self.R_correct[i][t] + self.R_wrong[i][t] + self.R_ignore[i][t]) for t in opto])
         
-        plt.plot(cat((Lreg, Lopto)), 'r-', marker='o')
+        plt.plot(cat((Lreg, Lopto)), 'r-', marker='o', label='Left')
         # plt.plot(Lopto, 'r--')
         
-        plt.plot(cat((Rreg, Ropto)), 'b-', marker='o')
+        plt.plot(cat((Rreg, Ropto)), 'b-', marker='o', label='Right')
         # plt.plot(Ropto, 'b--')
         
         plt.title('Late delay optogenetic effect on unilateral ALM')
         ticks = ['{} AOM'.format(x) for x in opto_levels[1:]]
-        print(ticks)
         plt.xticks(range(len(opto_levels)), ['Control'] + ticks)
         plt.ylim(0, 1)
+        plt.xlabel('Proportion correct')
+        plt.ylabel('Perturbation condition')
+        plt.legend()
+        
         if save:
             plt.savefig(self.path + 'stimDOSE_behavioral_effect.jpg')
         
@@ -325,7 +330,7 @@ class Behavior():
         
         # Figures showing learning over protocol
         
-        f, axarr = plt.subplots(3, 1, sharex='col', figsize=(20,15))
+        f, axarr = plt.subplots(3, 1, sharex='col', figsize=(16,12))
         
         # Concatenate all sessions
         delay_duration = np.array([])

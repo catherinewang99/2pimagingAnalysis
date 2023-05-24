@@ -64,3 +64,12 @@ b.learning_progression()
 
 # b = behavior.Behavior(r'F:\data\BAYLORCW021\python\2023_04_25', single=True)
 # b.plot_single_session(save=True)
+
+# b = behavior.Behavior(r'F:\data\BAYLORCW021\python\2023_05_23', single=True)
+# b.plot_single_session_multidose(save=True)
+
+# b = behavior.Behavior(r'F:\data\BAYLORCW021\python\2023_02_27', single=True)
+# b.plot_single_session(save=True)
+
+# b = behavior.Behavior(r'F:\data\BAYLORCW021\python\2023_03_03', single=True)
+# b.plot_single_session(save=True)
