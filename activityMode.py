@@ -17,9 +17,9 @@ import time
 
 class Mode(Session):
     
-    def __init__(self, path, layer_num, time_epochs = [7, 13, 28]):
+    def __init__(self, path, layer_num='all', time_epochs = [7, 13, 28]):
         # Inherit all parameters and functions of session.py
-        super().__init__(path, layer_num) 
+        super().__init__(path, layer_num=layer_num) 
         
         for n in range(self.num_neurons):
             r, l = self.get_trace_matrix(n)

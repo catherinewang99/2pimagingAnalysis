@@ -23,13 +23,14 @@ import numpy as np
 
 path = r'F:\data\BAYLORCW021\python\2023_03_03'
 path = r'F:\data\BAYLORCW021\python\2023_02_13'
-path = r'F:\data\BAYLORCW021\python\2023_04_27'
-path = r'F:\data\BAYLORCW021\python\2023_05_03'
+path = r'F:\data\BAYLORCW021\python\2023_04_25'
+# path = r'F:\data\BAYLORCW021\python\2023_04_27'
+# path = r'F:\data\BAYLORCW021\python\2023_05_03'
 
 # path = r'F:\data\BAYLORCW021\python\2023_04_06'
 
 
-l1 = Mode(path, 6)
+l1 = Mode(path)
 
 
 # a, b = l1.plot_activity_modes_err()

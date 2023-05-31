@@ -68,7 +68,7 @@ class Behavior():
                            
                             if behavior_only:
                                 
-                                self.delay_duration[total_sessions] = cat(cat(cat(behavior['delay_duration'])))
+                                self.delay_duration[total_sessions] = cat(behavior['delay_duration'])
                                 self.protocol[total_sessions] = cat(cat(behavior['protocol']))
                                 
                             elif not behavior_only:

@@ -1,5 +1,5 @@
 addpath('F:\data')
-path = 'F:\data\Behavior data\BAYLORCW029';
+path = 'F:\data\Behavior data\BAYLORCW028';
 
 mkdir([path '\python_behavior'])
 
@@ -102,6 +102,8 @@ for j = 1:length(lst)
 
             end
         end
+
+        delay_duration = obj.settings;
         
         save([path '\python_behavior\' namesplit{2} '\behavior.mat'], 'R_hit_tmp', 'R_miss_tmp', 'R_ignore_tmp', 'L_hit_tmp', 'L_miss_tmp', 'L_ignore_tmp', 'LickEarly_tmp', 'i_good_trials', 'protocol', 'delay_duration')
         

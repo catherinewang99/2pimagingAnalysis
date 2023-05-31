@@ -19,7 +19,7 @@ import os
 
 class Session:
     
-    def __init__(self, path, layer_num='all', guang=False):
+    def __init__(self, path, layer_num='all', guang=False, passive=False):
         
         if layer_num != 'all':
             
@@ -50,7 +50,7 @@ class Session:
         behavior = scio.loadmat(r'{}\behavior.mat'.format(path))
         self.path = path
         self.layer_num = layer_num
-
+        self.passive = passive
         self.num_neurons = self.dff[0,0].shape[0]
 
         self.num_trials = self.dff.shape[1] 
@@ -62,7 +62,10 @@ class Session:
         
         self.good_neurons = np.where(self.skew>=1)[1]
         
-        self.i_good_trials = cat(behavior['i_good_trials']) - 1 # zero indexing in python
+        if passive:
+            self.i_good_trials = range(4, self.num_trials)
+        else:
+            self.i_good_trials = cat(behavior['i_good_trials']) - 1 # zero indexing in python
         
         self.L_correct = cat(behavior['L_hit_tmp'])
         self.R_correct = cat(behavior['R_hit_tmp'])
@@ -76,7 +79,9 @@ class Session:
         self.R_ignore = cat(behavior['R_ignore_tmp'])
         
         self.stim_ON = cat(behavior['StimDur_tmp']) > 0
-
+        if 'StimLevel' in behavior.keys():
+            self.stim_level = cat(behavior['StimLevel'])
+            
         if self.i_good_trials[-1] > self.num_trials:
             
             print('More Bpod trials than 2 photon trials')
@@ -84,7 +89,7 @@ class Session:
             self.stim_ON = self.stim_ON[:self.num_trials]
         
         
-        # measure that automatically crops out water leak trials before norming
+        # Measure that automatically crops out water leak trials before norming
         if not self.find_low_mean_F():
 
             self.plot_mean_F()
@@ -116,8 +121,9 @@ class Session:
         
         return cutoff
     
-    def find_low_mean_F(self):
+    def find_low_mean_F(self, cutoff = 100):
         
+        # Usual cutoff is 50
         # Reject outliers based on medians
         meanf = np.array([])
         for trial in range(self.num_trials):
@@ -125,7 +131,7 @@ class Session:
         
         med = np.median(meanf) # median approach
         
-        trial_idx = np.where(meanf < 50)[0]
+        trial_idx = np.where(meanf < cutoff)[0]
         
         if trial_idx.size == 0:
             
@@ -171,7 +177,8 @@ class Session:
             self.i_good_trials = [i for i in self.i_good_trials if i < trial_num]
             self.num_trials = trial_num
             self.stim_ON = self.stim_ON[:trial_num]
-            
+            if self.passive:
+                self.stim_level = self.stim_level[:trial_num]
             # self.normalize_all_by_baseline()
             # self.normalize_z_score()    
 
@@ -191,7 +198,8 @@ class Session:
             self.i_good_trials = np.delete(self.i_good_trials, igoodremove)
             self.num_trials = self.num_trials - len(arr)            
             self.stim_ON = np.delete(self.stim_ON, arr)
-
+            if self.passive:
+                self.stim_level = np.delete(self.stim_level, arr)
             # self.normalize_all_by_baseline()
             # self.normalize_z_score()   
 
@@ -211,7 +219,9 @@ class Session:
             self.i_good_trials = np.delete(self.i_good_trials, igoodremove)
             self.num_trials = self.num_trials - len(arr)            
             self.stim_ON = np.delete(self.stim_ON, arr)
-            
+            if self.passive:
+                self.stim_level = np.delete(self.stim_level, arr)
+
             # self.i_good_trials = [i for i in self.i_good_trials if i < trial_num or i > end]
             # self.num_trials = trial_num            
             # self.stim_ON = np.append(self.stim_ON[:trial_num], self.stim_ON[end:])
@@ -1261,3 +1271,112 @@ class Session:
     
         return None
     
+    def all_neurons_heatmap_stimlevels(self, save=False):
+        
+        f, axarr = plt.subplots(2,6, sharex='col', figsize=(20,6))
+        # x = np.arange(-5.97,4,0.2)[:self.time_cutoff]
+
+        non_stim_dff = self.dff[0][self.stim_level == 0]
+        
+        for i in range(1, len(set(self.stim_level))):
+            
+            level = sorted(list(set(self.stim_level)))[i]
+            stim_dff = self.dff[0][self.stim_level == level]
+    
+            stack = np.zeros(self.time_cutoff)
+    
+            for neuron in range(stim_dff[0].shape[0]):
+                dfftrial = []
+                for trial in range(stim_dff.shape[0]):
+                    dfftrial += [stim_dff[trial][neuron, :self.time_cutoff]]
+    
+                stack = np.vstack((stack, np.mean(np.array(dfftrial), axis=0)))
+    
+            stack = normalize(stack[1:])
+            axarr[0,i].matshow(stack, cmap='gray', interpolation='nearest', aspect='auto')
+            axarr[0,i].axis('off')
+            axarr[0,i].set_title('Opto {} AOM'.format(level))
+            axarr[0,i].axvline(x=13, c='b', linewidth = 0.5)
+            axarr[1,i].plot(np.mean(stack, axis = 0))
+            axarr[1,i].set_ylim(top=0.2)
+            axarr[1,i].axvline(x=13, c='b', linewidth = 0.5)
+
+        stack = np.zeros(self.time_cutoff)
+
+        for neuron in range(non_stim_dff[0].shape[0]):
+            dfftrial = []
+            for trial in range(non_stim_dff.shape[0]):
+                dfftrial += [non_stim_dff[trial][neuron, :self.time_cutoff]]
+
+            stack = np.vstack((stack, np.mean(np.array(dfftrial), axis=0)))
+
+        stack = normalize(stack[1:])
+
+        axarr[0,0].matshow(stack, cmap='gray', interpolation='nearest', aspect='auto')
+        axarr[0,0].axis('off')
+        axarr[0,0].set_title('Control')
+
+        axarr[1,0].plot(np.mean(stack, axis = 0))
+        axarr[1,0].set_ylim(top=0.2)
+        axarr[1,0].set_ylabel('dF/F0')
+        # axarr[1,0].set_xlabel('Time from Go cue (s)')
+
+        if save:
+            plt.savefig(self.path + r'dff_contra_stimall.jpg')
+
+        plt.show()
+    
+        return None
+    
+    def stim_activity_proportion(self, save=False):
+        
+        stim_period = range(16,19)
+        
+        f, axarr = plt.subplots(1,5, sharex='col', figsize = (20, 4))
+        # x = np.arange(-5.97,4,0.2)[:self.time_cutoff]
+        
+        control_neuron_dff = []
+        opto_neuron_dff = []
+
+        non_stim_dff = self.dff[0][self.stim_level == 0]
+        
+        for n in range(self.num_neurons):
+            av = []
+            
+            for t in range(non_stim_dff.shape[0]):
+                av += [non_stim_dff[t][n, 16:19]]
+                
+            control_neuron_dff += [np.mean(av)]
+            
+        
+        for i in range(1, len(set(self.stim_level))):
+            stimlevel = sorted(list(set(self.stim_level)))[i]
+            stim_dff = self.dff[0][self.stim_level == stimlevel]
+            level = []
+            
+            for n in range(self.num_neurons):
+                av = []
+                
+                for t in range(stim_dff.shape[0]):
+                    av += [stim_dff[t][n, 16:19]]
+                    
+                level += [np.mean(av)]
+            
+            opto_neuron_dff += [level]
+            
+        # for i in range(len(set(self.stim_level))-1):
+            
+            # ratio = [opto_neuron_dff[i-1][j] / control_neuron_dff[j] for j in range(len(control_neuron_dff))]
+            ratio = [level[j] / control_neuron_dff[j] for j in range(len(control_neuron_dff))]
+            ratio = np.array(ratio)[np.array(ratio) > -100]
+            ratio = np.array(ratio)[np.array(ratio) < 100]
+
+            axarr[i-1].scatter(control_neuron_dff, level)
+ 
+            axarr[i-1].set_title('{} AOM'.format(stimlevel))
+            # axarr[i-1].hist(ratio, bins = 500)
+            # axarr[i-1].set_xlim(-10,10)
+        axarr[0].set_ylabel('Opto level')
+        axarr[2].set_xlabel('Control Level')
+        plt.show()
+        return control_neuron_dff, ratio

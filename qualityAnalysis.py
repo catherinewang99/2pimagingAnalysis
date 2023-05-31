@@ -17,12 +17,12 @@ from sklearn.preprocessing import normalize
 
 path = r'F:\data\BAYLORCW021\python\2023_04_06'
 
-# path = r'F:\data\BAYLORCW027\python\2023_05_05'
-path = r'F:\data\BAYLORCW021\python\2023_04_27'
+path = r'F:\data\BAYLORCW027\python\2023_05_25'
+# path = r'F:\data\BAYLORCW021\python\2023_04_27'
 
 # path = r'F:\data\BAYLORCW022\python\2023_03_06'
 # path = r'F:\data\BAYLORCW021\python\2023_05_03'
-
+l1 = session.Session(path, passive=True)
 
 ### TOTAL NUMBER OF NEURONS: ###
 
@@ -46,16 +46,16 @@ path = r'F:\data\BAYLORCW021\python\2023_04_27'
 # naive_num = []
 
 # epochs = [range(naive.time_cutoff), range(8,14), range(19,28), range(29,naive.time_cutoff)]
-titles = ['Whole-trial', 'Sample', 'Delay', 'Response']
+# titles = ['Whole-trial', 'Sample', 'Delay', 'Response']
         
 # for e in epochs:
 #     trained_num += [len(trained.get_epoch_selective(e)) / trained.num_neurons]        
 #     naive_num += [len(naive.get_epoch_selective(e)) / naive.num_neurons]        
 
-plt.plot(titles, trained_num, label='Trained', marker = 'o')
-plt.plot(titles, naive_num, label = 'Naive', marker = 'o')
-plt.ylabel('Proportion of selective ROIs')
-plt.legend()
+# plt.plot(titles, trained_num, label='Trained', marker = 'o')
+# plt.plot(titles, naive_num, label = 'Naive', marker = 'o')
+# plt.ylabel('Proportion of selective ROIs')
+# plt.legend()
 ### EFFECT OF OPTO INHIBITION ###
 
 
@@ -96,7 +96,8 @@ plt.legend()
 ### Heat map of neurons during stim vs. control
 
 # l1.all_neurons_heatmap()
-
+# l1.all_neurons_heatmap_stimlevels()
+control_neuron_dff, ratio = l1.stim_activity_proportion()
 ### Histogram of F values before finding F0
 
 # n0 = [l1.dff[0,t][0, :] for t in range(l1.num_trials)]
