@@ -1,5 +1,5 @@
 addpath('F:\data')
-path = 'F:\data\Behavior data\BAYLORCW028';
+path = 'F:\data\Behavior data\BAYLORCW029';
 
 mkdir([path '\python_behavior'])
 

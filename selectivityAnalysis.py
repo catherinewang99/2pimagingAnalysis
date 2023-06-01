@@ -20,21 +20,28 @@ from matplotlib.pyplot import figure
 # path = r'F:\data\BAYLORCW027\python\2023_05_05'
 
 # path = r'F:\data\BAYLORCW021\python\2023_05_03'
-path = r'F:\data\BAYLORCW021\python\2023_02_08'
+path = r'F:\data\BAYLORCW021\python\2023_02_13'
 path = r'F:\data\BAYLORCW021\python\2023_04_06'
 
-# path = r'F:\data\BAYLORCW021\python\2023_04_27'
+path = r'F:\data\BAYLORCW021\python\2023_04_27'
 
+# path = r'F:\data\BAYLORCW021\python\2023_05_03'
 # path = r'F:\data\BAYLORCW021\python\2023_02_08'
 
 
 l1 = session.Session(path)
 
+## Single neuron selectivity
+
+l1.single_neuron_sel('Chen 2017')
+
+## Population analysis
+
 # l1.plot_three_selectivity()
 
 # l1.population_sel_timecourse()
 
-l1.plot_number_of_sig_neurons()
+# l1.plot_number_of_sig_neurons()
 
 # l1.selectivity_table_by_epoch()
 

@@ -22,8 +22,8 @@ import behavior
 
 ### Plot learning progression
 
-b = behavior.Behavior('F:\data\Behavior data\BAYLORCW028\python_behavior', behavior_only=True)
-b.learning_progression()
+# b = behavior.Behavior('F:\data\Behavior data\BAYLORCW028\python_behavior', behavior_only=True)
+# b.learning_progression()
 
 # b = behavior.Behavior('F:\data\Behavior data\BAYLORCW029\python_behavior', behavior_only=True)
 # b.learning_progression()

@@ -16,6 +16,10 @@ from matplotlib.pyplot import figure
 from matplotlib.colors import ListedColormap
 from sklearn.preprocessing import normalize
 import os
+import statsmodels.api as sm
+from statsmodels.formula.api import ols
+import pandas as pd
+from scipy.stats import mannwhitneyu
 
 class Session:
     
@@ -171,6 +175,8 @@ class Session:
             
             self.L_correct = self.L_correct[:trial_num]
             self.R_correct = self.R_correct[:trial_num]
+            self.L_wrong = self.L_wrong[:trial_num]
+            self.R_wrong = self.R_wrong[:trial_num]
             
             self.dff = self.dff[:, :trial_num]
             
@@ -190,6 +196,8 @@ class Session:
             
             self.L_correct = np.delete(self.L_correct, arr)
             self.R_correct = np.delete(self.R_correct, arr)
+            self.L_wrong = np.delete(self.L_wrong, arr)
+            self.R_wrong = np.delete(self.R_wrong, arr)
             
             self.dff = np.delete(self.dff, arr)
             self.dff = np.reshape(self.dff, (1,-1))
@@ -211,6 +219,8 @@ class Session:
 
             self.L_correct = np.delete(self.L_correct, arr)
             self.R_correct = np.delete(self.R_correct, arr)
+            self.L_wrong = np.delete(self.L_wrong, arr)
+            self.R_wrong = np.delete(self.R_wrong, arr)
             
             self.dff = np.delete(self.dff, arr)
             self.dff = np.reshape(self.dff, (1,-1))
@@ -275,7 +285,7 @@ class Session:
         
         return idx
     
-    def get_trace_matrix(self, neuron_num):
+    def get_trace_matrix(self, neuron_num, error=False):
         
         ## Returns matrix of all trial firing rates of a single neuron for lick left
         ## and lick right trials. Firing rates are normalized with individual trial
@@ -284,6 +294,10 @@ class Session:
         right_trials = self.lick_correct_direction('r')
         left_trials = self.lick_correct_direction('l')
         
+        if error:
+            right_trials = self.lick_incorrect_direction('r')
+            left_trials = self.lick_incorrect_direction('l')
+            
         # Filter out opto trials
         right_trials = [r for r in right_trials if not self.stim_ON[r]]
         left_trials = [r for r in left_trials if not self.stim_ON[r]]
@@ -1216,6 +1230,112 @@ class Session:
         
         plt.show()
         
+        
+    def single_neuron_sel(self, type):
+        
+        def mean_count(XX, timebin):
+            
+            coeff = 1/(len(XX) * len(timebin))
+            
+            # numerator = sum([sum(XX[t][timebin]) for t in range(len(XX))])
+            numerator = np.mean([XX[t][timebin] for t in range(len(XX))], axis=0)
+            
+            return numerator 
+        
+        if type == 'Chen 2017':
+            
+            stim = []
+            lick = []
+            reward = []
+            mixed = []
+                
+            for t in range(self.time_cutoff):
+                
+                s,l,r,m = 0,0,0,0
+                
+                for n in range(self.num_neurons):
+
+                    dff = [self.dff[0, trial][n, t] for trial in range(self.num_trials)]
+                    
+                    df = pd.DataFrame({'stim': self.R_correct + self.R_wrong,
+                                       'lick': self.R_correct + self.L_wrong,
+                                       'reward': self.R_correct + self.L_correct,
+                                       'dff': dff})
+                    
+                    model = ols("""dff ~ C(stim) + C(lick) + C(reward) +
+                                    C(stim):C(lick) + C(stim):C(reward) + C(lick):C(reward) +
+                                    C(stim):C(lick):C(reward)""", data = df).fit()
+                    
+                    table = sm.stats.anova_lm(model, type=2)
+                    
+                    sig = np.where(np.array(table['PR(>F)'] < 0.01) == True)[0]
+                    if len(sig) == 0:
+                        continue
+                    elif 0 in sig:
+                        s+=1
+                    elif 1 in sig:
+                        l+=1
+                    elif 2 in sig:
+                        r+=1
+                    elif 7 not in sig:
+                        m+=1
+                
+                stim += [s]
+                lick += [l]
+                reward += [r]
+                mixed += [m]
+            
+            f, axarr = plt.subplots(1,4, sharex='col', figsize=(5,20))
+            x = np.arange(-5.97,4,0.2)[:self.time_cutoff]
+
+            axarr[0].plot(x, stim, color='pink')
+            axarr[1].plot(x, lick, color='green')
+            axarr[2].plot(x, reward, color='cyan')
+            axarr[3].plot(x, mixed, mixed='yellow')
+
+            plt.show()
+            
+        if type == 'Susu method':
+            
+            stim, choice, action, outcome = 0,0,0,0
+            
+            for n in range(self.num_neurons):
+            # for n in range(1):
+            
+                RR, LL = self.get_trace_matrix(n)
+                
+                RL, LR = self.get_trace_matrix(n, error=True)
+                
+                # stim = (mean_count(RR, range(7,13)) + mean_count(RL, range(7,13))) - (mean_count(LL, range(7,13)) + mean_count(LR, range(7,13)))
+                # choice = (mean_count(RR, range(21,28)) + mean_count(LR, range(21,28))) - (mean_count(LL, range(21,28)) + mean_count(RL, range(21,28)))
+                # action = (mean_count(RR, range(28,34)) + mean_count(LR, range(28,34))) - (mean_count(LL, range(28,34)) + mean_count(RL, range(28,34)))
+                # outcome = (mean_count(LL, range(34,40)) + mean_count(RR, range(34,40))) - (mean_count(LR, range(34,40)) + mean_count(RL, range(34,40)))
+                
+                _, stimp = mannwhitneyu(cat((mean_count(RR, range(7,13)), mean_count(RL, range(7,13)))),
+                                        cat((mean_count(LL, range(7,13)), mean_count(LR, range(7,13)))))
+                _, choicep = mannwhitneyu(cat((mean_count(RR, range(21,28)), mean_count(LR, range(21,28)))),
+                                          cat((mean_count(LL, range(21,28)), mean_count(RL, range(21,28)))))
+                _, actionp = mannwhitneyu(cat((mean_count(RR, range(28,34)), mean_count(LR, range(28,34)))),
+                                          cat((mean_count(LL, range(28,34)), mean_count(RL, range(28,34)))))
+                _, outcomep = mannwhitneyu(cat((mean_count(LL, range(34,40)), mean_count(RR, range(34,40)))),
+                                           cat((mean_count(LR, range(34,40)), mean_count(RL, range(34,40)))))
+                
+                # stim += [stimp]
+                stim += stimp<0.05
+                choice += choicep<0.05
+                action += actionp<0.05
+                outcome += outcomep<0.05
+                
+                
+            plt.bar(['stim', 'choice', 'action', 'outcome'], [stim/self.num_neurons, choice/self.num_neurons, action/self.num_neurons, outcome/self.num_neurons])
+            plt.xlabel('Epoch selective')
+            plt.ylabel('Proportion of neurons')
+            plt.ylim(0,0.5)
+            plt.show()
+                
+            return [stim, choice, action, outcome]
+            # return stim
+    
 ### Quality analysis section ###
         
     def all_neurons_heatmap(self, save=False):
