@@ -1277,7 +1277,10 @@ class Session:
                         l+=1
                     elif 2 in sig:
                         r+=1
-                    elif 7 not in sig:
+                    elif len(sig) >= 1:
+                        if len(sig) == 1:
+                            if 7 in sig:
+                                continue
                         m+=1
                 
                 stim += [s]
@@ -1285,15 +1288,17 @@ class Session:
                 reward += [r]
                 mixed += [m]
             
-            f, axarr = plt.subplots(1,4, sharex='col', figsize=(5,20))
+            f, axarr = plt.subplots(1,4, sharey='row', figsize=(20,5))
             x = np.arange(-5.97,4,0.2)[:self.time_cutoff]
 
-            axarr[0].plot(x, stim, color='pink')
-            axarr[1].plot(x, lick, color='green')
-            axarr[2].plot(x, reward, color='cyan')
-            axarr[3].plot(x, mixed, mixed='yellow')
+            axarr[0].plot(x, np.array(stim)/self.num_neurons, color='pink')
+            axarr[1].plot(x, np.array(lick)/self.num_neurons, color='green')
+            axarr[2].plot(x, np.array(reward)/self.num_neurons, color='cyan')
+            axarr[3].plot(x, np.array(mixed)/self.num_neurons, color='yellow')
 
             plt.show()
+            
+            return stim, lick, reward, mixed
             
         if type == 'Susu method':
             

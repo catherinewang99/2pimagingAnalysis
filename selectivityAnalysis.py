@@ -33,7 +33,7 @@ l1 = session.Session(path)
 
 ## Single neuron selectivity
 
-l1.single_neuron_sel('Chen 2017')
+stim, lick, reward, mixed = l1.single_neuron_sel('Chen 2017')
 
 ## Population analysis
 
