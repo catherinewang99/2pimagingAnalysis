@@ -1291,11 +1291,21 @@ class Session:
             f, axarr = plt.subplots(1,4, sharey='row', figsize=(20,5))
             x = np.arange(-5.97,4,0.2)[:self.time_cutoff]
 
-            axarr[0].plot(x, np.array(stim)/self.num_neurons, color='pink')
-            axarr[1].plot(x, np.array(lick)/self.num_neurons, color='green')
+            axarr[0].plot(x, np.array(stim)/self.num_neurons, color='magenta')
+            axarr[0].set_title('Lick direction cell')
+            axarr[1].plot(x, np.array(lick)/self.num_neurons, color='lime')
+            axarr[1].set_title('Object location cell')
             axarr[2].plot(x, np.array(reward)/self.num_neurons, color='cyan')
-            axarr[3].plot(x, np.array(mixed)/self.num_neurons, color='yellow')
+            axarr[2].set_title('Outcome cell')
+            axarr[3].plot(x, np.array(mixed)/self.num_neurons, color='gold')
+            axarr[3].set_title('Mixed cell')
 
+            for i in range(4):
+                
+                axarr[i].axvline(0, color = 'grey', alpha=0.5, ls = '--')
+                axarr[i].axvline(-4.3, color = 'grey', alpha=0.5, ls = '--')
+                axarr[i].axvline(-3, color = 'grey', alpha=0.5, ls = '--')
+                
             plt.show()
             
             return stim, lick, reward, mixed
@@ -1303,6 +1313,8 @@ class Session:
         if type == 'Susu method':
             
             stim, choice, action, outcome = 0,0,0,0
+            
+            stim_neurons, choice_neurons, action_neurons, outcome_neurons = [],[],[],[]
             
             for n in range(self.num_neurons):
             # for n in range(1):
@@ -1331,6 +1343,11 @@ class Session:
                 action += actionp<0.05
                 outcome += outcomep<0.05
                 
+                stim_neurons += [n] if stimp<0.05 else []
+                choice_neurons += [n] if choicep<0.05 else []
+                action_neurons += [n] if actionp<0.05 else []
+                outcome_neurons += [n] if outcomep<0.05 else []
+                
                 
             plt.bar(['stim', 'choice', 'action', 'outcome'], [stim/self.num_neurons, choice/self.num_neurons, action/self.num_neurons, outcome/self.num_neurons])
             plt.xlabel('Epoch selective')
@@ -1338,9 +1355,142 @@ class Session:
             plt.ylim(0,0.5)
             plt.show()
                 
-            return [stim, choice, action, outcome]
-            # return stim
-    
+            return stim_neurons, choice_neurons, action_neurons, outcome_neurons
+
+    def stim_choice_outcome_selectivity(self):
+        
+        stim_neurons, choice_neurons, _, outcome_neurons = self.single_neuron_sel('Susu method')
+        
+        
+        f, axarr = plt.subplots(1,3, sharey='row', figsize=(15,5))
+        
+        epochs = [range(7,13), range(21,28), range(34,self.time_cutoff)]
+        x = np.arange(-5.97,4,0.2)[:self.time_cutoff]
+        titles = ['Stimulus selective', 'Choice selective', 'Outcome selective']
+        
+        num_epochs = []
+        
+            
+            # contra_neurons, ipsi_neurons, contra_trace, ipsi_trace = self.contra_ipsi_pop(epochs[i])
+            
+            # if len(contra_neurons) == 0:
+                
+            #     nonpref, pref = ipsi_trace['r'], ipsi_trace['l']
+                
+            # elif len(ipsi_neurons) == 0:
+            #     nonpref, pref = contra_trace['l'], contra_trace['r']
+
+            # else:
+            #     nonpref, pref = cat((ipsi_trace['r'], contra_trace['l'])), cat((ipsi_trace['l'], contra_trace['r']))
+                
+        pref, nonpref = [], []
+        
+        for n in stim_neurons:
+            
+            r, l = self.get_trace_matrix(n)
+            timebin=range(7,13)
+            if np.mean([r[t][timebin] for t in range(len(r))]) - np.mean([l[t][timebin] for t in range(len(l))]):
+                
+                pref += [np.mean(r,axis=0)]
+                nonpref += [np.mean(l,axis=0)]
+            
+            else:
+                pref += [np.mean(l,axis=0)]
+                nonpref += [np.mean(r,axis=0)]
+                                
+        pref, nonpref = np.array(pref), np.array(nonpref)
+
+        
+        sel = np.mean(pref, axis = 0) - np.mean(nonpref, axis = 0)
+        
+        err = np.std(pref, axis=0) / np.sqrt(len(pref)) 
+        err += np.std(nonpref, axis=0) / np.sqrt(len(nonpref))
+                    
+        axarr[0].plot(x, sel, color='green')
+                
+        axarr[0].fill_between(x, sel - err, 
+                  sel + err,
+                  color='lightgreen')
+
+        axarr[0].set_title(titles[0])
+        #############################
+        pref, nonpref = [], []
+        
+        for n in choice_neurons:
+            
+            r, l = self.get_trace_matrix(n)
+            timebin=range(21,28)
+            if np.mean([r[t][timebin] for t in range(len(r))]) - np.mean([l[t][timebin] for t in range(len(l))]):
+                
+                pref += [np.mean(r,axis=0)]
+                nonpref += [np.mean(l,axis=0)]
+            
+            else:
+                pref += [np.mean(l,axis=0)]
+                nonpref += [np.mean(r,axis=0)]
+                                 
+        pref, nonpref = np.array(pref), np.array(nonpref)
+
+        
+        sel = np.mean(pref, axis = 0) - np.mean(nonpref, axis = 0)
+        
+        err = np.std(pref, axis=0) / np.sqrt(len(pref)) 
+        err += np.std(nonpref, axis=0) / np.sqrt(len(nonpref))
+                    
+        axarr[1].plot(x, sel, color='purple')
+                
+        axarr[1].fill_between(x, sel - err, 
+                  sel + err,
+                  color='violet')
+        axarr[1].set_title(titles[1])
+
+        ####################################
+        
+        pref, nonpref = [], []
+        
+        for n in outcome_neurons:
+            
+            r, l = self.get_trace_matrix(n)
+            timebin=range(34,self.time_cutoff)
+            if np.mean([r[t][timebin] for t in range(len(r))]) - np.mean([l[t][timebin] for t in range(len(l))]):
+                
+                pref += [np.mean(r,axis=0)]
+                nonpref += [np.mean(l,axis=0)]
+            
+            else:
+                pref += [np.mean(l,axis=0)]
+                nonpref += [np.mean(r,axis=0)]
+                                 
+        pref, nonpref = np.array(pref), np.array(nonpref)
+
+        
+        sel = np.mean(pref, axis = 0) - np.mean(nonpref, axis = 0)
+        
+        err = np.std(pref, axis=0) / np.sqrt(len(pref)) 
+        err += np.std(nonpref, axis=0) / np.sqrt(len(nonpref))
+                    
+        axarr[2].plot(x, sel, color='dodgerblue')
+                
+        axarr[2].fill_between(x, sel - err, 
+                  sel + err,
+                  color='lightskyblue')
+
+        axarr[2].set_title(titles[2])
+        
+        #####################################################
+        
+        axarr[0].set_ylabel('Selectivity')
+        axarr[1].set_xlabel('Time from Go cue (s)')
+        
+        for i in range(3):
+            
+            axarr[i].axvline(0, color = 'grey', alpha=0.5, ls = '--')
+            axarr[i].axvline(-4.3, color = 'grey', alpha=0.5, ls = '--')
+            axarr[i].axvline(-3, color = 'grey', alpha=0.5, ls = '--')        
+            axarr[i].axhline(0, color = 'grey', alpha=0.5, ls = '--')        
+
+        plt.show()
+        return None
 ### Quality analysis section ###
         
     def all_neurons_heatmap(self, save=False):

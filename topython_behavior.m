@@ -54,7 +54,7 @@ for j = 1:length(lst)
         total_trials = obj.trials.trialNums;
         for i_solo_trial = 1:total_trials
             if ~contains(obj.sessionType{i_solo_trial}, 'sound')
-                delay_duration{i_solo_trial} = 0;
+%                 delay_duration{i_solo_trial} = 0;
 
                 if ~isnan(obj.eventsHistory{i_solo_trial, 1}.States.EarlyLickSample)
                     LickEarly_tmp(i_solo_trial) = 1;
@@ -62,7 +62,7 @@ for j = 1:length(lst)
 
             elseif isfield(obj.eventsHistory{i_solo_trial, 1}.States, 'DelayPeriod')
 
-                delay_duration{i_solo_trial} = obj.eventsHistory{i_solo_trial, 1}.States.DelayPeriod(2) - obj.eventsHistory{i_solo_trial, 1}.States.DelayPeriod(1); 
+%                 delay_duration{i_solo_trial} = obj.eventsHistory{i_solo_trial, 1}.States.DelayPeriod(2) - obj.eventsHistory{i_solo_trial, 1}.States.DelayPeriod(1); 
 
                 if  ~isnan(obj.eventsHistory{i_solo_trial, 1}.States.EarlyLickSample) | ~isnan(obj.eventsHistory{i_solo_trial, 1}.States.EarlyLickDelay)
                     LickEarly_tmp(i_solo_trial) = 1;
@@ -76,7 +76,7 @@ for j = 1:length(lst)
                 end
 
             else
-                delay_duration{i_solo_trial} = 0;
+%                 delay_duration{i_solo_trial} = 0;
             end
 
             if (char(obj.sides(i_solo_trial))=='r')

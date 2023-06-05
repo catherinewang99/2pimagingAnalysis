@@ -21,8 +21,8 @@ path = r'F:\data\BAYLORCW027\python\2023_05_25'
 # path = r'F:\data\BAYLORCW021\python\2023_04_27'
 
 # path = r'F:\data\BAYLORCW022\python\2023_03_06'
-# path = r'F:\data\BAYLORCW021\python\2023_05_03'
-l1 = session.Session(path, passive=True)
+path = r'F:\data\BAYLORCW030\python\2023_06_03'
+l1 = session.Session(path)
 
 ### TOTAL NUMBER OF NEURONS: ###
 
@@ -56,6 +56,7 @@ l1 = session.Session(path, passive=True)
 # plt.plot(titles, naive_num, label = 'Naive', marker = 'o')
 # plt.ylabel('Proportion of selective ROIs')
 # plt.legend()
+
 ### EFFECT OF OPTO INHIBITION ###
 
 
@@ -95,9 +96,9 @@ l1 = session.Session(path, passive=True)
 
 ### Heat map of neurons during stim vs. control
 
-# l1.all_neurons_heatmap()
+l1.all_neurons_heatmap()
 # l1.all_neurons_heatmap_stimlevels()
-control_neuron_dff, ratio = l1.stim_activity_proportion()
+# control_neuron_dff, ratio = l1.stim_activity_proportion()
 ### Histogram of F values before finding F0
 
 # n0 = [l1.dff[0,t][0, :] for t in range(l1.num_trials)]
