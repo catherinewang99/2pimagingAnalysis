@@ -21,9 +21,9 @@ from matplotlib.pyplot import figure
 
 # path = r'F:\data\BAYLORCW021\python\2023_05_03'
 path = r'F:\data\BAYLORCW021\python\2023_02_13'
-path = r'F:\data\BAYLORCW021\python\2023_04_06'
+# path = r'F:\data\BAYLORCW021\python\2023_04_06'
 
-path = r'F:\data\BAYLORCW021\python\2023_04_25'
+path = r'F:\data\BAYLORCW021\python\2023_04_27'
 
 # path = r'F:\data\BAYLORCW021\python\2023_05_03'
 # path = r'F:\data\BAYLORCW021\python\2023_02_08'
@@ -33,7 +33,9 @@ l1 = session.Session(path)
 
 ## Single neuron selectivity
 
-# stim, lick, reward, mixed = l1.single_neuron_sel('Chen 2017')
+# l1.single_neuron_sel('Susu method')
+
+stim, lick, reward, mixed = l1.single_neuron_sel('Chen 2017')
 
 
 ## Population analysis
@@ -50,5 +52,5 @@ l1 = session.Session(path)
 
 ## For selective neurons
 
-l1.stim_choice_outcome_selectivity()
+# l1.stim_choice_outcome_selectivity()
     

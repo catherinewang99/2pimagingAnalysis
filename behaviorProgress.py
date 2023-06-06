@@ -32,11 +32,20 @@ b.learning_progression()
 # b.learning_progression()
 
 # b = behavior.Behavior('F:\data\Behavior data\BAYLORCW021\python_behavior', behavior_only=True)
-# b.learning_progression(window = 100)
+# # b.learning_progression(window = 100)
 # b.learning_progression(window = 100, imaging=True)
 
 # b = behavior.Behavior('F:\data\Behavior data\BAYLORCW027\python_behavior', behavior_only=True)
 # b.learning_progression(window = 50)
+
+### Plot session to match GLM HMM
+# sessions = ['20230215', '20230322', '20230323',  '20230403', '20230406', '20230409', '20230411',
+#             '20230413', '20230420', '20230421', '20230423', '20230424', '20230427',
+#             '20230426', '20230503', '20230508', '20230509', '20230510', '20230511', '20230512',
+#             '20230516', '20230517']
+
+# b = behavior.Behavior('F:\data\Behavior data\BAYLORCW021\python_behavior', behavior_only=True, glmhmm=sessions)
+# b.learning_progression()
 
 ### Plot over all imaging sessions
 

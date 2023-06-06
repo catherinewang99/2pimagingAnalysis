@@ -16,7 +16,7 @@ from numpy import concatenate as cat
 
 
 class Behavior():
-    def __init__(self, path, single=False, behavior_only=False):
+    def __init__(self, path, single=False, behavior_only=False, glmhmm=[]):
         
         # If not single: path is the folder "/.../python/" that contains all the sessions and python compatible mat data
         
@@ -48,9 +48,15 @@ class Behavior():
         if not single:
         
             for i in os.listdir(path):
+                
+                if len(glmhmm) != 0:
+                    if i not in glmhmm:
+                        continue
+                
                 if os.path.isdir(os.path.join(path, i)):
                     for j in os.listdir(os.path.join(path, i)):
                         if 'behavior' in j:
+                                                        
                             behavior_old = scio.loadmat(os.path.join(path, i, j))
                             behavior = behavior_old.copy()
                             self.sessions += [i]

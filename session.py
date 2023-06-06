@@ -1368,35 +1368,64 @@ class Session:
         x = np.arange(-5.97,4,0.2)[:self.time_cutoff]
         titles = ['Stimulus selective', 'Choice selective', 'Outcome selective']
         
-        num_epochs = []
         
             
-            # contra_neurons, ipsi_neurons, contra_trace, ipsi_trace = self.contra_ipsi_pop(epochs[i])
-            
-            # if len(contra_neurons) == 0:
-                
-            #     nonpref, pref = ipsi_trace['r'], ipsi_trace['l']
-                
-            # elif len(ipsi_neurons) == 0:
-            #     nonpref, pref = contra_trace['l'], contra_trace['r']
-
-            # else:
-            #     nonpref, pref = cat((ipsi_trace['r'], contra_trace['l'])), cat((ipsi_trace['l'], contra_trace['r']))
-                
+        contra_neurons, ipsi_neurons, contra_trace, ipsi_trace = self.contra_ipsi_pop(epochs[0])
         pref, nonpref = [], []
-        
-        for n in stim_neurons:
-            
-            r, l = self.get_trace_matrix(n)
-            timebin=range(7,13)
-            if np.mean([r[t][timebin] for t in range(len(r))]) - np.mean([l[t][timebin] for t in range(len(l))]):
+
+        if len(contra_neurons) == 0:
+            for j in range(len(ipsi_neurons)):
                 
-                pref += [np.mean(r,axis=0)]
-                nonpref += [np.mean(l,axis=0)]
+                if ipsi_neurons[j] not in stim_neurons:
+                    continue
+                
+                nonpref += [ipsi_trace['r'][j]]
+                pref += [ipsi_trace['l'][j]]
             
-            else:
-                pref += [np.mean(l,axis=0)]
-                nonpref += [np.mean(r,axis=0)]
+        elif len(ipsi_neurons) == 0:
+            
+            for j in range(len(contra_neurons)):
+                
+                if contra_neurons[j] not in stim_neurons:
+                    continue
+                
+                nonpref += [contra_trace['l'][j]]
+                pref += [contra_trace['r'][j]]
+                
+
+        else:
+            
+            for j in range(len(ipsi_neurons)):
+                
+                if ipsi_neurons[j] not in stim_neurons:
+                    continue
+                
+                nonpref += [ipsi_trace['r'][j]]
+                pref += [ipsi_trace['l'][j]]
+                
+            for j in range(len(contra_neurons)):
+                
+                if contra_neurons[j] not in stim_neurons:
+                    continue
+                
+                nonpref += [contra_trace['l'][j]]
+                pref += [contra_trace['r'][j]]
+                
+                
+        # pref, nonpref = [], []
+        
+        # for n in stim_neurons:
+            
+        #     r, l = self.get_trace_matrix(n)
+        #     timebin=range(7,13)
+        #     if np.mean([r[t][timebin] for t in range(len(r))]) - np.mean([l[t][timebin] for t in range(len(l))]):
+                
+        #         pref += [np.mean(r,axis=0)]
+        #         nonpref += [np.mean(l,axis=0)]
+            
+        #     else:
+        #         pref += [np.mean(l,axis=0)]
+        #         nonpref += [np.mean(r,axis=0)]
                                 
         pref, nonpref = np.array(pref), np.array(nonpref)
 
@@ -1416,21 +1445,63 @@ class Session:
         #############################
         pref, nonpref = [], []
         
-        for n in choice_neurons:
+        # for n in choice_neurons:
             
-            r, l = self.get_trace_matrix(n)
-            timebin=range(21,28)
-            if np.mean([r[t][timebin] for t in range(len(r))]) - np.mean([l[t][timebin] for t in range(len(l))]):
+        #     r, l = self.get_trace_matrix(n)
+        #     timebin=range(21,28)
+        #     if np.mean([r[t][timebin] for t in range(len(r))]) - np.mean([l[t][timebin] for t in range(len(l))]):
                 
-                pref += [np.mean(r,axis=0)]
-                nonpref += [np.mean(l,axis=0)]
+        #         pref += [np.mean(r,axis=0)]
+        #         nonpref += [np.mean(l,axis=0)]
             
-            else:
-                pref += [np.mean(l,axis=0)]
-                nonpref += [np.mean(r,axis=0)]
+        #     else:
+        #         pref += [np.mean(l,axis=0)]
+        #         nonpref += [np.mean(r,axis=0)]
                                  
-        pref, nonpref = np.array(pref), np.array(nonpref)
+        
+        contra_neurons, ipsi_neurons, contra_trace, ipsi_trace = self.contra_ipsi_pop(epochs[1])
+        pref, nonpref = [], []
 
+        if len(contra_neurons) == 0:
+            for j in range(len(ipsi_neurons)):
+                
+                if ipsi_neurons[j] not in choice_neurons:
+                    continue
+                
+                nonpref += [ipsi_trace['r'][j]]
+                pref += [ipsi_trace['l'][j]]
+            
+        elif len(ipsi_neurons) == 0:
+            
+            for j in range(len(contra_neurons)):
+                
+                if contra_neurons[j] not in choice_neurons:
+                    continue
+                
+                nonpref += [contra_trace['l'][j]]
+                pref += [contra_trace['r'][j]]
+                
+
+        else:
+            
+            for j in range(len(ipsi_neurons)):
+                
+                if ipsi_neurons[j] not in choice_neurons:
+                    continue
+                
+                nonpref += [ipsi_trace['r'][j]]
+                pref += [ipsi_trace['l'][j]]
+                
+            for j in range(len(contra_neurons)):
+                
+                if contra_neurons[j] not in choice_neurons:
+                    continue
+                
+                nonpref += [contra_trace['l'][j]]
+                pref += [contra_trace['r'][j]]
+                
+                
+        pref, nonpref = np.array(pref), np.array(nonpref)
         
         sel = np.mean(pref, axis = 0) - np.mean(nonpref, axis = 0)
         
@@ -1448,19 +1519,61 @@ class Session:
         
         pref, nonpref = [], []
         
-        for n in outcome_neurons:
+        # for n in outcome_neurons:
             
-            r, l = self.get_trace_matrix(n)
-            timebin=range(34,self.time_cutoff)
-            if np.mean([r[t][timebin] for t in range(len(r))]) - np.mean([l[t][timebin] for t in range(len(l))]):
+        #     r, l = self.get_trace_matrix(n)
+        #     timebin=range(34,self.time_cutoff)
+        #     if np.mean([r[t][timebin] for t in range(len(r))]) - np.mean([l[t][timebin] for t in range(len(l))]):
                 
-                pref += [np.mean(r,axis=0)]
-                nonpref += [np.mean(l,axis=0)]
+        #         pref += [np.mean(r,axis=0)]
+        #         nonpref += [np.mean(l,axis=0)]
             
-            else:
-                pref += [np.mean(l,axis=0)]
-                nonpref += [np.mean(r,axis=0)]
-                                 
+        #     else:
+        #         pref += [np.mean(l,axis=0)]
+        #         nonpref += [np.mean(r,axis=0)]
+        
+        
+        contra_neurons, ipsi_neurons, contra_trace, ipsi_trace = self.contra_ipsi_pop(epochs[2])
+        pref, nonpref = [], []
+
+        if len(contra_neurons) == 0:
+            for j in range(len(ipsi_neurons)):
+                
+                if ipsi_neurons[j] not in outcome_neurons:
+                    continue
+                
+                nonpref += [ipsi_trace['r'][j]]
+                pref += [ipsi_trace['l'][j]]
+            
+        elif len(ipsi_neurons) == 0:
+            
+            for j in range(len(contra_neurons)):
+                
+                if contra_neurons[j] not in outcome_neurons:
+                    continue
+                
+                nonpref += [contra_trace['l'][j]]
+                pref += [contra_trace['r'][j]]
+                
+
+        else:
+            
+            for j in range(len(ipsi_neurons)):
+                
+                if ipsi_neurons[j] not in outcome_neurons:
+                    continue
+                
+                nonpref += [ipsi_trace['r'][j]]
+                pref += [ipsi_trace['l'][j]]
+                
+            for j in range(len(contra_neurons)):
+                
+                if contra_neurons[j] not in outcome_neurons:
+                    outcome_neurons
+                
+                nonpref += [contra_trace['l'][j]]
+                pref += [contra_trace['r'][j]]
+        
         pref, nonpref = np.array(pref), np.array(nonpref)
 
         
