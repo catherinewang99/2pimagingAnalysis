@@ -25,6 +25,7 @@ from oasis.functions import gen_data, gen_sinusoidal_data, deconvolve, estimate_
 from oasis.plotting import simpleaxis
 from oasis.oasis_methods import oasisAR1, oasisAR2
 from session import Session
+from scipy.signal import convolve
 
 
 
@@ -46,12 +47,9 @@ class Deconvolved(Session):
                 self.dff[0, t][n] = np.zeros(len(self.dff[0, t][n]))
                 self.dff[0, t][n, :self.time_cutoff] = s
     
-    def plot_PSTH(self, R, L):
-        
-        
-        
-        return
+
     
+
     
     def plot_PSTH_sidebyside(self, neuron_num):
         
