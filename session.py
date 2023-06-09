@@ -902,6 +902,7 @@ class Session:
         axarr[0,1].set_title(title)
         
         plt.show()
+        
 
 ### EPHYS PLOTS TO MY DATA ###
 

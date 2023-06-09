@@ -193,3 +193,21 @@ class QC(Session):
         axarr[2].set_xlabel('Control Level')
         plt.show()
         return control_neuron_dff, ratio
+    
+    def plot_variance_spread(self):
+    # Plot the variance of neurons as a histogram
+    
+        variance = []
+        for n in range(self.num_neurons):
+            
+            unit = [self.dff[0, t][n, :self.time_cutoff] for t in range(self.num_trials)]
+            
+            variance += [np.var(unit)]
+        variance = np.array(variance)
+        plt.hist(variance[variance < 1.5], bins=100)
+        
+        return variance
+            
+            
+            
+        

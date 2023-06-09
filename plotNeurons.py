@@ -18,16 +18,17 @@ from matplotlib.pyplot import figure
 
 # l1 = session.Session(path, 5)
 
-path = r'F:\data\BAYLORCW027\python\2023_05_05'
+# path = r'F:\data\BAYLORCW027\python\2023_05_05'
 
-# path = r'F:\data\BAYLORCW021\python\2023_04_25'
-# path = r'F:\data\BAYLORCW021\python\2023_04_27'
+# # path = r'F:\data\BAYLORCW021\python\2023_04_25'
+# # path = r'F:\data\BAYLORCW021\python\2023_04_27'
 
-# path = r'F:\data\BAYLORCW021\python\2023_05_03'
+# # path = r'F:\data\BAYLORCW021\python\2023_05_03'
 
 
-l1 = session.Session(path, 3)
+# l1 = session.Session(path, 3)
 
+# l1 = decon.Deconvolved(path)
 
 
 # path = r'F:\data\GC225\python\2022_02_14'
@@ -66,7 +67,10 @@ l1 = session.Session(path, 3)
 # l1.plot_contra_ipsi_pop()
 
 for i in range(10):
-    l1.plot_rasterPSTH_sidebyside(i)
+    # l1.plot_rasterPSTH_sidebyside(i)
+    
+    l1.plot_PSTH_sidebyside(i)
+
 
 # Plot rasters for delay selective neurons:
 
@@ -81,7 +85,7 @@ for i in range(10):
 #         # l1.plot_rasterPSTH_sidebyside(n)
 
     
-for n in l1.get_delay_selective():
+for n in l1.get_epoch_selective(range(21,28)):
 # #     # if l1.filter_by_deltas(n):
 
 # #         # plt.show()
