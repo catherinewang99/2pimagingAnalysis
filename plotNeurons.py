@@ -13,20 +13,17 @@ import matplotlib.pyplot as plt
 import session
 from matplotlib.pyplot import figure
 
-# from neuralFuncs import plot_average_PSTH
-# path = r'F:\data\BAYLORCW021\python\2023_01_25'
-
-# l1 = session.Session(path, 5)
-
-# path = r'F:\data\BAYLORCW027\python\2023_05_05'
-
-# # path = r'F:\data\BAYLORCW021\python\2023_04_25'
-# # path = r'F:\data\BAYLORCW021\python\2023_04_27'
-
-# # path = r'F:\data\BAYLORCW021\python\2023_05_03'
 
 
-# l1 = session.Session(path, 3)
+path = r'F:\data\BAYLORCW030\python\2023_06_07'
+
+# path = r'F:\data\BAYLORCW021\python\2023_04_25'
+# path = r'F:\data\BAYLORCW021\python\2023_04_27'
+
+# path = r'F:\data\BAYLORCW021\python\2023_05_03'
+
+
+l1 = session.Session(path)
 
 # l1 = decon.Deconvolved(path)
 
@@ -67,9 +64,9 @@ from matplotlib.pyplot import figure
 # l1.plot_contra_ipsi_pop()
 
 for i in range(10):
-    # l1.plot_rasterPSTH_sidebyside(i)
+    l1.plot_rasterPSTH_sidebyside(i)
     
-    l1.plot_PSTH_sidebyside(i)
+    # l1.plot_PSTH_sidebyside(i)
 
 
 # Plot rasters for delay selective neurons:
@@ -85,12 +82,12 @@ for i in range(10):
 #         # l1.plot_rasterPSTH_sidebyside(n)
 
     
-for n in l1.get_epoch_selective(range(21,28)):
-# #     # if l1.filter_by_deltas(n):
+# for n in l1.get_epoch_selective(range(21,28)):
+# # #     # if l1.filter_by_deltas(n):
 
-# #         # plt.show()
-# #     # l1.plot_selectivity(n)
-    l1.plot_rasterPSTH_sidebyside(n)
+# # #         # plt.show()
+# # #     # l1.plot_selectivity(n)
+#     l1.plot_rasterPSTH_sidebyside(n)
 
         
     

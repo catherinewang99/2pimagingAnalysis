@@ -28,6 +28,14 @@ class QC(Session):
     def __init__(self, path, layer_num='all', guang=False, passive=False):
         
         super().__init__(path, layer_num, guang, passive)
+        self.sample = 7
+        self.delay = 13
+        self.response = 28
+        if 'CW030' in path:
+            self.sample += 5
+            self.delay += 5
+            self.response += 5
+            
         
     ### Quality analysis section ###
             
@@ -52,10 +60,10 @@ class QC(Session):
         axarr[0,0].matshow(stack, cmap='gray', interpolation='nearest', aspect='auto')
         axarr[0,0].axis('off')
         axarr[0,0].set_title('Opto')
-        axarr[0,0].axvline(x=13, c='b', linewidth = 0.5)
+        axarr[0,0].axvline(x=self.delay, c='b', linewidth = 0.5)
         axarr[1,0].plot(np.mean(stack, axis = 0))
         axarr[1,0].set_ylim(top=0.2)
-        axarr[1,0].axvline(x=13, c='b', linewidth = 0.5)
+        axarr[1,0].axvline(x=self.delay, c='b', linewidth = 0.5)
 
         stack = np.zeros(self.time_cutoff)
 
@@ -109,10 +117,10 @@ class QC(Session):
             axarr[0,i].matshow(stack, cmap='gray', interpolation='nearest', aspect='auto')
             axarr[0,i].axis('off')
             axarr[0,i].set_title('Opto {} AOM'.format(level))
-            axarr[0,i].axvline(x=13, c='b', linewidth = 0.5)
+            axarr[0,i].axvline(x=self.delay, c='b', linewidth = 0.5)
             axarr[1,i].plot(np.mean(stack, axis = 0))
             axarr[1,i].set_ylim(top=0.2)
-            axarr[1,i].axvline(x=13, c='b', linewidth = 0.5)
+            axarr[1,i].axvline(x=self.delay, c='b', linewidth = 0.5)
 
         stack = np.zeros(self.time_cutoff)
 

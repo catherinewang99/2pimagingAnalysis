@@ -91,7 +91,14 @@ class Session:
             print('More Bpod trials than 2 photon trials')
             self.i_good_trials = [i for i in self.i_good_trials if i < self.num_trials]
             self.stim_ON = self.stim_ON[:self.num_trials]
-        
+            
+        self.sample = 7
+        self.delay = 13
+        self.response = 28
+        if 'CW030' in path:
+            self.sample += 5
+            self.delay += 5
+            self.response += 5
         
         # Measure that automatically crops out water leak trials before norming
         if not self.find_low_mean_F():
@@ -498,7 +505,7 @@ class Session:
             
             for j in range(self.num_trials):
                 
-                nmean = np.mean(self.dff[0, j][i, 3:7]) # later cutoff because of transient activation
+                nmean = np.mean(self.dff[0, j][i, self.sample - 3:self.sample]) # later cutoff because of transient activation
                 self.dff[0, j][i] = (self.dff[0, j][i] - nmean) / nmean
         
         return None
@@ -847,9 +854,9 @@ class Session:
         
         axarr[1, 0].plot(L_av, 'r-')
         axarr[1, 0].plot(R_av, 'b-')
-        axarr[1, 0].axvline(7, linestyle = '--')
-        axarr[1, 0].axvline(13, linestyle = '--')
-        axarr[1, 0].axvline(28, linestyle = '--')
+        axarr[1, 0].axvline(self.sample, linestyle = '--')
+        axarr[1, 0].axvline(self.delay, linestyle = '--')
+        axarr[1, 0].axvline(self.response, linestyle = '--')
         
         x = range(self.time_cutoff)
 
@@ -885,9 +892,9 @@ class Session:
         
         axarr[1, 1].plot(L_av, 'r-')
         axarr[1, 1].plot(R_av, 'b-')
-        axarr[1, 1].axvline(7, linestyle = '--')
-        axarr[1, 1].axvline(13, linestyle = '--')
-        axarr[1, 1].axvline(28, linestyle = '--')
+        axarr[1, 1].axvline(self.sample, linestyle = '--')
+        axarr[1, 1].axvline(self.delay, linestyle = '--')
+        axarr[1, 1].axvline(self.response, linestyle = '--')
         axarr[1, 1].hlines(y=vmax, xmin=13, xmax=18, linewidth=10, color='lightblue')
         
         x = range(self.time_cutoff)
