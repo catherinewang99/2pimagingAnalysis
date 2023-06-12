@@ -895,7 +895,7 @@ class Session:
         axarr[1, 1].axvline(self.sample, linestyle = '--')
         axarr[1, 1].axvline(self.delay, linestyle = '--')
         axarr[1, 1].axvline(self.response, linestyle = '--')
-        axarr[1, 1].hlines(y=vmax, xmin=13, xmax=18, linewidth=10, color='lightblue')
+        axarr[1, 1].hlines(y=vmax, xmin=self.delay, xmax=self.delay + 5, linewidth=10, color='lightblue')
         
         x = range(self.time_cutoff)
 
