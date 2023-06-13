@@ -346,39 +346,26 @@ class Behavior():
         
         for sess in range(self.total_sessions):
             
+
+            # delay = np.convolve(self.delay_duration[sess], np.ones(window)/window, mode = 'same')
+            delay = self.delay_duration[sess]
+            
             if imaging:
-                
-                delay = np.convolve(self.delay_duration[sess], np.ones(window)/window, mode = 'same')
                 if 3 not in delay:
                     continue
-                
-                delay_duration = np.append(delay_duration, delay[window:-window])
-    
-                # delay_duration = np.append(delay_duration, self.delay_duration[sess])
-                
-                correct = self.L_correct[sess] + self.R_correct[sess]
-                correct = np.convolve(correct, np.ones(window)/window, mode = 'same')
-                correctarr = np.append(correctarr, correct[window:-window])
-                
-                earlylicks = np.convolve(self.early_lick[sess], np.ones(window)/window, mode = 'same')
-                earlylicksarr = np.append(earlylicksarr, earlylicks[window:-window])
-                
-                num_trials += [len(self.L_correct[sess])-(window*2)]
-                
-            else:
-                delay = np.convolve(self.delay_duration[sess], np.ones(window)/window, mode = 'same')
-                delay_duration = np.append(delay_duration, delay[window:-window])
-    
-                # delay_duration = np.append(delay_duration, self.delay_duration[sess])
-                
-                correct = self.L_correct[sess] + self.R_correct[sess]
-                correct = np.convolve(correct, np.ones(window)/window, mode = 'same')
-                correctarr = np.append(correctarr, correct[window:-window])
-                
-                earlylicks = np.convolve(self.early_lick[sess], np.ones(window)/window, mode = 'same')
-                earlylicksarr = np.append(earlylicksarr, earlylicks[window:-window])
-                
-                num_trials += [len(self.L_correct[sess])-(window*2)]
+            
+            delay_duration = np.append(delay_duration, delay[window:-window])
+
+            # delay_duration = np.append(delay_duration, self.delay_duration[sess][window:-window])
+            
+            correct = self.L_correct[sess] + self.R_correct[sess]
+            correct = np.convolve(correct, np.ones(window)/window, mode = 'same')
+            correctarr = np.append(correctarr, correct[window:-window])
+            
+            earlylicks = np.convolve(self.early_lick[sess], np.ones(window)/window, mode = 'same')
+            earlylicksarr = np.append(earlylicksarr, earlylicks[window:-window])
+            
+            num_trials += [len(self.L_correct[sess])-(window*2)]
         num_trials = np.cumsum(num_trials)
         
         # Protocol
