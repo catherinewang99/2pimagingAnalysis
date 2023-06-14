@@ -82,6 +82,7 @@ class Session:
         self.L_ignore = cat(behavior['L_ignore_tmp'])
         self.R_ignore = cat(behavior['R_ignore_tmp'])
         
+        self.bias_trials = self.find_bias_trials()
         
         self.stim_ON = cat(behavior['StimDur_tmp']) > 0
         if 'StimLevel' in behavior.keys():
@@ -181,16 +182,16 @@ class Session:
         
         if not end and not singles:
             
-            self.L_correct = self.L_correct[:trial_num]
-            self.R_correct = self.R_correct[:trial_num]
-            self.L_wrong = self.L_wrong[:trial_num]
-            self.R_wrong = self.R_wrong[:trial_num]
+            # self.L_correct = self.L_correct[:trial_num]
+            # self.R_correct = self.R_correct[:trial_num]
+            # self.L_wrong = self.L_wrong[:trial_num]
+            # self.R_wrong = self.R_wrong[:trial_num]
             
-            self.dff = self.dff[:, :trial_num]
+            # self.dff = self.dff[:, :trial_num]
             
             self.i_good_trials = [i for i in self.i_good_trials if i < trial_num]
             self.num_trials = trial_num
-            self.stim_ON = self.stim_ON[:trial_num]
+            # self.stim_ON = self.stim_ON[:trial_num]
             if self.passive:
                 self.stim_level = self.stim_level[:trial_num]
             # self.normalize_all_by_baseline()
@@ -202,18 +203,18 @@ class Session:
         
         elif singles:
             
-            self.L_correct = np.delete(self.L_correct, arr)
-            self.R_correct = np.delete(self.R_correct, arr)
-            self.L_wrong = np.delete(self.L_wrong, arr)
-            self.R_wrong = np.delete(self.R_wrong, arr)
+            # self.L_correct = np.delete(self.L_correct, arr)
+            # self.R_correct = np.delete(self.R_correct, arr)
+            # self.L_wrong = np.delete(self.L_wrong, arr)
+            # self.R_wrong = np.delete(self.R_wrong, arr)
             
-            self.dff = np.delete(self.dff, arr)
-            self.dff = np.reshape(self.dff, (1,-1))
+            # self.dff = np.delete(self.dff, arr)
+            # self.dff = np.reshape(self.dff, (1,-1))
             
             igoodremove = np.where(np.in1d(self.i_good_trials, arr))[0]
             self.i_good_trials = np.delete(self.i_good_trials, igoodremove)
             self.num_trials = self.num_trials - len(arr)            
-            self.stim_ON = np.delete(self.stim_ON, arr)
+            # self.stim_ON = np.delete(self.stim_ON, arr)
             if self.passive:
                 self.stim_level = np.delete(self.stim_level, arr)
             # self.normalize_all_by_baseline()
@@ -225,18 +226,18 @@ class Session:
             
             arr = np.arange(trial_num, end)
 
-            self.L_correct = np.delete(self.L_correct, arr)
-            self.R_correct = np.delete(self.R_correct, arr)
-            self.L_wrong = np.delete(self.L_wrong, arr)
-            self.R_wrong = np.delete(self.R_wrong, arr)
+            # self.L_correct = np.delete(self.L_correct, arr)
+            # self.R_correct = np.delete(self.R_correct, arr)
+            # self.L_wrong = np.delete(self.L_wrong, arr)
+            # self.R_wrong = np.delete(self.R_wrong, arr)
             
-            self.dff = np.delete(self.dff, arr)
-            self.dff = np.reshape(self.dff, (1,-1))
+            # self.dff = np.delete(self.dff, arr)
+            # self.dff = np.reshape(self.dff, (1,-1))
             
             igoodremove = np.where(np.in1d(self.i_good_trials, arr))[0]
             self.i_good_trials = np.delete(self.i_good_trials, igoodremove)
             self.num_trials = self.num_trials - len(arr)            
-            self.stim_ON = np.delete(self.stim_ON, arr)
+            # self.stim_ON = np.delete(self.stim_ON, arr)
             if self.passive:
                 self.stim_level = np.delete(self.stim_level, arr)
 
@@ -491,9 +492,11 @@ class Session:
         # for i in range(self.num_neurons):
         for i in self.good_neurons:
 
-            nmean = np.mean([self.dff[0, t][i, :7] for t in range(self.num_trials)]).copy()
+            # nmean = np.mean([self.dff[0, t][i, :7] for t in range(self.num_trials)]).copy()
+            nmean = np.mean([self.dff[0, t][i, :7] for t in self.i_good_trials]).copy()
             
-            for j in range(self.num_trials):
+            # for j in range(self.num_trials):
+            for j in self.i_good_trials:
                 
                 # nmean = np.mean(self.dff[0, j][i, :7])
                 self.dff[0, j][i] = (self.dff[0, j][i] - nmean) / nmean
@@ -509,8 +512,9 @@ class Session:
             
             # nmean = np.mean([self.dff[0, t][i, :7] for t in range(self.num_trials)]).copy()
             
-            for j in range(self.num_trials):
-                
+            # for j in range(self.num_trials):
+            for j in self.i_good_trials:
+
                 nmean = np.mean(self.dff[0, j][i, self.sample - 3:self.sample]) # later cutoff because of transient activation
                 self.dff[0, j][i] = (self.dff[0, j][i] - nmean) / nmean
         
@@ -523,10 +527,12 @@ class Session:
         for i in range(self.num_neurons):
         # for i in self.good_neurons:
             
-            nmean = np.quantile(cat([self.dff[0,t][i, :] for t in range(self.num_trials)]), q=0.10)
+            # nmean = np.quantile(cat([self.dff[0,t][i, :] for t in range(self.num_trials)]), q=0.10)
+            nmean = np.quantile(cat([self.dff[0,t][i, :] for t in self.i_good_trials]), q=0.10)
             
-            for j in range(self.num_trials):
-                
+            # for j in range(self.num_trials):
+            for j in self.i_good_trials:
+
                 self.dff[0, j][i] = (self.dff[0, j][i] - nmean) / nmean
         
         return None
@@ -537,8 +543,8 @@ class Session:
         
         for i in range(self.num_neurons):
                         
-            for j in range(self.num_trials):
-               
+            # for j in range(self.num_trials):
+            for j in self.i_good_trials:
                 nmean = np.quantile(self.dff[0, j][i, :], q=0.10)
 
                 self.dff[0, j][i] = (self.dff[0, j][i] - nmean) / nmean
@@ -549,10 +555,14 @@ class Session:
         
         # Normalize by mean of all neurons in layer
         
-        overall_mean = np.mean(cat([cat(i) for i in self.dff[0]])).copy()
-        std = np.std(cat([cat(i) for i in self.dff[0]])).copy()
+        # overall_mean = np.mean(cat([cat(i) for i in self.dff[0]])).copy()
+        # std = np.std(cat([cat(i) for i in self.dff[0]])).copy()
+
+        overall_mean = np.mean(cat([cat(self.dff[0, i]) for i in self.i_good_trials])).copy()
+        std = np.std(cat([cat(self.dff[0, i]) for i in self.i_good_trials])).copy()
         
-        for i in range(self.num_trials):
+        # for i in range(self.num_trials):
+        for i in self.i_good_trials:
             for j in range(self.num_neurons):
                 self.dff[0, i][j] = (self.dff[0, i][j] - overall_mean) / std
                 
@@ -1274,7 +1284,7 @@ class Session:
                 
                 for n in range(self.num_neurons):
 
-                    dff = [self.dff[0, trial][n, t] for trial in range(self.num_trials)]
+                    dff = [self.dff[0, trial][n, t] for trial in self.i_good_trials]
                     
                     df = pd.DataFrame({'stim': self.R_correct + self.R_wrong,
                                        'lick': self.R_correct + self.L_wrong,

@@ -43,15 +43,25 @@ class QC(Session):
         
         f, axarr = plt.subplots(2,2, sharex='col')
         # x = np.arange(-5.97,4,0.2)[:self.time_cutoff]
+        
+        stimon, stimoff = [], []
+        
+        for i in range(len(self.stim_ON)):
+            
+            stimon += [self.stim_ON[i]] if i in self.i_good_trials else [False]
+            stimoff += [~self.stim_ON[i]] if i in self.i_good_trials else [False]
+        
+        # stimon = [self.stim_ON[i] for i in range(len(self.stim_ON)) if i in self.i_good_trials else False]
+        # stimoff = [~self.stim_ON[i] for i in range(len(self.stim_ON)) if i in self.i_good_trials else False]
 
-        stim_dff = self.dff[0][self.stim_ON]
-        non_stim_dff = self.dff[0][~self.stim_ON]
+        stim_dff = self.dff[0][stimon]
+        non_stim_dff = self.dff[0][stimoff]
 
         stack = np.zeros(self.time_cutoff)
 
-        for neuron in range(stim_dff[0].shape[0]):
+        for neuron in range(self.num_neurons):
             dfftrial = []
-            for trial in range(stim_dff.shape[0]):
+            for trial in range(len(stim_dff)):
                 dfftrial += [stim_dff[trial][neuron, :self.time_cutoff]]
 
             stack = np.vstack((stack, np.mean(np.array(dfftrial), axis=0)))
@@ -67,9 +77,9 @@ class QC(Session):
 
         stack = np.zeros(self.time_cutoff)
 
-        for neuron in range(non_stim_dff[0].shape[0]):
+        for neuron in range(self.num_neurons):
             dfftrial = []
-            for trial in range(non_stim_dff.shape[0]):
+            for trial in range(len(non_stim_dff)):
                 dfftrial += [non_stim_dff[trial][neuron, :self.time_cutoff]]
 
             stack = np.vstack((stack, np.mean(np.array(dfftrial), axis=0)))
@@ -106,9 +116,9 @@ class QC(Session):
     
             stack = np.zeros(self.time_cutoff)
     
-            for neuron in range(stim_dff[0].shape[0]):
+            for neuron in range(self.num_neurons):
                 dfftrial = []
-                for trial in range(stim_dff.shape[0]):
+                for trial in self.i_good_trials:
                     dfftrial += [stim_dff[trial][neuron, :self.time_cutoff]]
     
                 stack = np.vstack((stack, np.mean(np.array(dfftrial), axis=0)))
@@ -124,9 +134,9 @@ class QC(Session):
 
         stack = np.zeros(self.time_cutoff)
 
-        for neuron in range(non_stim_dff[0].shape[0]):
+        for neuron in range(self.num_neurons):
             dfftrial = []
-            for trial in range(non_stim_dff.shape[0]):
+            for trial in self.i_good_trials:
                 dfftrial += [non_stim_dff[trial][neuron, :self.time_cutoff]]
 
             stack = np.vstack((stack, np.mean(np.array(dfftrial), axis=0)))
@@ -178,7 +188,7 @@ class QC(Session):
             for n in range(self.num_neurons):
                 av = []
                 
-                for t in range(stim_dff.shape[0]):
+                for t in self.i_good_trials:
                     av += [stim_dff[t][n, 16:19]]
                     
                 level += [np.mean(av)]
