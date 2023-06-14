@@ -81,9 +81,7 @@ class Session:
         
         self.L_ignore = cat(behavior['L_ignore_tmp'])
         self.R_ignore = cat(behavior['R_ignore_tmp'])
-        
-        self.bias_trials = self.find_bias_trials()
-        
+                
         self.stim_ON = cat(behavior['StimDur_tmp']) > 0
         if 'StimLevel' in behavior.keys():
             self.stim_level = cat(behavior['StimLevel'])
@@ -168,10 +166,11 @@ class Session:
         
         # Plots mean F for all neurons over trials in session
         meanf = list()
-        for trial in range(self.num_trials):
+        # for trial in range(self.num_trials):
+        for trial in self.i_good_trials:
             meanf.append(np.mean(cat(self.dff[0, trial])))
         
-        plt.plot(range(self.num_trials), meanf, 'b-')
+        plt.plot(self.i_good_trials, meanf, 'b-')
         plt.title("Mean F for layer {}".format(self.layer_num))
         plt.show()
 
@@ -308,7 +307,6 @@ class Session:
             left_trials = self.lick_incorrect_direction('l')
         
         if bias_trials != None:
-            
             right_trials = [b for b in bias_trials if self.instructed_side[b] == 0]
             left_trials = [b for b in bias_trials if self.instructed_side[b] == 1]
             
@@ -570,11 +568,16 @@ class Session:
         
         return None
 
-    def get_epoch_selective(self, epoch, p = 0.01):
+    def get_epoch_selective(self, epoch, p = 0.01, bias=False):
         selective_neurons = []
         for neuron in range(self.num_neurons):
         # for neuron in self.good_neurons:
             right, left = self.get_trace_matrix(neuron)
+            
+            if bias:
+                biasidx = self.find_bias_trials()
+                right,left = self.get_trace_matrix(neuron, bias_trials= biasidx)
+            
             left_ = [l[epoch] for l in left]
             right_ = [r[epoch] for r in right]
             tstat, p_val = stats.ttest_ind(np.mean(left_, axis = 1), np.mean(right_, axis = 1))
@@ -1651,7 +1654,8 @@ class Session:
                 elif self.correct_trials[i-1] == 0 and self.instructed_side[i] == self.instructed_side[i-1]:
                     
                     bias_trials += [i]
-            
+        bias_trials = [b for b in bias_trials if b in self.i_good_trials]
+
         return bias_trials
         
             
