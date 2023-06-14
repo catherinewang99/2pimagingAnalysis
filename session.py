@@ -82,6 +82,7 @@ class Session:
         self.L_ignore = cat(behavior['L_ignore_tmp'])
         self.R_ignore = cat(behavior['R_ignore_tmp'])
         
+        
         self.stim_ON = cat(behavior['StimDur_tmp']) > 0
         if 'StimLevel' in behavior.keys():
             self.stim_level = cat(behavior['StimLevel'])
@@ -292,7 +293,7 @@ class Session:
         
         return idx
     
-    def get_trace_matrix(self, neuron_num, error=False):
+    def get_trace_matrix(self, neuron_num, error=False, bias_trials = None):
         
         ## Returns matrix of all trial firing rates of a single neuron for lick left
         ## and lick right trials. Firing rates are normalized with individual trial
@@ -304,6 +305,11 @@ class Session:
         if error:
             right_trials = self.lick_incorrect_direction('r')
             left_trials = self.lick_incorrect_direction('l')
+        
+        if bias_trials != None:
+            
+            right_trials = [b for b in bias_trials if self.instructed_side[b] == 0]
+            left_trials = [b for b in bias_trials if self.instructed_side[b] == 1]
             
         # Filter out opto trials
         right_trials = [r for r in right_trials if not self.stim_ON[r]]
@@ -775,13 +781,18 @@ class Session:
         else:
             return False
         
-    def plot_raster_and_PSTH(self, neuron_num, opto=False):
+    def plot_raster_and_PSTH(self, neuron_num, opto=False, bias=False):
 
         if not opto:
             R, L = self.get_trace_matrix(neuron_num)
             r, l = self.get_trace_matrix(neuron_num)
             title = "Neuron {}: Raster and PSTH".format(neuron_num)
-
+        elif bias:
+            
+            bias_idx = self.find_bias_trials()
+            R, L = self.get_trace_matrix(neuron_num, bias_trials = bias_idx)
+            r, l = self.get_trace_matrix(neuron_num, bias_trials = bias_idx)
+            
         else:
             R, L = self.get_opto_trace_matrix(neuron_num)
             r, l = self.get_opto_trace_matrix(neuron_num)
@@ -804,7 +815,7 @@ class Session:
         # R_av, L_av, left_err, right_err = R_av[3:], L_av[3:], left_err[3:], right_err[3:]
                     
 
-        f, axarr = plt.subplots(2, sharex=True)
+        f, axarr = plt.subplots(2, sharex=True, figsize=(10,10))
 
         axarr[0].matshow(stack, cmap='gray', interpolation='nearest', aspect='auto')
         axarr[0].axis('off')
@@ -821,7 +832,9 @@ class Session:
         axarr[1].fill_between(x, R_av - right_err, 
                  R_av + right_err,
                  color=['#b4b2dc'])
-        
+        axarr[1].axvline(self.sample, linestyle = '--')
+        axarr[1].axvline(self.delay, linestyle = '--')
+        axarr[1].axvline(self.response, linestyle = '--')
         axarr[0].set_title(title)
         plt.show()
         
@@ -831,6 +844,7 @@ class Session:
         R, L = self.get_trace_matrix(neuron_num)
         r, l = self.get_trace_matrix(neuron_num)
         title = "Neuron {}: Control".format(neuron_num)
+        
 
 
         # f, axarr = plt.subplots(2,2, sharex='col', sharey = 'row')
@@ -1607,3 +1621,42 @@ class Session:
 
         plt.show()
         return stim_neurons, choice_neurons, outcome_neurons, stim_sel, choice_sel, outcome_sel
+
+
+    def find_bias_trials(self):
+        
+        self.correct_trials = self.L_correct + self.R_correct
+        self.instructed_side = self.L_correct + self.L_wrong # 1 if left, 0 if right trial
+        
+        bias_trials = []
+        
+        for i in range(20, len(self.correct_trials)): # only start after autolearn is turned off
+            
+            if self.correct_trials[i] == 0: # error trials
+                
+                if self.correct_trials[i-1] == 1 and self.instructed_side[i] != self.instructed_side[i-1]:
+                    
+                    bias_trials += [i]
+                
+                elif self.correct_trials[i-1] == 0 and self.instructed_side[i] == self.instructed_side[i-1]:
+                    
+                    bias_trials += [i]
+            
+        return bias_trials
+        
+            
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
