@@ -17,7 +17,7 @@ import quality
 import bootstrap
 
 
-path = r'F:\data\BAYLORCW021\python\2023_02_13'
+path = r'F:\data\BAYLORCW021\python\2023_04_25'
 d = bootstrap.Sample(path)
 
 scores = d.run_iter_log_timesteps()

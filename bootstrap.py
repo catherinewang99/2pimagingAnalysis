@@ -55,25 +55,27 @@ class Sample(Session):
         self.RL = np.random.choice(RL, size = error, replace=False)
         self.LR = np.random.choice(LR, size = error, replace=False)
         
-    def get_choice_matrix(self, timestep):
+        return (correct,error)
         
+    def get_choice_matrix(self, timestep, lens):
+        correct, error=lens
         R_choice, L_choice = dict(), dict()
         for i in range(5):
             R_choice[i] = []
             L_choice[i] = []
             for n in self.sample_neurons:
-                R_choice[i] += [self.dff[0, t][n, timestep] for t in self.RR[i*6:(i+1)*6]]
-                R_choice[i] += [self.dff[0, t][n, timestep] for t in [self.LR[i]]]
-                L_choice[i] += [self.dff[0, t][n, timestep] for t in self.LL[i*6:(i+1)*6]]
-                L_choice[i] += [self.dff[0, t][n, timestep] for t in [self.RL[i]]]
+                R_choice[i] += [self.dff[0, t][n, timestep] for t in self.RR[i*correct/5:(i+1)*correct/5]]
+                R_choice[i] += [self.dff[0, t][n, timestep] for t in self.LR[i*error/5:(i+1)*error/5]]
+                L_choice[i] += [self.dff[0, t][n, timestep] for t in self.LL[i*correct/5:(i+1)*correct/5]]
+                L_choice[i] += [self.dff[0, t][n, timestep] for t in self.RL[i*error/5:(i+1)*error/5]]
             # R_choice[i] = np.array(R_choice[i])
             # L_choice[i] = np.array(L_choice[i])
         return R_choice, L_choice
     
-    def do_log_reg(self, timestep):
+    def do_log_reg(self, timestep, lens):
         
         scores = []
-        R_choice, L_choice = self.get_choice_matrix(timestep)
+        R_choice, L_choice = self.get_choice_matrix(timestep, lens)
         for i in range(5):
             # i is the held out fold
             train = [j for j in range(5) if j != i]
@@ -104,9 +106,9 @@ class Sample(Session):
         for _ in range(iterations):
             
             self.do_sample_neurons()
-            self.sample_trials()
+            lens = self.sample_trials()
             
-            acc = self.do_log_reg(timestep)
+            acc = self.do_log_reg(timestep, lens)
             mean_accuracy += [np.mean(acc)]
             
         return mean_accuracy
