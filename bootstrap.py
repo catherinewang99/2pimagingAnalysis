@@ -64,10 +64,10 @@ class Sample(Session):
             R_choice[i] = []
             L_choice[i] = []
             for n in self.sample_neurons:
-                R_choice[i] += [self.dff[0, t][n, timestep] for t in self.RR[i*correct/5:(i+1)*correct/5]]
-                R_choice[i] += [self.dff[0, t][n, timestep] for t in self.LR[i*error/5:(i+1)*error/5]]
-                L_choice[i] += [self.dff[0, t][n, timestep] for t in self.LL[i*correct/5:(i+1)*correct/5]]
-                L_choice[i] += [self.dff[0, t][n, timestep] for t in self.RL[i*error/5:(i+1)*error/5]]
+                R_choice[i] += [self.dff[0, t][n, timestep] for t in self.RR[int(i*correct/5):int((i+1)*correct/5)]]
+                R_choice[i] += [self.dff[0, t][n, timestep] for t in self.LR[int(i*error/5):int((i+1)*error/5)]]
+                L_choice[i] += [self.dff[0, t][n, timestep] for t in self.LL[int(i*correct/5):int((i+1)*correct/5)]]
+                L_choice[i] += [self.dff[0, t][n, timestep] for t in self.RL[int(i*error/5):int((i+1)*error/5)]]
             # R_choice[i] = np.array(R_choice[i])
             # L_choice[i] = np.array(L_choice[i])
         return R_choice, L_choice
@@ -90,22 +90,29 @@ class Sample(Session):
             y = cat(y)
             
             # This does the 4 cross-val automatically
-            log_cv = LogisticRegressionCV(cv=4, random_state=0).fit(np.array(X).reshape(-1, 1), y.reshape(-1, 1))
-            
-            testX = np.array(R_choice[i] + L_choice[i])
-            testy = cat((np.ones(len(R_choice[i])), np.zeros(len(L_choice[i]))))
-            scores += [log_cv.score(testX.reshape(-1, 1), testy.reshape(-1, 1))]
-        
+            if type(timestep) == int:
+                log_cv = LogisticRegressionCV(cv=4, random_state=0).fit(np.array(X).reshape(-1, 1), y.reshape(-1, 1))
+                
+                testX = np.array(R_choice[i] + L_choice[i])
+                testy = cat((np.ones(len(R_choice[i])), np.zeros(len(L_choice[i]))))
+                scores += [log_cv.score(testX.reshape(-1, 1), testy.reshape(-1, 1))]
+            else:
+                log_cv = LogisticRegressionCV(cv=4, random_state=0).fit(np.array(X), y)
+                
+                testX = np.array(R_choice[i] + L_choice[i])
+                testy = cat((np.ones(len(R_choice[i])), np.zeros(len(L_choice[i]))))
+                scores += [log_cv.score(testX, testy)]                
+                
         return scores
     
-    def run_iter_logreg(self, timestep, iterations=100):
+    def run_iter_logreg(self, timestep, num_neurons, iterations=100):
         
         mean_accuracy = []
         
         
         for _ in range(iterations):
             
-            self.do_sample_neurons()
+            self.do_sample_neurons(num_neurons)
             lens = self.sample_trials()
             
             acc = self.do_log_reg(timestep, lens)
@@ -118,11 +125,12 @@ class Sample(Session):
         acc = []
         for time in range(self.time_cutoff):
             
-            score = np.mean(self.run_iter_logreg(time))
+            score = np.mean(self.run_iter_logreg(time, int(self.num_neurons/2)))
             acc += [score]
             
         return acc
         
+    
     
 
             
