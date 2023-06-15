@@ -159,37 +159,45 @@ class QC(Session):
     
         return None
     
-    def stim_activity_proportion(self, save=False):
+    def stim_activity_proportion(self, stim_period = range(16,19), save=False):
         
-        stim_period = range(16,19)
-        
-        f, axarr = plt.subplots(1,5, sharex='col', figsize = (20, 4))
+        powers = len(set(self.stim_level))
+        f, axarr = plt.subplots(1, powers, sharex='col', figsize = ((powers)*5, 4))
         # x = np.arange(-5.97,4,0.2)[:self.time_cutoff]
         
         control_neuron_dff = []
         opto_neuron_dff = []
 
+        # nonstiminds = np.where(self.stim_level == 0)[0]
+        # nonstiminds = [n for n in nonstiminds if n in self.i_good_trials]
+
         non_stim_dff = self.dff[0][self.stim_level == 0]
+        # non_stim_dff = self.dff[0][nonstiminds]
         
         for n in range(self.num_neurons):
             av = []
             
             for t in range(non_stim_dff.shape[0]):
-                av += [non_stim_dff[t][n, 16:19]]
+                av += [non_stim_dff[t][n, stim_period]]
                 
             control_neuron_dff += [np.mean(av)]
             
         
         for i in range(1, len(set(self.stim_level))):
             stimlevel = sorted(list(set(self.stim_level)))[i]
+            # stiminds = np.where(self.stim_level == stimlevel)[0]
+            # stiminds = [n for n in stiminds if n in self.i_good_trials]
+
+            # stim_dff = self.dff[0][stiminds]
             stim_dff = self.dff[0][self.stim_level == stimlevel]
             level = []
             
             for n in range(self.num_neurons):
                 av = []
                 
-                for t in self.i_good_trials:
-                    av += [stim_dff[t][n, 16:19]]
+                # for t in self.i_good_trials:
+                for t in range(len(stim_dff)):
+                    av += [stim_dff[t][n, stim_period]]
                     
                 level += [np.mean(av)]
             
@@ -199,16 +207,21 @@ class QC(Session):
             
             # ratio = [opto_neuron_dff[i-1][j] / control_neuron_dff[j] for j in range(len(control_neuron_dff))]
             ratio = [level[j] / control_neuron_dff[j] for j in range(len(control_neuron_dff))]
-            ratio = np.array(ratio)[np.array(ratio) > -100]
-            ratio = np.array(ratio)[np.array(ratio) < 100]
+            # ratio = np.array(ratio)[np.array(ratio) > -100]
+            # ratio = np.array(ratio)[np.array(ratio) < 100]
 
             axarr[i-1].scatter(control_neuron_dff, level)
  
             axarr[i-1].set_title('{} AOM'.format(stimlevel))
+            axarr[i-1].plot(range(-25,100), range(-25,100), 'r')
+            # axarr[i-1].plot(range(-2,2), range(-2,2), 'r')
             # axarr[i-1].hist(ratio, bins = 500)
-            # axarr[i-1].set_xlim(-10,10)
+            # axarr[i-1].set_xlim(min(control_neuron_dff)-0.1,max(control_neuron_dff)+0.1)
+            # axarr[i-1].set_ylim(min(level)-0.1,max(level)+0.1)
+            
+            
         axarr[0].set_ylabel('Opto level')
-        axarr[2].set_xlabel('Control Level')
+        axarr[0].set_xlabel('Control Level')
         plt.show()
         return control_neuron_dff, ratio
     
