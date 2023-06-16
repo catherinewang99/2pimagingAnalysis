@@ -23,12 +23,12 @@ import quality
 path = r'F:\data\BAYLORCW021\python\2023_04_27'
 
 # path = r'F:\data\BAYLORCW022\python\2023_03_06'
-path = r'F:\data\BAYLORCW030\python\2023_06_07'
+# path = r'F:\data\BAYLORCW030\python\2023_06_07'
 # path = r'F:\data\BAYLORCW021\python\2023_05_03'
 
 
 l1 = quality.QC(path)
-
+l1.plot_pearsons_correlation()
 # var = l1.plot_variance_spread()
 ### TOTAL NUMBER OF NEURONS: ###
 

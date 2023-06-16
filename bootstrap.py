@@ -35,7 +35,9 @@ class Sample(Session):
         
     def do_sample_neurons(self, numneurons=200):
         
-        self.sample_neurons = np.random.choice(np.arange(self.num_neurons), size = numneurons, replace=True)
+        n, _ = self.get_pearsonscorr_neuron()
+        
+        self.sample_neurons = np.random.choice(n, size = len(n), replace=True)
         
         return self.sample_neurons
     
@@ -110,7 +112,9 @@ class Sample(Session):
         mean_accuracy = []
         
         
-        for _ in range(iterations):
+        for i in range(iterations):
+            
+            print("##### ITERATION {} #######".format(i))
             
             self.do_sample_neurons(num_neurons)
             lens = self.sample_trials()

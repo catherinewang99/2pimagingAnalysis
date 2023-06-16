@@ -20,6 +20,7 @@ import statsmodels.api as sm
 from statsmodels.formula.api import ols
 import pandas as pd
 from scipy.stats import mannwhitneyu
+from scipy.stats import mstats
 
 class Session:
     
@@ -161,6 +162,41 @@ class Session:
         s = d/mdev if mdev else np.zero(len(d))
         
         return data[s<m]
+    
+    def get_pearsonscorr_neuron(self, cutoff = 0.7):
+        
+        # Only returns neurons that have a consistent trace over all trials
+        
+        neurons = []
+        evens, odds = [], []
+        corrs = []
+        
+        for i in self.i_good_trials:
+            if i%2 == 0: # Even trials
+                evens += [i]
+            else:
+                odds += [i]
+        filtert = len(evens) if len(evens) < len(odds) else len(odds)
+        evens, odds = evens[:filtert], odds[:filtert] # Ensure number of trials is the same
+        
+        for neuron_num in range(self.num_neurons):
+            R_av_dff = []
+            for i in evens:
+                # R_av_dff += [self.normalize_by_baseline(self.dff[0, i][neuron_num, :self.time_cutoff])]
+                R_av_dff += [self.dff[0, i][neuron_num, :self.time_cutoff]]
+    
+            L_av_dff = []
+            for i in odds:
+                # L_av_dff += [self.normalize_by_baseline(self.dff[0, i][neuron_num, :self.time_cutoff])]
+                L_av_dff += [self.dff[0, i][neuron_num, :self.time_cutoff]]
+                
+            corr, p = mstats.pearsonr(np.mean(L_av_dff, axis = 0), np.mean(R_av_dff,axis=0))
+            corrs += [corr]
+            if corr > cutoff:
+                
+                neurons += [neuron_num]
+            
+        return neurons, corrs
     
     def plot_mean_F(self):
         

@@ -239,6 +239,12 @@ class QC(Session):
         
         return variance
             
-            
+    def plot_pearsons_correlation(self):
+        
+        neurons, corrs = self.get_pearsonscorr_neuron()
+        
+        plt.hist(corrs)
+        plt.show()
+        
             
         
