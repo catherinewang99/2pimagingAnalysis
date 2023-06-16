@@ -65,7 +65,7 @@ class Session:
         self.recording_loc = 'l'
         self.skew = layer['skew']
         
-        self.good_neurons = np.where(self.skew>=1)[1]
+        # self.good_neurons = np.where(self.skew>=1)[1]
         
         if passive:
             self.i_good_trials = range(4, self.num_trials)
@@ -118,6 +118,10 @@ class Session:
                 # self.normalize_by_histogram()
                 # self.normalize_all_by_histogram()
                 self.normalize_z_score()    
+                
+        self.good_neurons, _ = self.get_pearsonscorr_neuron()
+        self.num_neurons = len(self.good_neurons)
+        
         
     def determine_cutoff(self):
         
@@ -606,8 +610,8 @@ class Session:
 
     def get_epoch_selective(self, epoch, p = 0.01, bias=False):
         selective_neurons = []
-        for neuron in range(self.num_neurons):
-        # for neuron in self.good_neurons:
+        # for neuron in range(self.num_neurons):
+        for neuron in self.good_neurons:
             right, left = self.get_trace_matrix(neuron)
             
             if bias:
@@ -986,7 +990,8 @@ class Session:
             
             sig_neurons = []
 
-            for n in range(self.num_neurons):
+            # for n in range(self.num_neurons):
+            for n in self.good_neurons:
                 
                 r, l = self.get_trace_matrix(n)
                 r, l = np.matrix(r), np.matrix(l)
@@ -1049,8 +1054,11 @@ class Session:
             if len(ipsi_neurons) != 0:
             
                 overall_R, overall_L = ipsi_trace['r'], ipsi_trace['l']
+                overall_R = [np.mean(overall_R[r], axis=0) for r in range(len(overall_R))]
+                overall_L = [np.mean(overall_L[l], axis=0) for l in range(len(overall_L))]
                 
-                R_av, L_av = np.mean(overall_R, axis = 0), np.mean(overall_L, axis = 0)
+                R_av = np.mean(overall_R, axis = 0) 
+                L_av = np.mean(overall_L, axis = 0)
                 
                 left_err = np.std(overall_L, axis=0) / np.sqrt(len(overall_L)) 
                 right_err = np.std(overall_R, axis=0) / np.sqrt(len(overall_R))
@@ -1072,8 +1080,11 @@ class Session:
             if len(contra_neurons) != 0:
     
                 overall_R, overall_L = contra_trace['r'], contra_trace['l']
+                overall_R = [np.mean(overall_R[r], axis=0) for r in range(len(overall_R))]
+                overall_L = [np.mean(overall_L[l], axis=0) for l in range(len(overall_L))]
                 
-                R_av, L_av = np.mean(overall_R, axis = 0), np.mean(overall_L, axis = 0)
+                R_av = np.mean(overall_R, axis = 0) 
+                L_av = np.mean(overall_L, axis = 0)
                 
                 left_err = np.std(overall_L, axis=0) / np.sqrt(len(overall_L)) 
                 right_err = np.std(overall_R, axis=0) / np.sqrt(len(overall_R))
@@ -1321,8 +1332,8 @@ class Session:
                 
                 s,l,r,m = 0,0,0,0
                 
-                for n in range(self.num_neurons):
-
+                # for n in range(self.num_neurons):
+                for n in self.good_neurons:
                     dff = [self.dff[0, trial][n, t] for trial in self.i_good_trials]
                     
                     df = pd.DataFrame({'stim': self.R_correct + self.R_wrong,
@@ -1384,8 +1395,8 @@ class Session:
             
             stim_neurons, choice_neurons, action_neurons, outcome_neurons = [],[],[],[]
             
-            for n in range(self.num_neurons):
-            # for n in range(1):
+            # for n in range(self.num_neurons):
+            for n in self.good_neurons:
             
                 RR, LL = self.get_trace_matrix(n)
                 

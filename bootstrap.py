@@ -33,9 +33,22 @@ class Sample(Session):
         self.do_sample_neurons()
         self.sample_trials()
         
+    def get_selective_neurons(self):
+        
+        neurons = []
+        epochs = [range(self.sample, self.sample+6), 
+                  range(self.delay, self.response), 
+                  range(self.response, self.time_cutoff)]
+        
+        for i in epochs:
+            neurons += self.get_epoch_selective(i)
+        
+        return list(set(neurons))
+        
     def do_sample_neurons(self, numneurons=200):
         
         n, _ = self.get_pearsonscorr_neuron()
+        n = self.get_selective_neurons()
         
         self.sample_neurons = np.random.choice(n, size = len(n), replace=True)
         

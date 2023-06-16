@@ -26,7 +26,7 @@ import pandas as pd
 path = r'F:\data\BAYLORCW021\python\2023_02_13'
 # # path = r'F:\data\BAYLORCW021\python\2023_04_06'
 
-# path = r'F:\data\BAYLORCW021\python\2023_04_27'
+path = r'F:\data\BAYLORCW021\python\2023_04_27'
 
 # # path = r'F:\data\BAYLORCW021\python\2023_05_03'
 # path = r'F:\data\BAYLORCW021\python\2023_02_08'
@@ -38,7 +38,7 @@ l1 = session.Session(path)
 
 # l1.single_neuron_sel('Susu method')
 
-stim, lick, reward, mixed = l1.single_neuron_sel('Chen 2017')
+# stim, lick, reward, mixed = l1.single_neuron_sel('Chen 2017')
 
 
 ## Population analysis
@@ -49,7 +49,7 @@ stim, lick, reward, mixed = l1.single_neuron_sel('Chen 2017')
 
 # l1.plot_number_of_sig_neurons()
 
-# l1.selectivity_table_by_epoch()
+l1.selectivity_table_by_epoch()
 
 # l1.selectivity_optogenetics()
 
@@ -61,10 +61,10 @@ stim, lick, reward, mixed = l1.single_neuron_sel('Chen 2017')
 
 
 
-path = r'F:\data\BAYLORCW021\python\2023_04_27'
-l2 = session.Session(path)
-# tstim_neurons, tchoice_neurons, toutcome_neurons, tstim_sel, tchoice_sel, toutcome_sel = l2.stim_choice_outcome_selectivity()
-tstim, tlick, treward, tmixed = l2.single_neuron_sel('Chen 2017')
+# path = r'F:\data\BAYLORCW021\python\2023_04_27'
+# l2 = session.Session(path)
+# # tstim_neurons, tchoice_neurons, toutcome_neurons, tstim_sel, tchoice_sel, toutcome_sel = l2.stim_choice_outcome_selectivity()
+# tstim, tlick, treward, tmixed = l2.single_neuron_sel('Chen 2017')
 
 # t_numneurons = l2.num_neurons
 
@@ -85,8 +85,8 @@ tstim, tlick, treward, tmixed = l2.single_neuron_sel('Chen 2017')
 
 
 
-from scipy.stats import ttest_ind, ttest_ind_from_stats
-ttest_ind(stim_sel, tstim_sel, equal_var=False)
-ttest_ind(outcome_sel, toutcome_sel, equal_var=False)
+# from scipy.stats import ttest_ind, ttest_ind_from_stats
+# ttest_ind(stim_sel, tstim_sel, equal_var=False)
+# ttest_ind(outcome_sel, toutcome_sel, equal_var=False)
 
-ttest_ind(lick[7:13]/, tlick[7:13])
+# ttest_ind(lick[7:13]/, tlick[7:13])
