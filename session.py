@@ -137,7 +137,7 @@ class Session:
         
         return cutoff
     
-    def find_low_mean_F(self, cutoff = 100):
+    def find_low_mean_F(self, cutoff = 50):
         
         # Usual cutoff is 50
         # Reject outliers based on medians
