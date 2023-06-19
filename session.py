@@ -119,9 +119,43 @@ class Session:
                 # self.normalize_all_by_baseline()
                 self.normalize_z_score()    
 
-        # self.good_neurons, _ = self.get_pearsonscorr_neuron()
-        # self.num_neurons = len(self.good_neurons)
+
+
+        self.good_neurons, _ = self.get_pearsonscorr_neuron()
+        self.num_neurons = len(self.good_neurons)
         
+        
+    def crop_baseline(self):
+        # BROKEN :()
+        
+        dff = copy.deepcopy(self.dff)
+        dff_copy = np.array([]).reshape(1,-1)
+
+        # for i in self.good_neurons:
+            
+            # nmean = np.mean([self.dff[0, t][i, :7] for t in range(self.num_trials)]).copy()
+            
+        for j in range(self.num_trials):
+            
+            trialdff = np.array([])
+            
+            for i in range(self.num_neurons):
+
+            # for j in self.i_good_trials:
+                newdff = dff[0, j][i, 5:] # later cutoff because of transient activation
+                # dff[0, j][i] = newdff
+                if i == 0:
+                    trialdff = newdff
+                else:
+                    trialdff = np.vstack((trialdff, newdff))
+            
+            if j==0:
+                
+                dff_copy = trialdff
+            else:
+                dff_copy = np.hstack((dff_copy, trialdff))
+            
+        self.dff=dff_copy
         
     def determine_cutoff(self):
         
@@ -965,7 +999,7 @@ class Session:
         axarr[1, 1].axvline(self.sample, linestyle = '--')
         axarr[1, 1].axvline(self.delay, linestyle = '--')
         axarr[1, 1].axvline(self.response, linestyle = '--')
-        axarr[1, 1].hlines(y=vmax, xmin=self.delay, xmax=self.delay + 5, linewidth=10, color='lightblue')
+        axarr[1, 1].hlines(y=vmax, xmin=self.delay, xmax=self.delay + 5, linewidth=10, color='red')
         
         x = range(self.time_cutoff)
 
@@ -988,8 +1022,15 @@ class Session:
         contra = np.zeros(self.time_cutoff)
         ipsi = np.zeros(self.time_cutoff)
         x = np.arange(-5.97,4,0.2)[:self.time_cutoff]
+        steps = range(self.time_cutoff)
+        
+        if 'CW030' in self.path:
+            contra = np.zeros(self.time_cutoff-5)
+            ipsi = np.zeros(self.time_cutoff-5)
+            x = np.arange(-5.97,4,0.2)[:self.time_cutoff-5]
+            steps = range(5, self.time_cutoff)
 
-        for t in range(self.time_cutoff):
+        for t in steps:
             
             sig_neurons = []
 
@@ -1015,8 +1056,8 @@ class Session:
                     
                     sig_neurons += [0]
             
-            contra[t] = sum(np.array(sig_neurons) == -1)
-            ipsi[t] = sum(np.array(sig_neurons) == 1)
+            contra[t-5] = sum(np.array(sig_neurons) == -1)
+            ipsi[t-5] = sum(np.array(sig_neurons) == 1)
 
         plt.bar(x, contra, color = 'b', edgecolor = 'white', width = 0.2, label = 'contra')
         plt.bar(x, -ipsi, color = 'r',edgecolor = 'white', width = 0.2, label = 'ipsi')
@@ -1039,7 +1080,10 @@ class Session:
 
         f, axarr = plt.subplots(4,3, sharex='col', figsize=(14, 12))
         epochs = [range(self.time_cutoff), range(8,14), range(19,28), range(29,self.time_cutoff)]
-        x = np.arange(-5.97,4,0.2)[:self.time_cutoff]
+        x = np.arange(-5.97,6,0.2)[:self.time_cutoff]
+        if 'CW030' in self.path:
+            x = np.arange(-5.97,6,0.2)[:self.time_cutoff-5]
+
         titles = ['Whole-trial', 'Sample', 'Delay', 'Response']
         
         for i in range(4):
@@ -1066,6 +1110,13 @@ class Session:
                 left_err = np.std(overall_L, axis=0) / np.sqrt(len(overall_L)) 
                 right_err = np.std(overall_R, axis=0) / np.sqrt(len(overall_R))
                             
+                if 'CW030' in self.path:
+                    L_av = L_av[5:]
+                    R_av = R_av[5:]
+                    left_err = left_err[5:]
+                    right_err = right_err[5:]
+                    
+                    
                 axarr[i, 2].plot(x, L_av, 'r-')
                 axarr[i, 2].plot(x, R_av, 'b-')
                         
@@ -1092,6 +1143,12 @@ class Session:
                 left_err = np.std(overall_L, axis=0) / np.sqrt(len(overall_L)) 
                 right_err = np.std(overall_R, axis=0) / np.sqrt(len(overall_R))
                             
+                if 'CW030' in self.path:
+                    L_av = L_av[5:]
+                    R_av = R_av[5:]
+                    left_err = left_err[5:]
+                    right_err = right_err[5:]
+                    
                 axarr[i, 1].plot(x, L_av, 'r-')
                 axarr[i, 1].plot(x, R_av, 'b-')
                         
@@ -1225,23 +1282,23 @@ class Session:
         x = np.arange(-5.97,4,0.2)[:self.time_cutoff]
 
         # Get delay selective neurons
-        contra_neurons, ipsi_neurons, contra_trace, ipsi_trace = self.contra_ipsi_pop(range(19,28)) 
+        contra_neurons, ipsi_neurons, contra_trace, ipsi_trace = self.contra_ipsi_pop(range(self.response-9,self.response)) 
         
         if len(contra_neurons) == 0:
             
-            nonpref, pref = ipsi_trace['r'], ipsi_trace['l']
+            nonpref, pref = cat(ipsi_trace['r']), cat(ipsi_trace['l'])
             optonp, optop = self.get_trace_matrix_multiple(ipsi_neurons, opto=True, both=True)
             # errnp, errpref = self.get_trace_matrix_multiple(ipsi_neurons, opto=True, error=True)
             
         elif len(ipsi_neurons) == 0:
             
-            nonpref, pref = contra_trace['l'], contra_trace['r']
+            nonpref, pref = cat(contra_trace['l']), cat(contra_trace['r'])
             optop, optonp = self.get_trace_matrix_multiple(contra_neurons, opto=True, both=True)
             # errpref, errnp = self.get_trace_matrix_multiple(contra_neurons, opto=True, error=True)
 
         else:
             
-            nonpref, pref = cat((ipsi_trace['r'], contra_trace['l'])), cat((ipsi_trace['l'], contra_trace['r']))
+            nonpref, pref = cat((cat(ipsi_trace['r']), cat(contra_trace['l']))), cat((cat(ipsi_trace['l']), cat(contra_trace['r'])))
             optonp, optop = self.get_trace_matrix_multiple(ipsi_neurons, opto=True, both=True)
             optop1, optonp1 = self.get_trace_matrix_multiple(contra_neurons, opto = True, both=True)
             optonp, optop = cat((optonp, optonp1)), cat((optop, optop1))
@@ -1258,6 +1315,14 @@ class Session:
         selo = np.mean(optop, axis = 0) - np.mean(optonp, axis = 0)
         erro = np.std(optop, axis=0) / np.sqrt(len(optop)) 
         erro += np.std(optonp, axis=0) / np.sqrt(len(optonp))  
+
+        if 'CW030' in self.path:
+            
+            sel = sel[5:]
+            selo = selo[5:]
+            err = err[5:]
+            erro = erro[5:]
+            x = np.arange(-5.97,4,0.2)[:self.time_cutoff-5]
 
         axarr.plot(x, sel, 'black')
                 

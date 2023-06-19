@@ -16,13 +16,13 @@ from matplotlib.pyplot import figure
 
 
 # path = r'F:\data\BAYLORCW030\python\2023_06_09'
-path = r'F:\data\BAYLORCW021\python\2023_04_06'
-path = r'F:\data\BAYLORCW021\python\2023_02_13'
+# path = r'F:\data\BAYLORCW021\python\2023_04_06'
+# path = r'F:\data\BAYLORCW021\python\2023_02_13'
 
 # path = r'F:\data\BAYLORCW021\python\2023_04_25'
 # path = r'F:\data\BAYLORCW021\python\2023_04_27'
 
-# path = r'F:\data\BAYLORCW021\python\2023_05_03'
+path = r'F:\data\BAYLORCW030\python\2023_06_03'
 
 
 l1 = session.Session(path)

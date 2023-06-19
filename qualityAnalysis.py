@@ -23,8 +23,8 @@ path = r'F:\data\BAYLORCW021\python\2023_04_06'
 # path = r'F:\data\BAYLORCW021\python\2023_04_27'
 
 # path = r'F:\data\BAYLORCW022\python\2023_03_06'
-# path = r'F:\data\BAYLORCW030\python\2023_06_16'
-path = r'F:\data\BAYLORCW021\python\2023_05_17'
+path = r'F:\data\BAYLORCW030\python\2023_06_03'
+# path = r'F:\data\BAYLORCW021\python\2023_05_17'
 
 
 l1 = quality.QC(path)
@@ -102,9 +102,9 @@ l1 = quality.QC(path)
 
 ### Heat map of neurons during stim vs. control
 
-# l1.all_neurons_heatmap()
+l1.all_neurons_heatmap()
 # l1.all_neurons_heatmap_stimlevels()
-control_neuron_dff, ratio = l1.stim_activity_proportion()
+# control_neuron_dff, ratio = l1.stim_activity_proportion()
 ## Histogram of F values before finding F0
 
 # n0 = [l1.dff[0,t][0, :] for t in range(l1.num_trials)]

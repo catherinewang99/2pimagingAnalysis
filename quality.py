@@ -41,8 +41,12 @@ class QC(Session):
             
     def all_neurons_heatmap(self, save=False):
         
+        x = np.arange(-5.97,4,0.2)[:self.time_cutoff] if 'CW030' not in self.path else np.arange(-5.97,4,0.2)[:self.time_cutoff-5]
+
+
         f, axarr = plt.subplots(2,2, sharex='col')
         # x = np.arange(-5.97,4,0.2)[:self.time_cutoff]
+        delay = self.delay if 'CW030' not in self.path else self.delay-5
         
         stimon, stimoff = [], []
         
@@ -57,13 +61,16 @@ class QC(Session):
         stim_dff = self.dff[0][stimon]
         non_stim_dff = self.dff[0][stimoff]
 
-        stack = np.zeros(self.time_cutoff)
+        stack = np.zeros(self.time_cutoff) if 'CW030' not in self.path else np.zeros(self.time_cutoff-5)
 
         for neuron in range(self.num_neurons):
         # for neuron in self.good_neurons:
             dfftrial = []
             for trial in range(len(stim_dff)):
-                dfftrial += [stim_dff[trial][neuron, :self.time_cutoff]]
+                if 'CW030' in self.path:
+                    dfftrial += [stim_dff[trial][neuron, 5:self.time_cutoff]]
+                else:
+                    dfftrial += [stim_dff[trial][neuron, :self.time_cutoff]]
 
             stack = np.vstack((stack, np.mean(np.array(dfftrial), axis=0)))
 
@@ -71,19 +78,23 @@ class QC(Session):
         axarr[0,0].matshow(stack, cmap='gray', interpolation='nearest', aspect='auto')
         axarr[0,0].axis('off')
         axarr[0,0].set_title('Opto')
-        axarr[0,0].axvline(x=self.delay, c='b', linewidth = 0.5)
+        axarr[0,0].axvline(x=delay, c='b', linewidth = 0.5)
         axarr[1,0].plot(np.mean(stack, axis = 0))
         axarr[1,0].set_ylim(top=0.2)
-        axarr[1,0].axvline(x=self.delay, c='b', linewidth = 0.5)
-
-        stack = np.zeros(self.time_cutoff)
+        axarr[1,0].axvline(x=delay, c='b', linewidth = 0.5)
+        axarr[1,0].set_xticks(range(0,stack.shape[1], 10), [int(d) for d in x[::10]])
+        
+        stack = np.zeros(self.time_cutoff) if 'CW030' not in self.path else np.zeros(self.time_cutoff-5)
 
         for neuron in range(self.num_neurons):
         # for neuron in self.good_neurons:
 
             dfftrial = []
             for trial in range(len(non_stim_dff)):
-                dfftrial += [non_stim_dff[trial][neuron, :self.time_cutoff]]
+                if 'CW030' in self.path:
+                    dfftrial += [non_stim_dff[trial][neuron, 5:self.time_cutoff]]
+                else:
+                    dfftrial += [non_stim_dff[trial][neuron, :self.time_cutoff]]
 
             stack = np.vstack((stack, np.mean(np.array(dfftrial), axis=0)))
 
@@ -96,7 +107,8 @@ class QC(Session):
         axarr[1,1].plot(np.mean(stack, axis = 0))
         axarr[1,1].set_ylim(top=0.2)
         axarr[1,0].set_ylabel('dF/F0')
-        # axarr[1,0].set_xlabel('Time from Go cue (s)')
+        axarr[1,1].set_xticks(range(0,stack.shape[1], 10), [int(d) for d in x[::10]])
+        axarr[1,0].set_xlabel('Time from Go cue (s)')
 
         if save:
             plt.savefig(self.path + r'dff_contra_stimall.jpg')
@@ -219,8 +231,8 @@ class QC(Session):
             axarr[i-1].plot(range(-25,100), range(-25,100), 'r')
             # axarr[i-1].plot(range(-2,2), range(-2,2), 'r')
             # axarr[i-1].hist(ratio, bins = 500)
-            # axarr[i-1].set_xlim(min(control_neuron_dff)-0.1,max(control_neuron_dff)+0.1)
-            # axarr[i-1].set_ylim(min(level)-0.1,max(level)+0.1)
+            axarr[i-1].set_xlim(min(control_neuron_dff)-0.1,max(control_neuron_dff)+0.1)
+            axarr[i-1].set_ylim(min(level)-0.1,max(level)+0.1)
             
             
         axarr[0].set_ylabel('Opto level')
