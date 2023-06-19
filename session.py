@@ -114,11 +114,11 @@ class Session:
                     self.dff[0, t] = self.dff[0, t].T
             else:
                 # self.normalize_all_by_neural_baseline()
-                self.normalize_all_by_baseline()
                 # self.normalize_by_histogram()
                 # self.normalize_all_by_histogram()
+                self.normalize_all_by_baseline()
                 self.normalize_z_score()    
-                
+
         self.good_neurons, _ = self.get_pearsonscorr_neuron()
         self.num_neurons = len(self.good_neurons)
         
@@ -545,17 +545,19 @@ class Session:
         
         # Normalize all neurons by individual trial-averaged F0
         
+        dff = copy.deepcopy(self.dff)
+
         for i in range(self.num_neurons):
         # for i in self.good_neurons:
             
             # nmean = np.mean([self.dff[0, t][i, :7] for t in range(self.num_trials)]).copy()
             
-            # for j in range(self.num_trials):
-            for j in self.i_good_trials:
+            for j in range(self.num_trials):
+            # for j in self.i_good_trials:
 
-                nmean = np.mean(self.dff[0, j][i, self.sample - 3:self.sample]) # later cutoff because of transient activation
-                self.dff[0, j][i] = (self.dff[0, j][i] - nmean) / nmean
-        
+                nmean = np.mean(dff[0, j][i, 8:self.sample]) # later cutoff because of transient activation
+                dff[0, j][i, :] = (dff[0, j][i, :] - nmean) / nmean
+        self.dff = dff
         return None
 
     def normalize_by_histogram(self):

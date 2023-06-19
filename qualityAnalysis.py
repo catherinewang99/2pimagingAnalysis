@@ -17,13 +17,13 @@ from sklearn.preprocessing import normalize
 import quality
 
 
-# path = r'F:\data\BAYLORCW021\python\2023_04_06'
+path = r'F:\data\BAYLORCW021\python\2023_04_06'
 
 # path = r'F:\data\BAYLORCW027\python\2023_05_25'
-path = r'F:\data\BAYLORCW021\python\2023_04_27'
+# path = r'F:\data\BAYLORCW021\python\2023_04_27'
 
 # path = r'F:\data\BAYLORCW022\python\2023_03_06'
-path = r'F:\data\BAYLORCW030\python\2023_06_16'
+# path = r'F:\data\BAYLORCW030\python\2023_06_16'
 # path = r'F:\data\BAYLORCW021\python\2023_05_03'
 
 
