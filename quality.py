@@ -59,8 +59,8 @@ class QC(Session):
 
         stack = np.zeros(self.time_cutoff)
 
-        # for neuron in range(self.num_neurons):
-        for neuron in self.good_neurons:
+        for neuron in range(self.num_neurons):
+        # for neuron in self.good_neurons:
             dfftrial = []
             for trial in range(len(stim_dff)):
                 dfftrial += [stim_dff[trial][neuron, :self.time_cutoff]]
@@ -78,8 +78,8 @@ class QC(Session):
 
         stack = np.zeros(self.time_cutoff)
 
-        # for neuron in range(self.num_neurons):
-        for neuron in self.good_neurons:
+        for neuron in range(self.num_neurons):
+        # for neuron in self.good_neurons:
 
             dfftrial = []
             for trial in range(len(non_stim_dff)):

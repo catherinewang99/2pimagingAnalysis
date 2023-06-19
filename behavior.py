@@ -353,6 +353,8 @@ class Behavior():
             if imaging:
                 if 3 not in delay:
                     continue
+                if 'CW028' in self.path and sess ==1:
+                    continue
             
             delay_duration = np.append(delay_duration, delay[window:-window])
 
