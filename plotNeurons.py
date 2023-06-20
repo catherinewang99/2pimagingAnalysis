@@ -22,7 +22,7 @@ from matplotlib.pyplot import figure
 # path = r'F:\data\BAYLORCW021\python\2023_04_25'
 # path = r'F:\data\BAYLORCW021\python\2023_04_27'
 
-path = r'F:\data\BAYLORCW030\python\2023_06_03'
+path = r'F:\data\BAYLORCW030\python\2023_06_19'
 
 
 l1 = session.Session(path)
@@ -65,7 +65,7 @@ l1 = session.Session(path)
 # Get population average plots
 # l1.plot_contra_ipsi_pop()
 
-for i in range(10):
+for i in range(10,20):
     l1.plot_rasterPSTH_sidebyside(i)
     
     # l1.plot_raster_and_PSTH(i, bias= True)

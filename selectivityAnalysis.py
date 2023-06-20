@@ -47,11 +47,11 @@ l1 = session.Session(path)
 
 # l1.population_sel_timecourse()
 
-l1.plot_number_of_sig_neurons()
+# l1.plot_number_of_sig_neurons()
 
-l1.selectivity_table_by_epoch()
+# l1.selectivity_table_by_epoch()
 
-l1.selectivity_optogenetics()
+# l1.selectivity_optogenetics()
 
 ## For selective neurons
 # l1 = session.Session(path)
@@ -61,9 +61,9 @@ l1.selectivity_optogenetics()
 
 
 
-# path = r'F:\data\BAYLORCW021\python\2023_04_27'
-# l2 = session.Session(path)
-# # tstim_neurons, tchoice_neurons, toutcome_neurons, tstim_sel, tchoice_sel, toutcome_sel = l2.stim_choice_outcome_selectivity()
+path = r'F:\data\BAYLORCW021\python\2023_04_27'
+l2 = session.Session(path)
+# tstim_neurons, tchoice_neurons, toutcome_neurons, tstim_sel, tchoice_sel, toutcome_sel = l2.stim_choice_outcome_selectivity()
 # tstim, tlick, treward, tmixed = l2.single_neuron_sel('Chen 2017')
 
 # t_numneurons = l2.num_neurons

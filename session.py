@@ -122,7 +122,7 @@ class Session:
 
 
         self.good_neurons, _ = self.get_pearsonscorr_neuron()
-        self.num_neurons = len(self.good_neurons)
+        # self.num_neurons = len(self.good_neurons)
         
         
     def crop_baseline(self):

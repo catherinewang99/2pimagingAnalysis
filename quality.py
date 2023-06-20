@@ -117,6 +117,85 @@ class QC(Session):
     
         return None
     
+    def all_neurons_traces(self, save = False):
+        
+        x = np.arange(-5.97,4,0.2)[:self.time_cutoff] if 'CW030' not in self.path else np.arange(-5.97,4,0.2)[:self.time_cutoff-5]
+
+
+        f, axarr = plt.subplots(2,1, sharex='col',figsize=(20,10))
+        # x = np.arange(-5.97,4,0.2)[:self.time_cutoff]
+        delay = self.delay if 'CW030' not in self.path else self.delay-5
+        
+        stimon, stimoff = [], []
+        
+        for i in range(len(self.stim_ON)):
+            
+            stimon += [self.stim_ON[i]] if i in self.i_good_trials else [False]
+            stimoff += [~self.stim_ON[i]] if i in self.i_good_trials else [False]
+        
+        # stimon = [self.stim_ON[i] for i in range(len(self.stim_ON)) if i in self.i_good_trials else False]
+        # stimoff = [~self.stim_ON[i] for i in range(len(self.stim_ON)) if i in self.i_good_trials else False]
+
+        stim_dff = self.dff[0][stimon]
+        non_stim_dff = self.dff[0][stimoff]
+
+        stack = np.zeros(self.time_cutoff) if 'CW030' not in self.path else np.zeros(self.time_cutoff-5)
+
+        # for neuron in range(self.num_neurons):
+        for neuron in self.good_neurons:
+            dfftrial = []
+            for trial in range(len(stim_dff)):
+                if 'CW030' in self.path:
+                    dfftrial += [stim_dff[trial][neuron, 5:self.time_cutoff]]
+                else:
+                    dfftrial += [stim_dff[trial][neuron, :self.time_cutoff]]
+
+            stack = np.vstack((stack, np.mean(np.array(dfftrial), axis=0)))
+
+        stack = normalize(stack[1:])
+        axarr[1].plot(stack.T, alpha=0.5)
+        # axarr[0,0].axis('off')
+        axarr[1].set_title('Opto')
+        axarr[1].axvline(x=delay, c='b', linewidth = 0.5)
+        # axarr[1,0].plot(np.mean(stack, axis = 0))
+        # axarr[1,0].set_ylim(top=0.2)
+        # axarr[1,0].axvline(x=delay, c='b', linewidth = 0.5)
+        # axarr[1,0].set_xticks(range(0,stack.shape[1], 10), [int(d) for d in x[::10]])
+        
+        stack = np.zeros(self.time_cutoff) if 'CW030' not in self.path else np.zeros(self.time_cutoff-5)
+
+        # for neuron in range(self.num_neurons):
+        for neuron in self.good_neurons:
+
+            dfftrial = []
+            for trial in range(len(non_stim_dff)):
+                if 'CW030' in self.path:
+                    dfftrial += [non_stim_dff[trial][neuron, 5:self.time_cutoff]]
+                else:
+                    dfftrial += [non_stim_dff[trial][neuron, :self.time_cutoff]]
+
+            stack = np.vstack((stack, np.mean(np.array(dfftrial), axis=0)))
+
+        stack = normalize(stack[1:])
+
+        axarr[0].plot(stack.T, alpha=0.5)
+        # axarr[0,1].axis('off')
+        axarr[0].set_title('Control')
+
+        # axarr[1,1].plot(np.mean(stack, axis = 0))
+        # axarr[1,1].set_ylim(top=0.2)
+        axarr[0].set_ylabel('dF/F0')
+        # axarr[1,1].set_xticks(range(0,stack.shape[1], 10), [int(d) for d in x[::10]])
+        axarr[1].set_xlabel('Time (s)')
+
+        if save:
+            plt.savefig(self.path + r'dff_contra_stimall.jpg')
+
+        plt.show()
+    
+        return None
+        
+    
     def all_neurons_heatmap_stimlevels(self, save=False):
         
         f, axarr = plt.subplots(2,6, sharex='col', figsize=(20,6))
