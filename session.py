@@ -208,7 +208,7 @@ class Session:
         neurons = []
         evens, odds = [], []
         corrs = []
-        
+        # inds = [i for i in range(self.num_trials) if self.stim_ON[i] == 0]
         for i in self.i_good_trials:
             if i%2 == 0: # Even trials
                 evens += [i]
@@ -367,7 +367,7 @@ class Session:
         
         return idx
     
-    def get_trace_matrix(self, neuron_num, error=False, bias_trials = None):
+    def get_trace_matrix(self, neuron_num, error=False, bias_trials = None, non_bias=False):
         
         ## Returns matrix of all trial firing rates of a single neuron for lick left
         ## and lick right trials. Firing rates are normalized with individual trial
@@ -383,6 +383,16 @@ class Session:
         if bias_trials != None:
             right_trials = [b for b in bias_trials if self.instructed_side[b] == 0]
             left_trials = [b for b in bias_trials if self.instructed_side[b] == 1]
+            # print(right_trials)
+            # print(left_trials)
+            if non_bias: # Get control trials - bias trials
+            
+                ctlright_trials = self.lick_correct_direction('r')
+                ctlleft_trials = self.lick_correct_direction('l')
+                right_trials = [b for b in ctlright_trials if b not in bias_trials]
+                left_trials = [b for b in ctlleft_trials if b not in bias_trials]
+                # print(right_trials)
+                # print(left_trials)
             
         # Filter out opto trials
         right_trials = [r for r in right_trials if not self.stim_ON[r]]
@@ -929,10 +939,15 @@ class Session:
         plt.show()
         
 
-    def plot_rasterPSTH_sidebyside(self, neuron_num):
+    def plot_rasterPSTH_sidebyside(self, neuron_num, bias=False):
         
-        R, L = self.get_trace_matrix(neuron_num)
-        r, l = self.get_trace_matrix(neuron_num)
+        if bias:
+            bias_trials = self.find_bias_trials()
+            R, L = self.get_trace_matrix(neuron_num, bias_trials=bias_trials, non_bias=True)
+            r, l = self.get_trace_matrix(neuron_num, bias_trials=bias_trials, non_bias=True)
+        else:
+            R, L = self.get_trace_matrix(neuron_num)
+            r, l = self.get_trace_matrix(neuron_num)
         title = "Neuron {}: Control".format(neuron_num)
         
 
@@ -973,10 +988,17 @@ class Session:
         
         axarr[0,0].set_title(title)
         
+        if bias:
+            bias_trials = self.find_bias_trials()
+            R, L = self.get_trace_matrix(neuron_num, bias_trials=bias_trials)
+            r, l = self.get_trace_matrix(neuron_num, bias_trials=bias_trials)
+            title = "Neuron {}: Bias".format(neuron_num)
+            
+        else:
     
-        R, L = self.get_opto_trace_matrix(neuron_num)
-        r, l = self.get_opto_trace_matrix(neuron_num)
-        title = "Neuron {}: Opto".format(neuron_num)
+            R, L = self.get_opto_trace_matrix(neuron_num)
+            r, l = self.get_opto_trace_matrix(neuron_num)
+            title = "Neuron {}: Opto".format(neuron_num)
 
                 
         r_trace, l_trace = np.matrix(r), np.matrix(l)
@@ -999,7 +1021,8 @@ class Session:
         axarr[1, 1].axvline(self.sample, linestyle = '--')
         axarr[1, 1].axvline(self.delay, linestyle = '--')
         axarr[1, 1].axvline(self.response, linestyle = '--')
-        axarr[1, 1].hlines(y=vmax, xmin=self.delay, xmax=self.delay + 5, linewidth=10, color='red')
+        if not bias:
+            axarr[1, 1].hlines(y=vmax, xmin=self.delay, xmax=self.delay + 5, linewidth=10, color='red')
         
         x = range(self.time_cutoff)
 
@@ -1479,8 +1502,8 @@ class Session:
                                         cat((mean_count(LL, range(7,13)), mean_count(LR, range(7,13)))))
                 _, choicep = mannwhitneyu(cat((mean_count(RR, range(21,28)), mean_count(LR, range(21,28)))),
                                           cat((mean_count(LL, range(21,28)), mean_count(RL, range(21,28)))))
-                _, actionp = mannwhitneyu(cat((mean_count(RR, range(28,34)), mean_count(LR, range(28,34)))),
-                                          cat((mean_count(LL, range(28,34)), mean_count(RL, range(28,34)))))
+                _, actionp = mannwhitneyu(cat((mean_count(RR, range(28,40)), mean_count(LR, range(28,40)))),
+                                          cat((mean_count(LL, range(28,40)), mean_count(RL, range(28,40)))))
                 _, outcomep = mannwhitneyu(cat((mean_count(LL, range(34,40)), mean_count(RR, range(34,40)))),
                                            cat((mean_count(LR, range(34,40)), mean_count(RL, range(34,40)))))
                 
@@ -1496,10 +1519,13 @@ class Session:
                 outcome_neurons += [n] if outcomep<0.05 else []
                 
                 
-            plt.bar(['stim', 'choice', 'action', 'outcome'], [stim/self.num_neurons, choice/self.num_neurons, action/self.num_neurons, outcome/self.num_neurons])
+            plt.bar(['stim', 'choice', 'action', 'outcome'], [stim/len(self.good_neurons), 
+                                                              choice/len(self.good_neurons), 
+                                                              action/len(self.good_neurons),
+                                                              outcome/len(self.good_neurons)])
             plt.xlabel('Epoch selective')
             plt.ylabel('Proportion of neurons')
-            plt.ylim(0,0.5)
+            # plt.ylim(0,0.5)
             plt.show()
                 
             return stim_neurons, choice_neurons, action_neurons, outcome_neurons
@@ -1770,9 +1796,13 @@ class Session:
                     
                     bias_trials += [i]
         bias_trials = [b for b in bias_trials if b in self.i_good_trials]
-
-        return bias_trials
         
+        # Pre-bias trials:
+        prebias_trials = [b-1 for b in bias_trials if b in self.i_good_trials]
+        prebias_trials = [b for b in prebias_trials if b not in bias_trials]
+
+        # return prebias_trials
+        return bias_trials
             
     
 
