@@ -367,7 +367,7 @@ class Session:
         
         return idx
     
-    def get_trace_matrix(self, neuron_num, error=False, bias_trials = None, non_bias=False):
+    def get_trace_matrix(self, neuron_num, error=False, bias_trials = None, non_bias=False, both=False):
         
         ## Returns matrix of all trial firing rates of a single neuron for lick left
         ## and lick right trials. Firing rates are normalized with individual trial
@@ -379,6 +379,10 @@ class Session:
         if error:
             right_trials = self.lick_incorrect_direction('r')
             left_trials = self.lick_incorrect_direction('l')
+        
+        if both:
+            right_trials = cat((self.lick_correct_direction('r'), self.lick_incorrect_direction('r')))
+            left_trials = cat((self.lick_correct_direction('l'), self.lick_incorrect_direction('l')))
         
         if bias_trials != None:
             right_trials = [b for b in bias_trials if self.instructed_side[b] == 0]
@@ -440,7 +444,7 @@ class Session:
             
         return R_av_dff, L_av_dff
     
-    def get_trace_matrix_multiple(self, neuron_nums, opto=False, error=False, both=False):
+    def get_trace_matrix_multiple(self, neuron_nums, opto=False, error=False, both=False, bias_trials = None, non_bias=False):
         
         ## Returns matrix of average firing rates of a list of neurons for lick left
         ## and lick right trials. Firing rates are normalized with individual trial
@@ -449,35 +453,39 @@ class Session:
         R, L = [], []
         
         for neuron_num in neuron_nums:
-            if both:
-                right_trials = cat((self.lick_correct_direction('r'), self.lick_incorrect_direction('r')))
-                left_trials = cat((self.lick_correct_direction('l'), self.lick_incorrect_direction('l')))
-            
-            elif not error:
-                right_trials = self.lick_correct_direction('r')
-                left_trials = self.lick_correct_direction('l')
-            elif error:
-                right_trials = self.lick_incorrect_direction('r')
-                left_trials = self.lick_incorrect_direction('l')
-                
-            # Filter out opto trials
             if not opto:
-                right_trials = [r for r in right_trials if not self.stim_ON[r]]
-                left_trials = [r for r in left_trials if not self.stim_ON[r]]
-            elif opto:
-                right_trials = [r for r in right_trials if self.stim_ON[r]]
-                left_trials = [r for r in left_trials if self.stim_ON[r]]           
+                R_av_dff, L_av_dff = self.get_trace_matrix(neuron_num, error=error, bias_trials = bias_trials, non_bias=non_bias, both=both)
+            else:
+                R_av_dff, L_av_dff = self.get_opto_trace_matrix(neuron_num, error=error)
+            # if both:
+            #     right_trials = cat((self.lick_correct_direction('r'), self.lick_incorrect_direction('r')))
+            #     left_trials = cat((self.lick_correct_direction('l'), self.lick_incorrect_direction('l')))
+            
+            # elif not error:
+            #     right_trials = self.lick_correct_direction('r')
+            #     left_trials = self.lick_correct_direction('l')
+            # elif error:
+            #     right_trials = self.lick_incorrect_direction('r')
+            #     left_trials = self.lick_incorrect_direction('l')
+                
+            # # Filter out opto trials
+            # if not opto:
+            #     right_trials = [r for r in right_trials if not self.stim_ON[r]]
+            #     left_trials = [r for r in left_trials if not self.stim_ON[r]]
+            # elif opto:
+            #     right_trials = [r for r in right_trials if self.stim_ON[r]]
+            #     left_trials = [r for r in left_trials if self.stim_ON[r]]           
                 
             
-            R_av_dff = []
-            for i in right_trials:
-                # R_av_dff += [self.normalize_by_baseline(self.dff[0, i][neuron_num, :self.time_cutoff])]
-                R_av_dff += [self.dff[0, i][neuron_num, :self.time_cutoff]]
+            # R_av_dff = []
+            # for i in right_trials:
+            #     # R_av_dff += [self.normalize_by_baseline(self.dff[0, i][neuron_num, :self.time_cutoff])]
+            #     R_av_dff += [self.dff[0, i][neuron_num, :self.time_cutoff]]
     
-            L_av_dff = []
-            for i in left_trials:
-                # L_av_dff += [self.normalize_by_baseline(self.dff[0, i][neuron_num, :self.time_cutoff])]
-                L_av_dff += [self.dff[0, i][neuron_num, :self.time_cutoff]]
+            # L_av_dff = []
+            # for i in left_trials:
+            #     # L_av_dff += [self.normalize_by_baseline(self.dff[0, i][neuron_num, :self.time_cutoff])]
+            #     L_av_dff += [self.dff[0, i][neuron_num, :self.time_cutoff]]
             
             R += [np.mean(R_av_dff, axis = 0)]
             L += [np.mean(L_av_dff, axis = 0)]
@@ -778,13 +786,20 @@ class Session:
                         
         return contra_neurons, ipsi_neurons, contra_LR, ipsi_LR
     
-    def plot_contra_ipsi_pop(self, epoch=range(21,28)):
+    def plot_contra_ipsi_pop(self, e=False, bias=False):
+        
+        epoch = e if e != False else range(self.delay, self.response)
         
         contra_neurons, ipsi_neurons, contra_trace, ipsi_trace = self.contra_ipsi_pop(epoch)
         
         if len(ipsi_neurons) != 0:
         
             overall_R, overall_L = ipsi_trace['r'], ipsi_trace['l']
+            overall_R = [np.mean(overall_R[r], axis=0) for r in range(len(overall_R))]
+            overall_L = [np.mean(overall_L[l], axis=0) for l in range(len(overall_L))]
+            
+            if bias:
+                overall_R, overall_L = self.get_trace_matrix_multiple(ipsi_neurons, bias_trials=self.find_bias_trials())
             
             R_av, L_av = np.mean(overall_R, axis = 0), np.mean(overall_L, axis = 0)
             
@@ -811,6 +826,11 @@ class Session:
         if len(contra_neurons) != 0:
 
             overall_R, overall_L = contra_trace['r'], contra_trace['l']
+            overall_R = [np.mean(overall_R[r], axis=0) for r in range(len(overall_R))]
+            overall_L = [np.mean(overall_L[l], axis=0) for l in range(len(overall_L))]
+            
+            if bias:
+                overall_R, overall_L = self.get_trace_matrix_multiple(contra_neurons, bias_trials=self.find_bias_trials())
             
             R_av, L_av = np.mean(overall_R, axis = 0), np.mean(overall_L, axis = 0)
             
@@ -1034,6 +1054,7 @@ class Session:
                  color=['#b4b2dc'])
         
         axarr[0,1].set_title(title)
+        axarr[1,0].set_ylabel('dF/F0')
         
         plt.show()
         

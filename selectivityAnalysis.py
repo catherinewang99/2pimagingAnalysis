@@ -30,7 +30,7 @@ import pandas as pd
 
 # # path = r'F:\data\BAYLORCW021\python\2023_05_03'
 # path = r'F:\data\BAYLORCW021\python\2023_02_08'
-path = r'F:\data\BAYLORCW030\python\2023_06_03'
+path = r'F:\data\BAYLORCW030\python\2023_06_21'
 
 l1 = session.Session(path)
 # l1 = decon.Deconvolved(path)
@@ -49,31 +49,31 @@ l1 = session.Session(path)
 
 # l1.plot_number_of_sig_neurons()
 
-# l1.selectivity_table_by_epoch()
+l1.selectivity_table_by_epoch()
 
-l1.selectivity_optogenetics()
+# l1.selectivity_optogenetics()
 
 ## For selective neurons
 # l1 = session.Session(path)
 
-stim_neurons, choice_neurons, outcome_neurons, stim_sel, choice_sel, outcome_sel = l1.stim_choice_outcome_selectivity()
+# stim_neurons, choice_neurons, outcome_neurons, stim_sel, choice_sel, outcome_sel = l1.stim_choice_outcome_selectivity()
 # n_numneurons = l1.num_neurons
 
 
 
-path = r'F:\data\BAYLORCW021\python\2023_04_27'
-l2 = session.Session(path)
-tstim_neurons, tchoice_neurons, toutcome_neurons, tstim_sel, tchoice_sel, toutcome_sel = l2.stim_choice_outcome_selectivity()
+# path = r'F:\data\BAYLORCW021\python\2023_04_27'
+# l2 = session.Session(path)
+# tstim_neurons, tchoice_neurons, toutcome_neurons, tstim_sel, tchoice_sel, toutcome_sel = l2.stim_choice_outcome_selectivity()
 
 
-x = np.array([1,2,3])
-plt.bar(x-0.2, [len(tstim_neurons)/len(l2.good_neurons), 
-                len(tchoice_neurons)/len(l2.good_neurons), 
-                len(toutcome_neurons)/len(l2.good_neurons)], width = 0.2, label = 'Trained')
-plt.bar(x+0.2, [len(stim_neurons)/len(l1.good_neurons), 
-                len(choice_neurons)/len(l1.good_neurons), 
-                len(outcome_neurons)/len(l1.good_neurons)], width = 0.2, label = 'Naive')
-plt.legend()
+# x = np.array([1,2,3])
+# plt.bar(x-0.2, [len(tstim_neurons)/len(l2.good_neurons), 
+#                 len(tchoice_neurons)/len(l2.good_neurons), 
+#                 len(toutcome_neurons)/len(l2.good_neurons)], width = 0.2, label = 'Trained')
+# plt.bar(x+0.2, [len(stim_neurons)/len(l1.good_neurons), 
+#                 len(choice_neurons)/len(l1.good_neurons), 
+#                 len(outcome_neurons)/len(l1.good_neurons)], width = 0.2, label = 'Naive')
+# plt.legend()
 
 # tstim, tlick, treward, tmixed = l2.single_neuron_sel('Chen 2017')
 
