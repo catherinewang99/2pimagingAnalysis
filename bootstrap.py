@@ -30,8 +30,8 @@ class Sample(Session):
         # Inherit all parameters and functions of session.py
         super().__init__(path, layer_num, guang, passive)
         
-        self.do_sample_neurons()
-        self.sample_trials()
+        self.n = self.get_selective_neurons()
+
         
     def get_selective_neurons(self):
         
@@ -47,10 +47,9 @@ class Sample(Session):
         
     def do_sample_neurons(self, numneurons=200):
         
-        n, _ = self.get_pearsonscorr_neuron()
-        n = self.get_selective_neurons()
+        # Use all neurons to sample
         
-        self.sample_neurons = np.random.choice(n, size = len(n), replace=True)
+        self.sample_neurons = np.random.choice(self.n, size = len(numneurons), replace=True)
         
         return self.sample_neurons
     
@@ -127,7 +126,7 @@ class Sample(Session):
         
         for i in range(iterations):
             
-            print("##### ITERATION {} #######".format(i))
+            # print("##### ITERATION {} #######".format(i))
             
             self.do_sample_neurons(num_neurons)
             lens = self.sample_trials()
@@ -141,8 +140,9 @@ class Sample(Session):
         
         acc = []
         for time in range(self.time_cutoff):
-            
-            score = np.mean(self.run_iter_logreg(time, int(self.num_neurons/2)))
+            print("##### TIMESTEP {} #######".format(time))
+
+            score = np.mean(self.run_iter_logreg(time, len(self.n))) # Use all neurons to train
             acc += [score]
             
         return acc
