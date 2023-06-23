@@ -789,7 +789,8 @@ class Session:
         return contra_neurons, ipsi_neurons, contra_LR, ipsi_LR
     
     def plot_contra_ipsi_pop(self, e=False, bias=False):
-        
+        x = np.arange(-5.97,4,0.2)[:self.time_cutoff]
+
         epoch = e if e != False else range(self.delay, self.response)
         
         contra_neurons, ipsi_neurons, contra_trace, ipsi_trace = self.contra_ipsi_pop(epoch)
@@ -808,10 +809,9 @@ class Session:
             left_err = np.std(overall_L, axis=0) / np.sqrt(len(overall_L)) 
             right_err = np.std(overall_R, axis=0) / np.sqrt(len(overall_R))
                         
-            plt.plot(L_av, 'r-')
-            plt.plot(R_av, 'b-')
+            plt.plot(x, L_av, 'r-')
+            plt.plot(x, R_av, 'b-')
             
-            x = range(self.time_cutoff)
     
             plt.fill_between(x, L_av - left_err, 
                      L_av + left_err,
@@ -820,6 +820,8 @@ class Session:
                      R_av + right_err,
                      color=['#b4b2dc'])
             plt.title("Ipsi-preferring neurons")
+            plt.xlabel('Time from Go cue (s)')
+
             plt.show()
         
         else:
@@ -839,10 +841,9 @@ class Session:
             left_err = np.std(overall_L, axis=0) / np.sqrt(len(overall_L)) 
             right_err = np.std(overall_R, axis=0) / np.sqrt(len(overall_R))
                         
-            plt.plot(L_av, 'r-')
-            plt.plot(R_av, 'b-')
+            plt.plot(x, L_av, 'r-')
+            plt.plot(x, R_av, 'b-')
             
-            x = range(self.time_cutoff)
     
             plt.fill_between(x, L_av - left_err, 
                       L_av + left_err,
@@ -851,6 +852,7 @@ class Session:
                       R_av + right_err,
                       color=['#b4b2dc'])
             plt.title("Contra-preferring neurons")
+            plt.xlabel('Time from Go cue (s)')
             plt.show()
         else:
             print('No contra selective neurons')
@@ -1861,7 +1863,7 @@ class Session:
         return stim_neurons, choice_neurons, outcome_neurons, stim_sel, choice_sel, outcome_sel
 
 
-    def find_bias_trials(self):
+    def find_bias_trials(self, glmhmm=True):
         
         self.correct_trials = self.L_correct + self.R_correct
         self.instructed_side = self.L_correct + self.L_wrong # 1 if left, 0 if right trial
@@ -1884,6 +1886,11 @@ class Session:
         # Pre-bias trials:
         prebias_trials = [b-1 for b in bias_trials if b in self.i_good_trials]
         prebias_trials = [b for b in prebias_trials if b not in bias_trials]
+
+        if glmhmm:
+            # CW: TODO
+            # Add ability to grab glmhmm trials in bias states
+            return None
 
         # return prebias_trials
         return bias_trials
