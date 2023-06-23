@@ -54,7 +54,7 @@ class Sample(Session):
         
         return self.sample_neurons
     
-    def sample_trials(self, correct=50, error=10):
+    def sample_trials(self, correct=50, error=10, sample=False):
         
         LL = [t for t in np.where(self.L_correct)[0] if t  in self.i_good_trials]
         RR = [t for t in np.where(self.R_correct)[0] if t  in self.i_good_trials]
@@ -74,6 +74,10 @@ class Sample(Session):
         self.L = cat((self.LL, self.RL))
         self.R = cat((self.RR, self.LR))
         
+        if sample:
+            self.L = cat((self.LL, self.LR))
+            self.R = cat((self.RR, self.RL))
+            
         shuffle(self.L)
         shuffle(self.R)
         
@@ -105,6 +109,7 @@ class Sample(Session):
                 # R_choice[i] += [[self.dff[0, t][n, timestep] for t in self.LR[int(i*error/5):int((i+1)*error/5)]]]
                 # L_choice[i] += [[self.dff[0, t][n, timestep] for t in self.LL[int(i*correct/5):int((i+1)*correct/5)]]]
                 L_choice[i] += [[self.dff[0, t][n, timestep] for t in self.L[start:end]]]
+                
             R_choice[i] = np.array(R_choice[i])
             L_choice[i] = np.array(L_choice[i])
         return R_choice, L_choice
@@ -146,7 +151,7 @@ class Sample(Session):
                 
         return scores
     
-    def run_iter_logreg(self, timestep, num_neurons, iterations=100):
+    def run_iter_logreg(self, timestep, num_neurons, sample, iterations=100):
         
         mean_accuracy = []
         
@@ -156,23 +161,25 @@ class Sample(Session):
             # print("##### ITERATION {} #######".format(i))
             
             self.do_sample_neurons(num_neurons)
-            lens = self.sample_trials()
+            lens = self.sample_trials(sample=sample)
             
             acc = self.do_log_reg(timestep, lens)
             mean_accuracy += [np.mean(acc)]
             
         return mean_accuracy
     
-    def run_iter_log_timesteps(self):
+    def run_iter_log_timesteps(self, sample=False):
         
         acc = []
+        sem = []
         for time in range(self.time_cutoff):
             print("##### TIMESTEP {} #######".format(time))
 
-            score = np.mean(self.run_iter_logreg(time, len(self.n))) # Use all neurons to train
-            acc += [score]
+            score = self.run_iter_logreg(time, len(self.n), sample=sample) # Use all neurons to train
             
-        return acc
+            acc += [np.mean(score)]
+            sem += [np.std(score)/np.sqrt(100)]
+        return acc, sem
         
     
     

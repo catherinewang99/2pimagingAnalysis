@@ -855,6 +855,67 @@ class Session:
         else:
             print('No contra selective neurons')
             
+    def plot_prefer_nonprefer(self, e=False, bias=False):
+        x = np.arange(-5.97,4,0.2)[:self.time_cutoff]
+
+        epoch = e if e != False else range(self.delay, self.response)
+        
+        contra_neurons, ipsi_neurons, contra_trace, ipsi_trace = self.contra_ipsi_pop(epoch)
+        
+        pref, nonpref = [], []
+        preferr, nonpreferr = [], []
+        
+        if len(ipsi_neurons) != 0:
+        
+            overall_R, overall_L = ipsi_trace['r'], ipsi_trace['l']
+            overall_R = np.array([np.mean(overall_R[r], axis=0) for r in range(len(overall_R))])
+            overall_L = np.array([np.mean(overall_L[l], axis=0) for l in range(len(overall_L))])
+            
+            if bias:
+                overall_R, overall_L = self.get_trace_matrix_multiple(ipsi_neurons, bias_trials=self.find_bias_trials())
+            
+            pref, nonpref = overall_L, overall_R
+            
+        else:
+            print('No ipsi selective neurons')
+    
+        if len(contra_neurons) != 0:
+
+            overall_R, overall_L = contra_trace['r'], contra_trace['l']
+            overall_R = np.array([np.mean(overall_R[r], axis=0) for r in range(len(overall_R))])
+            overall_L = np.array([np.mean(overall_L[l], axis=0) for l in range(len(overall_L))])
+            
+            if bias:
+                overall_R, overall_L = self.get_trace_matrix_multiple(contra_neurons, bias_trials=self.find_bias_trials())
+            
+            pref, nonpref = np.vstack((pref, overall_R)), np.vstack((nonpref, overall_L))
+
+                        
+
+        else:
+            print('No contra selective neurons')
+            
+        
+        nonpreferr = np.std(nonpref, axis=0) / np.sqrt(len(nonpref)) 
+        preferr = np.std(pref, axis=0) / np.sqrt(len(pref))
+                    
+        pref, nonpref = np.mean(pref, axis = 0), np.mean(nonpref, axis = 0)
+
+        plt.plot(x, pref, 'r-', label='Pref')
+        plt.plot(x, nonpref, 'darkgrey', label='Non-pref')
+        
+
+        plt.fill_between(x, pref - preferr, 
+                  pref + preferr,
+                  color=['#ffaeb1'])
+        plt.fill_between(x, nonpref - nonpreferr, 
+                  nonpref + nonpreferr,
+                  color='lightgrey')
+        plt.title("Selective neurons")
+        plt.xlabel('Time from Go cue (s)')
+        plt.ylabel('Selectivity')
+        plt.legend()
+        plt.show()
             
     def plot_individual_raster(self, neuron_num):
         
