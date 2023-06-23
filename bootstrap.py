@@ -49,7 +49,7 @@ class Sample(Session):
         
         # Use all neurons to sample
         
-        self.sample_neurons = np.random.choice(self.n, size = len(numneurons), replace=True)
+        self.sample_neurons = np.random.choice(self.n, size = numneurons, replace=True)
         
         return self.sample_neurons
     
@@ -72,16 +72,38 @@ class Sample(Session):
         return (correct,error)
         
     def get_choice_matrix(self, timestep, lens):
+        print('HERE')
         correct, error=lens
         R_choice, L_choice = dict(), dict()
         for i in range(5):
-            R_choice[i] = []
-            L_choice[i] = []
-            for n in self.sample_neurons:
-                R_choice[i] += [self.dff[0, t][n, timestep] for t in self.RR[int(i*correct/5):int((i+1)*correct/5)]]
-                R_choice[i] += [self.dff[0, t][n, timestep] for t in self.LR[int(i*error/5):int((i+1)*error/5)]]
-                L_choice[i] += [self.dff[0, t][n, timestep] for t in self.LL[int(i*correct/5):int((i+1)*correct/5)]]
-                L_choice[i] += [self.dff[0, t][n, timestep] for t in self.RL[int(i*error/5):int((i+1)*error/5)]]
+            print('here')
+            # R_choice[i] = []
+            # L_choice[i] = []
+            n = self.sample_neurons[0]
+            R_choice[i] = np.array([self.dff[0, t][n, timestep] for t in self.RR[int(i*correct/5):int((i+1)*correct/5)]])
+            R_choice[i] = np.vertcat((R_choice[i], 
+                                      np.array([self.dff[0, t][n, timestep] for t in self.LR[int(i*error/5):int((i+1)*error/5)]])))
+            
+            
+            L_choice[i] = np.array([self.dff[0, t][n, timestep] for t in self.LL[int(i*correct/5):int((i+1)*correct/5)]])
+            L_choice[i] = np.vertcat((L_choice[i], 
+                                      np.array([self.dff[0, t][n, timestep] for t in self.RL[int(i*error/5):int((i+1)*error/5)]])))
+            
+            for n in self.sample_neurons[1:]:
+                R_choice[i] = np.vertcat((R_choice[i], 
+                                          np.array([self.dff[0, t][n, timestep] for t in self.RR[int(i*correct/5):int((i+1)*correct/5)]])))
+                R_choice[i] = np.vertcat((R_choice[i], 
+                                          np.array([self.dff[0, t][n, timestep] for t in self.LR[int(i*error/5):int((i+1)*error/5)]])))
+                
+                L_choice[i] = np.vertcat((L_choice[i], 
+                                          np.array([self.dff[0, t][n, timestep] for t in self.LL[int(i*correct/5):int((i+1)*correct/5)]])))
+                L_choice[i] = np.vertcat((L_choice[i], 
+                                          np.array([self.dff[0, t][n, timestep] for t in self.RL[int(i*error/5):int((i+1)*error/5)]])))
+                
+                # R_choice[i] += [[self.dff[0, t][n, timestep] for t in self.RR[int(i*correct/5):int((i+1)*correct/5)]]]
+                # R_choice[i] += [[self.dff[0, t][n, timestep] for t in self.LR[int(i*error/5):int((i+1)*error/5)]]]
+                # L_choice[i] += [[self.dff[0, t][n, timestep] for t in self.LL[int(i*correct/5):int((i+1)*correct/5)]]]
+                # L_choice[i] += [[self.dff[0, t][n, timestep] for t in self.RL[int(i*error/5):int((i+1)*error/5)]]]
             # R_choice[i] = np.array(R_choice[i])
             # L_choice[i] = np.array(L_choice[i])
         return R_choice, L_choice

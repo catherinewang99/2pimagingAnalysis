@@ -325,7 +325,9 @@ class Session:
 
         self.plot_mean_F()
 
-        self.normalize_all_by_baseline()
+        # self.normalize_all_by_baseline()
+        self.normalize_all_by_neural_baseline()
+
         self.normalize_z_score()    
         
         
