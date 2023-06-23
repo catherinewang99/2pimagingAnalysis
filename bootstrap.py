@@ -22,6 +22,7 @@ import pandas as pd
 from scipy.stats import mannwhitneyu
 from session import Session
 from sklearn.linear_model import LogisticRegressionCV
+from random import shuffle
 
 class Sample(Session):
     
@@ -61,6 +62,7 @@ class Sample(Session):
         LR = [t for t in np.where(self.L_wrong)[0] if t  in self.i_good_trials]
         
         if len(LL)<correct or len(RR)<correct:
+            print("ERROR")
             correct = 30
             error=5
             
@@ -69,43 +71,42 @@ class Sample(Session):
         self.RL = np.random.choice(RL, size = error, replace=False)
         self.LR = np.random.choice(LR, size = error, replace=False)
         
+        self.L = cat((self.LL, self.RL))
+        self.R = cat((self.RR, self.LR))
+        
+        shuffle(self.L)
+        shuffle(self.R)
+        
         return (correct,error)
         
     def get_choice_matrix(self, timestep, lens):
-        print('HERE')
+
         correct, error=lens
         R_choice, L_choice = dict(), dict()
         for i in range(5):
-            print('here')
-            # R_choice[i] = []
-            # L_choice[i] = []
-            n = self.sample_neurons[0]
-            R_choice[i] = np.array([self.dff[0, t][n, timestep] for t in self.RR[int(i*correct/5):int((i+1)*correct/5)]])
-            R_choice[i] = np.vertcat((R_choice[i], 
-                                      np.array([self.dff[0, t][n, timestep] for t in self.LR[int(i*error/5):int((i+1)*error/5)]])))
+            start, end = int(i*sum(lens)/5), int((i+1)*sum(lens)/5)
+            R_choice[i] = []
+            L_choice[i] = []
             
+            # n = self.sample_neurons[0]
+            # R_choice[i] = np.array([self.dff[0, t][n, timestep] for t in self.R[start:end]])
+
+            # L_choice[i] = np.array([self.dff[0, t][n, timestep] for t in self.L[start:end]])
+
             
-            L_choice[i] = np.array([self.dff[0, t][n, timestep] for t in self.LL[int(i*correct/5):int((i+1)*correct/5)]])
-            L_choice[i] = np.vertcat((L_choice[i], 
-                                      np.array([self.dff[0, t][n, timestep] for t in self.RL[int(i*error/5):int((i+1)*error/5)]])))
-            
-            for n in self.sample_neurons[1:]:
-                R_choice[i] = np.vertcat((R_choice[i], 
-                                          np.array([self.dff[0, t][n, timestep] for t in self.RR[int(i*correct/5):int((i+1)*correct/5)]])))
-                R_choice[i] = np.vertcat((R_choice[i], 
-                                          np.array([self.dff[0, t][n, timestep] for t in self.LR[int(i*error/5):int((i+1)*error/5)]])))
+            for n in self.sample_neurons:
+                # R_choice[i] = np.vstack((R_choice[i], 
+                #                           np.array([self.dff[0, t][n, timestep] for t in self.R[start:end]])))
+
+                # L_choice[i] = np.vstack((L_choice[i], 
+                #                           np.array([self.dff[0, t][n, timestep] for t in self.L[start:end]])))
                 
-                L_choice[i] = np.vertcat((L_choice[i], 
-                                          np.array([self.dff[0, t][n, timestep] for t in self.LL[int(i*correct/5):int((i+1)*correct/5)]])))
-                L_choice[i] = np.vertcat((L_choice[i], 
-                                          np.array([self.dff[0, t][n, timestep] for t in self.RL[int(i*error/5):int((i+1)*error/5)]])))
-                
-                # R_choice[i] += [[self.dff[0, t][n, timestep] for t in self.RR[int(i*correct/5):int((i+1)*correct/5)]]]
+                R_choice[i] += [[self.dff[0, t][n, timestep] for t in self.R[start:end]]]
                 # R_choice[i] += [[self.dff[0, t][n, timestep] for t in self.LR[int(i*error/5):int((i+1)*error/5)]]]
                 # L_choice[i] += [[self.dff[0, t][n, timestep] for t in self.LL[int(i*correct/5):int((i+1)*correct/5)]]]
-                # L_choice[i] += [[self.dff[0, t][n, timestep] for t in self.RL[int(i*error/5):int((i+1)*error/5)]]]
-            # R_choice[i] = np.array(R_choice[i])
-            # L_choice[i] = np.array(L_choice[i])
+                L_choice[i] += [[self.dff[0, t][n, timestep] for t in self.L[start:end]]]
+            R_choice[i] = np.array(R_choice[i])
+            L_choice[i] = np.array(L_choice[i])
         return R_choice, L_choice
     
     def do_log_reg(self, timestep, lens):
@@ -115,29 +116,33 @@ class Sample(Session):
         for i in range(5):
             # i is the held out fold
             train = [j for j in range(5) if j != i]
-            
-            X = []
-            y = []
-            for t in train:
-                X += R_choice[t]
-                y += [np.ones(len(R_choice[t]))] # Encode R as 1s
-                X += L_choice[t]
-                y += [np.zeros(len(L_choice[t]))] 
-            y = cat(y)
+            trainr = np.hstack(tuple(R_choice[j] for j in range(5) if j != i))
+            trainl = np.hstack(tuple(L_choice[j] for j in range(5) if j != i))
+
+            X = np.hstack((trainr, trainl))
+            y = cat((np.ones(trainr.shape[1]), np.zeros(trainl.shape[1]))) # R is encoded as 1
+ 
             
             # This does the 4 cross-val automatically
-            if type(timestep) == int:
-                log_cv = LogisticRegressionCV(cv=4, random_state=0).fit(np.array(X).reshape(-1, 1), y.reshape(-1, 1))
+            
+            log_cv = LogisticRegressionCV(cv=4, random_state=0).fit(X.T, y)
+            
+            testX = np.hstack((R_choice[i], L_choice[i]))
+            testy = cat((np.ones(R_choice[i].shape[1]), np.zeros(L_choice[i].shape[1])))
+            scores += [log_cv.score(testX.T, testy)]      
+            
+            # if type(timestep) == int:
+            #     log_cv = LogisticRegressionCV(cv=4, random_state=0).fit(np.array(X).reshape(-1, 1), y.reshape(-1, 1))
                 
-                testX = np.array(R_choice[i] + L_choice[i])
-                testy = cat((np.ones(len(R_choice[i])), np.zeros(len(L_choice[i]))))
-                scores += [log_cv.score(testX.reshape(-1, 1), testy.reshape(-1, 1))]
-            else:
-                log_cv = LogisticRegressionCV(cv=4, random_state=0).fit(np.array(X), y)
+            #     testX = np.array(R_choice[i] + L_choice[i])
+            #     testy = cat((np.ones(len(R_choice[i])), np.zeros(len(L_choice[i]))))
+            #     scores += [log_cv.score(testX.reshape(-1, 1), testy.reshape(-1, 1))]
+            # else:
+            #     log_cv = LogisticRegressionCV(cv=4, random_state=0).fit(np.array(X), y)
                 
-                testX = np.array(R_choice[i] + L_choice[i])
-                testy = cat((np.ones(len(R_choice[i])), np.zeros(len(L_choice[i]))))
-                scores += [log_cv.score(testX, testy)]                
+            #     testX = np.array(R_choice[i] + L_choice[i])
+            #     testy = cat((np.ones(len(R_choice[i])), np.zeros(len(L_choice[i]))))
+            #     scores += [log_cv.score(testX, testy)]                
                 
         return scores
     
