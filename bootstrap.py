@@ -179,7 +179,7 @@ class Sample(Session):
             
             acc += [np.mean(score)]
             sem += [np.std(score)/np.sqrt(100)]
-        return acc, sem
+        return np.array(acc), np.array(sem)
         
     
     
