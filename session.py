@@ -63,7 +63,7 @@ class Session:
         self.time_cutoff = self.determine_cutoff()
         
         self.recording_loc = 'l'
-        self.skew = layer['skew']
+        # self.skew = layer['skew']
         
         # self.good_neurons = np.where(self.skew>=1)[1]
         
@@ -123,7 +123,8 @@ class Session:
 
         self.good_neurons, _ = self.get_pearsonscorr_neuron()
         # self.num_neurons = len(self.good_neurons)
-        
+        self.old_i_good_trials = copy.copy(self.i_good_trials)
+
         
     def crop_baseline(self):
         # BROKEN :()
@@ -261,7 +262,6 @@ class Session:
             # self.R_wrong = self.R_wrong[:trial_num]
             
             # self.dff = self.dff[:, :trial_num]
-            
             self.i_good_trials = [i for i in self.i_good_trials if i < trial_num]
             self.num_trials = trial_num
             # self.stim_ON = self.stim_ON[:trial_num]
@@ -283,7 +283,7 @@ class Session:
             
             # self.dff = np.delete(self.dff, arr)
             # self.dff = np.reshape(self.dff, (1,-1))
-            
+
             igoodremove = np.where(np.in1d(self.i_good_trials, arr))[0]
             self.i_good_trials = np.delete(self.i_good_trials, igoodremove)
             self.num_trials = self.num_trials - len(arr)            
@@ -306,7 +306,7 @@ class Session:
             
             # self.dff = np.delete(self.dff, arr)
             # self.dff = np.reshape(self.dff, (1,-1))
-            
+
             igoodremove = np.where(np.in1d(self.i_good_trials, arr))[0]
             self.i_good_trials = np.delete(self.i_good_trials, igoodremove)
             self.num_trials = self.num_trials - len(arr)            
@@ -369,7 +369,7 @@ class Session:
         
         return idx
     
-    def get_trace_matrix(self, neuron_num, error=False, bias_trials = None, non_bias=False, both=False):
+    def get_trace_matrix(self, neuron_num, error=False, bias_trials = [], non_bias=False, both=False):
         
         ## Returns matrix of all trial firing rates of a single neuron for lick left
         ## and lick right trials. Firing rates are normalized with individual trial
@@ -386,7 +386,7 @@ class Session:
             right_trials = cat((self.lick_correct_direction('r'), self.lick_incorrect_direction('r')))
             left_trials = cat((self.lick_correct_direction('l'), self.lick_incorrect_direction('l')))
         
-        if bias_trials != None:
+        if len(bias_trials) != 0:
             right_trials = [b for b in bias_trials if self.instructed_side[b] == 0]
             left_trials = [b for b in bias_trials if self.instructed_side[b] == 1]
             # print(right_trials)
@@ -1863,7 +1863,7 @@ class Session:
         return stim_neurons, choice_neurons, outcome_neurons, stim_sel, choice_sel, outcome_sel
 
 
-    def find_bias_trials(self, glmhmm=True):
+    def find_bias_trials(self, glmhmm=True, sampling='confidence'):
         
         self.correct_trials = self.L_correct + self.R_correct
         self.instructed_side = self.L_correct + self.L_wrong # 1 if left, 0 if right trial
@@ -1890,7 +1890,24 @@ class Session:
         if glmhmm:
             # CW: TODO
             # Add ability to grab glmhmm trials in bias states
-            return None
+            # Biased state will be first always
+            states = np.load(r'{}\states.npy'.format(self.path))
+            
+            st = []
+            # Two different sampling methods
+            if sampling == 'confidence':
+                for i in range(states.shape[0]):
+        
+                    top_state = np.argmax(states[i])
+                    if states[i][top_state] > 0.75:
+                        st += [top_state]
+            else:
+                for i in range(states.shape[0]):
+                    st += [np.random.choice([0, 1, 2], p=states[i])]
+            
+            inds = np.where(np.array(st) == 0)[0]
+            bias_trials = self.old_i_good_trials[inds]
+            bias_trials = [b for b in bias_trials if b in self.i_good_trials] #Filter out water leak trials
 
         # return prebias_trials
         return bias_trials
