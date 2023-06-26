@@ -352,7 +352,7 @@ class Session:
         return idx
     
     def lick_incorrect_direction(self, direction):
-        ## Returns list of indices of lick left correct trials
+        ## Returns list of indices of lick left incorrect trials
         
         if direction == 'l':
             idx = np.where(self.L_wrong == 1)[0]
@@ -369,40 +369,71 @@ class Session:
         
         return idx
     
-    def get_trace_matrix(self, neuron_num, error=False, bias_trials = [], non_bias=False, both=False):
+    def lick_actual_direction(self, direction):
+        ## Returns list of indices of actual lick left/right trials
+        
+        if direction == 'l':
+            idx = np.where((self.L_correct + self.R_wrong) == 1)[0]
+        elif direction == 'r':
+            idx = np.where((self.R_correct + self.L_wrong) == 1)[0]
+        else:
+            raise Exception("Sorry, only 'r' or 'l' input accepted!")
+            
+        early_idx = np.where(self.early_lick == 1)[0]
+        
+        idx = [i for i in idx if i not in early_idx]
+        
+        idx = [i for i in idx if i in self.i_good_trials]
+        
+        return idx
+    
+    def get_trace_matrix(self, neuron_num, error=False, bias_trials = [], non_bias=False, both=False, lickdir=False, opto=False):
         
         ## Returns matrix of all trial firing rates of a single neuron for lick left
         ## and lick right trials. Firing rates are normalized with individual trial
         ## baselines as well as overall firing rate z-score normalized.
+        if lickdir:
+            R,L = self.lick_actual_direction('r'), self.lick_actual_direction('l')
+        else:
+            R,L = self.lick_correct_direction('r'), self.lick_correct_direction('l')
         
-        right_trials = self.lick_correct_direction('r')
-        left_trials = self.lick_correct_direction('l')
+        right_trials = R
+        left_trials = L
         
         if error:
             right_trials = self.lick_incorrect_direction('r')
             left_trials = self.lick_incorrect_direction('l')
         
         if both:
-            right_trials = cat((self.lick_correct_direction('r'), self.lick_incorrect_direction('r')))
-            left_trials = cat((self.lick_correct_direction('l'), self.lick_incorrect_direction('l')))
+            right_trials = cat((R, self.lick_incorrect_direction('r')))
+            left_trials = cat((L, self.lick_incorrect_direction('l')))
         
         if len(bias_trials) != 0:
             right_trials = [b for b in bias_trials if self.instructed_side[b] == 0]
             left_trials = [b for b in bias_trials if self.instructed_side[b] == 1]
+            
+            if lickdir:
+                right_trials = [b for b in bias_trials if b in R]
+                left_trials = [b for b in bias_trials if b in L]
+                
 
             if non_bias: # Get control trials - bias trials
             
-                ctlright_trials = self.lick_correct_direction('r')
-                ctlleft_trials = self.lick_correct_direction('l')
+                ctlright_trials = R
+                ctlleft_trials = L
                 right_trials = [b for b in ctlright_trials if b not in bias_trials]
                 left_trials = [b for b in ctlleft_trials if b not in bias_trials]
 
 
             
         # Filter out opto trials
-        right_trials = [r for r in right_trials if not self.stim_ON[r]]
-        left_trials = [r for r in left_trials if not self.stim_ON[r]]
-        
+        if not opto:
+            right_trials = [r for r in right_trials if not self.stim_ON[r]]
+            left_trials = [r for r in left_trials if not self.stim_ON[r]]
+        elif opto:
+            right_trials = [r for r in right_trials if self.stim_ON[r]]
+            left_trials = [r for r in left_trials if self.stim_ON[r]]
+            
         R_av_dff = []
         for i in right_trials:
             # R_av_dff += [self.normalize_by_baseline(self.dff[0, i][neuron_num, :self.time_cutoff])]
@@ -445,7 +476,7 @@ class Session:
             
         return R_av_dff, L_av_dff
     
-    def get_trace_matrix_multiple(self, neuron_nums, opto=False, error=False, both=False, bias_trials = None, non_bias=False):
+    def get_trace_matrix_multiple(self, neuron_nums, opto=False, error=False, both=False, bias_trials = None, non_bias=False, lickdir=False):
         
         ## Returns matrix of average firing rates of a list of neurons for lick left
         ## and lick right trials. Firing rates are normalized with individual trial
@@ -454,10 +485,14 @@ class Session:
         R, L = [], []
         
         for neuron_num in neuron_nums:
-            if not opto:
-                R_av_dff, L_av_dff = self.get_trace_matrix(neuron_num, error=error, bias_trials = bias_trials, non_bias=non_bias, both=both)
-            else:
-                R_av_dff, L_av_dff = self.get_opto_trace_matrix(neuron_num, error=error)
+            R_av_dff, L_av_dff = self.get_trace_matrix(neuron_num, 
+                                                       error=error, 
+                                                       bias_trials = bias_trials, 
+                                                       non_bias=non_bias, 
+                                                       both=both, 
+                                                       lickdir=lickdir,
+                                                       opto=opto)
+
             # if both:
             #     right_trials = cat((self.lick_correct_direction('r'), self.lick_incorrect_direction('r')))
             #     left_trials = cat((self.lick_correct_direction('l'), self.lick_incorrect_direction('l')))
@@ -921,7 +956,7 @@ class Session:
     def plot_prefer_nonprefer_sidebyside(self, e=False):
             
         x = np.arange(-5.97,4,0.2)[:self.time_cutoff]
-        f, axarr = plt.subplots(1,2, sharex=True, figsize=(20,7))
+        f, axarr = plt.subplots(1,2, sharex=True, sharey=True, figsize=(20,7))
 
         epoch = e if e != False else range(self.delay, self.response)
         
@@ -939,7 +974,7 @@ class Session:
                 overall_L = np.array([np.mean(overall_L[l], axis=0) for l in range(len(overall_L))])
                 
                 if i:
-                    overall_R, overall_L = self.get_trace_matrix_multiple(ipsi_neurons, bias_trials=self.find_bias_trials())
+                    overall_R, overall_L = self.get_trace_matrix_multiple(ipsi_neurons, bias_trials=self.find_bias_trials(), lickdir=True)
                 
                 else:
                     overall_R, overall_L = self.get_trace_matrix_multiple(ipsi_neurons, bias_trials=self.find_bias_trials(), non_bias=True)
@@ -957,7 +992,7 @@ class Session:
                 overall_L = np.array([np.mean(overall_L[l], axis=0) for l in range(len(overall_L))])
                 
                 if i:
-                    overall_R, overall_L = self.get_trace_matrix_multiple(contra_neurons, bias_trials=self.find_bias_trials())
+                    overall_R, overall_L = self.get_trace_matrix_multiple(contra_neurons, bias_trials=self.find_bias_trials(), lickdir=True)
                 else:
                     
                     overall_R, overall_L = self.get_trace_matrix_multiple(contra_neurons, bias_trials=self.find_bias_trials(), non_bias=True)
@@ -994,6 +1029,84 @@ class Session:
         axarr[0].set_xlabel('Time from Go cue (s)')
         axarr[0].set_ylabel('Population trace')
 
+    def plot_pref_overstates(self, e=False, opto=False):
+        x = np.arange(-5.97,4,0.2)[2:self.time_cutoff]
+        f, axarr = plt.subplots(1,4, sharex=True, sharey=True, figsize=(20,5))
+        titles = ['Non state selectivity', 'State 1 selectivity', 'State 2 selectivity', 'State 3 selectivity']
+        epoch = e if e != False else range(self.delay, self.response)
+        
+        contra_neurons, ipsi_neurons, contra_trace, ipsi_trace = self.contra_ipsi_pop(epoch)
+        
+        pref, nonpref = [], []
+        preferr, nonpreferr = [], []
+
+        for i in range(4):       
+            
+            if len(ipsi_neurons) != 0:
+            
+                overall_R, overall_L = ipsi_trace['r'], ipsi_trace['l']
+                overall_R = np.array([np.mean(overall_R[r], axis=0) for r in range(len(overall_R))])
+                overall_L = np.array([np.mean(overall_L[l], axis=0) for l in range(len(overall_L))])
+                
+                if i:
+                    overall_R, overall_L = self.get_trace_matrix_multiple(ipsi_neurons, bias_trials=self.find_bias_trials(state = i-1), opto=opto, lickdir=True)
+                
+                else:
+                    _ = self.find_bias_trials()
+                    overall_R, overall_L = self.get_trace_matrix_multiple(ipsi_neurons, bias_trials=self.nonstate_trials, opto=opto, lickdir=True)
+                    
+                
+                pref, nonpref = overall_L, overall_R
+                
+            else:
+                print('No ipsi selective neurons')
+        
+            if len(contra_neurons) != 0:
+    
+                overall_R, overall_L = contra_trace['r'], contra_trace['l']
+                overall_R = np.array([np.mean(overall_R[r], axis=0) for r in range(len(overall_R))])
+                overall_L = np.array([np.mean(overall_L[l], axis=0) for l in range(len(overall_L))])
+                
+                if i:
+                    overall_R, overall_L = self.get_trace_matrix_multiple(contra_neurons, bias_trials=self.find_bias_trials(state = i-1), opto=opto, lickdir=True)
+                else:
+                    _ = self.find_bias_trials()
+                    overall_R, overall_L = self.get_trace_matrix_multiple(contra_neurons, bias_trials=self.nonstate_trials, opto=opto, lickdir=True)
+                
+                pref, nonpref = np.vstack((pref, overall_R)), np.vstack((nonpref, overall_L))
+    
+                            
+    
+            else:
+                print('No contra selective neurons')
+                
+            
+            nonpreferr = np.std(nonpref, axis=0) / np.sqrt(len(nonpref)) 
+            preferr = np.std(pref, axis=0) / np.sqrt(len(pref))
+                        
+            pref, nonpref = np.mean(pref, axis = 0), np.mean(nonpref, axis = 0)
+    
+            pref, nonpref, nonpreferr, preferr = pref[2:], nonpref[2:], nonpreferr[2:], preferr[2:]
+    
+            axarr[i].plot(x, pref, 'r-', label='Pref')
+            axarr[i].plot(x, nonpref, 'darkgrey', label='Non-pref')
+            
+    
+            axarr[i].fill_between(x, pref - preferr, 
+                      pref + preferr,
+                      color=['#ffaeb1'])
+            axarr[i].fill_between(x, nonpref - nonpreferr, 
+                      nonpref + nonpreferr,
+                      color='lightgrey')
+            
+            axarr[i].legend()
+            axarr[i].axvline(-4.3, linestyle = '--')
+            axarr[i].axvline(-3, linestyle = '--')
+            axarr[i].axvline(0, linestyle = '--')
+            axarr[i].set_title(titles[i])
+
+        axarr[0].set_xlabel('Time from Go cue (s)')
+        axarr[0].set_ylabel('Population trace')
         
     def plot_individual_raster(self, neuron_num):
         
@@ -1939,7 +2052,7 @@ class Session:
         return stim_neurons, choice_neurons, outcome_neurons, stim_sel, choice_sel, outcome_sel
 
 
-    def find_bias_trials(self, glmhmm=True, sampling='confidence'):
+    def find_bias_trials(self, glmhmm=True, sampling='confidence', state=0):
         
         self.correct_trials = self.L_correct + self.R_correct
         self.instructed_side = self.L_correct + self.L_wrong # 1 if left, 0 if right trial
@@ -1970,6 +2083,7 @@ class Session:
             states = np.load(r'{}\states.npy'.format(self.path))
             
             st = []
+            non = []
             # Two different sampling methods
             if sampling == 'confidence':
                 for i in range(states.shape[0]):
@@ -1977,15 +2091,17 @@ class Session:
                     top_state = np.argmax(states[i])
                     if states[i][top_state] > 0.6:
                         st += [top_state]
+                    else:
+                        non += [i] # Trials where top state is less than 60% confidence
             else:
                 for i in range(states.shape[0]):
                     st += [np.random.choice([0, 1, 2], p=states[i])]
             
-            inds = np.where(np.array(st) == 1)[0]
+            inds = np.where(np.array(st) == state)[0] # Grab specific state (0,1,2)
             bias_trials = self.old_i_good_trials[inds]
             bias_trials = [b for b in bias_trials if b in self.i_good_trials] #Filter out water leak trials
             self.bias_trials = bias_trials
-            
+            self.nonstate_trials = non
             if len(bias_trials) == 0:
                 print("Error: no bias trials found")
             
