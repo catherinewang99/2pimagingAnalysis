@@ -100,7 +100,8 @@ class Session:
             self.sample += 5
             self.delay += 5
             self.response += 5
-        
+        self.old_i_good_trials = copy.copy(self.i_good_trials)
+
         # Measure that automatically crops out water leak trials before norming
         if not self.find_low_mean_F():
 
@@ -123,7 +124,6 @@ class Session:
 
         self.good_neurons, _ = self.get_pearsonscorr_neuron()
         # self.num_neurons = len(self.good_neurons)
-        self.old_i_good_trials = copy.copy(self.i_good_trials)
 
         
     def crop_baseline(self):
@@ -389,16 +389,15 @@ class Session:
         if len(bias_trials) != 0:
             right_trials = [b for b in bias_trials if self.instructed_side[b] == 0]
             left_trials = [b for b in bias_trials if self.instructed_side[b] == 1]
-            # print(right_trials)
-            # print(left_trials)
+
             if non_bias: # Get control trials - bias trials
             
                 ctlright_trials = self.lick_correct_direction('r')
                 ctlleft_trials = self.lick_correct_direction('l')
                 right_trials = [b for b in ctlright_trials if b not in bias_trials]
                 left_trials = [b for b in ctlleft_trials if b not in bias_trials]
-                # print(right_trials)
-                # print(left_trials)
+
+
             
         # Filter out opto trials
         right_trials = [r for r in right_trials if not self.stim_ON[r]]
@@ -451,7 +450,7 @@ class Session:
         ## Returns matrix of average firing rates of a list of neurons for lick left
         ## and lick right trials. Firing rates are normalized with individual trial
         ## baselines as well as overall firing rate z-score normalized.
-        
+                
         R, L = [], []
         
         for neuron_num in neuron_nums:
@@ -918,7 +917,84 @@ class Session:
         plt.ylabel('Selectivity')
         plt.legend()
         plt.show()
+
+    def plot_prefer_nonprefer_sidebyside(self, e=False):
             
+        x = np.arange(-5.97,4,0.2)[:self.time_cutoff]
+        f, axarr = plt.subplots(1,2, sharex=True, figsize=(20,7))
+
+        epoch = e if e != False else range(self.delay, self.response)
+        
+        contra_neurons, ipsi_neurons, contra_trace, ipsi_trace = self.contra_ipsi_pop(epoch)
+        
+        pref, nonpref = [], []
+        preferr, nonpreferr = [], []
+
+        for i in range(2):       
+            
+            if len(ipsi_neurons) != 0:
+            
+                overall_R, overall_L = ipsi_trace['r'], ipsi_trace['l']
+                overall_R = np.array([np.mean(overall_R[r], axis=0) for r in range(len(overall_R))])
+                overall_L = np.array([np.mean(overall_L[l], axis=0) for l in range(len(overall_L))])
+                
+                if i:
+                    overall_R, overall_L = self.get_trace_matrix_multiple(ipsi_neurons, bias_trials=self.find_bias_trials())
+                
+                else:
+                    overall_R, overall_L = self.get_trace_matrix_multiple(ipsi_neurons, bias_trials=self.find_bias_trials(), non_bias=True)
+                    
+                
+                pref, nonpref = overall_L, overall_R
+                
+            else:
+                print('No ipsi selective neurons')
+        
+            if len(contra_neurons) != 0:
+    
+                overall_R, overall_L = contra_trace['r'], contra_trace['l']
+                overall_R = np.array([np.mean(overall_R[r], axis=0) for r in range(len(overall_R))])
+                overall_L = np.array([np.mean(overall_L[l], axis=0) for l in range(len(overall_L))])
+                
+                if i:
+                    overall_R, overall_L = self.get_trace_matrix_multiple(contra_neurons, bias_trials=self.find_bias_trials())
+                else:
+                    
+                    overall_R, overall_L = self.get_trace_matrix_multiple(contra_neurons, bias_trials=self.find_bias_trials(), non_bias=True)
+
+                
+                pref, nonpref = np.vstack((pref, overall_R)), np.vstack((nonpref, overall_L))
+    
+                            
+    
+            else:
+                print('No contra selective neurons')
+                
+            
+            nonpreferr = np.std(nonpref, axis=0) / np.sqrt(len(nonpref)) 
+            preferr = np.std(pref, axis=0) / np.sqrt(len(pref))
+                        
+            pref, nonpref = np.mean(pref, axis = 0), np.mean(nonpref, axis = 0)
+    
+            axarr[i].plot(x, pref, 'r-', label='Pref')
+            axarr[i].plot(x, nonpref, 'darkgrey', label='Non-pref')
+            
+    
+            axarr[i].fill_between(x, pref - preferr, 
+                      pref + preferr,
+                      color=['#ffaeb1'])
+            axarr[i].fill_between(x, nonpref - nonpreferr, 
+                      nonpref + nonpreferr,
+                      color='lightgrey')
+            axarr[i].legend()
+
+        axarr[0].set_title("Control selectivity")
+        axarr[1].set_title("Bias trial selectivity")
+
+        axarr[0].set_xlabel('Time from Go cue (s)')
+        axarr[0].set_ylabel('Population trace')
+
+        
     def plot_individual_raster(self, neuron_num):
         
                 
@@ -1899,15 +1975,21 @@ class Session:
                 for i in range(states.shape[0]):
         
                     top_state = np.argmax(states[i])
-                    if states[i][top_state] > 0.75:
+                    if states[i][top_state] > 0.6:
                         st += [top_state]
             else:
                 for i in range(states.shape[0]):
                     st += [np.random.choice([0, 1, 2], p=states[i])]
             
-            inds = np.where(np.array(st) == 0)[0]
+            inds = np.where(np.array(st) == 1)[0]
             bias_trials = self.old_i_good_trials[inds]
             bias_trials = [b for b in bias_trials if b in self.i_good_trials] #Filter out water leak trials
+            self.bias_trials = bias_trials
+            
+            if len(bias_trials) == 0:
+                print("Error: no bias trials found")
+            
+            return bias_trials
 
         # return prebias_trials
         return bias_trials
