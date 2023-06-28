@@ -22,7 +22,7 @@ from matplotlib.pyplot import figure
 # path = r'F:\data\BAYLORCW021\python\2023_04_25'
 # path = r'F:\data\BAYLORCW021\python\2023_04_27'
 
-path = r'F:\data\BAYLORCW030\python\2023_06_21'
+path = r'F:\data\BAYLORCW030\python\2023_06_26'
 
 
 l1 = session.Session(path)
@@ -84,7 +84,7 @@ for i in range(1,10):
 #         # l1.plot_rasterPSTH_sidebyside(n)
 
     
-for n in l1.get_epoch_selective(range(l1.response, l1.time_cutoff)):
+for n in l1.get_epoch_selective(range(l1.delay, l1.response)):
 # # #     # if l1.filter_by_deltas(n):
 
 # # #         # plt.show()

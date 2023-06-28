@@ -72,6 +72,9 @@ class Session:
         else:
             self.i_good_trials = cat(behavior['i_good_trials']) - 1 # zero indexing in python
         
+        # if self.path == 'F:\\data\\BAYLORCW030\\python\\2023_06_26':
+        #     self.i_good_trials = self.i_good_trials[:100]
+        
         self.L_correct = cat(behavior['L_hit_tmp'])
         self.R_correct = cat(behavior['R_hit_tmp'])
         
@@ -106,7 +109,7 @@ class Session:
         if not self.find_low_mean_F():
 
             self.plot_mean_F()
-
+            print("No water leak!")
             if guang:
                 # Guang's data
                 self.num_neurons = layer['dff'][0,0].shape[1]  # Guang's data
@@ -1030,7 +1033,7 @@ class Session:
         axarr[0].set_ylabel('Population trace')
 
     def plot_pref_overstates(self, e=False, opto=False):
-        x = np.arange(-5.97,4,0.2)[2:self.time_cutoff]
+        x = np.arange(-5.97,4,0.2)[2:self.time_cutoff] if 'CW030' not in self.path else np.arange(-7.97,4,0.2)[2:self.time_cutoff]
         f, axarr = plt.subplots(1,4, sharex=True, sharey=True, figsize=(20,5))
         titles = ['Non state selectivity', 'State 1 selectivity', 'State 2 selectivity', 'State 3 selectivity']
         epoch = e if e != False else range(self.delay, self.response)
@@ -2103,7 +2106,7 @@ class Session:
             self.bias_trials = bias_trials
             self.nonstate_trials = non
             if len(bias_trials) == 0:
-                print("Error: no bias trials found")
+                print("Error: no bias trials found for state {}".format(state))
             
             return bias_trials
 
