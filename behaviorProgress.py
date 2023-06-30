@@ -25,12 +25,12 @@ import behavior
 # b = behavior.Behavior('F:\data\Behavior data\BAYLORCW028\python_behavior', behavior_only=True)
 # b.learning_progression(imaging=True)
 
-# b = behavior.Behavior('F:\data\Behavior data\BAYLORCW029\python_behavior', behavior_only=True)
-# b.learning_progression()
+b = behavior.Behavior('F:\data\Behavior data\BAYLORCW029\python_behavior', behavior_only=True)
+b.learning_progression(imaging=True)
 
 b = behavior.Behavior('F:\data\Behavior data\BAYLORCW030\python_behavior', behavior_only=True)
 b.learning_progression(imaging=True)
-b.learning_progression()
+# b.learning_progression()
 
 # b = behavior.Behavior('F:\data\Behavior data\BAYLORCW021\python_behavior', behavior_only=True)
 # b.learning_progression(window = 100)
@@ -58,7 +58,7 @@ b.learning_progression()
 # b.plot_LR_performance_over_sessions()
 # b.plot_early_lick()
 
-# b = behavior.Behavior('F:\data\BAYLORCW024\python')
+# b = behavior.Behavior('F:\data\BAYLORCW030\python')
 # b.plot_LR_performance_over_sessions()
 # b.plot_early_lick()
 

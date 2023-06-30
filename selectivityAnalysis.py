@@ -26,11 +26,11 @@ import pandas as pd
 # path = r'F:\data\BAYLORCW021\python\2023_02_13'
 # # path = r'F:\data\BAYLORCW021\python\2023_04_06'
 
-# path = r'F:\data\BAYLORCW021\python\2023_04_27'
+path = r'F:\data\BAYLORCW021\python\2023_04_27'
 
 # # path = r'F:\data\BAYLORCW021\python\2023_05_03'
 # path = r'F:\data\BAYLORCW021\python\2023_02_08'
-path = r'F:\data\BAYLORCW030\python\2023_06_26'
+# path = r'F:\data\BAYLORCW030\python\2023_06_16'
 
 l1 = session.Session(path)
 # l1 = decon.Deconvolved(path)
@@ -49,14 +49,14 @@ l1 = session.Session(path)
 
 # l1.plot_number_of_sig_neurons()
 
-l1.selectivity_table_by_epoch()
+# l1.selectivity_table_by_epoch()
 
 # l1.selectivity_optogenetics()
 
 ## For selective neurons
 # l1 = session.Session(path)
 
-# stim_neurons, choice_neurons, outcome_neurons, stim_sel, choice_sel, outcome_sel = l1.stim_choice_outcome_selectivity()
+stim_neurons, choice_neurons, outcome_neurons, stim_sel, choice_sel, outcome_sel = l1.stim_choice_outcome_selectivity()
 # n_numneurons = l1.num_neurons
 
 

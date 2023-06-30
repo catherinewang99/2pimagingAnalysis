@@ -112,24 +112,29 @@ class Behavior():
             self.total_sessions = 1
             
 
-    def plot_performance_over_sessions(self):
+    def plot_performance_over_sessions(self, all=False):
         
         reg = []
         opto_p = []
-        
-        for i in range(self.total_sessions):
-            
-            igood = self.i_good_trials[i]
-            opto = self.stim_ON[i][0]
-            igood_opto = np.setdiff1d(self.i_good_trials[i], self.stim_ON[i])
-            
-            # Filter out early lick
-            opto = [o for o in opto if not self.early_lick[i][o]]
-            igood_opto = [j for j in igood_opto if not self.early_lick[i][j]]
 
-            reg += [np.sum([(self.L_correct[i][t] + self.R_correct[i][t]) for t in igood_opto]) / len(igood_opto)]
-                
-            opto_p += [np.sum([(self.L_correct[i][t] + self.R_correct[i][t]) for t in opto]) / len(opto)]
+        for i in range(self.total_sessions):
+            if all:
+                correct = self.L_correct[i] + self.R_correct[i]
+
+            else:
+
+                igood = self.i_good_trials[i]
+                opto = self.stim_ON[i][0]
+                igood_opto = np.setdiff1d(self.i_good_trials[i], self.stim_ON[i])
+                # igood_opto = np.setdiff1d(range(len(self.L_correct[i])), self.stim_ON[i])
+    
+                # Filter out early lick
+                opto = [o for o in opto if not self.early_lick[i][o]]
+                igood_opto = [j for j in igood_opto if not self.early_lick[i][j]]
+    
+                reg += [np.sum([(self.L_correct[i][t] + self.R_correct[i][t]) for t in igood_opto]) / len(igood_opto)]
+                    
+                opto_p += [np.sum([(self.L_correct[i][t] + self.R_correct[i][t]) for t in opto]) / len(opto)]
 
             
         plt.plot(reg, 'g-', label='control')
@@ -399,8 +404,7 @@ class Behavior():
         
         if save:
             plt.savefig(self.path + r'\learningcurve.png')
-        
-        
+        plt.show()
         
         
         

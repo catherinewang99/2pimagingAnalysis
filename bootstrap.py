@@ -54,22 +54,33 @@ class Sample(Session):
         
         return self.sample_neurons
     
-    def sample_trials(self, correct=50, error=10, sample=False):
+    def sample_trials(self, correct=50, error=10, sample=False, bias=False):
         
-        LL = [t for t in np.where(self.L_correct)[0] if t  in self.i_good_trials]
-        RR = [t for t in np.where(self.R_correct)[0] if t  in self.i_good_trials]
-        RL = [t for t in np.where(self.R_wrong)[0] if t  in self.i_good_trials]
-        LR = [t for t in np.where(self.L_wrong)[0] if t  in self.i_good_trials]
+        LL = [t for t in np.where(self.L_correct)[0] if t in self.i_good_trials]
+        RR = [t for t in np.where(self.R_correct)[0] if t in self.i_good_trials]
+        RL = [t for t in np.where(self.R_wrong)[0] if t in self.i_good_trials]
+        LR = [t for t in np.where(self.L_wrong)[0] if t in self.i_good_trials]
+        
+        if bias:
+            trials = self.find_bias_trials(state=1)
+            LL = [t for t in LL if t in trials]
+            RR = [t for t in RR if t in trials]
+            RL = [t for t in RL if t in trials]
+            LR = [t for t in LR if t in trials]
         
         if len(LL)<correct or len(RR)<correct:
-            print("ERROR")
-            correct = 30
-            error=5
-            
-        self.LL = np.random.choice(LL, size = correct, replace=False)
-        self.RR = np.random.choice(RR, size = correct, replace=False)
-        self.RL = np.random.choice(RL, size = error, replace=False)
-        self.LR = np.random.choice(LR, size = error, replace=False)
+            # print("ERROR: Lengths {} {} {} {}".format(len(LL), len(RR), len(RL), len(LR)))
+            correct = 20
+            error=10
+            self.LL = np.random.choice(LL, size = correct, replace=False)
+            self.RR = np.random.choice(RR, size = correct, replace=False)
+            self.RL = np.random.choice(RL, size = error, replace=False)
+            self.LR = np.random.choice(LR, size = error, replace=False)
+        else:
+            self.LL = np.random.choice(LL, size = correct, replace=False)
+            self.RR = np.random.choice(RR, size = correct, replace=False)
+            self.RL = np.random.choice(RL, size = error, replace=False)
+            self.LR = np.random.choice(LR, size = error, replace=False)
         
         self.L = cat((self.LL, self.RL))
         self.R = cat((self.RR, self.LR))
@@ -151,7 +162,7 @@ class Sample(Session):
                 
         return scores
     
-    def run_iter_logreg(self, timestep, num_neurons, sample, iterations=100):
+    def run_iter_logreg(self, timestep, num_neurons, sample, bias, iterations=100):
         
         mean_accuracy = []
         
@@ -161,27 +172,26 @@ class Sample(Session):
             # print("##### ITERATION {} #######".format(i))
             
             self.do_sample_neurons(num_neurons)
-            lens = self.sample_trials(sample=sample)
+            lens = self.sample_trials(sample=sample, bias=bias)
             
             acc = self.do_log_reg(timestep, lens)
             mean_accuracy += [np.mean(acc)]
             
         return mean_accuracy
     
-    def run_iter_log_timesteps(self, sample=False):
+    def run_iter_log_timesteps(self, sample=False, bias=False):
         
         acc = []
         sem = []
         for time in range(self.time_cutoff):
             print("##### TIMESTEP {} #######".format(time))
 
-            score = self.run_iter_logreg(time, len(self.n), sample=sample) # Use all neurons to train
+            score = self.run_iter_logreg(time, len(self.n), sample, bias) # Use all neurons to train
             
             acc += [np.mean(score)]
             sem += [np.std(score)/np.sqrt(100)]
         return np.array(acc), np.array(sem)
         
-    
     
 
             

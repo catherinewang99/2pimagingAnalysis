@@ -1111,6 +1111,82 @@ class Session:
         axarr[0].set_xlabel('Time from Go cue (s)')
         axarr[0].set_ylabel('Population trace')
         
+    def plot_selectivity_overstates(self, e=False, opto=False):
+
+        x = np.arange(-5.97,4,0.2)[2:self.time_cutoff] if 'CW030' not in self.path else np.arange(-7.97,4,0.2)[2:self.time_cutoff]
+        # f, axarr = plt.subplots(1,4, sharex=True, sharey=True, figsize=(20,5))
+        titles = ['Non state selectivity', 'State 1 selectivity', 'State 2 selectivity', 'State 3 selectivity']
+        colors = ['grey', 'green', 'blue', 'salmon']
+        epoch = e if e != False else range(self.delay, self.response)
+        
+        contra_neurons, ipsi_neurons, contra_trace, ipsi_trace = self.contra_ipsi_pop(epoch)
+        
+        pref, nonpref = [], []
+
+        for i in range(4):       
+            
+            if len(ipsi_neurons) != 0:
+            
+                overall_R, overall_L = ipsi_trace['r'], ipsi_trace['l']
+                overall_R = np.array([np.mean(overall_R[r], axis=0) for r in range(len(overall_R))])
+                overall_L = np.array([np.mean(overall_L[l], axis=0) for l in range(len(overall_L))])
+                
+                if i:
+                    overall_R, overall_L = self.get_trace_matrix_multiple(ipsi_neurons, bias_trials=self.find_bias_trials(state = i-1), opto=opto, lickdir=True)
+                
+                else:
+                    _ = self.find_bias_trials()
+                    overall_R, overall_L = self.get_trace_matrix_multiple(ipsi_neurons, bias_trials=self.nonstate_trials, opto=opto, lickdir=True)
+                    
+                
+                pref, nonpref = overall_L, overall_R
+                
+            else:
+                print('No ipsi selective neurons')
+        
+            if len(contra_neurons) != 0:
+    
+                overall_R, overall_L = contra_trace['r'], contra_trace['l']
+                overall_R = np.array([np.mean(overall_R[r], axis=0) for r in range(len(overall_R))])
+                overall_L = np.array([np.mean(overall_L[l], axis=0) for l in range(len(overall_L))])
+                
+                if i:
+                    overall_R, overall_L = self.get_trace_matrix_multiple(contra_neurons, bias_trials=self.find_bias_trials(state = i-1), opto=opto, lickdir=True)
+                else:
+                    _ = self.find_bias_trials()
+                    overall_R, overall_L = self.get_trace_matrix_multiple(contra_neurons, bias_trials=self.nonstate_trials, opto=opto, lickdir=True)
+                
+                pref, nonpref = np.vstack((pref, overall_R)), np.vstack((nonpref, overall_L))
+    
+                            
+    
+            else:
+                print('No contra selective neurons')
+                
+            
+            selerr = np.std(np.vstack((nonpref, pref)), axis=0) / np.sqrt(len(np.vstack((nonpref, pref))))
+                        
+            sel = np.mean(pref, axis = 0) - np.mean(nonpref, axis = 0)
+    
+            sel, selerr = sel[2:], selerr[2:]
+    
+            plt.plot(x, sel, color = colors[i], label=titles[i])
+            
+    
+            plt.fill_between(x, sel - selerr, 
+                      sel + selerr,
+                      color='light' + colors[i])
+       
+            
+        plt.legend()
+        plt.axvline(-4.3, linestyle = '--')
+        plt.axvline(-3, linestyle = '--')
+        plt.axvline(0, linestyle = '--')
+
+        plt.xlabel('Time from Go cue (s)')
+        plt.ylabel('Selectivity')
+        plt.show()
+        
     def plot_individual_raster(self, neuron_num):
         
                 
@@ -1816,8 +1892,8 @@ class Session:
         
         f, axarr = plt.subplots(1,3, sharey='row', figsize=(15,5))
         
-        epochs = [range(7,13), range(21,28), range(34,self.time_cutoff)]
-        x = np.arange(-5.97,4,0.2)[:self.time_cutoff]
+        epochs = [range(self.sample,self.delay), range(self.delay,self.response), range(self.response,self.time_cutoff)]
+        x = np.arange(-5.97,4,0.2)[:self.time_cutoff] if 'CW030' not in self.path else np.arange(-7.97,4,0.2)[:self.time_cutoff]
         titles = ['Stimulus selective', 'Choice selective', 'Outcome selective']
         
         
