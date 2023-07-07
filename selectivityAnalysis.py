@@ -30,7 +30,7 @@ path = r'F:\data\BAYLORCW021\python\2023_04_27'
 
 # # path = r'F:\data\BAYLORCW021\python\2023_05_03'
 # path = r'F:\data\BAYLORCW021\python\2023_02_08'
-# path = r'F:\data\BAYLORCW030\python\2023_06_16'
+path = r'F:\data\BAYLORCW030\python\2023_07_06'
 
 l1 = session.Session(path)
 # l1 = decon.Deconvolved(path)
@@ -49,9 +49,9 @@ l1 = session.Session(path)
 
 # l1.plot_number_of_sig_neurons()
 
-# l1.selectivity_table_by_epoch()
+l1.selectivity_table_by_epoch()
 
-# l1.selectivity_optogenetics()
+l1.selectivity_optogenetics()
 
 ## For selective neurons
 # l1 = session.Session(path)

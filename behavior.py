@@ -386,6 +386,7 @@ class Behavior():
         axarr[1].plot(correctarr, 'g')        
         axarr[1].set_ylabel('% correct')
         axarr[1].axhline(y=0.7, alpha = 0.5, color='orange')
+        axarr[1].axhline(y=0.5, alpha = 0.5, color='red', ls = '--')
         axarr[1].set_ylim(0, 1)
         
         # Early licking

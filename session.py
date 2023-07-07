@@ -479,7 +479,7 @@ class Session:
             
         return R_av_dff, L_av_dff
     
-    def get_trace_matrix_multiple(self, neuron_nums, opto=False, error=False, both=False, bias_trials = None, non_bias=False, lickdir=False):
+    def get_trace_matrix_multiple(self, neuron_nums, opto=False, error=False, both=False, bias_trials = [], non_bias=False, lickdir=False):
         
         ## Returns matrix of average firing rates of a list of neurons for lick left
         ## and lick right trials. Firing rates are normalized with individual trial
@@ -776,7 +776,7 @@ class Session:
         
         return sel
     
-    def contra_ipsi_pop(self, epoch):
+    def contra_ipsi_pop(self, epoch, return_sel = False):
         
         # Returns the neuron ids for contra and ipsi populations
 
@@ -788,7 +788,7 @@ class Session:
         contra_LR, ipsi_LR = dict(), dict()
         contra_LR['l'], contra_LR['r'] = [], []
         ipsi_LR['l'], ipsi_LR['r'] = [], []
-        
+        pref, nonpref = [], []
         
         for neuron_num in selective_neurons:
             
@@ -806,11 +806,18 @@ class Session:
                         ipsi_neurons += [neuron_num]
                         ipsi_LR['l'] += [[L[i] for i in test_l]]
                         ipsi_LR['r'] += [[R[i] for i in test_r]]
+                        
+                        pref += np.mean([L[i] for i in test_l], axis=0)
+                        nonpref += np.mean([R[i] for i in test_r], axis=0)
+                        
                     else:
                         # print("Contra preferring: {}".format(neuron_num))
                         contra_neurons += [neuron_num] 
                         contra_LR['l'] += [[L[i] for i in test_l]]
                         contra_LR['r'] += [[R[i] for i in test_r]]
+                        
+                        nonpref += np.mean([L[i] for i in test_l], axis=0)
+                        pref += np.mean([R[i] for i in test_r], axis=0)
                     
                 elif self.recording_loc == 'r':
 
@@ -823,7 +830,12 @@ class Session:
                         contra_LR['l'] += [L[i] for i in test_l]
                         contra_LR['r'] += [R[i] for i in test_r]
                         
-        return contra_neurons, ipsi_neurons, contra_LR, ipsi_LR
+        err = np.std(pref, axis=0) / np.sqrt(len(pref)) 
+        err += np.std(nonpref, axis=0) / np.sqrt(len(nonpref))
+        if return_sel:
+            return np.mean(pref, axis=0) - np.mean(nonpref, axis=0), err
+        else:
+            return contra_neurons, ipsi_neurons, contra_LR, ipsi_LR
     
     def plot_contra_ipsi_pop(self, e=False, bias=False):
         x = np.arange(-5.97,4,0.2)[:self.time_cutoff]
@@ -1456,7 +1468,9 @@ class Session:
         # Plots fractions of contra/ipsi neurons and their overall trace
 
         f, axarr = plt.subplots(4,3, sharex='col', figsize=(14, 12))
-        epochs = [range(self.time_cutoff), range(8,14), range(19,28), range(29,self.time_cutoff)]
+        # epochs = [range(self.time_cutoff), range(8,14), range(19,28), range(29,self.time_cutoff)]
+        epochs = [range(self.time_cutoff), range(self.sample, self.delay), range(self.delay, self.response), range(self.response, self.time_cutoff)]
+
         x = np.arange(-5.97,6,0.2)[:self.time_cutoff]
         if 'CW030' in self.path:
             x = np.arange(-5.97,6,0.2)[:self.time_cutoff-5]
@@ -1468,8 +1482,10 @@ class Session:
             contra_neurons, ipsi_neurons, contra_trace, ipsi_trace = self.contra_ipsi_pop(epochs[i])
 
             # Bar plot
-            axarr[i, 0].bar(['Contra', 'Ipsi'], [len(contra_neurons)/len(self.selective_neurons),
-                                    len(ipsi_neurons)/len(self.selective_neurons)], 
+            contraratio = len(contra_neurons)/len(self.selective_neurons) if len(self.selective_neurons) > 0 else 0
+            ipsiratio = len(ipsi_neurons)/len(self.selective_neurons) if len(self.selective_neurons) > 0 else 0
+            
+            axarr[i, 0].bar(['Contra', 'Ipsi'], [contraratio, ipsiratio], 
                             color = ['b', 'r'])
             
             axarr[i, 0].set_ylim(0,1)
@@ -1656,9 +1672,9 @@ class Session:
         
         f, axarr = plt.subplots(1,1, sharex='col', figsize=(5,5))
         
-        x = np.arange(-5.97,4,0.2)[:self.time_cutoff]
+        x = np.arange(-5.97,4,0.2)[:self.time_cutoff] if 'CW030' not in self.path else np.arange(-7.97,4,0.2)[:self.time_cutoff]
 
-        # Get delay selective neurons
+        # Get late delay selective neurons
         contra_neurons, ipsi_neurons, contra_trace, ipsi_trace = self.contra_ipsi_pop(range(self.response-9,self.response)) 
         
         if len(contra_neurons) == 0:
@@ -1712,7 +1728,11 @@ class Session:
         axarr.fill_between(x, selo - erro, 
                   selo + erro,
                   color=['#b4b2dc'])       
-
+        
+        axarr.axvline(-4.3, color = 'grey', alpha=0.5, ls = '--')
+        axarr.axvline(-3, color = 'grey', alpha=0.5, ls = '--')
+        axarr.axvline(0, color = 'grey', alpha=0.5, ls = '--')
+        
         axarr.set_title('Optogenetic effect on selectivity')                  
         axarr.set_xlabel('Time from Go cue (s)')
         axarr.set_ylabel('Selectivity')
@@ -1781,9 +1801,9 @@ class Session:
                 for n in self.good_neurons:
                     dff = [self.dff[0, trial][n, t] for trial in self.i_good_trials]
                     
-                    df = pd.DataFrame({'stim': self.R_correct + self.R_wrong,
-                                       'lick': self.R_correct + self.L_wrong,
-                                       'reward': self.R_correct + self.L_correct,
+                    df = pd.DataFrame({'stim': self.R_correct[self.i_good_trials] + self.R_wrong[self.i_good_trials],
+                                       'lick': self.R_correct[self.i_good_trials] + self.L_wrong[self.i_good_trials],
+                                       'reward': self.R_correct[self.i_good_trials] + self.L_correct[self.i_good_trials],
                                        'dff': dff})
                     
                     model = ols("""dff ~ C(stim) + C(lick) + C(reward) +
@@ -1795,17 +1815,34 @@ class Session:
                     sig = np.where(np.array(table['PR(>F)'] < 0.01) == True)[0]
                     if len(sig) == 0:
                         continue
+                    
+                    if 6 in sig:
+                        m+=1
+                        
+                    if 3 in sig:
+                        s+=1
+                        l+=1
+                        m+=1
+
+                    elif 4 in sig:
+                        s+=1
+                        r+=1
+                        m+=1
+
+                    elif 5 in sig:
+                        l+=1
+                        r+=1
+                        m+=1
+
+
                     elif 0 in sig:
                         s+=1
                     elif 1 in sig:
                         l+=1
                     elif 2 in sig:
                         r+=1
-                    elif len(sig) >= 1:
-                        if len(sig) == 1:
-                            if 7 in sig:
-                                continue
-                        m+=1
+                        
+
                 
                 stim += [s]
                 lick += [l]
@@ -1852,14 +1889,14 @@ class Session:
                 # action = (mean_count(RR, range(28,34)) + mean_count(LR, range(28,34))) - (mean_count(LL, range(28,34)) + mean_count(RL, range(28,34)))
                 # outcome = (mean_count(LL, range(34,40)) + mean_count(RR, range(34,40))) - (mean_count(LR, range(34,40)) + mean_count(RL, range(34,40)))
                 
-                _, stimp = mannwhitneyu(cat((mean_count(RR, range(7,13)), mean_count(RL, range(7,13)))),
-                                        cat((mean_count(LL, range(7,13)), mean_count(LR, range(7,13)))))
-                _, choicep = mannwhitneyu(cat((mean_count(RR, range(21,28)), mean_count(LR, range(21,28)))),
-                                          cat((mean_count(LL, range(21,28)), mean_count(RL, range(21,28)))))
-                _, actionp = mannwhitneyu(cat((mean_count(RR, range(28,40)), mean_count(LR, range(28,40)))),
-                                          cat((mean_count(LL, range(28,40)), mean_count(RL, range(28,40)))))
-                _, outcomep = mannwhitneyu(cat((mean_count(LL, range(34,40)), mean_count(RR, range(34,40)))),
-                                           cat((mean_count(LR, range(34,40)), mean_count(RL, range(34,40)))))
+                _, stimp = mannwhitneyu(cat((mean_count(RR, range(self.sample,self.delay)), mean_count(RL, range(self.sample,self.delay)))),
+                                        cat((mean_count(LL, range(self.sample,self.delay)), mean_count(LR, range(self.sample,self.delay)))))
+                _, choicep = mannwhitneyu(cat((mean_count(RR, range(self.response-7,self.response)), mean_count(LR, range(self.response-7,self.response)))),
+                                          cat((mean_count(LL, range(self.response-7,self.response)), mean_count(RL, range(self.response-7,self.response)))))
+                _, actionp = mannwhitneyu(cat((mean_count(RR, range(self.response,self.time_cutoff)), mean_count(LR, range(self.response,self.time_cutoff)))),
+                                          cat((mean_count(LL, range(self.response,self.time_cutoff)), mean_count(RL, range(self.response,self.time_cutoff)))))
+                _, outcomep = mannwhitneyu(cat((mean_count(LL, range(self.time_cutoff - 6,self.time_cutoff)), mean_count(RR, range(self.time_cutoff - 6,self.time_cutoff)))),
+                                           cat((mean_count(LR, range(self.time_cutoff - 6,self.time_cutoff)), mean_count(RL, range(self.time_cutoff - 6,self.time_cutoff)))))
                 
                 # stim += [stimp]
                 stim += stimp<0.05
@@ -1898,215 +1935,41 @@ class Session:
         
         
             
-        contra_neurons, ipsi_neurons, contra_trace, ipsi_trace = self.contra_ipsi_pop(epochs[0])
-        pref, nonpref = [], []
-
-        if len(contra_neurons) == 0:
-            for j in range(len(ipsi_neurons)):
-                
-                if ipsi_neurons[j] not in stim_neurons:
-                    continue
-                
-                nonpref += ipsi_trace['r'][j]
-                pref += ipsi_trace['l'][j]
-                
-                stim_sel += [np.mean(np.mean(pref, axis=0)[epochs[0]] - np.mean(nonpref, axis=0)[epochs[0]])]
-            
-        elif len(ipsi_neurons) == 0:
-            
-            for j in range(len(contra_neurons)):
-                
-                if contra_neurons[j] not in stim_neurons:
-                    continue
-                
-                nonpref += contra_trace['l'][j]
-                pref += contra_trace['r'][j]
-                stim_sel += [np.mean(np.mean(pref, axis=0)[epochs[0]] - np.mean(nonpref, axis=0)[epochs[0]])]
-
-
+        sel, err = self.contra_ipsi_pop(epochs[0], return_sel=True)
+        
+        if type(sel) != np.ndarray:
+            print("Empty selectivity vec: {}".format(sel))
         else:
-            
-            for j in range(len(ipsi_neurons)):
-                
-                if ipsi_neurons[j] not in stim_neurons:
-                    continue
-                
-                nonpref += ipsi_trace['r'][j]
-                pref += ipsi_trace['l'][j]
-                stim_sel += [np.mean(np.mean(pref, axis=0)[epochs[0]] - np.mean(nonpref, axis=0)[epochs[0]])]
-
-            for j in range(len(contra_neurons)):
-                
-                if contra_neurons[j] not in stim_neurons:
-                    continue
-                
-                nonpref += contra_trace['l'][j]
-                pref += contra_trace['r'][j]
-                
-                stim_sel += [np.mean(np.mean(pref, axis=0)[epochs[0]] - np.mean(nonpref, axis=0)[epochs[0]])]
-
-        # pref, nonpref = [], []
-        
-        # for n in stim_neurons:
-            
-        #     r, l = self.get_trace_matrix(n)
-        #     timebin=range(7,13)
-        #     if np.mean([r[t][timebin] for t in range(len(r))]) - np.mean([l[t][timebin] for t in range(len(l))]):
-                
-        #         pref += [np.mean(r,axis=0)]
-        #         nonpref += [np.mean(l,axis=0)]
-            
-        #     else:
-        #         pref += [np.mean(l,axis=0)]
-        #         nonpref += [np.mean(r,axis=0)]
-                                
-        pref, nonpref = np.array(pref), np.array(nonpref)
-
-        
-        sel = np.mean(pref, axis = 0) - np.mean(nonpref, axis = 0)
-        
-        err = np.std(pref, axis=0) / np.sqrt(len(pref)) 
-        err += np.std(nonpref, axis=0) / np.sqrt(len(nonpref))
+            axarr[0].plot(x, sel, color='green')
                     
-        axarr[0].plot(x, sel, color='green')
-                
-        axarr[0].fill_between(x, sel - err, 
-                  sel + err,
-                  color='lightgreen')
-
-        axarr[0].set_title(titles[0])
-        #############################
-        pref, nonpref = [], []
+            axarr[0].fill_between(x, sel - err, 
+                      sel + err,
+                      color='lightgreen')
+    
+            axarr[0].set_title(titles[0])
+            
+        #######################################
         
-        if len(contra_neurons) == 0:
-            for j in range(len(ipsi_neurons)):
-                
-                if ipsi_neurons[j] not in choice_neurons:
-                    continue
-                
-                nonpref += ipsi_trace['r'][j]
-                pref += ipsi_trace['l'][j]
-                choice_sel += [np.mean(np.mean(pref, axis=0)[epochs[1]] - np.mean(nonpref, axis=0)[epochs[1]])]
 
-            
-        elif len(ipsi_neurons) == 0:
-            
-            for j in range(len(contra_neurons)):
-                
-                if contra_neurons[j] not in choice_neurons:
-                    continue
-                
-                nonpref += contra_trace['l'][j]
-                pref += contra_trace['r'][j]
-                choice_sel += [np.mean(np.mean(pref, axis=0)[epochs[1]] - np.mean(nonpref, axis=0)[epochs[1]])]
-                
+        sel, err = self.contra_ipsi_pop(epochs[1], return_sel=True)
 
+        
+        if type(sel) != np.ndarray:
+            print("Empty selectivity vec: {}".format(sel))
         else:
+
             
-            for j in range(len(ipsi_neurons)):
-                
-                if ipsi_neurons[j] not in choice_neurons:
-                    continue
-                
-                nonpref += ipsi_trace['r'][j]
-                pref += ipsi_trace['l'][j]
-                choice_sel += [np.mean(np.mean(pref, axis=0)[epochs[1]] - np.mean(nonpref, axis=0)[epochs[1]])]
-
-            for j in range(len(contra_neurons)):
-                
-                if contra_neurons[j] not in choice_neurons:
-                    continue
-                
-                nonpref += contra_trace['l'][j]
-                pref += contra_trace['r'][j]
-                choice_sel += [np.mean(np.mean(pref, axis=0)[epochs[1]] - np.mean(nonpref, axis=0)[epochs[1]])]
-
-                
-        pref, nonpref = np.array(pref), np.array(nonpref)
-        
-        sel = np.mean(pref, axis = 0) - np.mean(nonpref, axis = 0)
-        
-        err = np.std(pref, axis=0) / np.sqrt(len(pref)) 
-        err += np.std(nonpref, axis=0) / np.sqrt(len(nonpref))
+            axarr[1].plot(x, sel, color='purple')
                     
-        axarr[1].plot(x, sel, color='purple')
-                
-        axarr[1].fill_between(x, sel - err, 
-                  sel + err,
-                  color='violet')
-        axarr[1].set_title(titles[1])
-
-        ####################################
+            axarr[1].fill_between(x, sel - err, 
+                      sel + err,
+                      color='violet')
+            axarr[1].set_title(titles[1])
         
-        pref, nonpref = [], []
-        
-        # for n in outcome_neurons:
-            
-        #     r, l = self.get_trace_matrix(n)
-        #     timebin=range(34,self.time_cutoff)
-        #     if np.mean([r[t][timebin] for t in range(len(r))]) - np.mean([l[t][timebin] for t in range(len(l))]):
-                
-        #         pref += [np.mean(r,axis=0)]
-        #         nonpref += [np.mean(l,axis=0)]
-            
-        #     else:
-        #         pref += [np.mean(l,axis=0)]
-        #         nonpref += [np.mean(r,axis=0)]
-        
-        
-        contra_neurons, ipsi_neurons, contra_trace, ipsi_trace = self.contra_ipsi_pop(epochs[2])
-        pref, nonpref = [], []
+        #######################################
 
-        if len(contra_neurons) == 0:
-            for j in range(len(ipsi_neurons)):
-                
-                if ipsi_neurons[j] not in outcome_neurons:
-                    continue
-                
-                nonpref += ipsi_trace['r'][j]
-                pref += ipsi_trace['l'][j]
-                outcome_sel += [np.mean(np.mean(pref, axis=0)[epochs[2]] - np.mean(nonpref, axis=0)[epochs[2]])]
+        sel, err = self.contra_ipsi_pop(epochs[2], return_sel=True)
 
-        elif len(ipsi_neurons) == 0:
-            
-            for j in range(len(contra_neurons)):
-                
-                if contra_neurons[j] not in outcome_neurons:
-                    continue
-                
-                nonpref += contra_trace['l'][j]
-                pref += contra_trace['r'][j]
-                
-                outcome_sel += [np.mean(np.mean(pref, axis=0)[epochs[2]] - np.mean(nonpref, axis=0)[epochs[2]])]
-
-        else:
-            
-            for j in range(len(ipsi_neurons)):
-                
-                if ipsi_neurons[j] not in outcome_neurons:
-                    continue
-                
-                nonpref += ipsi_trace['r'][j]
-                pref += ipsi_trace['l'][j]
-                outcome_sel += [np.mean(np.mean(pref, axis=0)[epochs[2]] - np.mean(nonpref, axis=0)[epochs[2]])]
-
-            for j in range(len(contra_neurons)):
-                
-                if contra_neurons[j] not in outcome_neurons:
-                    continue
-                
-                nonpref += contra_trace['l'][j]
-                pref += contra_trace['r'][j]
-                outcome_sel += [np.mean(np.mean(pref, axis=0)[epochs[2]] - np.mean(nonpref, axis=0)[epochs[2]])]
-
-        pref, nonpref = np.array(pref), np.array(nonpref)
-
-        
-        sel = np.mean(pref, axis = 0) - np.mean(nonpref, axis = 0)
-        
-        err = np.std(pref, axis=0) / np.sqrt(len(pref)) 
-        err += np.std(nonpref, axis=0) / np.sqrt(len(nonpref))
-                    
         axarr[2].plot(x, sel, color='dodgerblue')
                 
         axarr[2].fill_between(x, sel - err, 
@@ -2115,7 +1978,7 @@ class Session:
 
         axarr[2].set_title(titles[2])
         
-        #####################################################
+        ###########################################
         
         axarr[0].set_ylabel('Selectivity')
         axarr[1].set_xlabel('Time from Go cue (s)')
