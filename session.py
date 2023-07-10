@@ -806,9 +806,9 @@ class Session:
                         ipsi_neurons += [neuron_num]
                         ipsi_LR['l'] += [[L[i] for i in test_l]]
                         ipsi_LR['r'] += [[R[i] for i in test_r]]
-                        
-                        pref += np.mean([L[i] for i in test_l], axis=0)
-                        nonpref += np.mean([R[i] for i in test_r], axis=0)
+                        if return_sel:
+                            pref += np.mean([L[i] for i in test_l], axis=0)
+                            nonpref += np.mean([R[i] for i in test_r], axis=0)
                         
                     else:
                         # print("Contra preferring: {}".format(neuron_num))
@@ -816,8 +816,9 @@ class Session:
                         contra_LR['l'] += [[L[i] for i in test_l]]
                         contra_LR['r'] += [[R[i] for i in test_r]]
                         
-                        nonpref += np.mean([L[i] for i in test_l], axis=0)
-                        pref += np.mean([R[i] for i in test_r], axis=0)
+                        if return_sel:
+                            nonpref += np.mean([L[i] for i in test_l], axis=0)
+                            pref += np.mean([R[i] for i in test_r], axis=0)
                     
                 elif self.recording_loc == 'r':
 
@@ -830,9 +831,10 @@ class Session:
                         contra_LR['l'] += [L[i] for i in test_l]
                         contra_LR['r'] += [R[i] for i in test_r]
                         
-        err = np.std(pref, axis=0) / np.sqrt(len(pref)) 
-        err += np.std(nonpref, axis=0) / np.sqrt(len(nonpref))
+
         if return_sel:
+            err = np.std(pref, axis=0) / np.sqrt(len(pref)) 
+            err += np.std(nonpref, axis=0) / np.sqrt(len(nonpref))
             return np.mean(pref, axis=0) - np.mean(nonpref, axis=0), err
         else:
             return contra_neurons, ipsi_neurons, contra_LR, ipsi_LR
@@ -1817,12 +1819,13 @@ class Session:
                         continue
                     
                     if 6 in sig:
+                        h = True
                         m+=1
                         
                     if 3 in sig:
                         s+=1
                         l+=1
-                        m+=1
+                        m = m if h else m+1
 
                     elif 4 in sig:
                         s+=1
@@ -1850,7 +1853,7 @@ class Session:
                 mixed += [m]
             
             f, axarr = plt.subplots(1,4, sharey='row', figsize=(20,5))
-            x = np.arange(-5.97,4,0.2)[:self.time_cutoff]
+            x = np.arange(-5.97,4,0.2)[:self.time_cutoff] if 'CW030' not in self.path else np.arange(-7.97,4,0.2)[:self.time_cutoff]
 
             axarr[0].plot(x, np.array(stim)/self.num_neurons, color='magenta')
             axarr[0].set_title('Lick direction cell')
