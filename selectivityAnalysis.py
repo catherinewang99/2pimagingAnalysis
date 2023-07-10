@@ -28,6 +28,7 @@ import pandas as pd
 
 path = r'F:\data\BAYLORCW021\python\2023_04_27'
 
+path = r'F:\data\BAYLORCW021\python\2023_04_06'
 # # path = r'F:\data\BAYLORCW021\python\2023_05_03'
 # path = r'F:\data\BAYLORCW021\python\2023_02_08'
 # path = r'F:\data\BAYLORCW030\python\2023_07_03'
@@ -61,7 +62,7 @@ l1 = session.Session(path)
 stim_neurons, choice_neurons, outcome_neurons, stim_sel, choice_sel, outcome_sel = l1.stim_choice_outcome_selectivity()
 # n_numneurons = l1.num_neurons
 
-
+tstim, tlick, treward, tmixed = l1.single_neuron_sel('Chen 2017')
 
 # path = r'F:\data\BAYLORCW021\python\2023_04_27'
 # l2 = session.Session(path)

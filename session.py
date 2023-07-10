@@ -776,11 +776,11 @@ class Session:
         
         return sel
     
-    def contra_ipsi_pop(self, epoch, return_sel = False):
+    def contra_ipsi_pop(self, epoch, return_sel = False, selective_n = []):
         
         # Returns the neuron ids for contra and ipsi populations
 
-        selective_neurons = self.get_epoch_selective(epoch)
+        selective_neurons = self.get_epoch_selective(epoch) if len(selective_n) == 0 else selective_n
         
         contra_neurons = []
         ipsi_neurons = []
@@ -807,9 +807,10 @@ class Session:
                         ipsi_LR['l'] += [[L[i] for i in test_l]]
                         ipsi_LR['r'] += [[R[i] for i in test_r]]
                         if return_sel:
-                            pref += np.mean([L[i] for i in test_l], axis=0)
-                            nonpref += np.mean([R[i] for i in test_r], axis=0)
-                        
+                            # pref += [np.mean([L[i] for i in test_l], axis=0)]
+                            # nonpref += [np.mean([R[i] for i in test_r], axis=0)]
+                            pref += [L[i] for i in test_l]
+                            nonpref += [R[i] for i in test_r]                   
                     else:
                         # print("Contra preferring: {}".format(neuron_num))
                         contra_neurons += [neuron_num] 
@@ -817,9 +818,12 @@ class Session:
                         contra_LR['r'] += [[R[i] for i in test_r]]
                         
                         if return_sel:
-                            nonpref += np.mean([L[i] for i in test_l], axis=0)
-                            pref += np.mean([R[i] for i in test_r], axis=0)
-                    
+                            # nonpref += [np.mean([L[i] for i in test_l], axis=0)]
+                            # pref += [np.mean([R[i] for i in test_r], axis=0)]
+                            
+                            nonpref += [L[i] for i in test_l]
+                            pref += [R[i] for i in test_r]         
+                            
                 elif self.recording_loc == 'r':
 
                     if not pref:
@@ -1938,7 +1942,7 @@ class Session:
         
         
             
-        sel, err = self.contra_ipsi_pop(epochs[0], return_sel=True)
+        sel, err = self.contra_ipsi_pop(epochs[0], return_sel=True, selective_n = stim_neurons)
         
         if type(sel) != np.ndarray:
             print("Empty selectivity vec: {}".format(sel))
@@ -1954,7 +1958,7 @@ class Session:
         #######################################
         
 
-        sel, err = self.contra_ipsi_pop(epochs[1], return_sel=True)
+        sel, err = self.contra_ipsi_pop(epochs[1], return_sel=True, selective_n = choice_neurons)
 
         
         if type(sel) != np.ndarray:
@@ -1971,7 +1975,7 @@ class Session:
         
         #######################################
 
-        sel, err = self.contra_ipsi_pop(epochs[2], return_sel=True)
+        sel, err = self.contra_ipsi_pop(epochs[2], return_sel=True, selective_n = outcome_neurons)
 
         axarr[2].plot(x, sel, color='dodgerblue')
                 
