@@ -221,6 +221,8 @@ class Session:
         filtert = len(evens) if len(evens) < len(odds) else len(odds)
         evens, odds = evens[:filtert], odds[:filtert] # Ensure number of trials is the same
         
+        first, last = self.i_good_trials[:100], self.i_good_trials[-100:]
+        
         for neuron_num in range(self.num_neurons):
             R_av_dff = []
             for i in evens:
@@ -236,7 +238,23 @@ class Session:
             corrs += [corr]
             if corr > cutoff:
                 
-                neurons += [neuron_num]
+                # Do pearsons for first half, last half for leaky neurons
+                R_av_dff = []
+                for i in first:
+                    # R_av_dff += [self.normalize_by_baseline(self.dff[0, i][neuron_num, :self.time_cutoff])]
+                    R_av_dff += [self.dff[0, i][neuron_num, :self.time_cutoff]]
+        
+                L_av_dff = []
+                for i in last:
+                    # L_av_dff += [self.normalize_by_baseline(self.dff[0, i][neuron_num, :self.time_cutoff])]
+                    L_av_dff += [self.dff[0, i][neuron_num, :self.time_cutoff]]
+                    
+                corr1, p1 = mstats.pearsonr(np.mean(L_av_dff, axis = 0), np.mean(R_av_dff,axis=0))
+                
+                if corr1 > cutoff:
+
+                
+                    neurons += [neuron_num]
             
         return neurons, corrs
     
@@ -702,7 +720,7 @@ class Session:
         
         return None
 
-    def get_epoch_selective(self, epoch, p = 0.01, bias=False):
+    def get_epoch_selective(self, epoch, p = 0.0001, bias=False):
         selective_neurons = []
         # for neuron in range(self.num_neurons):
         for neuron in self.good_neurons:
