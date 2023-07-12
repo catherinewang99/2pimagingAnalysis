@@ -794,11 +794,11 @@ class Session:
         
         return sel
     
-    def contra_ipsi_pop(self, epoch, return_sel = False, selective_n = []):
+    def contra_ipsi_pop(self, epoch, return_sel = False, selective_n = [], p=0.0001):
         
         # Returns the neuron ids for contra and ipsi populations
-
-        selective_neurons = self.get_epoch_selective(epoch) if len(selective_n) == 0 else selective_n
+        n = self.get_epoch_selective(epoch, p=0.01) if self.sample in epoch else self.get_epoch_selective(epoch, p=p)
+        selective_neurons = n if len(selective_n) == 0 else selective_n
         
         contra_neurons = []
         ipsi_neurons = []
@@ -1699,7 +1699,7 @@ class Session:
         x = np.arange(-5.97,4,0.2)[:self.time_cutoff] if 'CW030' not in self.path else np.arange(-7.97,4,0.2)[:self.time_cutoff]
 
         # Get late delay selective neurons
-        contra_neurons, ipsi_neurons, contra_trace, ipsi_trace = self.contra_ipsi_pop(range(self.response-9,self.response)) 
+        contra_neurons, ipsi_neurons, contra_trace, ipsi_trace = self.contra_ipsi_pop(range(self.response-9,self.response), p = 0.001) 
         
         if len(contra_neurons) == 0:
             

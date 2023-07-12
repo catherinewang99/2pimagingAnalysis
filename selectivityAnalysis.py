@@ -52,9 +52,9 @@ l1 = session.Session(path)
 
 # l1.plot_number_of_sig_neurons()
 
-# l1.selectivity_table_by_epoch()
+l1.selectivity_table_by_epoch()
 
-# l1.selectivity_optogenetics()
+l1.selectivity_optogenetics()
 
 ## For selective neurons
 # l1 = session.Session(path)
