@@ -227,12 +227,12 @@ class Session:
             R_av_dff = []
             for i in evens:
                 # R_av_dff += [self.normalize_by_baseline(self.dff[0, i][neuron_num, :self.time_cutoff])]
-                R_av_dff += [self.dff[0, i][neuron_num, :self.time_cutoff]]
+                R_av_dff += [self.dff[0, i][neuron_num, 5:self.time_cutoff]]
     
             L_av_dff = []
             for i in odds:
                 # L_av_dff += [self.normalize_by_baseline(self.dff[0, i][neuron_num, :self.time_cutoff])]
-                L_av_dff += [self.dff[0, i][neuron_num, :self.time_cutoff]]
+                L_av_dff += [self.dff[0, i][neuron_num, 5:self.time_cutoff]]
                 
             corr, p = mstats.pearsonr(np.mean(L_av_dff, axis = 0), np.mean(R_av_dff,axis=0))
             corrs += [corr]
@@ -242,12 +242,12 @@ class Session:
                 R_av_dff = []
                 for i in first:
                     # R_av_dff += [self.normalize_by_baseline(self.dff[0, i][neuron_num, :self.time_cutoff])]
-                    R_av_dff += [self.dff[0, i][neuron_num, :self.time_cutoff]]
+                    R_av_dff += [self.dff[0, i][neuron_num, 5:self.time_cutoff]]
         
                 L_av_dff = []
                 for i in last:
                     # L_av_dff += [self.normalize_by_baseline(self.dff[0, i][neuron_num, :self.time_cutoff])]
-                    L_av_dff += [self.dff[0, i][neuron_num, :self.time_cutoff]]
+                    L_av_dff += [self.dff[0, i][neuron_num, 5:self.time_cutoff]]
                     
                 corr1, p1 = mstats.pearsonr(np.mean(L_av_dff, axis = 0), np.mean(R_av_dff,axis=0))
                 
@@ -759,19 +759,26 @@ class Session:
             raise Exception("Neuron {} has fewer than 15 trials in R or L lick trials".format(neuron_num))
             return 0
         
-        # Pick 20 random trials as screen for left and right
-        screen_l = np.random.choice(l_trials, size = samplesize, replace = False)
-        screen_r = np.random.choice(r_trials, size = samplesize, replace = False)
-    
-        # Remainder of trials are left for plotting in left and right separately
-        test_l = [t for t in l_trials if t not in screen_l]
-        test_r = [t for t in r_trials if t not in screen_r]
+        pref = 0
+        for _ in range(30): # Perform 30 times
+            
+            # Pick 20 random trials as screen for left and right
+            screen_l = np.random.choice(l_trials, size = samplesize, replace = False)
+            screen_r = np.random.choice(r_trials, size = samplesize, replace = False)
         
-        # Compare late delay epoch for preference
-        avg_l = np.mean([np.mean(L[i][epoch]) for i in screen_l])
-        avg_r = np.mean([np.mean(R[i][epoch]) for i in screen_r])
+            # Remainder of trials are left for plotting in left and right separately
+            test_l = [t for t in l_trials if t not in screen_l]
+            test_r = [t for t in r_trials if t not in screen_r]
+            
+            # Compare late delay epoch for preference
+            avg_l = np.mean([np.mean(L[i][epoch]) for i in screen_l])
+            avg_r = np.mean([np.mean(R[i][epoch]) for i in screen_r])
     
-        return avg_l > avg_r, test_l, test_r
+            pref += avg_l > avg_r
+        
+        choice = True if pref/30 > 0.5 else False
+        # return avg_l > avg_r, test_l, test_r
+        return choice, l_trials, r_trials
 
     def plot_selectivity(self, neuron_num, plot=True, epoch=range(21,28)):
         
@@ -1692,16 +1699,18 @@ class Session:
         plt.show()
 
 
-    def selectivity_optogenetics(self, save=False):
+    def selectivity_optogenetics(self, save=False, p = 0.0001):
         
         f, axarr = plt.subplots(1,1, sharex='col', figsize=(5,5))
         
         x = np.arange(-5.97,4,0.2)[:self.time_cutoff] if 'CW030' not in self.path else np.arange(-7.97,4,0.2)[:self.time_cutoff]
 
         # Get late delay selective neurons
-        contra_neurons, ipsi_neurons, contra_trace, ipsi_trace = self.contra_ipsi_pop(range(self.response-9,self.response), p = 0.001) 
+        contra_neurons, ipsi_neurons, contra_trace, ipsi_trace = self.contra_ipsi_pop(range(self.response-9,self.response), p=p) 
+        
         
         if len(contra_neurons) == 0:
+            
             
             nonpref, pref = cat(ipsi_trace['r']), cat(ipsi_trace['l'])
             optonp, optop = self.get_trace_matrix_multiple(ipsi_neurons, opto=True, both=True)
@@ -1747,16 +1756,17 @@ class Session:
                   sel + err,
                   color=['darkgray'])
         
-        axarr.plot(x, selo, 'b-')
+        axarr.plot(x, selo, 'r-')
                 
         axarr.fill_between(x, selo - erro, 
                   selo + erro,
-                  color=['#b4b2dc'])       
+                  color=['#ffaeb1'])       
         
         axarr.axvline(-4.3, color = 'grey', alpha=0.5, ls = '--')
         axarr.axvline(-3, color = 'grey', alpha=0.5, ls = '--')
         axarr.axvline(0, color = 'grey', alpha=0.5, ls = '--')
-        
+        axarr.hlines(y=max(cat((selo, sel))), xmin=-3, xmax=-2, linewidth=10, color='red')
+
         axarr.set_title('Optogenetic effect on selectivity')                  
         axarr.set_xlabel('Time from Go cue (s)')
         axarr.set_ylabel('Selectivity')

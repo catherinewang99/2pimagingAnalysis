@@ -408,7 +408,9 @@ class Behavior():
         plt.show()
         
         
+    def plot_controlvsopto(self):
         
+        return
         
         
         

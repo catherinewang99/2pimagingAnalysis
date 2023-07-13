@@ -33,7 +33,7 @@ path = r'F:\data\BAYLORCW021\python\2023_04_27'
 # path = r'F:\data\BAYLORCW021\python\2023_02_08'
 # path = r'F:\data\BAYLORCW030\python\2023_07_03'
 
-# path = r'F:\data\BAYLORCW030\python\2023_07_07'
+path = r'F:\data\BAYLORCW030\python\2023_06_03'
 
 l1 = session.Session(path)
 # l1 = decon.Deconvolved(path)
