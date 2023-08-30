@@ -1,7 +1,7 @@
 # 2pimagingAnalysis
 Repository to store code I write to analyze my two-photon calcium imaging data
 
-## Functions in session.py
+## Functions in class Session
 
 | Pre-processing functions        ||
 | ----------- | ----------- |
@@ -31,14 +31,14 @@ Repository to store code I write to analyze my two-photon calcium imaging data
 | plot_PSTH | Plots single neuron PSTH over R/L trials |
 | plot_single_trial_PSTH | Plots single neuron PSTH on a single trial |
 | plot_population_PSTH | Plots many neurons PSTH over R/L trials |
-|
+| plot_selectivity | Plots a single line representing selectivity of given neuron over trial |
 
 
 | Selectivity functions  ||
 | ------------ | ---------------|
 | get_epoch_selective | Identifies neurons that are selective in a given epoch |
 | screen_preference | Determine if a neuron is left or right preferring |
-
+| contra_ipsi_pop | 
 
 
 
