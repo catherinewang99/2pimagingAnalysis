@@ -10,6 +10,11 @@ Repository to store code I write to analyze my two-photon calcium imaging data
 |get_pearsonscorr_neuron | Filters neurons based on the consistency of their signal|
 | plot_mean_F | Plots mean F for all neurons over trials in session |
 |crop_trials | Removes trials from i_good_trials based on inputs |
+| normalize_all_by_neural_baseline | Normalize all neurons by each neuron's trial-averaged F0 | 
+|normalize_all_by_baseline |  Normalize all neurons by each neuron's F0 on each trial |
+| normalize_by_histogram | Normalize all neurons by each neuron's F0 based on bottom quantile over all trials |
+|normalize_all_by_histogram | Normalize all neurons by each neuron's F0 based on bottom quantile for each trial |
+|normalize_z_score  | Z-score normalizes all neurons traces |
 
 
 | Data organization functions  ||
@@ -21,6 +26,19 @@ Repository to store code I write to analyze my two-photon calcium imaging data
 | get_trace_matrix_multiple |Returns matrices of dF/F0 traces averaged over right/left trials of multiple neurons |
 
 
+| Plotting functions  ||
+| ------------ | ---------------|
+| plot_PSTH | Plots single neuron PSTH over R/L trials |
+| plot_single_trial_PSTH | Plots single neuron PSTH on a single trial |
+| plot_population_PSTH | Plots many neurons PSTH over R/L trials |
+|
+
+
+| Selectivity functions  ||
+| ------------ | ---------------|
+| get_epoch_selective | Identifies neurons that are selective in a given epoch |
+| screen_preference | Determine if a neuron is left or right preferring |
+
 
 
 
@@ -28,3 +46,4 @@ Repository to store code I write to analyze my two-photon calcium imaging data
 Unused/broken functions:
 - crop_baseline
 - reject_outliers
+- normalize_by_baseline
