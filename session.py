@@ -1023,6 +1023,7 @@ class Session:
         return choice, l_trials, r_trials
 
     def plot_selectivity(self, neuron_num, plot=True, epoch=[]):
+        
         """Plots a single line representing selectivity of given neuron over trial
         
         Evaluates the selectivity using preference in delay epoch
@@ -1067,21 +1068,33 @@ class Session:
         
         """Finds neurons that are left and right preferring 
         
-        Evaluates the selectivity using preference in delay epoch
+        Returns as contra / ipsi but imaging hemisphere is always left side
         
         Parameters
         ----------
-        neuron_num : int
-            Neuron to plot
-        plot : bool, optional
-            Whether to plot or not (default True)
-        epoch : list, optional
-            Timesteps to evaluate preference and selectivity over (default empty list)
+        epoch : list
+            Timesteps over which to identify selective neurons
+        return_sel : bool, optional
+            Whether to return selectivity array at end (default False)
+        selective_n : list, optional
+            List of pre-selected selective neurons (default empty list)
+        p : int, optional
+            p-value to use to evaluate selectivity (default 0.0001)
             
         Returns
         -------
-        list
-            Selectivity calculated and plotted
+        contra_neurons, ipsi_neurons : list
+            List of contra and ipsi selective neurons
+        contra_LR, ipsi_LR : dict
+            Dictionary of left/right trials traces stored as list of lists for 
+            each neuron included
+                
+            OR
+            
+        list 
+            Selectivity trace
+        error : list
+            Error margin
         """
         # Returns the neuron ids for contra and ipsi populations
         n = self.get_epoch_selective(epoch, p=0.01) if self.sample in epoch else self.get_epoch_selective(epoch, p=p)
@@ -1149,11 +1162,20 @@ class Session:
             return contra_neurons, ipsi_neurons, contra_LR, ipsi_LR
     
     def plot_contra_ipsi_pop(self, e=False, bias=False, filter_dendrites = False):
+        """Plots contra and ipsi preferring neurons' traces in two plots
         
-        """
-        filter_dendrites: somas.npy file generated in separate notebook with 
-                            neuron IDs that correspond to somas; (6xn) array
-        
+                
+        Parameters
+        ----------
+        e : list, optional
+            Timesteps over which to identify selective neurons (default False)
+            Default is to use delay period if False
+        bias : bool, optional
+            Whether to use biased trials or not (default False)
+        filter_dendrites : numpy array or bool, optional
+            If provided, list of neuron IDs corresponding to somas only 
+            (default False)
+
         """
         
         x = np.arange(-5.97,4,0.2)[:self.time_cutoff]
@@ -1239,6 +1261,23 @@ class Session:
             print('No contra selective neurons')
             
     def plot_prefer_nonprefer(self, e=False, bias=False):
+        """Plots preferred and nonpreferred traces for all selective neurons in one graph
+        
+        TODO: add filter_dendrites variable in
+                
+        Parameters
+        ----------
+        e : list or bool, optional
+            Timesteps over which to identify selective neurons (default False)
+            Default is to use delay period if False
+        bias : bool, optional
+            Whether to use biased trials or not (default False)
+        filter_dendrites : numpy array or bool, optional
+            If provided, list of neuron IDs corresponding to somas only 
+            (default False)
+
+        """
+        
         x = np.arange(-5.97,4,0.2)[:self.time_cutoff]
 
         epoch = e if e != False else range(self.delay, self.response)
@@ -1301,7 +1340,22 @@ class Session:
         plt.show()
 
     def plot_prefer_nonprefer_sidebyside(self, e=False):
-            
+        
+        """Plots preferred and nonpreferred traces for all selective neurons in control vs bias trials
+        
+        TODO: add filter_dendrites and bias_trials variable in
+                
+        Parameters
+        ----------
+        e : list or bool, optional
+            Timesteps over which to identify selective neurons (default False)
+            Default is to use delay period if False
+        filter_dendrites : numpy array or bool, optional
+            If provided, list of neuron IDs corresponding to somas only 
+            (default False)
+
+        """
+        
         x = np.arange(-5.97,4,0.2)[:self.time_cutoff]
         f, axarr = plt.subplots(1,2, sharex=True, sharey=True, figsize=(20,7))
 
@@ -1377,6 +1431,21 @@ class Session:
         axarr[0].set_ylabel('Population trace')
 
     def plot_pref_overstates(self, e=False, opto=False):
+        
+        """Plots preferred and nonpreferred traces for all selective neurons across 3 behavioral states and control
+        
+        Non states defined as trials not above a certain probability for any of 3 states
+                        
+        Parameters
+        ----------
+        e : list or bool, optional
+            Timesteps over which to identify selective neurons (default False)
+            Default is to use delay period if False
+        opto : bool, optional
+            Whether to plot opto trials (default False)
+
+        """
+        
         x = np.arange(-5.97,4,0.2)[2:self.time_cutoff] if 'CW030' not in self.path else np.arange(-7.97,4,0.2)[2:self.time_cutoff]
         f, axarr = plt.subplots(1,4, sharex=True, sharey=True, figsize=(20,5))
         titles = ['Non state selectivity', 'State 1 selectivity', 'State 2 selectivity', 'State 3 selectivity']
@@ -1456,7 +1525,20 @@ class Session:
         axarr[0].set_ylabel('Population trace')
         
     def plot_selectivity_overstates(self, e=False, opto=False):
+        """Plots selectivity traces for all selective neurons across 3 behavioral states and control in one graph
+        
+        Non states defined as trials not above a certain probability for any of 3 states
+                        
+        Parameters
+        ----------
+        e : list or bool, optional
+            Timesteps over which to identify selective neurons (default False)
+            Default is to use delay period if False
+        opto : bool, optional
+            Whether to plot opto trials (default False)
 
+        """
+        
         x = np.arange(-5.97,4,0.2)[2:self.time_cutoff] if 'CW030' not in self.path else np.arange(-7.97,4,0.2)[2:self.time_cutoff]
         # f, axarr = plt.subplots(1,4, sharex=True, sharey=True, figsize=(20,5))
         titles = ['Non state selectivity', 'State 1 selectivity', 'State 2 selectivity', 'State 3 selectivity']
@@ -1532,7 +1614,19 @@ class Session:
         plt.show()
         
     def plot_individual_raster(self, neuron_num):
+        """Plots greyscale heatmap-style graph of a single neuron across all trials
+                                
+        Parameters
+        ----------
+        neuron_num : int
+            Neuron number to be plotted
         
+        Returns
+        -------
+        numpy matrix
+            Traces from all trials for given neuron
+
+        """
                 
         trace = [self.dff[0, t][neuron_num, :self.time_cutoff] for t in range(self.num_trials)]
 
@@ -1545,6 +1639,21 @@ class Session:
         return trace
         
     def plot_left_right_raster(self, neuron_num, opto=False):
+        """Plots greyscale heatmap-style graph of a single neuron right trials then left trials
+                                
+        Parameters
+        ----------
+        neuron_num : int
+            Neuron number to be plotted
+        opto : bool, optional
+            Whether to plot optogenetic trials or not
+        
+        Returns
+        -------
+        numpy matrix
+            Traces from all trials for given neuron organized right then left trials
+
+        """
         
         r, l = self.get_trace_matrix(neuron_num)
         if opto:
@@ -1563,8 +1672,19 @@ class Session:
         
     
     def filter_by_deltas(self, neuron_num):
+        """Filters out neurons with low variance across trials
+                                
+        Parameters
+        ----------
+        neuron_num : int
+            Neuron number to be evaluated
         
-        # Filters out neurons with low variance across trials
+        Returns
+        -------
+        bool
+            True if keep, False if discard
+
+        """
         
         r, l = self.get_trace_matrix(neuron_num)
         
@@ -1579,7 +1699,18 @@ class Session:
             return False
         
     def plot_raster_and_PSTH(self, neuron_num, opto=False, bias=False):
-
+        """Plot heatmap then averaged L/R trace for a single neuron
+                                
+        Parameters
+        ----------
+        neuron_num : int
+            Neuron number to be evaluated
+        opto : bool, optional
+            Whether to plot optogenetic trials or not (default False)
+        bias: bool, optional
+            Whether to plot bias trials (default False)
+            
+        """
         if not opto:
             R, L = self.get_trace_matrix(neuron_num)
             r, l = self.get_trace_matrix(neuron_num)
@@ -1637,7 +1768,17 @@ class Session:
         
 
     def plot_rasterPSTH_sidebyside(self, neuron_num, bias=False):
-        
+        """Plot heatmap then averaged L/R trace for a single neuron comparing control and opto trials
+                                
+        Parameters
+        ----------
+        neuron_num : int
+            Neuron number to be evaluated
+        opto : bool, optional
+            Whether to plot optogenetic trials or not (default False)
+        bias: bool, optional
+            Whether to plot bias trials (default False)
+        """
         if bias:
             bias_trials = self.find_bias_trials()
             R, L = self.get_trace_matrix(neuron_num, bias_trials=bias_trials, non_bias=True)
@@ -1739,6 +1880,13 @@ class Session:
 ### EPHYS PLOTS TO MY DATA ###
 
     def plot_number_of_sig_neurons(self, save=False):
+        """Plots number of contra / ipsi neurons over course of trial
+                                
+        Parameters
+        ----------
+        save : bool, optional
+            Whether to save fig to file (default False)
+        """
         
         contra = np.zeros(self.time_cutoff)
         ipsi = np.zeros(self.time_cutoff)
@@ -1796,11 +1944,15 @@ class Session:
         plt.show()
         
     def selectivity_table_by_epoch(self, save=False):
-        
-        # Plots fractions of contra/ipsi neurons and their overall trace
+        """Plots table of L/R traces of selective neurons over three epochs and contra/ipsi population proportions
+                                
+        Parameters
+        ----------
+        save : bool, optional
+            Whether to save fig to file (default False)
+        """
 
         f, axarr = plt.subplots(4,3, sharex='col', figsize=(14, 12))
-        # epochs = [range(self.time_cutoff), range(8,14), range(19,28), range(29,self.time_cutoff)]
         epochs = [range(self.time_cutoff), range(self.sample, self.delay), range(self.delay, self.response), range(self.response, self.time_cutoff)]
 
         x = np.arange(-5.97,6,0.2)[:self.time_cutoff]
@@ -1899,6 +2051,13 @@ class Session:
         plt.show()
 
     def plot_three_selectivity(self,save=False):
+        """Plots selectivity traces over three epochs and number of neurons in each population
+                                
+        Parameters
+        ----------
+        save : bool, optional
+            Whether to save fig to file (default False)
+        """
         
         f, axarr = plt.subplots(1,5, sharex='col', figsize=(21,5))
         
@@ -1951,7 +2110,14 @@ class Session:
         
         plt.show()
         
-    def population_sel_timecourse(self, save=True):
+    def population_sel_timecourse(self, save=False):
+        """Plots selectivity traces over three periods and number of neurons in each population
+                                
+        Parameters
+        ----------
+        save : bool, optional
+            Whether to save fig to file (default False)
+        """
         
         f, axarr = plt.subplots(2, 1, sharex='col', figsize=(20,15))
         epochs = [range(14,28), range(21,self.time_cutoff), range(29,self.time_cutoff)]
@@ -2001,6 +2167,17 @@ class Session:
 
 
     def selectivity_optogenetics(self, save=False, p = 0.0001):
+        """Plots overall selectivity trace across opto vs control trials
+        
+        Uses late delay epoch to calculate selectivity
+                                
+        Parameters
+        ----------
+        save : bool, optional
+            Whether to save fig to file (default False)
+        p : int, optional
+            P-value to use in the selectivity calculations
+        """
         
         f, axarr = plt.subplots(1,1, sharex='col', figsize=(5,5))
         
@@ -2111,6 +2288,21 @@ class Session:
         
         
     def single_neuron_sel(self, type):
+        """Plots proportion of stim/lick/reward/mixed cells over trial using two different methods
+        
+        Inputs are 'Chen 2017' or 'Susu method'
+                                
+        Parameters
+        ----------
+        type : str
+            'Chen 2017' or 'Susu method' to indicate which paper figure to replicate
+            
+        Returns 
+        -------
+        list (4)
+            Neurons belong to stim/lick/reward/mixed categories
+
+        """
         
         def mean_count(XX, timebin):
             
@@ -2258,7 +2450,11 @@ class Session:
             return stim_neurons, choice_neurons, action_neurons, outcome_neurons
 
     def stim_choice_outcome_selectivity(self):
+        """Plots selectivity traces of stim/lick/reward/mixed cells using Susu's method
         
+        Susu method called from single_neuron_sel method
+
+        """
         stim_neurons, choice_neurons, _, outcome_neurons = self.single_neuron_sel('Susu method')
         
         stim_sel, outcome_sel, choice_sel = [], [], []
@@ -2329,9 +2525,32 @@ class Session:
         plt.show()
         return stim_neurons, choice_neurons, outcome_neurons, stim_sel, choice_sel, outcome_sel
 
+######### BEHAVIOR STATE FUNCTIONS #################
 
     def find_bias_trials(self, glmhmm=True, sampling='confidence', state=0):
+        """Finds trials belonging to behavioral states calculated via the GLM-HMM or other method
         
+        Two options to calculate the bias trials: in-house calculations based on
+        correct vs incorrect trials (first code block), or using inputted GLM-HMM
+        results saved in external file. 
+        
+        Parameters
+        ----------
+        glmhmm : bool, optional
+            Whether to use GLM-HMM results to identify bias trials (default True)
+        sampling : str, optional
+            How to sample trials from GLM-HMM results; use only high confidence
+            or high probability trials, or to use random sampling method
+            (default 'confidence')
+        state : int, optional
+            Usually read in using built in path (default 0)
+            
+        Returns 
+        -------
+        list
+            Bias trials as calculated in function
+
+        """
         self.correct_trials = self.L_correct + self.R_correct
         self.instructed_side = self.L_correct + self.L_wrong # 1 if left, 0 if right trial
         
@@ -2373,7 +2592,7 @@ class Session:
                         non += [i] # Trials where top state is less than 60% confidence
             else:
                 for i in range(states.shape[0]):
-                    st += [np.random.choice([0, 1, 2], p=states[i])]
+                    st += [np.random.choice([0, 1, 2], p=states[i])] # sample according to probability
             
             inds = np.where(np.array(st) == state)[0] # Grab specific state (0,1,2)
             bias_trials = self.old_i_good_trials[inds]
