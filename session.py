@@ -23,8 +23,36 @@ from scipy.stats import mannwhitneyu
 from scipy.stats import mstats
 
 class Session:
+    """
+    A class used to store and process two photon imaging data alongside
+    behavior data
+ 
+    ...
+ 
+    Attributes
+    ----------
+
+ 
+    Methods
+    -------
+
+    """
+    
     
     def __init__(self, path, layer_num='all', guang=False, passive=False):
+        
+        """
+        Parameters
+        ----------
+        path : str
+            Path to the folder containing layers.mat and behavior.mat files
+        layer_num : str or int, optional
+            Layer number to analyze (default is all the layers)
+        guang : bool, optional
+            Boolean indicating is Guang's data is being used (default False)
+        passive : bool, optional
+            If dataset is from passive experiment (default False)
+        """        
         
         if layer_num != 'all':
             
@@ -130,7 +158,20 @@ class Session:
 
         
     def crop_baseline(self):
-        # BROKEN :()
+        """Crops baseline out of trial data
+
+        To deal with transient activation problem, this function will crop out 
+        the extra long baseline period (2.5 seconds)
+
+        Raises
+        ------
+        NotImplementedError
+            If function isn't implemented
+        
+        """        
+        broken = True
+        if broken:
+            raise NotImplementedError("Baseline cropping not implemented!")
         
         dff = copy.deepcopy(self.dff)
         dff_copy = np.array([]).reshape(1,-1)
@@ -163,6 +204,14 @@ class Session:
         
     def determine_cutoff(self):
         
+        """Finds the shortest trial length out of all trials
+    
+        Returns
+        -------
+        int
+            int corresponding to the length of shortest trial in whole session
+        """
+        
         cutoff = 1e10
         
         for t in range(self.num_trials):
@@ -176,14 +225,26 @@ class Session:
         return cutoff
     
     def find_low_mean_F(self, cutoff = 50):
+        """Finds and crop low F trials that correspond to water leaks
         
+        Calls crop_trials if there are water leak trials
+        
+        Parameters
+        ----------
+        cutoff : int, optional
+            Limit for F value to be cropped (default 50)
+        
+        Returns
+        -------
+        int
+            0/1 for no water leak or has water leak
+        """
         # Usual cutoff is 50
         # Reject outliers based on medians
         meanf = np.array([])
         for trial in range(self.num_trials):
             meanf = np.append(meanf, np.mean(cat(self.dff[0, trial])))
         
-        med = np.median(meanf) # median approach
         
         trial_idx = np.where(meanf < cutoff)[0]
         
@@ -198,7 +259,20 @@ class Session:
             return 1
         
     def reject_outliers(data, m = 2.):
+        """Rejects outliers below some standard deviation
         
+        Parameters
+        ----------
+        data : array
+            Array of numbers from which to crop out outliers
+        m : int, optional
+            Standard deviation cutoff (default 2)
+        
+        Returns
+        -------
+        array
+            Cropped array from input variable data
+        """
         d = np.abs(data - np.median(data))
         mdev = np.median(d)
         s = d/mdev if mdev else np.zero(len(d))
@@ -206,8 +280,25 @@ class Session:
         return data[s<m]
     
     def get_pearsonscorr_neuron(self, cutoff = 0.7):
+        """Filters neurons based on the consistency of their signal
         
-        # Only returns neurons that have a consistent trace over all trials
+        Only returns neurons that have a consistent trace over all trials
+        comparing across even/odd and first/last 100 trials with a Pearson's 
+        correlation test
+
+        Parameters
+        ----------
+        cutoff : int, optional
+            p-value cutoff to use in Pearson's correlation test
+        
+        Returns
+        -------
+        neurons : array
+            List of neurons to keep based on their high signal consistency
+        corr : array
+            List of correlation values for all neurons
+        """
+        
         
         neurons = []
         evens, odds = [], []
@@ -259,8 +350,10 @@ class Session:
         return neurons, corrs
     
     def plot_mean_F(self):
-        
-        # Plots mean F for all neurons over trials in session
+        """Plots mean F for all neurons over trials in session
+
+        Averaged over all neurons and plotted over all trials
+        """
         meanf = list()
         # for trial in range(self.num_trials):
         for trial in self.i_good_trials:
@@ -271,7 +364,24 @@ class Session:
         plt.show()
 
     def crop_trials(self, trial_num, end=False, singles = False, arr = []):
+        """Removes trials from i_good_trials based on inputs
         
+        After cropping, calls plot_mean_F and two normalizing functions
+
+        Parameters
+        ----------
+        trial_num : int or list
+            Trial number or numbers to crop out
+        end : bool or int, optional
+            If provided, together with trial_num form the start and end num of
+            trials to be cropped out (default False)
+        singles : bool, optional
+            if True, crop trials provided in arr variable (default False)
+        arr : list, optional
+            if singles is True, arr is a list of trial numbers to be cropped
+            and is usually disjointed (default empty list)
+
+        """
         # If called, crops out all trials after given trial number
         # Can optionally crop from trial_num to end indices
         
@@ -355,7 +465,19 @@ class Session:
         print('New number of good trials: {}'.format(len(self.i_good_trials)))
     
     def lick_correct_direction(self, direction):
-        ## Returns list of indices of lick left correct trials
+        """Finds trial numbers corresponding to correct lick in specified direction
+
+        Parameters
+        ----------
+        direction : str
+            'r' or 'l' indicating desired lick direction
+        
+        Returns
+        -------
+        idx : array
+            list of correct, no early lick, i_good trials licking in specified
+            direction
+        """
         
         if direction == 'l':
             idx = np.where(self.L_correct == 1)[0]
@@ -373,7 +495,19 @@ class Session:
         return idx
     
     def lick_incorrect_direction(self, direction):
-        ## Returns list of indices of lick left incorrect trials
+        """Finds trial numbers corresponding to incorrect lick in specified direction
+
+        Parameters
+        ----------
+        direction : str
+            'r' or 'l' indicating desired lick direction
+        
+        Returns
+        -------
+        idx : array
+            list of incorrect, no early lick, i_good trials licking in specified
+            direction
+        """
         
         if direction == 'l':
             idx = np.where(self.L_wrong == 1)[0]
@@ -391,6 +525,22 @@ class Session:
         return idx
     
     def lick_actual_direction(self, direction):
+        """Finds trial numbers corresponding to an actual lick direction
+        
+        Filters out early lick and non i_good trials but includes correct and 
+        error trials
+
+        Parameters
+        ----------
+        direction : str
+            'r' or 'l' indicating desired lick direction
+        
+        Returns
+        -------
+        idx : array
+            list of trials corresponding to specified lick direction
+        """
+        
         ## Returns list of indices of actual lick left/right trials
         
         if direction == 'l':
@@ -410,9 +560,39 @@ class Session:
     
     def get_trace_matrix(self, neuron_num, error=False, bias_trials = [], non_bias=False, both=False, lickdir=False, opto=False):
         
-        ## Returns matrix of all trial firing rates of a single neuron for lick left
-        ## and lick right trials. Firing rates are normalized with individual trial
-        ## baselines as well as overall firing rate z-score normalized.
+        """Returns matrices of dF/F0 traces over right/left trials of a single neuron
+        
+        Two matrices for right and left trials respectively. Opto trials are
+        filtered out by default.
+
+        Parameters
+        ----------
+        neuron_num : int
+            Neuron number to get matrix from 
+        error : bool, optional
+            Indicates if correct or incorrect trials wanted (default False)
+        bias_trials :  list, optional
+            List of bias trials that are used to build matrix (default empty list)
+        non_bias : bool, optional
+            If True, returns all trials NOT in previous bias_trials variable
+            (default False)
+        both : bool, optional,
+            If True, returns both correct and incorrect trials, sorted by 
+            instructed lick direction (default False)
+        lickdir : bool, optional
+            If True, returns matrix R/L based on actual lick direction instead
+            of instructed (default False)
+        opto : bool, optional
+            If True, returns only the optogenetic stimulation trials. Otherwise,
+            only returns the control trials. (default False)
+            
+        Returns
+        -------
+        R_av_dff, L_av_dff : list of lists
+            Two lists of dF/F0 traces over all right and left trials
+        """
+        
+
         if lickdir:
             R,L = self.lick_actual_direction('r'), self.lick_actual_direction('l')
         else:
@@ -468,40 +648,44 @@ class Session:
             
         return R_av_dff, L_av_dff
     
-    def get_opto_trace_matrix(self, neuron_num, error=False):
-        
-        
-        right_trials = self.lick_correct_direction('r')
-        left_trials = self.lick_correct_direction('l')
-        
-        if error:
-            right_trials = self.lick_incorrect_direction('r')
-            left_trials = self.lick_incorrect_direction('l')
-        
-        # Filter for opto trials
-        right_trials = [r for r in right_trials if self.stim_ON[r]]
-        left_trials = [r for r in left_trials if self.stim_ON[r]]
 
-        
-        R_av_dff = []
-        for i in right_trials:
-            
-            R_av_dff += [self.dff[0, i][neuron_num, :self.time_cutoff]]
-        
-        L_av_dff = []
-        for i in left_trials:
-
-            L_av_dff += [self.dff[0, i][neuron_num, :self.time_cutoff]]
-            
-        
-            
-        return R_av_dff, L_av_dff
     
-    def get_trace_matrix_multiple(self, neuron_nums, opto=False, error=False, both=False, bias_trials = [], non_bias=False, lickdir=False):
+    def get_trace_matrix_multiple(self, neuron_nums, error=False, bias_trials = [], non_bias=False, both=False, lickdir=False, opto=False):
         
-        ## Returns matrix of average firing rates of a list of neurons for lick left
-        ## and lick right trials. Firing rates are normalized with individual trial
-        ## baselines as well as overall firing rate z-score normalized.
+       
+        """Returns matrices of dF/F0 traces averaged over right/left trials of multiple neurons
+        
+        Two matrices for right and left trials respectively. Opto trials are
+        filtered out by default. Different than get_trace_matrix because it grabs
+        multiple neurons at once.
+
+        Parameters
+        ----------
+        neuron_nums : list
+            List of neuron numbers to get matrix from 
+        error : bool, optional
+            Indicates if correct or incorrect trials wanted (default False)
+        bias_trials :  list, optional
+            List of bias trials that are used to build matrix (default empty list)
+        non_bias : bool, optional
+            If True, returns all trials NOT in previous bias_trials variable
+            (default False)
+        both : bool, optional,
+            If True, returns both correct and incorrect trials, sorted by 
+            instructed lick direction (default False)
+        lickdir : bool, optional
+            If True, returns matrix R/L based on actual lick direction instead
+            of instructed (default False)
+        opto : bool, optional
+            If True, returns only the optogenetic stimulation trials. Otherwise,
+            only returns the control trials. (default False)
+            
+        Returns
+        -------
+        R, L : array of lists
+            Two array of dF/F0 traces of length = number of neurons
+            over all right and left trials
+        """
                 
         R, L = [], []
         
@@ -513,36 +697,7 @@ class Session:
                                                        both=both, 
                                                        lickdir=lickdir,
                                                        opto=opto)
-
-            # if both:
-            #     right_trials = cat((self.lick_correct_direction('r'), self.lick_incorrect_direction('r')))
-            #     left_trials = cat((self.lick_correct_direction('l'), self.lick_incorrect_direction('l')))
-            
-            # elif not error:
-            #     right_trials = self.lick_correct_direction('r')
-            #     left_trials = self.lick_correct_direction('l')
-            # elif error:
-            #     right_trials = self.lick_incorrect_direction('r')
-            #     left_trials = self.lick_incorrect_direction('l')
-                
-            # # Filter out opto trials
-            # if not opto:
-            #     right_trials = [r for r in right_trials if not self.stim_ON[r]]
-            #     left_trials = [r for r in left_trials if not self.stim_ON[r]]
-            # elif opto:
-            #     right_trials = [r for r in right_trials if self.stim_ON[r]]
-            #     left_trials = [r for r in left_trials if self.stim_ON[r]]           
-                
-            
-            # R_av_dff = []
-            # for i in right_trials:
-            #     # R_av_dff += [self.normalize_by_baseline(self.dff[0, i][neuron_num, :self.time_cutoff])]
-            #     R_av_dff += [self.dff[0, i][neuron_num, :self.time_cutoff]]
-    
-            # L_av_dff = []
-            # for i in left_trials:
-            #     # L_av_dff += [self.normalize_by_baseline(self.dff[0, i][neuron_num, :self.time_cutoff])]
-            #     L_av_dff += [self.dff[0, i][neuron_num, :self.time_cutoff]]
+ 
             
             R += [np.mean(R_av_dff, axis = 0)]
             L += [np.mean(L_av_dff, axis = 0)]
@@ -551,7 +706,18 @@ class Session:
 
     def plot_PSTH(self, neuron_num, opto = False):
         
-        ## Plots single neuron PSTH for R/L trials
+        """Plots single neuron PSTH over R/L trials
+        
+        Right trials plotted in blue, left in red.
+
+        Parameters
+        ----------
+        neuron_num : int
+            Neuron number to plot 
+        opto : bool, optional
+            Plotting opto trials or not (default False)
+
+        """
         
         if not opto:
             R, L = self.get_trace_matrix(neuron_num)
@@ -579,14 +745,29 @@ class Session:
         plt.show()
 
     def plot_single_trial_PSTH(self, trial, neuron_num):
-        
+        """Plots single neuron PSTH on a single trial
+
+        Parameters
+        ----------
+        trial : int
+            Trial number to plot
+        neuron_num : int
+            Neuron number to plot 
+        """
         plt.plot(self.dff[0, trial][neuron_num], 'b-')
         plt.title("Neuron {}: PSTH for trial {}".format(neuron_num, trial))
         plt.show()
 
     def plot_population_PSTH(self, neurons, opto = False):
-        
-        # Returns the population average activity for L/R trials of these neurons
+        """Plots many neurons PSTH over R/L trials
+
+        Parameters
+        ----------
+        neurons : list
+            Neuron numbers to plot
+        opto : int, optional
+            If plotting opto trials (default False) 
+        """
         
         overall_R = []
         overall_L = []
@@ -621,11 +802,19 @@ class Session:
         plt.show()
 
     def normalize_by_baseline(self, trace):
+        """Normalize a list by its first 7 timesteps
         
-        # Function to normalize by first 7 time points
-        
-        # return trace
-        
+        Parameters
+        ----------
+        trace : list
+            Non descript list of more than 7 length 
+            
+        Returns
+        -------
+        list
+            Original trace after 'normalizing' step
+        """
+
         mean = np.mean(trace[:7])
         if mean == 0:
             raise Exception("Neuron has mean 0.")
@@ -633,8 +822,14 @@ class Session:
         return (trace - mean) / mean # norm by F0
     
     def normalize_all_by_neural_baseline(self):
+        """Normalize all neurons by each neuron's trial-averaged F0
         
-        # Normalize all neurons by neural trial-averaged F0
+        Calculates F0 separately for each neuron, defined by its trial-averaged
+        F for the 3 timebins preceding the sample period. F0 is then subtracted
+        and divided from each trace on each trial. Modifies self.dff directly.
+            
+        """
+        # 
         
         for i in range(self.num_neurons):
         # for i in self.good_neurons:
@@ -648,31 +843,35 @@ class Session:
                 # nmean = np.mean(self.dff[0, j][i, :7])
                 self.dff[0, j][i] = (self.dff[0, j][i] - nmean) / nmean
         
-        return None
     
     def normalize_all_by_baseline(self):
+        """Normalize all neurons by each neuron's F0 on each trial
         
-        # Normalize all neurons by individual trial-averaged F0
+        Calculates F0 separately for each neuron, defined by its F for the 3 
+        timebins preceding the sample period every trial. F0 is then subtracted
+        and divided from each trace on each trial. Modifies self.dff directly.
+            
+        """
         
-        # dff = copy.deepcopy(self.dff)
         dff = self.dff.copy()
 
         for i in range(self.num_neurons):
-        # for i in self.good_neurons:
-            
-            # nmean = np.mean([self.dff[0, t][i, :7] for t in range(self.num_trials)]).copy()
+
             
             for j in range(self.num_trials):
             # for j in self.i_good_trials:
 
                 nmean = np.mean(dff[0, j][i, self.sample-3:self.sample]) # later cutoff because of transient activation
                 self.dff[0, j][i, :] = (self.dff[0, j][i] - nmean) / nmean
-        # self.dff = dff
-        return None
 
     def normalize_by_histogram(self):
+        """Normalize all neurons by each neuron's F0 based on bottom quantile over all trials
         
-        # Normalize all neurons by individual trial-averaged F0
+        Calculates F0 separately for each neuron, defined by the bottom 10% 
+        quantile over all timebins on all trials. F0 is then subtracted
+        and divided from each trace on each trial. Modifies self.dff directly.
+            
+        """
         
         for i in range(self.num_neurons):
         # for i in self.good_neurons:
@@ -685,11 +884,15 @@ class Session:
 
                 self.dff[0, j][i] = (self.dff[0, j][i] - nmean) / nmean
         
-        return None
     
     def normalize_all_by_histogram(self):
+        """Normalize all neurons by each neuron's F0 based on bottom quantile for each trial
         
-        # Normalize all neurons by individual trial-averaged F0
+        Calculates F0 separately for each neuron, defined by the bottom 10% 
+        quantile over all timebins for each trial. F0 is then subtracted
+        and divided from each trace on each trial. Modifies self.dff directly.
+            
+        """
         
         for i in range(self.num_neurons):
                         
@@ -699,10 +902,13 @@ class Session:
 
                 self.dff[0, j][i] = (self.dff[0, j][i] - nmean) / nmean
         
-        return None
     
     def normalize_z_score(self):
+        """Z-score normalizes all neurons traces
         
+        Overall z-score normalization of all neurons over all traces.
+            
+        """
         # Normalize by mean of all neurons in layer
         
         # overall_mean = np.mean(cat([cat(i) for i in self.dff[0]])).copy()
@@ -716,14 +922,30 @@ class Session:
             for j in range(self.num_neurons):
                 self.dff[0, i][j] = (self.dff[0, i][j] - overall_mean) / std
                 
-        # self.dff = normalize(self.dff)
         
-        return None
 
     def get_epoch_selective(self, epoch, p = 0.0001, bias=False):
+        """Identifies neurons that are selective in a given epoch
+        
+        Saves neuron list in self.selective_neurons as well.
+        
+        Parameters
+        ----------
+        epoch : list
+            Range of timesteps to evaluate selectivity over
+        p : int, optional
+            P-value cutoff to be deemed selectivity (default 0.0001)
+        bias : bool, optional
+            If true, only use the bias trials to evaluate (default False)
+            
+        Returns
+        -------
+        list
+            List of neurons that are selective
+        """
         selective_neurons = []
         # for neuron in range(self.num_neurons):
-        for neuron in self.good_neurons:
+        for neuron in self.good_neurons: # Only look at non-noise neurons
             right, left = self.get_trace_matrix(neuron)
             
             if bias:
@@ -744,7 +966,27 @@ class Session:
    
     
     def screen_preference(self, neuron_num, epoch, samplesize = 10):
-
+        """Determine if a neuron is left or right preferring
+                
+        Iterate 30 times over different test batches to get a high confidence
+        estimation of neuron preference.
+        
+        Parameters
+        ----------
+        neuron_num : int
+            Neuron to screen in function
+        epoch : list
+            Timesteps over which to evaluate the preference
+        samplesize : int, optional
+            Number of trials to use in the test batch (default 10)
+            
+        Returns
+        -------
+        choice : bool
+            True if left preferring, False if right preferring
+        l_trials, r_trials : list
+            All left and right trials        
+        """
         # Input: neuron of interest
         # Output: (+) if left pref, (-) if right pref, then indices of trials to plot
         
@@ -780,7 +1022,27 @@ class Session:
         # return avg_l > avg_r, test_l, test_r
         return choice, l_trials, r_trials
 
-    def plot_selectivity(self, neuron_num, plot=True, epoch=range(21,28)):
+    def plot_selectivity(self, neuron_num, plot=True, epoch=[]):
+        """Plots a single line representing selectivity of given neuron over trial
+        
+        Evaluates the selectivity using preference in delay epoch
+        
+        Parameters
+        ----------
+        neuron_num : int
+            Neuron to plot
+        plot : bool, optional
+            Whether to plot or not (default True)
+        epoch : list, optional
+            Timesteps to evaluate preference and selectivity over (default empty list)
+            
+        Returns
+        -------
+        list
+            Selectivity calculated and plotted
+        """
+        if len(epoch) == 0:
+            epoch = range(self.delay, self.response)
         
         R, L = self.get_trace_matrix(neuron_num)
         pref, l, r = self.screen_preference(neuron_num, epoch)
@@ -803,6 +1065,24 @@ class Session:
     
     def contra_ipsi_pop(self, epoch, return_sel = False, selective_n = [], p=0.0001):
         
+        """Finds neurons that are left and right preferring 
+        
+        Evaluates the selectivity using preference in delay epoch
+        
+        Parameters
+        ----------
+        neuron_num : int
+            Neuron to plot
+        plot : bool, optional
+            Whether to plot or not (default True)
+        epoch : list, optional
+            Timesteps to evaluate preference and selectivity over (default empty list)
+            
+        Returns
+        -------
+        list
+            Selectivity calculated and plotted
+        """
         # Returns the neuron ids for contra and ipsi populations
         n = self.get_epoch_selective(epoch, p=0.01) if self.sample in epoch else self.get_epoch_selective(epoch, p=p)
         selective_neurons = n if len(selective_n) == 0 else selective_n
@@ -868,16 +1148,37 @@ class Session:
         else:
             return contra_neurons, ipsi_neurons, contra_LR, ipsi_LR
     
-    def plot_contra_ipsi_pop(self, e=False, bias=False):
+    def plot_contra_ipsi_pop(self, e=False, bias=False, filter_dendrites = False):
+        
+        """
+        filter_dendrites: somas.npy file generated in separate notebook with 
+                            neuron IDs that correspond to somas; (6xn) array
+        
+        """
+        
         x = np.arange(-5.97,4,0.2)[:self.time_cutoff]
+        x = np.arange(-5.97,4,0.2)[2:self.time_cutoff] if 'CW030' not in self.path else np.arange(-7.97,4,0.2)[2:self.time_cutoff+2]
 
         epoch = e if e != False else range(self.delay, self.response)
         
         contra_neurons, ipsi_neurons, contra_trace, ipsi_trace = self.contra_ipsi_pop(epoch)
         
+        if filter_dendrites != False:
+            
+            contra_neurons = [c for c in contra_neurons if c in filter_dendrites[self.layer_num - 1]]
+            ipsi_neurons = [c for c in ipsi_neurons if c in filter_dendrites[self.layer_num - 1]]
+
+            contra_trace['l'] = [contra_trace['l'][c] for c in range(len(contra_neurons)) if contra_neurons[c] in filter_dendrites[self.layer_num - 1]]
+            contra_trace['r'] = [contra_trace['r'][c] for c in range(len(contra_neurons)) if contra_neurons[c] in filter_dendrites[self.layer_num - 1]]
+            ipsi_trace['l'] = [ipsi_trace['l'][c] for c in range(len(ipsi_neurons)) if ipsi_neurons[c] in filter_dendrites[self.layer_num - 1]]
+            ipsi_trace['r'] = [ipsi_trace['r'][c] for c in range(len(ipsi_neurons)) if ipsi_neurons[c] in filter_dendrites[self.layer_num - 1]]
+
+
+                    
         if len(ipsi_neurons) != 0:
         
             overall_R, overall_L = ipsi_trace['r'], ipsi_trace['l']
+            print(len(ipsi_trace['l']))
             overall_R = [np.mean(overall_R[r], axis=0) for r in range(len(overall_R))]
             overall_L = [np.mean(overall_L[l], axis=0) for l in range(len(overall_L))]
             

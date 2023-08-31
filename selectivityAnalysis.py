@@ -35,7 +35,7 @@ path = r'F:\data\BAYLORCW021\python\2023_04_27'
 
 path = r'F:\data\BAYLORCW030\python\2023_07_12'
 
-l1 = session.Session(path, layer_num=6)
+l1 = session.Session(path, layer_num=2)
 # l1 = decon.Deconvolved(path)
 ## Single neuron selectivity
 
