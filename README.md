@@ -32,13 +32,30 @@ Repository to store code I write to analyze my two-photon calcium imaging data
 | plot_single_trial_PSTH | Plots single neuron PSTH on a single trial |
 | plot_population_PSTH | Plots many neurons PSTH over R/L trials |
 | plot_selectivity | Plots a single line representing selectivity of given neuron over trial |
+| plot_contra_ipsi_pop | Plots contra and ipsi preferring neurons' traces in two plots |
+| plot_prefer_nonprefer | Plots preferred and nonpreferred traces for all selective neurons in one graph |
+| plot_prefer_nonprefer_sidebyside | Plots preferred and nonpreferred traces for all selective neurons in control vs bias trials |
+| plot_pref_overstates | Plots preferred and nonpreferred traces for all selective neurons across 3 behavioral states and control |
+| plot_selectivity_overstates | Plots selectivity traces for all selective neurons across 3 behavioral states and control in one graph |
+| plot_individual_raster | Plots greyscale heatmap-style graph of a single neuron across all trials |
+| plot_left_right_raster | Plots greyscale heatmap-style graph of a single neuron right trials then left trials |
+| plot_raster_and_PSTH | Plot heatmap then averaged L/R trace for a single neuron | 
+| plot_rasterPSTH_sidebyside |  Plot heatmap then averaged L/R trace for a single neuron comparing control and opto trials |
+| plot_number_of_sig_neurons | Plots number of contra / ipsi neurons over course of trial | 
+| selectivity_table_by_epoch | Plots table of L/R traces of selective neurons over three epochs and contra/ipsi population proportions | 
+| plot_three_selectivity | Plots selectivity traces over three epochs and number of neurons in each population |
+| selectivity_optogenetics | Plots overall selectivity trace across opto vs control trials |
+| single_neuron_sel | Plots proportion of stim/lick/reward/mixed cells over trial using two different methods| 
+
+
 
 
 | Selectivity functions  ||
 | ------------ | ---------------|
 | get_epoch_selective | Identifies neurons that are selective in a given epoch |
 | screen_preference | Determine if a neuron is left or right preferring |
-| contra_ipsi_pop | 
+| contra_ipsi_pop | Finds neurons that are left and right preferring |
+
 
 
 
@@ -47,3 +64,6 @@ Unused/broken functions:
 - crop_baseline
 - reject_outliers
 - normalize_by_baseline
+- filter_by_deltas
+- population_sel_timecourse
+- 
