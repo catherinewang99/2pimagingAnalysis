@@ -1,8 +1,11 @@
 # 2pimagingAnalysis
 Repository to store code I write to analyze my two-photon calcium imaging data
 
-## Functions in class Session
+## class Session (session.py)
+Session stores most of the core pre-processing and basic analysis functions to look at a single session's neural data combined with behavioral data.
+Accompanied by selectivityAnalysis python file.
 
+### Functions
 | Pre-processing functions        ||
 | ----------- | ----------- |
 | determine_cutoff      | Finds the shortest trial length out of all trials    |
@@ -70,4 +73,20 @@ Unused/broken functions:
 - normalize_by_baseline
 - filter_by_deltas
 - population_sel_timecourse
-- 
+
+## class QC (quality.py)
+
+Accompanied by qualityAnalysis.py script.
+
+## class Mode (activityMode.py)
+
+activityMode has functions to look at population activity in terms of the various activity modes. 
+Accompanied by activity_mode_analysis.py script.
+
+### Functions
+
+## class Sample (bootstrap.py)
+
+Class used to sample neurons, trials, and sessions to do decoding analysis. Uses method outlined in Susu et al. 2023, bioArxiv. Accompanied by notebook. 
+
+## class behavior
