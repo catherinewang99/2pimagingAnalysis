@@ -3,7 +3,7 @@ Repository to store code I write to analyze my two-photon calcium imaging data
 
 ## class Session (session.py)
 Session stores most of the core pre-processing and basic analysis functions to look at a single session's neural data combined with behavioral data.
-Accompanied by selectivityAnalysis python file.
+Accompanied by selectivityAnalysis python file and plotNeurons.py file for more simple plotting. QCwithGuangdata.py also uses session to compare datasets.
 
 ### Functions
 | Pre-processing functions        ||
@@ -84,9 +84,16 @@ activityMode has functions to look at population activity in terms of the variou
 Accompanied by activity_mode_analysis.py script.
 
 ### Functions
+test
 
 ## class Sample (bootstrap.py)
 
-Class used to sample neurons, trials, and sessions to do decoding analysis. Uses method outlined in Susu et al. 2023, bioArxiv. Accompanied by notebook. 
+Class used to sample neurons, trials, and sessions to do decoding analysis. Uses method outlined in Susu et al. 2023, bioArxiv. Accompanied by notebook and decodingAnalysis.py. 
+
+## class Deconvolved (decon.py)
+
+Replicate Session analysis on deconvolved data using OASIS method.
 
 ## class behavior
+
+Track behavioral progress and other purely behavioral measures. Accompanied by behaviorProgress.py script.
