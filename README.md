@@ -74,6 +74,13 @@ Unused/broken functions:
 - filter_by_deltas
 - population_sel_timecourse
 
+- 
+## class Multisession (multisession.py)
+
+Reads in multiple sessions and stores them in a dictionary of session objects.
+
+
+
 ## class QC (quality.py)
 
 Accompanied by qualityAnalysis.py script.
