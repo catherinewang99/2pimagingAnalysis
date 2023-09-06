@@ -39,7 +39,7 @@ class Session:
     """
     
     
-    def __init__(self, path, layer_num='all', guang=False, passive=False):
+    def __init__(self, path, layer_num='all', sess_reg = False, guang=False, passive=False):
         
         """
         Parameters
@@ -48,6 +48,9 @@ class Session:
             Path to the folder containing layers.mat and behavior.mat files
         layer_num : str or int, optional
             Layer number to analyze (default is all the layers)
+        sess_reg : str or bool, optional
+            Path to .npy file containing the registered neurons only. 
+            Usually, this means only one layer. TBC. (default False)
         guang : bool, optional
             Boolean indicating is Guang's data is being used (default False)
         passive : bool, optional
@@ -152,10 +155,10 @@ class Session:
                 self.normalize_z_score()    
 
 
-
-        self.good_neurons, _ = self.get_pearsonscorr_neuron()
-        # self.num_neurons = len(self.good_neurons)
-
+        if sess_reg == False:
+            self.good_neurons, _ = self.get_pearsonscorr_neuron()
+        else:
+            self.good_neurons = sess_reg
         
     def crop_baseline(self):
         """Crops baseline out of trial data
