@@ -48,8 +48,8 @@ class Session:
             Path to the folder containing layers.mat and behavior.mat files
         layer_num : str or int, optional
             Layer number to analyze (default is all the layers)
-        sess_reg : str or bool, optional
-            Path to .npy file containing the registered neurons only. 
+        sess_reg : bool, optional
+            Reads in .npy file containing the registered neurons only. 
             Usually, this means only one layer. TBC. (default False)
         guang : bool, optional
             Boolean indicating is Guang's data is being used (default False)
@@ -81,6 +81,9 @@ class Session:
                         for t in range(self.num_trials):
                             add = layer['dff'][0, t]
                             self.dff[0, t] = np.vstack((self.dff[0, t], add))
+            if sess_reg != False:
+                raise NotImplementedError("Multi plane reg not implemented!")
+
                         
         
         behavior = scio.loadmat(r'{}\behavior.mat'.format(path))
@@ -155,10 +158,10 @@ class Session:
                 self.normalize_z_score()    
 
 
-        if sess_reg == False:
+        if not sess_reg:
             self.good_neurons, _ = self.get_pearsonscorr_neuron()
         else:
-            self.good_neurons = sess_reg
+            self.good_neurons = np.load(path + r'\registered_neurons.npy')
         
     def crop_baseline(self):
         """Crops baseline out of trial data
@@ -1450,16 +1453,19 @@ class Session:
         """
         
         x = np.arange(-5.97,4,0.2)[2:self.time_cutoff] if 'CW030' not in self.path else np.arange(-7.97,4,0.2)[2:self.time_cutoff]
-        f, axarr = plt.subplots(1,4, sharex=True, sharey=True, figsize=(20,5))
-        titles = ['Non state selectivity', 'State 1 selectivity', 'State 2 selectivity', 'State 3 selectivity']
+        titles = ['Non state selectivity', 'State 1 selectivity', 'State 2 selectivity', 'State 3 selectivity', 'State 4 selectivity']
         epoch = e if e != False else range(self.delay, self.response)
+        states = np.load(r'{}\states.npy'.format(self.path))
+        num_state = states.shape[1]
         
+        f, axarr = plt.subplots(1,num_state + 1, sharex=True, sharey=True, figsize=(20,5))
+
         contra_neurons, ipsi_neurons, contra_trace, ipsi_trace = self.contra_ipsi_pop(epoch)
         
         pref, nonpref = [], []
         preferr, nonpreferr = [], []
 
-        for i in range(4):       
+        for i in range(num_state + 1):       
             
             if len(ipsi_neurons) != 0:
             
@@ -1544,15 +1550,17 @@ class Session:
         
         x = np.arange(-5.97,4,0.2)[2:self.time_cutoff] if 'CW030' not in self.path else np.arange(-7.97,4,0.2)[2:self.time_cutoff]
         # f, axarr = plt.subplots(1,4, sharex=True, sharey=True, figsize=(20,5))
-        titles = ['Non state selectivity', 'State 1 selectivity', 'State 2 selectivity', 'State 3 selectivity']
-        colors = ['grey', 'green', 'blue', 'salmon']
+        states = np.load(r'{}\states.npy'.format(self.path))
+        num_state = states.shape[1]
+        titles = ['Non state selectivity', 'State 1 selectivity', 'State 2 selectivity', 'State 3 selectivity', 'State 4 selectivity']
+        colors = ['grey', 'green', 'blue', 'salmon', 'yellow']
         epoch = e if e != False else range(self.delay, self.response)
         
         contra_neurons, ipsi_neurons, contra_trace, ipsi_trace = self.contra_ipsi_pop(epoch)
         
         pref, nonpref = [], []
 
-        for i in range(4):       
+        for i in range(num_state + 1):       
             
             if len(ipsi_neurons) != 0:
             
@@ -1606,7 +1614,7 @@ class Session:
                       sel + selerr,
                       color='light' + colors[i])
        
-            
+            print(i)
         plt.legend()
         plt.axvline(-4.3, linestyle = '--')
         plt.axvline(-3, linestyle = '--')
@@ -2189,8 +2197,11 @@ class Session:
         # Get late delay selective neurons
         contra_neurons, ipsi_neurons, contra_trace, ipsi_trace = self.contra_ipsi_pop(range(self.response-9,self.response), p=p) 
         
-        
-        if len(contra_neurons) == 0:
+        if len(contra_neurons) == 0 and len(ipsi_neurons) == 0:
+            
+            raise Exception("No selective neurons :^(") 
+            
+        elif len(contra_neurons) == 0:
             
             
             nonpref, pref = cat(ipsi_trace['r']), cat(ipsi_trace['l'])

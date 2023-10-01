@@ -23,8 +23,9 @@ class Mode(Session):
         
         counter = 0
         for n in self.good_neurons:
+        # for n in range(self.num_neurons):
             r, l = self.get_trace_matrix(n)
-            r_err, l_err = self.get_trace_matrix(error=True)
+            r_err, l_err = self.get_trace_matrix(n, error=True)
             r_opto, l_opto = self.get_trace_matrix(n, opto=True)
             r_opto_err, l_opto_err = self.get_trace_matrix(n, error=True, opto=True)
             

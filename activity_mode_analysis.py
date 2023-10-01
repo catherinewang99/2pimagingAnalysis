@@ -21,22 +21,22 @@ import numpy as np
 # l1 = session.Session(path, 5)
 
 
-path = r'F:\data\BAYLORCW021\python\2023_03_03'
-path = r'F:\data\BAYLORCW021\python\2023_02_13'
-path = r'F:\data\BAYLORCW021\python\2023_04_25'
+# path = r'F:\data\BAYLORCW021\python\2023_03_03'
+# path = r'F:\data\BAYLORCW021\python\2023_02_13'
+# path = r'F:\data\BAYLORCW021\python\2023_04_25'
 # path = r'F:\data\BAYLORCW021\python\2023_04_27'
 # path = r'F:\data\BAYLORCW021\python\2023_05_03'
 
-# path = r'F:\data\BAYLORCW021\python\2023_04_06'
+path = r'F:\data\BAYLORCW030\python\2023_07_06'
 
 
 l1 = Mode(path)
 
+a, b = l1.plot_activity_modes_ctl()
 
-# a, b = l1.plot_activity_modes_err()
+a, b = l1.plot_activity_modes_err()
 
 
-# a, b = l1.plot_activity_modes_ctl()
 a, b = l1.plot_activity_modes_opto()
 
 a, b = l1.plot_activity_modes_opto(error=True)
