@@ -106,7 +106,7 @@ class Session:
         else:
             self.i_good_trials = cat(behavior['i_good_trials']) - 1 # zero indexing in python
         
-        # if self.path == 'F:\\data\\BAYLORCW030\\python\\2023_06_26':
+        # if self.path == 'F:\\data\\BAYLORCW03\\python\\2023_06_26':
         #     self.i_good_trials = self.i_good_trials[:100]
         
         self.L_correct = cat(behavior['L_hit_tmp'])
@@ -133,7 +133,7 @@ class Session:
         self.sample = 7
         self.delay = 13
         self.response = 28
-        if 'CW030' in path:
+        if 'CW03' in path:
             self.sample += 5
             self.delay += 5
             self.response += 5
@@ -1185,7 +1185,7 @@ class Session:
         """
         
         x = np.arange(-5.97,4,0.2)[:self.time_cutoff]
-        x = np.arange(-5.97,4,0.2)[2:self.time_cutoff] if 'CW030' not in self.path else np.arange(-7.97,4,0.2)[2:self.time_cutoff+2]
+        x = np.arange(-5.97,4,0.2)[2:self.time_cutoff] if 'CW03' not in self.path else np.arange(-6.97,4,0.2)[2:self.time_cutoff+2]
 
         epoch = e if e != False else range(self.delay, self.response)
         
@@ -1436,7 +1436,7 @@ class Session:
         axarr[0].set_xlabel('Time from Go cue (s)')
         axarr[0].set_ylabel('Population trace')
 
-    def plot_pref_overstates(self, e=False, opto=False):
+    def plot_pref_overstates(self, e=False, opto=False, lickdir=True):
         
         """Plots preferred and nonpreferred traces for all selective neurons across 3 behavioral states and control
         
@@ -1449,10 +1449,12 @@ class Session:
             Default is to use delay period if False
         opto : bool, optional
             Whether to plot opto trials (default False)
+        lickdir : bool, optional
+            Whether to use actual lick direction or correct trials only
 
         """
         
-        x = np.arange(-5.97,4,0.2)[2:self.time_cutoff] if 'CW030' not in self.path else np.arange(-7.97,4,0.2)[2:self.time_cutoff]
+        x = np.arange(-5.97,4,0.2)[2:self.time_cutoff] if 'CW03' not in self.path else np.arange(-6.97,6,0.2)[2:self.time_cutoff]
         titles = ['Non state selectivity', 'State 1 selectivity', 'State 2 selectivity', 'State 3 selectivity', 'State 4 selectivity']
         epoch = e if e != False else range(self.delay, self.response)
         states = np.load(r'{}\states.npy'.format(self.path))
@@ -1462,41 +1464,46 @@ class Session:
 
         contra_neurons, ipsi_neurons, contra_trace, ipsi_trace = self.contra_ipsi_pop(epoch)
         
-        pref, nonpref = [], []
-        preferr, nonpreferr = [], []
 
         for i in range(num_state + 1):       
             
+            if len(ipsi_neurons) == 0 and len(contra_neurons) == 0:
+                print("No selective neurons in state {}".format('nonstate' if i == 0 else i + 1))
+                continue
+                
+            pref, nonpref = np.zeros(self.time_cutoff), np.zeros(self.time_cutoff)
+            
             if len(ipsi_neurons) != 0:
             
-                overall_R, overall_L = ipsi_trace['r'], ipsi_trace['l']
-                overall_R = np.array([np.mean(overall_R[r], axis=0) for r in range(len(overall_R))])
-                overall_L = np.array([np.mean(overall_L[l], axis=0) for l in range(len(overall_L))])
+                # overall_R, overall_L = ipsi_trace['r'], ipsi_trace['l']
+                # overall_R = np.array([np.mean(overall_R[r], axis=0) for r in range(len(overall_R))])
+                # overall_L = np.array([np.mean(overall_L[l], axis=0) for l in range(len(overall_L))])
                 
                 if i:
-                    overall_R, overall_L = self.get_trace_matrix_multiple(ipsi_neurons, bias_trials=self.find_bias_trials(state = i-1), opto=opto, lickdir=True)
+                    overall_R, overall_L = self.get_trace_matrix_multiple(ipsi_neurons, bias_trials=self.find_bias_trials(state = i-1), opto=opto, lickdir=lickdir)
                 
                 else:
                     _ = self.find_bias_trials()
-                    overall_R, overall_L = self.get_trace_matrix_multiple(ipsi_neurons, bias_trials=self.nonstate_trials, opto=opto, lickdir=True)
-                    
+                    overall_R, overall_L = self.get_trace_matrix_multiple(ipsi_neurons, bias_trials=self.nonstate_trials, opto=opto, lickdir=lickdir)
                 
-                pref, nonpref = overall_L, overall_R
+                pref, nonpref = np.vstack((pref, overall_L)), np.vstack((nonpref, overall_R))
+
+                # pref, nonpref = overall_L, overall_R
                 
             else:
                 print('No ipsi selective neurons')
         
             if len(contra_neurons) != 0:
     
-                overall_R, overall_L = contra_trace['r'], contra_trace['l']
-                overall_R = np.array([np.mean(overall_R[r], axis=0) for r in range(len(overall_R))])
-                overall_L = np.array([np.mean(overall_L[l], axis=0) for l in range(len(overall_L))])
+                # overall_R, overall_L = contra_trace['r'], contra_trace['l']
+                # overall_R = np.array([np.mean(overall_R[r], axis=0) for r in range(len(overall_R))])
+                # overall_L = np.array([np.mean(overall_L[l], axis=0) for l in range(len(overall_L))])
                 
                 if i:
-                    overall_R, overall_L = self.get_trace_matrix_multiple(contra_neurons, bias_trials=self.find_bias_trials(state = i-1), opto=opto, lickdir=True)
+                    overall_R, overall_L = self.get_trace_matrix_multiple(contra_neurons, bias_trials=self.find_bias_trials(state = i-1), opto=opto, lickdir=lickdir)
                 else:
                     _ = self.find_bias_trials()
-                    overall_R, overall_L = self.get_trace_matrix_multiple(contra_neurons, bias_trials=self.nonstate_trials, opto=opto, lickdir=True)
+                    overall_R, overall_L = self.get_trace_matrix_multiple(contra_neurons, bias_trials=self.nonstate_trials, opto=opto, lickdir=lickdir)
                 
                 pref, nonpref = np.vstack((pref, overall_R)), np.vstack((nonpref, overall_L))
     
@@ -1504,7 +1511,9 @@ class Session:
     
             else:
                 print('No contra selective neurons')
-                
+            
+            
+            pref, nonpref = pref[1:], nonpref[1:]
             
             nonpreferr = np.std(nonpref, axis=0) / np.sqrt(len(nonpref)) 
             preferr = np.std(pref, axis=0) / np.sqrt(len(pref))
@@ -1533,7 +1542,7 @@ class Session:
         axarr[0].set_xlabel('Time from Go cue (s)')
         axarr[0].set_ylabel('Population trace')
         
-    def plot_selectivity_overstates(self, e=False, opto=False):
+    def plot_selectivity_overstates(self, e=False, opto=False, lickdir=True):
         """Plots selectivity traces for all selective neurons across 3 behavioral states and control in one graph
         
         Non states defined as trials not above a certain probability for any of 3 states
@@ -1545,54 +1554,70 @@ class Session:
             Default is to use delay period if False
         opto : bool, optional
             Whether to plot opto trials (default False)
+        lickdir : bool, optional
+            Whether to use actual lick direction or correct trials only
 
         """
         
-        x = np.arange(-5.97,4,0.2)[2:self.time_cutoff] if 'CW030' not in self.path else np.arange(-7.97,4,0.2)[2:self.time_cutoff]
+        x = np.arange(-5.97,4,0.2)[2:self.time_cutoff] if 'CW03' not in self.path else np.arange(-6.97,4,0.2)[2:self.time_cutoff]
         # f, axarr = plt.subplots(1,4, sharex=True, sharey=True, figsize=(20,5))
         states = np.load(r'{}\states.npy'.format(self.path))
         num_state = states.shape[1]
         titles = ['Non state selectivity', 'State 1 selectivity', 'State 2 selectivity', 'State 3 selectivity', 'State 4 selectivity']
         colors = ['grey', 'green', 'blue', 'salmon', 'yellow']
-        epoch = e if e != False else range(self.delay, self.response)
-        
-        contra_neurons, ipsi_neurons, contra_trace, ipsi_trace = self.contra_ipsi_pop(epoch)
+        if e != False:
+            epoch = e
+            contra_neurons, ipsi_neurons, contra_trace, ipsi_trace = self.contra_ipsi_pop(epoch, p=0.01)
+
+        else:
+            epoch = range(self.delay, self.response)
+            contra_neurons, ipsi_neurons, contra_trace, ipsi_trace = self.contra_ipsi_pop(epoch)
+
         
         pref, nonpref = [], []
+        pref, nonpref = np.zeros(self.time_cutoff), np.zeros(self.time_cutoff)
 
         for i in range(num_state + 1):       
             
+            if len(ipsi_neurons) == 0 and len(contra_neurons) == 0:
+                print("No selective neurons in state {}".format('nonstate' if i == 0 else i + 1))
+                continue
+                
             if len(ipsi_neurons) != 0:
             
-                overall_R, overall_L = ipsi_trace['r'], ipsi_trace['l']
-                overall_R = np.array([np.mean(overall_R[r], axis=0) for r in range(len(overall_R))])
-                overall_L = np.array([np.mean(overall_L[l], axis=0) for l in range(len(overall_L))])
+                # overall_R, overall_L = ipsi_trace['r'], ipsi_trace['l']
+                # overall_R = np.array([np.mean(overall_R[r], axis=0) for r in range(len(overall_R))])
+                # overall_L = np.array([np.mean(overall_L[l], axis=0) for l in range(len(overall_L))])
                 
                 if i:
-                    overall_R, overall_L = self.get_trace_matrix_multiple(ipsi_neurons, bias_trials=self.find_bias_trials(state = i-1), opto=opto, lickdir=True)
+                    overall_R, overall_L = self.get_trace_matrix_multiple(ipsi_neurons, bias_trials=self.find_bias_trials(state = i-1), opto=opto, lickdir=lickdir)
                 
                 else:
                     _ = self.find_bias_trials()
-                    overall_R, overall_L = self.get_trace_matrix_multiple(ipsi_neurons, bias_trials=self.nonstate_trials, opto=opto, lickdir=True)
+                    overall_R, overall_L = self.get_trace_matrix_multiple(ipsi_neurons, bias_trials=self.nonstate_trials, opto=opto, lickdir=lickdir)
                     
-                
-                pref, nonpref = overall_L, overall_R
+                pref, nonpref = np.vstack((pref, overall_L)), np.vstack((nonpref, overall_R))
+
+                # pref, nonpref = overall_L, overall_R
                 
             else:
                 print('No ipsi selective neurons')
         
             if len(contra_neurons) != 0:
     
-                overall_R, overall_L = contra_trace['r'], contra_trace['l']
-                overall_R = np.array([np.mean(overall_R[r], axis=0) for r in range(len(overall_R))])
-                overall_L = np.array([np.mean(overall_L[l], axis=0) for l in range(len(overall_L))])
+                # overall_R, overall_L = contra_trace['r'], contra_trace['l']
+                # overall_R = np.array([np.mean(overall_R[r], axis=0) for r in range(len(overall_R))])
+                # overall_L = np.array([np.mean(overall_L[l], axis=0) for l in range(len(overall_L))])
                 
                 if i:
-                    overall_R, overall_L = self.get_trace_matrix_multiple(contra_neurons, bias_trials=self.find_bias_trials(state = i-1), opto=opto, lickdir=True)
+                    overall_R, overall_L = self.get_trace_matrix_multiple(contra_neurons, bias_trials=self.find_bias_trials(state = i-1), opto=opto, lickdir=lickdir)
                 else:
                     _ = self.find_bias_trials()
-                    overall_R, overall_L = self.get_trace_matrix_multiple(contra_neurons, bias_trials=self.nonstate_trials, opto=opto, lickdir=True)
+                    overall_R, overall_L = self.get_trace_matrix_multiple(contra_neurons, bias_trials=self.nonstate_trials, opto=opto, lickdir=lickdir)
                 
+                # print(i)
+                # print(pref, nonpref)
+                # print()
                 pref, nonpref = np.vstack((pref, overall_R)), np.vstack((nonpref, overall_L))
     
                             
@@ -1600,6 +1625,7 @@ class Session:
             else:
                 print('No contra selective neurons')
                 
+            pref, nonpref = pref[1:], nonpref[1:]
             
             selerr = np.std(np.vstack((nonpref, pref)), axis=0) / np.sqrt(len(np.vstack((nonpref, pref))))
                         
@@ -1845,8 +1871,8 @@ class Session:
             
         else:
     
-            R, L = self.get_opto_trace_matrix(neuron_num)
-            r, l = self.get_opto_trace_matrix(neuron_num)
+            R, L = self.get_trace_matrix(neuron_num, opto=True)
+            r, l = self.get_trace_matrix(neuron_num, opto=True)
             title = "Neuron {}: Opto".format(neuron_num)
 
                 
@@ -1904,7 +1930,7 @@ class Session:
         x = np.arange(-5.97,4,0.2)[:self.time_cutoff]
         steps = range(self.time_cutoff)
         
-        if 'CW030' in self.path:
+        if 'CW03' in self.path:
             contra = np.zeros(self.time_cutoff-5)
             ipsi = np.zeros(self.time_cutoff-5)
             x = np.arange(-5.97,4,0.2)[:self.time_cutoff-5]
@@ -1967,8 +1993,8 @@ class Session:
         epochs = [range(self.time_cutoff), range(self.sample, self.delay), range(self.delay, self.response), range(self.response, self.time_cutoff)]
 
         x = np.arange(-5.97,6,0.2)[:self.time_cutoff]
-        if 'CW030' in self.path:
-            x = np.arange(-5.97,6,0.2)[:self.time_cutoff-5]
+        if 'CW03' in self.path:
+            x = np.arange(-6.97,6,0.2)[:self.time_cutoff]
 
         titles = ['Whole-trial', 'Sample', 'Delay', 'Response']
         
@@ -1998,11 +2024,11 @@ class Session:
                 left_err = np.std(overall_L, axis=0) / np.sqrt(len(overall_L)) 
                 right_err = np.std(overall_R, axis=0) / np.sqrt(len(overall_R))
                             
-                if 'CW030' in self.path:
-                    L_av = L_av[5:]
-                    R_av = R_av[5:]
-                    left_err = left_err[5:]
-                    right_err = right_err[5:]
+                # if 'CW03' in self.path:
+                #     L_av = L_av[5:]
+                #     R_av = R_av[5:]
+                #     left_err = left_err[5:]
+                #     right_err = right_err[5:]
                     
                     
                 axarr[i, 2].plot(x, L_av, 'r-')
@@ -2031,11 +2057,11 @@ class Session:
                 left_err = np.std(overall_L, axis=0) / np.sqrt(len(overall_L)) 
                 right_err = np.std(overall_R, axis=0) / np.sqrt(len(overall_R))
                             
-                if 'CW030' in self.path:
-                    L_av = L_av[5:]
-                    R_av = R_av[5:]
-                    left_err = left_err[5:]
-                    right_err = right_err[5:]
+                # if 'CW03' in self.path:
+                #     L_av = L_av[5:]
+                #     R_av = R_av[5:]
+                #     left_err = left_err[5:]
+                #     right_err = right_err[5:]
                     
                 axarr[i, 1].plot(x, L_av, 'r-')
                 axarr[i, 1].plot(x, R_av, 'b-')
@@ -2192,7 +2218,7 @@ class Session:
         
         f, axarr = plt.subplots(1,1, sharex='col', figsize=(5,5))
         
-        x = np.arange(-5.97,4,0.2)[:self.time_cutoff] if 'CW030' not in self.path else np.arange(-7.97,4,0.2)[:self.time_cutoff]
+        x = np.arange(-5.97,4,0.2)[:self.time_cutoff] if 'CW03' not in self.path else np.arange(-6.97,4,0.2)[:self.time_cutoff]
 
         # Get late delay selective neurons
         contra_neurons, ipsi_neurons, contra_trace, ipsi_trace = self.contra_ipsi_pop(range(self.response-9,self.response), p=p) 
@@ -2234,13 +2260,13 @@ class Session:
         erro = np.std(optop, axis=0) / np.sqrt(len(optop)) 
         erro += np.std(optonp, axis=0) / np.sqrt(len(optonp))  
 
-        if 'CW030' in self.path:
+        if 'CW03' in self.path:
             
-            sel = sel[5:]
-            selo = selo[5:]
-            err = err[5:]
-            erro = erro[5:]
-            x = np.arange(-5.97,4,0.2)[:self.time_cutoff-5]
+            # sel = sel[5:]
+            # selo = selo[5:]
+            # err = err[5:]
+            # erro = erro[5:]
+            x = np.arange(-6.97,4,0.2)[:self.time_cutoff]
 
         axarr.plot(x, sel, 'black')
                 
@@ -2354,6 +2380,7 @@ class Session:
                     table = sm.stats.anova_lm(model, type=2)
                     
                     sig = np.where(np.array(table['PR(>F)'] < 0.01) == True)[0]
+                    h=False
                     if len(sig) == 0:
                         continue
                     
@@ -2392,7 +2419,7 @@ class Session:
                 mixed += [m]
             
             f, axarr = plt.subplots(1,4, sharey='row', figsize=(20,5))
-            x = np.arange(-5.97,4,0.2)[:self.time_cutoff] if 'CW030' not in self.path else np.arange(-7.97,4,0.2)[:self.time_cutoff]
+            x = np.arange(-5.97,4,0.2)[:self.time_cutoff] if 'CW03' not in self.path else np.arange(-6.97,4,0.2)[:self.time_cutoff]
 
             axarr[0].plot(x, np.array(stim)/self.num_neurons, color='magenta')
             axarr[0].set_title('Lick direction cell')
@@ -2476,7 +2503,7 @@ class Session:
         f, axarr = plt.subplots(1,3, sharey='row', figsize=(15,5))
         
         epochs = [range(self.sample,self.delay), range(self.delay,self.response), range(self.response,self.time_cutoff)]
-        x = np.arange(-5.97,4,0.2)[:self.time_cutoff] if 'CW030' not in self.path else np.arange(-7.97,4,0.2)[:self.time_cutoff]
+        x = np.arange(-5.97,4,0.2)[:self.time_cutoff] if 'CW03' not in self.path else np.arange(-6.97,4,0.2)[:self.time_cutoff]
         titles = ['Stimulus selective', 'Choice selective', 'Outcome selective']
         
         
@@ -2592,7 +2619,8 @@ class Session:
             # Add ability to grab glmhmm trials in bias states
             # Biased state will be first always
             states = np.load(r'{}\states.npy'.format(self.path))
-            
+            num_state = states.shape[1]
+
             st = []
             non = []
             # Two different sampling methods
@@ -2600,7 +2628,8 @@ class Session:
                 for i in range(states.shape[0]):
         
                     top_state = np.argmax(states[i])
-                    if states[i][top_state] > 0.6:
+                    conf = (1/num_state) + 0.2
+                    if states[i][top_state] > conf:
                         st += [top_state]
                     else:
                         non += [i] # Trials where top state is less than 60% confidence

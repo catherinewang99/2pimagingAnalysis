@@ -33,9 +33,10 @@ path = r'F:\data\BAYLORCW021\python\2023_04_27'
 # path = r'F:\data\BAYLORCW021\python\2023_02_08'
 # path = r'F:\data\BAYLORCW030\python\2023_07_03'
 
-path = r'F:\data\BAYLORCW030\python\2023_06_30'
+path = r'F:\data\BAYLORCW030\python\2023_06_21'
 
-l1 = session.Session(path, layer_num=6,  sess_reg=True)
+# l1 = session.Session(path, layer_num=6,  sess_reg=True)
+l1 = session.Session(path)
 # l1 = decon.Deconvolved(path)
 ## Single neuron selectivity
 
@@ -54,7 +55,7 @@ l1 = session.Session(path, layer_num=6,  sess_reg=True)
 
 l1.selectivity_table_by_epoch()
 
-l1.selectivity_optogenetics()
+l1.selectivity_optogenetics(p=0.01)
 
 ## For selective neurons
 # l1 = session.Session(path)
@@ -62,7 +63,7 @@ l1.selectivity_optogenetics()
 # stim_neurons, choice_neurons, outcome_neurons, stim_sel, choice_sel, outcome_sel = l1.stim_choice_outcome_selectivity()
 # n_numneurons = l1.num_neurons
 
-# tstim, tlick, treward, tmixed = l1.single_neuron_sel('Chen 2017')
+tstim, tlick, treward, tmixed = l1.single_neuron_sel('Chen 2017')
 
 # path = r'F:\data\BAYLORCW021\python\2023_04_27'
 # l2 = session.Session(path)
