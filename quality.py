@@ -31,7 +31,7 @@ class QC(Session):
         self.sample = 7
         self.delay = 13
         self.response = 28
-        if 'CW030' in path:
+        if 'CW03' in path:
             self.sample += 5
             self.delay += 5
             self.response += 5
@@ -61,14 +61,14 @@ class QC(Session):
         stim_dff = self.dff[0][stimon]
         non_stim_dff = self.dff[0][stimoff]
 
-        stack = np.zeros(self.time_cutoff) if 'CW03' not in self.path else np.zeros(self.time_cutoff-5)
+        stack = np.zeros(self.time_cutoff) # if 'CW03' not in self.path else np.zeros(self.time_cutoff-5)
 
         for neuron in range(self.num_neurons):
         # for neuron in self.good_neurons:
             dfftrial = []
             for trial in range(len(stim_dff)):
                 if 'CW03' in self.path:
-                    dfftrial += [stim_dff[trial][neuron, 5:self.time_cutoff]]
+                    dfftrial += [stim_dff[trial][neuron, :self.time_cutoff]]
                 else:
                     dfftrial += [stim_dff[trial][neuron, :self.time_cutoff]]
 
@@ -82,9 +82,9 @@ class QC(Session):
         axarr[1,0].plot(np.mean(stack, axis = 0))
         axarr[1,0].set_ylim(top=0.2)
         axarr[1,0].axvline(x=delay, c='b', linewidth = 0.5)
-        axarr[1,0].set_xticks(range(0,stack.shape[1], 10), [int(d) for d in x[::10]])
+        # axarr[1,0].set_xticks(range(0,stack.shape[1], 10), [int(d) for d in x[::10]])
         
-        stack = np.zeros(self.time_cutoff) if 'CW03' not in self.path else np.zeros(self.time_cutoff-5)
+        stack = np.zeros(self.time_cutoff) # if 'CW03' not in self.path else np.zeros(self.time_cutoff-5)
 
         for neuron in range(self.num_neurons):
         # for neuron in self.good_neurons:
@@ -92,7 +92,7 @@ class QC(Session):
             dfftrial = []
             for trial in range(len(non_stim_dff)):
                 if 'CW03' in self.path:
-                    dfftrial += [non_stim_dff[trial][neuron, 5:self.time_cutoff]]
+                    dfftrial += [non_stim_dff[trial][neuron, :self.time_cutoff]]
                 else:
                     dfftrial += [non_stim_dff[trial][neuron, :self.time_cutoff]]
 
@@ -107,7 +107,7 @@ class QC(Session):
         axarr[1,1].plot(np.mean(stack, axis = 0))
         axarr[1,1].set_ylim(top=0.2)
         axarr[1,0].set_ylabel('dF/F0')
-        axarr[1,1].set_xticks(range(0,stack.shape[1], 10), [int(d) for d in x[::10]])
+        # axarr[1,1].set_xticks(range(0,stack.shape[1], 10), [int(d) for d in x[::10]])
         axarr[1,0].set_xlabel('Time from Go cue (s)')
 
         if save:
@@ -119,12 +119,12 @@ class QC(Session):
     
     def all_neurons_traces(self, save = False):
         
-        x = np.arange(-5.97,4,0.2)[:self.time_cutoff] if 'CW030' not in self.path else np.arange(-5.97,4,0.2)[:self.time_cutoff-5]
+        x = np.arange(-5.97,4,0.2)[:self.time_cutoff] if 'CW03' not in self.path else np.arange(-5.97,4,0.2)[:self.time_cutoff-5]
 
 
         f, axarr = plt.subplots(2,1, sharex='col',figsize=(20,10))
         # x = np.arange(-5.97,4,0.2)[:self.time_cutoff]
-        delay = self.delay if 'CW030' not in self.path else self.delay-5
+        delay = self.delay if 'CW03' not in self.path else self.delay-5
         
         stimon, stimoff = [], []
         
@@ -139,13 +139,13 @@ class QC(Session):
         stim_dff = self.dff[0][stimon]
         non_stim_dff = self.dff[0][stimoff]
 
-        stack = np.zeros(self.time_cutoff) if 'CW030' not in self.path else np.zeros(self.time_cutoff-5)
+        stack = np.zeros(self.time_cutoff) if 'CW03' not in self.path else np.zeros(self.time_cutoff-5)
 
         # for neuron in range(self.num_neurons):
         for neuron in self.good_neurons:
             dfftrial = []
             for trial in range(len(stim_dff)):
-                if 'CW030' in self.path:
+                if 'CW03' in self.path:
                     dfftrial += [stim_dff[trial][neuron, 5:self.time_cutoff]]
                 else:
                     dfftrial += [stim_dff[trial][neuron, :self.time_cutoff]]
@@ -162,14 +162,14 @@ class QC(Session):
         # axarr[1,0].axvline(x=delay, c='b', linewidth = 0.5)
         # axarr[1,0].set_xticks(range(0,stack.shape[1], 10), [int(d) for d in x[::10]])
         
-        stack = np.zeros(self.time_cutoff) if 'CW030' not in self.path else np.zeros(self.time_cutoff-5)
+        stack = np.zeros(self.time_cutoff) if 'CW03' not in self.path else np.zeros(self.time_cutoff-5)
 
         # for neuron in range(self.num_neurons):
         for neuron in self.good_neurons:
 
             dfftrial = []
             for trial in range(len(non_stim_dff)):
-                if 'CW030' in self.path:
+                if 'CW03' in self.path:
                     dfftrial += [non_stim_dff[trial][neuron, 5:self.time_cutoff]]
                 else:
                     dfftrial += [non_stim_dff[trial][neuron, :self.time_cutoff]]

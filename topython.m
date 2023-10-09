@@ -1,5 +1,5 @@
 addpath('F:\data')
-path = 'F:\data\BAYLORCW032\';
+path = 'F:\data\BAYLORCW036\';
 
 mkdir([path 'python'])
 
@@ -40,24 +40,25 @@ for j = 1:length(lst)
         % Get i good trials
 
         StimTrials_tmp = obj.stimProb;
-        i_performing = find(StimTrials_tmp>0);
-        if ~isempty(i_performing)
-            StimTrialsFlag_tmp = StimTrials_tmp;
-            seg_break_pt = i_performing(diff(i_performing)>1);
-            seg_break_pt = [seg_break_pt; i_performing(end)];
-        
-            for i_tmp = seg_break_pt'
-                if i_tmp<6
-                    StimTrialsFlag_tmp(1:i_tmp) = 0;
-                else
-                    StimTrialsFlag_tmp(i_tmp-5:i_tmp) = 0;
-                end
-            end
-        
-            i_good_trials = find(StimTrialsFlag_tmp>0);
-        else
-            i_good_trials = [];
-        end
+%         i_performing = find(StimTrials_tmp>0);
+%         if ~isempty(i_performing)
+%             StimTrialsFlag_tmp = StimTrials_tmp;
+%             seg_break_pt = i_performing(diff(i_performing)>1);
+%             seg_break_pt = [seg_break_pt; i_performing(end)];
+%         
+%             for i_tmp = seg_break_pt'
+%                 if i_tmp<6
+%                     StimTrialsFlag_tmp(1:i_tmp) = 0;
+%                 else
+%                     StimTrialsFlag_tmp(i_tmp-5:i_tmp) = 0;
+%                 end
+%             end
+%         
+%             i_good_trials = find(StimTrialsFlag_tmp>0);
+%         else
+%             i_good_trials = [];
+%         end
+        i_good_trials = find(StimTrials_tmp>0);
 
         % Stim information
 

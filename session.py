@@ -728,7 +728,7 @@ class Session:
         if not opto:
             R, L = self.get_trace_matrix(neuron_num)
         else:
-            R, L = self.get_opto_trace_matrix(neuron_num)
+            R, L = self.get_trace_matrix(neuron_num, opto=True)
 
         
         R_av, L_av = np.mean(R, axis = 0), np.mean(L, axis = 0)

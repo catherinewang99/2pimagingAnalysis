@@ -73,8 +73,8 @@ b.learning_progression()
 # b = behavior.Behavior(r'F:\data\BAYLORCW027\python\2023_04_10', single=True)
 # b.plot_single_session()
 
-# b = behavior.Behavior(r'F:\data\BAYLORCW027\python\2023_04_11', single=True)
-# b.plot_single_session()
+b = behavior.Behavior(r'F:\data\BAYLORCW032\python\2023_10_06', single=True)
+b.plot_single_session()
 
 # b = behavior.Behavior(r'F:\data\BAYLORCW021\python\2023_04_25', single=True)
 # b.plot_single_session(save=True)
