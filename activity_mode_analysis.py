@@ -44,6 +44,16 @@ a, b = l1.plot_activity_modes_opto(error=True)
 l1.plot_behaviorally_relevant_modes()
 l1.plot_behaviorally_relevant_modes_opto(error=True)
 
+### Recovery for stim over sessions
+
+path = r'F:\data\BAYLORCW030\python\2023_07_06'
+
+
+l1 = Mode(path)
+
+v = l1.get_all_recovery_vectors
+
+np.variance(v)
 ### DEBUGGING MATERIAL ###
 
 # activityRL = np.concatenate((l1.PSTH_r_correct, l1.PSTH_l_correct), axis=1)
