@@ -757,23 +757,27 @@ class Mode(Session):
         poststim_period = []
         for n in self.good_neurons:
             
-            stim_period += [self.dff[0, trial][n, self.delay, self.delay + 6]]
-            poststim_period += [self.dff[0, trial][n, self.response-6, self.response]]
+            # stim_period += [self.dff[0, trial][n, self.delay: self.delay + 6]]
+            poststim_period += [self.dff[0, trial][n, self.response-1]]
             
         # Take diff between post stim - stim
-        StimRecovery_mode = np.mean(np.array(poststim_period), axis=1) - np.mean(np.array(stim_period), axis=1)
+        # StimRecovery_mode = np.mean(np.array(poststim_period), axis=1) - np.mean(np.array(stim_period), axis=1)
         # Recover vector should be (nx1)
 
         # Normalize
-        StimRecovery_mode = StimRecovery_mode / np.linalg.norm(StimRecovery_mode)
+        # StimRecovery_mode = StimRecovery_mode / np.linalg.norm(StimRecovery_mode)
         
-        return StimRecovery_mode
+        return np.array(poststim_period)
     
     
     def get_all_recovery_vectors(self):
         
         """
         Get all the normalized recovery vectors over stim trials
+        
+        Returns
+        ------
+            list : shape is trials x neurons
         """
         
         vectors = []
@@ -782,7 +786,7 @@ class Mode(Session):
             
             vectors += [self.get_single_trial_recovery_vector(trial)]    
         
-        return vectors
+        return np.array(vectors)
 
         
         

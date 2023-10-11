@@ -27,22 +27,22 @@ import numpy as np
 # path = r'F:\data\BAYLORCW021\python\2023_04_27'
 # path = r'F:\data\BAYLORCW021\python\2023_05_03'
 
-path = r'F:\data\BAYLORCW030\python\2023_07_06'
+# path = r'F:\data\BAYLORCW030\python\2023_07_06'
 
 
-l1 = Mode(path)
+# l1 = Mode(path)
 
-a, b = l1.plot_activity_modes_ctl()
+# a, b = l1.plot_activity_modes_ctl()
 
-a, b = l1.plot_activity_modes_err()
+# a, b = l1.plot_activity_modes_err()
 
 
-a, b = l1.plot_activity_modes_opto()
+# a, b = l1.plot_activity_modes_opto()
 
-a, b = l1.plot_activity_modes_opto(error=True)
+# a, b = l1.plot_activity_modes_opto(error=True)
 
-l1.plot_behaviorally_relevant_modes()
-l1.plot_behaviorally_relevant_modes_opto(error=True)
+# l1.plot_behaviorally_relevant_modes()
+# l1.plot_behaviorally_relevant_modes_opto(error=True)
 
 ### Recovery for stim over sessions
 
@@ -51,9 +51,9 @@ path = r'F:\data\BAYLORCW030\python\2023_07_06'
 
 l1 = Mode(path)
 
-v = l1.get_all_recovery_vectors
+v = l1.get_all_recovery_vectors()
 
-np.variance(v)
+# np.variance(v)
 ### DEBUGGING MATERIAL ###
 
 # activityRL = np.concatenate((l1.PSTH_r_correct, l1.PSTH_l_correct), axis=1)
