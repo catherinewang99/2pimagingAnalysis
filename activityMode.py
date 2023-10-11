@@ -738,6 +738,68 @@ class Mode(Session):
                             y_line + y_sem,
                             color=[fill_color])
 
+
+    def get_single_trial_recovery_vector(self, trial):
+        
+        """
+        Find the recovery vector for a single stim trial over all neurons
+        
+        for each neuron:
+            get average activity during control trials delay period
+            build population level activity vector for L vs R control trials 
+            
+        for every stim trial:
+            get average recovery trace by subtracing late delay - stim period (early delay)
+            
+            
+        """
+        stim_period = [] #Shape will be (nx6)
+        poststim_period = []
+        for n in self.good_neurons:
+            
+            stim_period += [self.dff[0, trial][n, self.delay, self.delay + 6]]
+            poststim_period += [self.dff[0, trial][n, self.response-6, self.response]]
+            
+        # Take diff between post stim - stim
+        StimRecovery_mode = np.mean(np.array(poststim_period), axis=1) - np.mean(np.array(stim_period), axis=1)
+        # Recover vector should be (nx1)
+
+        # Normalize
+        StimRecovery_mode = StimRecovery_mode / np.linalg.norm(StimRecovery_mode)
+        
+        return StimRecovery_mode
+    
+    
+    def get_all_recovery_vectors(self):
+        
+        """
+        Get all the normalized recovery vectors over stim trials
+        """
+        
+        vectors = []
+        
+        for trial in np.where(self.stim_ON)[0]:
+            
+            vectors += [self.get_single_trial_recovery_vector(trial)]    
+        
+        return vectors
+
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
         
 
     
