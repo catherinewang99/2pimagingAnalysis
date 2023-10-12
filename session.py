@@ -73,18 +73,28 @@ class Session:
                     
                     if self.dff == None:
                         
-                        
-                        self.dff = layer['dff']
+                        if sess_reg != False:
+                            raise NotImplementedError("Multi plane reg not implemented!")
+                            neurons = np.load(path + r'\layer_{}_registered_neurons.npy'.format(layer))
+                            self.dff = layer['dff'][:, :][neurons]
+                        else:
+                            self.dff = layer['dff']
+                            
                         self.num_trials = layer['dff'].shape[1] 
                     else:
 
                         for t in range(self.num_trials):
-                            add = layer['dff'][0, t]
-                            self.dff[0, t] = np.vstack((self.dff[0, t], add))
-            if sess_reg != False:
-                raise NotImplementedError("Multi plane reg not implemented!")
+                            if sess_reg != False:
+                                raise NotImplementedError("Multi plane reg not implemented!")
+                                neurons = np.load(path + r'\layer_{}_registered_neurons.npy'.format(layer))
+                                add = layer['dff'][0, t][neurons]
 
-                        
+                            else:                                
+                                add = layer['dff'][0, t]
+                            self.dff[0, t] = np.vstack((self.dff[0, t], add))
+                            
+
+                                        
         
         behavior = scio.loadmat(r'{}\behavior.mat'.format(path))
         self.path = path
@@ -2651,9 +2661,26 @@ class Session:
         return bias_trials
             
     
-
-
-
+    def ranked_cells_by_selectivity(self):
+        """Returns neurons based on trial type selectivity 
+        
+        Goes from most right preferring to most left preferring (rank 1 through -1)
+        First, rank by half of trials, then return (ordered) selectivity for neurons
+        using remaining half of trials.
+        
+        Parameters
+        ----------
+            
+        Returns 
+        -------
+        list
+            list of neurons
+         """
+         
+         
+        
+        return None
+        
 
 
 
