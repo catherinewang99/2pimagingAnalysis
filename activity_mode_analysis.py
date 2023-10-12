@@ -14,6 +14,7 @@ import session
 from activityMode import Mode
 from matplotlib.pyplot import figure
 import numpy as np
+from sklearn.decomposition import PCA
 
 # from neuralFuncs import plot_average_PSTH
 # path = r'F:\data\BAYLORCW021\python\2023_01_25'
@@ -45,13 +46,33 @@ import numpy as np
 # l1.plot_behaviorally_relevant_modes_opto(error=True)
 
 ### Recovery for stim over sessions
+total_var = []
+alldates = ['06_16', '06_19', '06_21', '06_22', '06_23', '07_05', '07_06',
+            '07_07', '07_10', '07_11']
 
-path = r'F:\data\BAYLORCW030\python\2023_07_06'
+for date in alldates:
+    
+    
+    path = r'F:\data\BAYLORCW030\python\2023_{}'.format(date)
+    
+    
+    l1 = Mode(path)
+    
+    v = l1.get_all_recovery_vectors()
+    # pca = PCA()
+    # pca.fit(v)
+    # total_var += [sum(pca.explained_variance_)]
+    
+    total_var += [np.mean([np.var(v,axis=1) / v.shape[1]]) / v.shape[0]]
+    
+
+plt.bar(range(10), total_var)
+plt.xticks(range(10), alldates)
+plt.title('Variance of recovery over sessions')
+plt.xlabel('Sessions')
+plt.ylabel('Total variance')
 
 
-l1 = Mode(path)
-
-v = l1.get_all_recovery_vectors()
 
 # np.variance(v)
 ### DEBUGGING MATERIAL ###

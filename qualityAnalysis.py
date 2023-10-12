@@ -23,7 +23,7 @@ path = r'F:\data\BAYLORCW021\python\2023_05_03'
 # path = r'F:\data\BAYLORCW021\python\2023_04_27'
 
 # # path = r'F:\data\BAYLORCW022\python\2023_03_06'
-path = r'F:\data\BAYLORCW036\python\2023_10_07'
+path = r'F:\data\BAYLORCW034\python\2023_10_10'
 # path = r'F:\data\BAYLORCW021\python\2023_02_15'
 
 

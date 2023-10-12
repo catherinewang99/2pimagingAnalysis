@@ -28,26 +28,26 @@ class QC(Session):
     def __init__(self, path, layer_num='all', guang=False, passive=False):
         
         super().__init__(path, layer_num, guang, passive)
-        self.sample = 7
-        self.delay = 13
-        self.response = 28
-        if 'CW03' in path:
-            self.sample += 5
-            self.delay += 5
-            self.response += 5
+        # self.sample = 7
+        # self.delay = 13
+        # self.response = 28
+        # if 'CW03' in path:
+        #     self.sample += 5
+        #     self.delay += 5
+        #     self.response += 5
             
         
     ### Quality analysis section ###
             
     def all_neurons_heatmap(self, save=False):
         
-        x = np.arange(-5.97,4,0.2)[:self.time_cutoff] if 'CW03' not in self.path else np.arange(-6.97,4,0.2)[:self.time_cutoff]
+        x = np.arange(-5.97,4,self.fs)[:self.time_cutoff] if 'CW03' not in self.path else np.arange(-6.97,4,self.fs)[:self.time_cutoff]
 
 
         f, axarr = plt.subplots(2,2, sharex='col')
-        # x = np.arange(-5.97,4,0.2)[:self.time_cutoff]
+        # x = np.arange(-5.97,4,self.fs)[:self.time_cutoff]
         delay = self.delay  # if 'CW03' not in self.path else self.delay-5
-        
+        # self.stim_ON = self.stim_ON[:-1]
         stimon, stimoff = [], []
         
         for i in range(len(self.stim_ON)):
@@ -80,7 +80,7 @@ class QC(Session):
         axarr[0,0].set_title('Opto')
         axarr[0,0].axvline(x=delay, c='b', linewidth = 0.5)
         axarr[1,0].plot(np.mean(stack, axis = 0))
-        axarr[1,0].set_ylim(top=0.2)
+        axarr[1,0].set_ylim(top=self.fs)
         axarr[1,0].axvline(x=delay, c='b', linewidth = 0.5)
         # axarr[1,0].set_xticks(range(0,stack.shape[1], 10), [int(d) for d in x[::10]])
         
@@ -114,16 +114,49 @@ class QC(Session):
             plt.savefig(self.path + r'dff_contra_stimall.jpg')
 
         plt.show()
-    
+        
+        
+        # Second plot
+        stack = np.zeros(self.time_cutoff) # if 'CW03' not in self.path else np.zeros(self.time_cutoff-5)
+        stimstack = np.zeros(self.time_cutoff) # if 'CW03' not in self.path else np.zeros(self.time_cutoff-5)
+
+        for neuron in range(self.num_neurons):
+        # for neuron in self.good_neurons:
+
+            dfftrial = []
+            stimdfftrial = []
+            for trial in range(len(non_stim_dff)):
+
+                dfftrial += [non_stim_dff[trial][neuron, :self.time_cutoff]]
+            for trial in range(len(stim_dff)):
+                
+                stimdfftrial += [stim_dff[trial][neuron, :self.time_cutoff]]
+
+            stack = np.vstack((stack, np.mean(np.array(dfftrial), axis=0)))
+            stimstack = np.vstack((stimstack, np.mean(np.array(stimdfftrial), axis=0)))
+
+        # stack = normalize(stack[1:])
+        # stimstack = normalize(stimstack[1:])
+
+        plt.plot(np.mean(stimstack, axis = 0), 'r')
+        # plt.set_ylim(top=self.fs)
+        plt.axvline(x=delay, c='b', linewidth = 0.5)
+        
+        plt.plot(np.mean(stack, axis = 0), 'b')
+        # plt.set_ylim(top=0.2)
+        plt.ylabel('dF/F0')
+        # axarr[1,1].set_xticks(range(0,stack.shape[1], 10), [int(d) for d in x[::10]])
+        plt.xlabel('Time from Go cue (s)')
+        plt.show()
         return None
     
     def all_neurons_traces(self, save = False):
         
-        x = np.arange(-5.97,4,0.2)[:self.time_cutoff] if 'CW03' not in self.path else np.arange(-5.97,4,0.2)[:self.time_cutoff-5]
+        x = np.arange(-5.97,4,self.fs)[:self.time_cutoff] if 'CW03' not in self.path else np.arange(-5.97,4,self.fs)[:self.time_cutoff-5]
 
 
         f, axarr = plt.subplots(2,1, sharex='col',figsize=(20,10))
-        # x = np.arange(-5.97,4,0.2)[:self.time_cutoff]
+        # x = np.arange(-5.97,4,self.fs)[:self.time_cutoff]
         delay = self.delay if 'CW03' not in self.path else self.delay-5
         
         stimon, stimoff = [], []
@@ -257,7 +290,7 @@ class QC(Session):
         
         powers = len(set(self.stim_level))
         f, axarr = plt.subplots(1, powers, sharex='col', figsize = ((powers)*5, 4))
-        # x = np.arange(-5.97,4,0.2)[:self.time_cutoff]
+        # x = np.arange(-5.97,4,self.fs)[:self.time_cutoff]
         
         control_neuron_dff = []
         opto_neuron_dff = []

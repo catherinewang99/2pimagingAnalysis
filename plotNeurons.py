@@ -26,7 +26,7 @@ path = r'F:\data\BAYLORCW030\python\2023_06_03'
 
 path = r'F:\data\BAYLORCW030\python\2023_07_10'
 
-path = r'F:\data\BAYLORCW034\python\2023_10_10'
+path = r'F:\data\BAYLORCW032\python\2023_10_11'
 
 l1 = session.Session(path)
 

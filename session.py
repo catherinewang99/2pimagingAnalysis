@@ -95,7 +95,7 @@ class Session:
         self.num_trials = self.dff.shape[1] 
         
         self.time_cutoff = self.determine_cutoff()
-        
+        self.fs = 1/6
         self.recording_loc = 'l'
         # self.skew = layer['skew']
         
@@ -130,13 +130,13 @@ class Session:
             self.i_good_trials = [i for i in self.i_good_trials if i < self.num_trials]
             self.stim_ON = self.stim_ON[:self.num_trials]
             
-        self.sample = 7
-        self.delay = 13
-        self.response = 28
-        if 'CW03' in path:
-            self.sample += 5
-            self.delay += 5
-            self.response += 5
+        self.sample = 15
+        self.delay = 23
+        self.response = 41
+        # if 'CW03' in path:
+        #     self.sample += 5
+        #     self.delay += 5
+        #     self.response += 5
         self.old_i_good_trials = copy.copy(self.i_good_trials)
 
         # Measure that automatically crops out water leak trials before norming
@@ -1121,11 +1121,11 @@ class Session:
                 
                 R, L = self.get_trace_matrix(neuron_num)
 
-                pref, test_l, test_r = self.screen_preference(neuron_num, epoch) 
+                pref_choice, test_l, test_r = self.screen_preference(neuron_num, epoch) 
         
                 if self.recording_loc == 'l':
 
-                    if pref:
+                    if pref_choice:
                         # print("Ipsi_preferring: {}".format(neuron_num))
                         ipsi_neurons += [neuron_num]
                         ipsi_LR['l'] += [[L[i] for i in test_l]]
@@ -1184,8 +1184,8 @@ class Session:
 
         """
         
-        x = np.arange(-5.97,4,0.2)[:self.time_cutoff]
-        x = np.arange(-5.97,4,0.2)[2:self.time_cutoff] if 'CW03' not in self.path else np.arange(-6.97,4,0.2)[2:self.time_cutoff+2]
+        x = np.arange(-5.97,4,self.fs)[:self.time_cutoff]
+        x = np.arange(-5.97,4,self.fs)[2:self.time_cutoff] if 'CW03' not in self.path else np.arange(-6.97,4,self.fs)[2:self.time_cutoff+2]
 
         epoch = e if e != False else range(self.delay, self.response)
         
@@ -1284,7 +1284,7 @@ class Session:
 
         """
         
-        x = np.arange(-5.97,4,0.2)[:self.time_cutoff]
+        x = np.arange(-5.97,4,self.fs)[:self.time_cutoff]
 
         epoch = e if e != False else range(self.delay, self.response)
         
@@ -1362,7 +1362,7 @@ class Session:
 
         """
         
-        x = np.arange(-5.97,4,0.2)[:self.time_cutoff]
+        x = np.arange(-5.97,4,self.fs)[:self.time_cutoff]
         f, axarr = plt.subplots(1,2, sharex=True, sharey=True, figsize=(20,7))
 
         epoch = e if e != False else range(self.delay, self.response)
@@ -1454,7 +1454,7 @@ class Session:
 
         """
         
-        x = np.arange(-5.97,4,0.2)[2:self.time_cutoff] if 'CW03' not in self.path else np.arange(-6.97,6,0.2)[2:self.time_cutoff]
+        x = np.arange(-5.97,4,self.fs)[2:self.time_cutoff] if 'CW03' not in self.path else np.arange(-6.97,6,self.fs)[2:self.time_cutoff]
         titles = ['Non state selectivity', 'State 1 selectivity', 'State 2 selectivity', 'State 3 selectivity', 'State 4 selectivity']
         epoch = e if e != False else range(self.delay, self.response)
         states = np.load(r'{}\states.npy'.format(self.path))
@@ -1559,7 +1559,7 @@ class Session:
 
         """
         
-        x = np.arange(-5.97,4,0.2)[2:self.time_cutoff] if 'CW03' not in self.path else np.arange(-6.97,4,0.2)[2:self.time_cutoff]
+        x = np.arange(-5.97,4,self.fs)[2:self.time_cutoff] if 'CW03' not in self.path else np.arange(-6.97,4,self.fs)[2:self.time_cutoff]
         # f, axarr = plt.subplots(1,4, sharex=True, sharey=True, figsize=(20,5))
         states = np.load(r'{}\states.npy'.format(self.path))
         num_state = states.shape[1]
@@ -1927,13 +1927,13 @@ class Session:
         
         contra = np.zeros(self.time_cutoff)
         ipsi = np.zeros(self.time_cutoff)
-        x = np.arange(-5.97,4,0.2)[:self.time_cutoff]
+        x = np.arange(-5.97,4,self.fs)[:self.time_cutoff]
         steps = range(self.time_cutoff)
         
         if 'CW03' in self.path:
             contra = np.zeros(self.time_cutoff-5)
             ipsi = np.zeros(self.time_cutoff-5)
-            x = np.arange(-5.97,4,0.2)[:self.time_cutoff-5]
+            x = np.arange(-5.97,4,self.fs)[:self.time_cutoff-5]
             steps = range(5, self.time_cutoff)
 
         for t in steps:
@@ -1992,9 +1992,9 @@ class Session:
         f, axarr = plt.subplots(4,3, sharex='col', figsize=(14, 12))
         epochs = [range(self.time_cutoff), range(self.sample, self.delay), range(self.delay, self.response), range(self.response, self.time_cutoff)]
 
-        x = np.arange(-5.97,6,0.2)[:self.time_cutoff]
+        x = np.arange(-5.97,6,self.fs)[:self.time_cutoff]
         if 'CW03' in self.path:
-            x = np.arange(-6.97,6,0.2)[:self.time_cutoff]
+            x = np.arange(-6.97,6,self.fs)[:self.time_cutoff]
 
         titles = ['Whole-trial', 'Sample', 'Delay', 'Response']
         
@@ -2099,7 +2099,7 @@ class Session:
         f, axarr = plt.subplots(1,5, sharex='col', figsize=(21,5))
         
         epochs = [range(self.time_cutoff), range(8,14), range(19,28), range(29,self.time_cutoff)]
-        x = np.arange(-5.97,4,0.2)[:self.time_cutoff]
+        x = np.arange(-5.97,4,self.fs)[:self.time_cutoff]
         titles = ['Whole-trial', 'Sample', 'Delay', 'Response']
         
         num_epochs = []
@@ -2158,7 +2158,7 @@ class Session:
         
         f, axarr = plt.subplots(2, 1, sharex='col', figsize=(20,15))
         epochs = [range(14,28), range(21,self.time_cutoff), range(29,self.time_cutoff)]
-        x = np.arange(-5.97,4,0.2)[:self.time_cutoff]
+        x = np.arange(-5.97,4,self.fs)[:self.time_cutoff]
         titles = ['Preparatory', 'Prep + response', 'Response']
         
         sig_n = dict()
@@ -2218,7 +2218,7 @@ class Session:
         
         f, axarr = plt.subplots(1,1, sharex='col', figsize=(5,5))
         
-        x = np.arange(-5.97,4,0.2)[:self.time_cutoff] if 'CW03' not in self.path else np.arange(-6.97,4,0.2)[:self.time_cutoff]
+        x = np.arange(-5.97,4,self.fs)[:self.time_cutoff] if 'CW03' not in self.path else np.arange(-6.97,4,self.fs)[:self.time_cutoff]
 
         # Get late delay selective neurons
         contra_neurons, ipsi_neurons, contra_trace, ipsi_trace = self.contra_ipsi_pop(range(self.response-9,self.response), p=p) 
@@ -2266,7 +2266,7 @@ class Session:
             # selo = selo[5:]
             # err = err[5:]
             # erro = erro[5:]
-            x = np.arange(-6.97,4,0.2)[:self.time_cutoff]
+            x = np.arange(-6.97,4,self.fs)[:self.time_cutoff]
 
         axarr.plot(x, sel, 'black')
                 
@@ -2419,7 +2419,7 @@ class Session:
                 mixed += [m]
             
             f, axarr = plt.subplots(1,4, sharey='row', figsize=(20,5))
-            x = np.arange(-5.97,4,0.2)[:self.time_cutoff] if 'CW03' not in self.path else np.arange(-6.97,4,0.2)[:self.time_cutoff]
+            x = np.arange(-5.97,4,self.fs)[:self.time_cutoff] if 'CW03' not in self.path else np.arange(-6.97,4,self.fs)[:self.time_cutoff]
 
             axarr[0].plot(x, np.array(stim)/self.num_neurons, color='magenta')
             axarr[0].set_title('Lick direction cell')
@@ -2503,7 +2503,7 @@ class Session:
         f, axarr = plt.subplots(1,3, sharey='row', figsize=(15,5))
         
         epochs = [range(self.sample,self.delay), range(self.delay,self.response), range(self.response,self.time_cutoff)]
-        x = np.arange(-5.97,4,0.2)[:self.time_cutoff] if 'CW03' not in self.path else np.arange(-6.97,4,0.2)[:self.time_cutoff]
+        x = np.arange(-5.97,4,self.fs)[:self.time_cutoff] if 'CW03' not in self.path else np.arange(-6.97,4,self.fs)[:self.time_cutoff]
         titles = ['Stimulus selective', 'Choice selective', 'Outcome selective']
         
         

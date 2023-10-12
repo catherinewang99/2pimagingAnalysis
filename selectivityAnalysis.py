@@ -55,7 +55,7 @@ l1 = session.Session(path)
 
 l1.selectivity_table_by_epoch()
 
-l1.selectivity_optogenetics(p=0.01)
+l1.selectivity_optogenetics(p=0.001)
 
 ## For selective neurons
 # l1 = session.Session(path)
