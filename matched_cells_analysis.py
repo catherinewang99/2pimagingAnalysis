@@ -16,7 +16,14 @@ from matplotlib.pyplot import figure
 import decon
 from scipy.stats import chisquare
 import pandas as pd
+from sklearn.preprocessing import normalize
 
+
+### Single neuron PSTHs over sessions ###
+
+
+
+### Heatmap analysis over sessions ###
 
 path = r'F:\data\BAYLORCW036\python\2023_10_07'
 s1 = session.Session(path)
@@ -24,5 +31,25 @@ s1 = session.Session(path)
 path = r'F:\data\BAYLORCW036\python\2023_10_09'
 s2 = session.Session(path)
 
+f, axarr = plt.subplots(1,2, sharex='col')
 
+neurons_ranked = s1.ranked_cells_by_selectivity()
 
+right_stack = np.zeros(s1.time_cutoff) 
+left_stack = np.zeros(s1.time_cutoff) 
+for neuron in neurons_ranked:
+    r,l = s1.get_trace_matrix(neuron)
+    
+    right_trace = np.mean(r, axis=0)
+    left_trace = np.mean(l, axis=0)
+    
+    right_stack = np.vstack((right_stack, right_trace))
+    left_stack = np.vstack((left_stack, left_trace))
+                            
+# Right trials first
+right_stack = normalize(right_stack[1:])
+axarr[0].matshow(right_stack, cmap='gray', interpolation='nearest', aspect='auto')
+
+# Left trials
+left_stack = normalize(left_stack[1:])
+axarr[1].matshow(left_stack, cmap='gray', interpolation='nearest', aspect='auto')

@@ -940,7 +940,7 @@ class Session:
                 
         
 
-    def get_epoch_selective(self, epoch, p = 0.0001, bias=False):
+    def get_epoch_selective(self, epoch, p = 0.0001, bias=False, return_stat = False):
         """Identifies neurons that are selective in a given epoch
         
         Saves neuron list in self.selective_neurons as well.
@@ -953,13 +953,19 @@ class Session:
             P-value cutoff to be deemed selectivity (default 0.0001)
         bias : bool, optional
             If true, only use the bias trials to evaluate (default False)
+        return_stat : bool, optional
+            If true, returns the t-statistic to use for ranking
             
         Returns
         -------
         list
             List of neurons that are selective
+        list, optional
+            T-statistic associated with neuron, positive if left selective, 
+            negative if right selective
         """
         selective_neurons = []
+        all_tstat = []
         # for neuron in range(self.num_neurons):
         for neuron in self.good_neurons: # Only look at non-noise neurons
             right, left = self.get_trace_matrix(neuron)
@@ -976,8 +982,13 @@ class Session:
             # p = 0.0001
             if p_val < p:
                 selective_neurons += [neuron]
+                all_tstat += [tstat] # Positive if L selective, negative if R selective
         # print("Total delay selective neurons: ", len(selective_neurons))
         self.selective_neurons = selective_neurons
+        
+        if return_stat:
+            return selective_neurons, all_tstat
+        
         return selective_neurons
    
     
@@ -2662,11 +2673,11 @@ class Session:
             
     
     def ranked_cells_by_selectivity(self):
-        """Returns neurons based on trial type selectivity 
+        """Returns list of neurons based on trial type selectivity 
         
         Goes from most right preferring to most left preferring (rank 1 through -1)
-        First, rank by half of trials, then return (ordered) selectivity for neurons
-        using remaining half of trials.
+        First, rank by half of trials, then return (ordered) selectivity of neurons
+        using remaining half of trials. (half / half rule not implemented )
         
         Parameters
         ----------
@@ -2674,12 +2685,25 @@ class Session:
         Returns 
         -------
         list
-            list of neurons
+            Selective neurons, ranked
          """
          
-         
+        # Find all delay selective neurons first:
+        # Selectivity returns positive if left pref, neg if right pref
+        delay_selective_neurons, selectivity = self.get_epoch_selective(range(self.delay, self.response),
+                                                                        p = 0.01,
+                                                                        return_stat=True)
         
-        return None
+        order = np.argsort(selectivity) # sorts from lowest to highest
+         
+        # Split trials into half, maintaining lick right and lick left proportions
+        # Exclude opto trials
+        neurons = []
+        for n in order:
+            neurons += [delay_selective_neurons[n]]
+            # pref, l_trials, r_trials = self.screen_preference(neuron, range(self.delay, self.response))
+
+        return neurons
         
 
 
