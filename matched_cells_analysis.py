@@ -31,9 +31,9 @@ s1 = session.Session(path)
 path = r'F:\data\BAYLORCW036\python\2023_10_09'
 s2 = session.Session(path)
 
-f, axarr = plt.subplots(1,2, sharex='col')
+f, axarr = plt.subplots(1,2, sharex='col', figsize=(20,7))
 
-neurons_ranked = s1.ranked_cells_by_selectivity()
+neurons_ranked, selectivity = s1.ranked_cells_by_selectivity(p=0.05)
 
 right_stack = np.zeros(s1.time_cutoff) 
 left_stack = np.zeros(s1.time_cutoff) 
@@ -48,8 +48,11 @@ for neuron in neurons_ranked:
                             
 # Right trials first
 right_stack = normalize(right_stack[1:])
-axarr[0].matshow(right_stack, cmap='gray', interpolation='nearest', aspect='auto')
-
+right_im = axarr[0].matshow(right_stack, cmap='YlGnBu', interpolation='nearest', aspect='auto')
+axarr[0].axis('off')
+f.colorbar(right_im, shrink = 0.2)
 # Left trials
 left_stack = normalize(left_stack[1:])
-axarr[1].matshow(left_stack, cmap='gray', interpolation='nearest', aspect='auto')
+leftim = axarr[1].matshow(left_stack, cmap='YlGnBu', interpolation='nearest', aspect='auto')
+axarr[1].axis('off')
+f.colorbar(leftim, shrink = 0.2)

@@ -2672,7 +2672,7 @@ class Session:
         return bias_trials
             
     
-    def ranked_cells_by_selectivity(self):
+    def ranked_cells_by_selectivity(self, p=0.01):
         """Returns list of neurons based on trial type selectivity 
         
         Goes from most right preferring to most left preferring (rank 1 through -1)
@@ -2681,6 +2681,8 @@ class Session:
         
         Parameters
         ----------
+        p : int, optional
+            Probability for determining selectivity of neurons
             
         Returns 
         -------
@@ -2690,8 +2692,8 @@ class Session:
          
         # Find all delay selective neurons first:
         # Selectivity returns positive if left pref, neg if right pref
-        delay_selective_neurons, selectivity = self.get_epoch_selective(range(self.delay, self.response),
-                                                                        p = 0.01,
+        delay_selective_neurons, selectivity = self.get_epoch_selective(range(self.delay-1, self.response-1),
+                                                                        p = p,
                                                                         return_stat=True)
         
         order = np.argsort(selectivity) # sorts from lowest to highest
@@ -2703,7 +2705,7 @@ class Session:
             neurons += [delay_selective_neurons[n]]
             # pref, l_trials, r_trials = self.screen_preference(neuron, range(self.delay, self.response))
 
-        return neurons
+        return neurons, np.take(selectivity,order)
         
 
 
