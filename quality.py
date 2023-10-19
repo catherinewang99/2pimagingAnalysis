@@ -28,20 +28,13 @@ class QC(Session):
     def __init__(self, path, layer_num='all', guang=False, passive=False):
         
         super().__init__(path, layer_num, guang, passive)
-        # self.sample = 7
-        # self.delay = 13
-        # self.response = 28
-        # if 'CW03' in path:
-        #     self.sample += 5
-        #     self.delay += 5
-        #     self.response += 5
             
         
     ### Quality analysis section ###
             
     def all_neurons_heatmap(self, save=False):
         
-        x = np.arange(-5.97,4,self.fs)[:self.time_cutoff] if 'CW03' not in self.path else np.arange(-6.97,4,self.fs)[:self.time_cutoff]
+        # x = np.arange(-5.97,4,self.fs)[:self.time_cutoff] if 'CW03' not in self.path else np.arange(-6.97,4,self.fs)[:self.time_cutoff]
 
 
         f, axarr = plt.subplots(2,2, sharex='col')

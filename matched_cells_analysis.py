@@ -25,34 +25,132 @@ from sklearn.preprocessing import normalize
 
 ### Heatmap analysis over sessions ###
 
-path = r'F:\data\BAYLORCW036\python\2023_10_07'
-s1 = session.Session(path)
 
+ #%% 
 path = r'F:\data\BAYLORCW036\python\2023_10_09'
-s2 = session.Session(path)
-
-f, axarr = plt.subplots(1,2, sharex='col', figsize=(20,7))
-
-neurons_ranked, selectivity = s1.ranked_cells_by_selectivity(p=0.05)
-
+s1 = session.Session(path, layer_num =1)
+path = r'F:\data\BAYLORCW036\python\2023_10_16'
+s2 = session.Session(path, layer_num =1)
+#%%
+# NAIVE --> TRAINED
 right_stack = np.zeros(s1.time_cutoff) 
 left_stack = np.zeros(s1.time_cutoff) 
-for neuron in neurons_ranked:
-    r,l = s1.get_trace_matrix(neuron)
+
+right_stack_post = np.zeros(s2.time_cutoff) 
+left_stack_post = np.zeros(s2.time_cutoff) 
+
+for lnum in range(1,6):
+    path = r'F:\data\BAYLORCW036\python\2023_10_09'
+    s1 = session.Session(path, layer_num=lnum)
+    path = r'F:\data\BAYLORCW036\python\2023_10_16'
+    s2 = session.Session(path, layer_num=lnum)
     
-    right_trace = np.mean(r, axis=0)
-    left_trace = np.mean(l, axis=0)
+    neurons_ranked, selectivity = s1.ranked_cells_by_selectivity(p=0.05)
+    matched_neurons=np.load(r'F:\data\BAYLORCW036\python\cellreg\layer{}\1009_1016pairs_proc.npy'.format(lnum-1))
+    for nnum in range(len(neurons_ranked)):
+        
+        if neurons_ranked[nnum] not in matched_neurons[:,0]:
+            print(neurons_ranked[nnum], 'not matched.')
+            continue
+        
+        ## FIRST SESS
+        neuron = neurons_ranked[nnum]
+        r,l = s1.get_trace_matrix(neuron, lickdir=True)
+        
+        right_trace = np.mean(r, axis=0)
+        left_trace = np.mean(l, axis=0)
+        
+        right_stack = np.vstack((right_stack, right_trace))
+        left_stack = np.vstack((left_stack, left_trace))
+        
+        ## SECOND SESS
+        nind = np.where(matched_neurons[:,0] == neuron)[0]
+        neuron = matched_neurons[nind, 1] # Grab the ranked neuron
+        r,l = s2.get_trace_matrix(neuron, lickdir=True)
+        
+        right_trace = np.mean(r, axis=0)
+        left_trace = np.mean(l, axis=0)
+        
+        right_stack_post = np.vstack((right_stack_post, right_trace))
+        left_stack_post = np.vstack((left_stack_post, left_trace))
+#%%
+# TRAINED --> NAIVE
+right_stack = np.zeros(s1.time_cutoff) 
+left_stack = np.zeros(s1.time_cutoff) 
+
+right_stack_post = np.zeros(s2.time_cutoff) 
+left_stack_post = np.zeros(s2.time_cutoff) 
+
+for lnum in range(1,6):
+    path = r'F:\data\BAYLORCW036\python\2023_10_09'
+    s1 = session.Session(path, layer_num=lnum)
+    path = r'F:\data\BAYLORCW036\python\2023_10_16'
+    s2 = session.Session(path, layer_num=lnum)
     
-    right_stack = np.vstack((right_stack, right_trace))
-    left_stack = np.vstack((left_stack, left_trace))
-                            
+    neurons_ranked, selectivity = s2.ranked_cells_by_selectivity(p=0.05)
+    matched_neurons=np.load(r'F:\data\BAYLORCW036\python\cellreg\layer{}\1009_1016pairs_proc.npy'.format(lnum-1))
+    for nnum in range(len(neurons_ranked)):
+        
+        if neurons_ranked[nnum] not in matched_neurons[:,1]:
+            print(neurons_ranked[nnum], 'not matched.')
+            continue
+        neuron = neurons_ranked[nnum]
+
+        ## FIRST SESS
+        nind = np.where(matched_neurons[:,1] == neuron)[0]
+        neuron = matched_neurons[nind, 0] # Grab the ranked neuron
+        r,l = s1.get_trace_matrix(neuron, lickdir=True)
+        
+        right_trace = np.mean(r, axis=0)
+        left_trace = np.mean(l, axis=0)
+        
+        right_stack = np.vstack((right_stack, right_trace))
+        left_stack = np.vstack((left_stack, left_trace))
+        
+        ## SECOND SESS
+        neuron = neurons_ranked[nnum]
+        r,l = s2.get_trace_matrix(neuron, lickdir=True)
+        
+        right_trace = np.mean(r, axis=0)
+        left_trace = np.mean(l, axis=0)
+        
+        right_stack_post = np.vstack((right_stack_post, right_trace))
+        left_stack_post = np.vstack((left_stack_post, left_trace))
+#%% 
+        
+f, axarr = plt.subplots(2,2, sharex='col', figsize=(15,10))
+vmin, vmax= -0.5,2
+## FIRST SESS
 # Right trials first
-right_stack = normalize(right_stack[1:])
-right_im = axarr[0].matshow(right_stack, cmap='YlGnBu', interpolation='nearest', aspect='auto')
-axarr[0].axis('off')
+# right_stack = normalize(right_stack[1:])
+# right_stack = (right_stack[1:])
+right_im = axarr[0,0].imshow(right_stack, cmap='viridis', interpolation='nearest', aspect='auto', vmin=vmin, vmax=vmax)
+axarr[0,0].axis('off')
 f.colorbar(right_im, shrink = 0.2)
+axarr[0,0].set_title("Session 1")
+axarr[0,0].set_ylabel("Right trials")
+
 # Left trials
-left_stack = normalize(left_stack[1:])
-leftim = axarr[1].matshow(left_stack, cmap='YlGnBu', interpolation='nearest', aspect='auto')
-axarr[1].axis('off')
+# left_stack = normalize(left_stack[1:])
+# left_stack = (left_stack[1:])
+leftim = axarr[1,0].imshow(left_stack, cmap='viridis', interpolation='nearest', aspect='auto',vmin=vmin, vmax=vmax)
+axarr[1,0].axis('off')
+axarr[1,0].set_ylabel("Left trials")
+
+f.colorbar(leftim, shrink = 0.2)
+
+
+## SECOND SESS
+# Right trials first
+# right_stack = normalize(right_stack[1:])
+# right_stack_post = (right_stack_post[1:])
+right_im = axarr[0,1].imshow(right_stack_post, cmap='viridis', interpolation='nearest', aspect='auto', vmin=vmin, vmax=vmax)
+axarr[0,1].axis('off')
+f.colorbar(right_im, shrink = 0.2)
+axarr[0,1].set_title("Session 2")
+# Left trials
+# left_stack = normalize(left_stack[1:])
+# left_stack_post = (left_stack_post[1:])
+leftim = axarr[1,1].imshow(left_stack_post, cmap='viridis', interpolation='nearest', aspect='auto',vmin=vmin, vmax=vmax)
+axarr[1,1].axis('off')
 f.colorbar(leftim, shrink = 0.2)

@@ -140,9 +140,9 @@ class Session:
             self.i_good_trials = [i for i in self.i_good_trials if i < self.num_trials]
             self.stim_ON = self.stim_ON[:self.num_trials]
             
-        self.sample = 15
-        self.delay = 23
-        self.response = 41
+        self.sample = int(2.5*(1/self.fs))
+        self.delay = self.sample + int(1.3*(1/self.fs))
+        self.response = self.delay + int(3*(1/self.fs))
         # if 'CW03' in path:
         #     self.sample += 5
         #     self.delay += 5
@@ -169,7 +169,7 @@ class Session:
 
 
         if not sess_reg:
-            self.good_neurons, _ = self.get_pearsonscorr_neuron()
+            self.good_neurons, _ = self.get_pearsonscorr_neuron(cutoff=0.1)
         else:
             self.good_neurons = np.load(path + r'\registered_neurons.npy')
         
@@ -940,7 +940,7 @@ class Session:
                 
         
 
-    def get_epoch_selective(self, epoch, p = 0.0001, bias=False, return_stat = False):
+    def get_epoch_selective(self, epoch, p = 0.0001, bias=False, return_stat = False, lickdir = False):
         """Identifies neurons that are selective in a given epoch
         
         Saves neuron list in self.selective_neurons as well.
@@ -955,6 +955,8 @@ class Session:
             If true, only use the bias trials to evaluate (default False)
         return_stat : bool, optional
             If true, returns the t-statistic to use for ranking
+        lickdir : bool, optional
+            If True, use the lick direction instaed of correct only
             
         Returns
         -------
@@ -969,7 +971,10 @@ class Session:
         # for neuron in range(self.num_neurons):
         for neuron in self.good_neurons: # Only look at non-noise neurons
             right, left = self.get_trace_matrix(neuron)
-            
+            if lickdir:
+                right, left = self.get_trace_matrix(neuron, lickdir=True)
+                
+                
             if bias:
                 biasidx = self.find_bias_trials()
                 right,left = self.get_trace_matrix(neuron, bias_trials= biasidx)
@@ -1020,7 +1025,9 @@ class Session:
             right_ = [r[epoch] for r in right]
             
             d = np.mean(np.mean(left_,axis=0) - np.mean(right_,axis=0)) / np.mean(cat((np.mean(left_, axis = 1), np.mean(right_, axis = 1))))
+            
             diffs += [d]
+            
             # p = 0.01/self.num_neurons
             # p = 0.01
             # p = 0.0001
@@ -2727,14 +2734,17 @@ class Session:
         -------
         list
             Selective neurons, ranked
+        list
+            Selectivity of said ranked neurons
          """
          
         # Find all delay selective neurons first:
         # Selectivity returns positive if left pref, neg if right pref
-        delay_selective_neurons, selectivity = self.get_epoch_selective(range(self.delay-1, self.response-1),
+        delay_selective_neurons, selectivity = self.get_epoch_selective(range(self.delay+9, self.response),
                                                                         p = p,
-                                                                        return_stat=True)
-        
+                                                                        return_stat=True,
+                                                                        lickdir=False)
+        selectivity = self.get_epoch_mean_diff(range(self.delay+9, self.response))
         order = np.argsort(selectivity) # sorts from lowest to highest
          
         # Split trials into half, maintaining lick right and lick left proportions

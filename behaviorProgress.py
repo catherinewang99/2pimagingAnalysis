@@ -28,7 +28,7 @@ import behavior
 # b = behavior.Behavior('F:\data\Behavior data\BAYLORCW029\python_behavior', behavior_only=True)
 # b.learning_progression(imaging=True)
 
-b = behavior.Behavior('F:\data\Behavior data\BAYLORCW036\python_behavior', behavior_only=True)
+b = behavior.Behavior('F:\data\Behavior data\BAYLORCW032\python_behavior', behavior_only=True)
 # b.learning_progression(imaging=True)
 b.learning_progression()
 
