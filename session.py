@@ -1019,8 +1019,8 @@ class Session:
             left_ = [l[epoch] for l in left]
             right_ = [r[epoch] for r in right]
             
-            d = (np.mean(left_, axis = 1) - np.mean(right_, axis = 1)) / np.mean(cat(np.mean(left_, axis = 1),
-            diffs += [d]                                                                           np.mean(right_, axis = 1)))
+            d = np.mean(np.mean(left_,axis=0) - np.mean(right_,axis=0)) / np.mean(cat((np.mean(left_, axis = 1), np.mean(right_, axis = 1))))
+            diffs += [d]
             # p = 0.01/self.num_neurons
             # p = 0.01
             # p = 0.0001
