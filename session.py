@@ -990,7 +990,46 @@ class Session:
             return selective_neurons, all_tstat
         
         return selective_neurons
-   
+    
+    def get_epoch_mean_diff(self, epoch):
+        """Identifies neurons that are selective in a given epoch using mean 
+        difference during selected epoch
+        
+        Saves neuron list in self.selective_neurons as well.
+        
+        Parameters
+        ----------
+        epoch : list
+            Range of timesteps to evaluate selectivity over
+
+            
+        Returns
+        -------
+        list
+            Mean differences of neurons
+            
+
+        """
+        diffs = []
+        # for neuron in range(self.num_neurons):
+        for neuron in self.good_neurons: # Only look at non-noise neurons
+            right, left = self.get_trace_matrix(neuron)
+
+            
+            left_ = [l[epoch] for l in left]
+            right_ = [r[epoch] for r in right]
+            
+            d = (np.mean(left_, axis = 1) - np.mean(right_, axis = 1)) / np.mean(cat(np.mean(left_, axis = 1),
+            diffs += [d]                                                                           np.mean(right_, axis = 1)))
+            # p = 0.01/self.num_neurons
+            # p = 0.01
+            # p = 0.0001
+            # Positive if L selective, negative if R selective
+        # print("Total delay selective neurons: ", len(selective_neurons))
+        
+        return diffs
+        
+     
     
     def screen_preference(self, neuron_num, epoch, samplesize = 10):
         """Determine if a neuron is left or right preferring
