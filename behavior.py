@@ -337,7 +337,7 @@ class Behavior():
         # JH Plot
         return None
 
-    def learning_progression(self, window = 50, save=False, imaging=False):
+    def learning_progression(self, window = 50, save=False, imaging=False, return_results=False):
         
         # Figures showing learning over protocol
         
@@ -408,17 +408,9 @@ class Behavior():
         plt.show()
         
         
-    def plot_controlvsopto(self):
-        
-        return
-        
-        
-        
-        
-        
-        
-        
-        
+        if return_results:
+            
+            return delay_duration, correctarr, cat(([0], num_trials))
         
         
         

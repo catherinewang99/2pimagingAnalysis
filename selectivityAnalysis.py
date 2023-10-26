@@ -35,6 +35,8 @@ path = r'F:\data\BAYLORCW021\python\2023_04_27'
 
 path = r'F:\data\BAYLORCW030\python\2023_06_21'
 path = r'F:\data\BAYLORCW036\python\2023_10_17'
+path = r'F:\data\BAYLORCW034\python\2023_10_22'
+path = r'F:\data\BAYLORCW032\python\2023_10_19'
 
 # l1 = session.Session(path, layer_num=6,  sess_reg=True)
 l1 = session.Session(path)
@@ -52,16 +54,16 @@ l1 = session.Session(path)
 
 # l1.population_sel_timecourse()
 
-# l1.plot_number_of_sig_neurons()
+l1.plot_number_of_sig_neurons()
 
 l1.selectivity_table_by_epoch()
 
-l1.selectivity_optogenetics(p=0.001)
+l1.selectivity_optogenetics()
 
 ## For selective neurons
 # l1 = session.Session(path)
 
-# stim_neurons, choice_neurons, outcome_neurons, stim_sel, choice_sel, outcome_sel = l1.stim_choice_outcome_selectivity()
+stim_neurons, choice_neurons, outcome_neurons, stim_sel, choice_sel, outcome_sel = l1.stim_choice_outcome_selectivity()
 # n_numneurons = l1.num_neurons
 
 tstim, tlick, treward, tmixed = l1.single_neuron_sel('Chen 2017')

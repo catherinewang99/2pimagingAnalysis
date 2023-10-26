@@ -28,49 +28,49 @@ from sklearn.decomposition import PCA
 # path = r'F:\data\BAYLORCW021\python\2023_04_27'
 # path = r'F:\data\BAYLORCW021\python\2023_05_03'
 
-# path = r'F:\data\BAYLORCW030\python\2023_07_06'
+path = r'F:\data\BAYLORCW034\python\2023_10_24'
 
 
-# l1 = Mode(path)
+l1 = Mode(path)
 
-# a, b = l1.plot_activity_modes_ctl()
+a, b = l1.plot_activity_modes_ctl()
 
-# a, b = l1.plot_activity_modes_err()
+a, b = l1.plot_activity_modes_err()
 
 
-# a, b = l1.plot_activity_modes_opto()
+a, b = l1.plot_activity_modes_opto()
 
-# a, b = l1.plot_activity_modes_opto(error=True)
+a, b = l1.plot_activity_modes_opto(error=True)
 
-# l1.plot_behaviorally_relevant_modes()
-# l1.plot_behaviorally_relevant_modes_opto(error=True)
+l1.plot_behaviorally_relevant_modes()
+l1.plot_behaviorally_relevant_modes_opto(error=True)
 
 ### Recovery for stim over sessions
-total_var = []
-alldates = ['06_16', '06_19', '06_21', '06_22', '06_23', '07_05', '07_06',
-            '07_07', '07_10', '07_11']
+# total_var = []
+# alldates = ['06_16', '06_19', '06_21', '06_22', '06_23', '07_05', '07_06',
+#             '07_07', '07_10', '07_11']
 
-for date in alldates:
+# for date in alldates:
     
     
-    path = r'F:\data\BAYLORCW030\python\2023_{}'.format(date)
+#     path = r'F:\data\BAYLORCW030\python\2023_{}'.format(date)
     
     
-    l1 = Mode(path)
+#     l1 = Mode(path)
     
-    v = l1.get_all_recovery_vectors()
-    # pca = PCA()
-    # pca.fit(v)
-    # total_var += [sum(pca.explained_variance_)]
+#     v = l1.get_all_recovery_vectors()
+#     # pca = PCA()
+#     # pca.fit(v)
+#     # total_var += [sum(pca.explained_variance_)]
     
-    total_var += [np.mean([np.var(v,axis=1) / v.shape[1]]) / v.shape[0]]
+#     total_var += [np.mean([np.var(v,axis=1) / v.shape[1]]) / v.shape[0]]
     
 
-plt.bar(range(10), total_var)
-plt.xticks(range(10), alldates)
-plt.title('Variance of recovery over sessions')
-plt.xlabel('Sessions')
-plt.ylabel('Total variance')
+# plt.bar(range(10), total_var)
+# plt.xticks(range(10), alldates)
+# plt.title('Variance of recovery over sessions')
+# plt.xlabel('Sessions')
+# plt.ylabel('Total variance')
 
 
 

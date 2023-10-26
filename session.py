@@ -39,7 +39,7 @@ class Session:
     """
     
     
-    def __init__(self, path, layer_num='all', sess_reg = False, guang=False, passive=False):
+    def __init__(self, path, layer_num='all', use_reg = False, sess_reg = False, guang=False, passive=False):
         
         """
         Parameters
@@ -48,6 +48,8 @@ class Session:
             Path to the folder containing layers.mat and behavior.mat files
         layer_num : str or int, optional
             Layer number to analyze (default is all the layers)
+        use_reg : bool, optional
+            Contains neurons that are matched only, for all layers
         sess_reg : bool, optional
             Reads in .npy file containing the registered neurons only. 
             Usually, this means only one layer. TBC. (default False)
@@ -66,32 +68,34 @@ class Session:
         else:
             # Load all layers
             self.dff = None
-            for layer in os.listdir(path):
-                if 'layer' in layer:
-                    layer_og = scio.loadmat(r'{}\{}'.format(path, layer))
+            counter = 0
+            for layer_pth in os.listdir(path):
+                if 'layer' in layer_pth and '.mat' in layer_pth:
+                    layer_og = scio.loadmat(r'{}\{}'.format(path, layer_pth))
                     layer = copy.deepcopy(layer_og)
                     
                     if self.dff == None:
                         
-                        if sess_reg != False:
-                            raise NotImplementedError("Multi plane reg not implemented!")
-                            neurons = np.load(path + r'\layer_{}_registered_neurons.npy'.format(layer))
-                            self.dff = layer['dff'][:, :][neurons]
-                        else:
-                            self.dff = layer['dff']
-                            
+                        if use_reg != False:
+                            # raise NotImplementedError("Multi plane reg not implemented!")
+                            self.good_neurons = np.load(path + r'\layer{}_registered_neurons.npy'.format(counter))
+                            # self.good_neurons = layer['dff'][:, :][neurons]
+                        self.dff = layer['dff']
                         self.num_trials = layer['dff'].shape[1] 
+                        
                     else:
-
+                        if use_reg != False:
+                            # raise NotImplementedError("Multi plane reg not implemented!")
+                            neurons = np.load(path + r'\layer{}_registered_neurons.npy'.format(counter))
+                            self.good_neurons = np.append(self.good_neurons, neurons + self.dff[0,0].shape[0])
+                            
                         for t in range(self.num_trials):
-                            if sess_reg != False:
-                                raise NotImplementedError("Multi plane reg not implemented!")
-                                neurons = np.load(path + r'\layer_{}_registered_neurons.npy'.format(layer))
-                                add = layer['dff'][0, t][neurons]
 
-                            else:                                
-                                add = layer['dff'][0, t]
+                               
+                            add = layer['dff'][0, t]
                             self.dff[0, t] = np.vstack((self.dff[0, t], add))
+                    
+                    counter += 1
                             
 
                                         
@@ -118,6 +122,7 @@ class Session:
         
         # if self.path == 'F:\\data\\BAYLORCW03\\python\\2023_06_26':
         #     self.i_good_trials = self.i_good_trials[:100]
+        
         
         self.L_correct = cat(behavior['L_hit_tmp'])
         self.R_correct = cat(behavior['R_hit_tmp'])
@@ -148,6 +153,7 @@ class Session:
         #     self.delay += 5
         #     self.response += 5
         self.old_i_good_trials = copy.copy(self.i_good_trials)
+        self.i_good_non_stim_trials = [t for t in self.i_good_trials if not self.stim_ON[t]]
 
         # Measure that automatically crops out water leak trials before norming
         if not self.find_low_mean_F():
@@ -168,9 +174,9 @@ class Session:
                 self.normalize_z_score()    
 
 
-        if not sess_reg:
-            self.good_neurons, _ = self.get_pearsonscorr_neuron(cutoff=0.1)
-        else:
+        if not sess_reg and not use_reg:
+            self.good_neurons, _ = self.get_pearsonscorr_neuron(cutoff=0.5)
+        elif sess_reg:
             self.good_neurons = np.load(path + r'\registered_neurons.npy')
         
     def crop_baseline(self):
@@ -1024,7 +1030,7 @@ class Session:
             left_ = [l[epoch] for l in left]
             right_ = [r[epoch] for r in right]
             
-            d = np.mean(np.mean(left_,axis=0) - np.mean(right_,axis=0)) / np.mean(cat((np.mean(left_, axis = 1), np.mean(right_, axis = 1))))
+            d = np.mean(np.mean(right_,axis=0) - np.mean(left_,axis=0)) / np.mean(cat((np.mean(left_, axis = 1), np.mean(right_, axis = 1))))
             
             diffs += [d]
             
@@ -1983,25 +1989,28 @@ class Session:
 
 ### EPHYS PLOTS TO MY DATA ###
 
-    def plot_number_of_sig_neurons(self, save=False):
+    def plot_number_of_sig_neurons(self, save=False, y_axis = []):
         """Plots number of contra / ipsi neurons over course of trial
                                 
         Parameters
         ----------
         save : bool, optional
             Whether to save fig to file (default False)
+            
+        y_axis : list, optional
+            set top and bottom ylim
         """
         
         contra = np.zeros(self.time_cutoff)
         ipsi = np.zeros(self.time_cutoff)
-        x = np.arange(-5.97,4,self.fs)[:self.time_cutoff]
+        x = np.arange(-6.97,6,self.fs)[:self.time_cutoff]
         steps = range(self.time_cutoff)
         
-        if 'CW03' in self.path:
-            contra = np.zeros(self.time_cutoff-5)
-            ipsi = np.zeros(self.time_cutoff-5)
-            x = np.arange(-5.97,4,self.fs)[:self.time_cutoff-5]
-            steps = range(5, self.time_cutoff)
+        # if 'CW03' in self.path:
+        #     contra = np.zeros(self.time_cutoff-5)
+        #     ipsi = np.zeros(self.time_cutoff-5)
+        #     x = np.arange(-5.97,4,self.fs)[:self.time_cutoff-5]
+        #     steps = range(5, self.time_cutoff)
 
         for t in steps:
             
@@ -2029,21 +2038,23 @@ class Session:
                     
                     sig_neurons += [0]
             
-            contra[t-5] = sum(np.array(sig_neurons) == -1)
-            ipsi[t-5] = sum(np.array(sig_neurons) == 1)
+            contra[t] = sum(np.array(sig_neurons) == -1)
+            ipsi[t] = sum(np.array(sig_neurons) == 1)
 
-        plt.bar(x, contra, color = 'b', edgecolor = 'white', width = 0.2, label = 'contra')
-        plt.bar(x, -ipsi, color = 'r',edgecolor = 'white', width = 0.2, label = 'ipsi')
+        plt.bar(x, contra, color = 'b', edgecolor = 'white', width = 0.17, label = 'contra')
+        plt.bar(x, -ipsi, color = 'r',edgecolor = 'white', width = 0.17, label = 'ipsi')
         plt.axvline(-4.3)
         plt.axvline(-3)
         plt.axvline(0)
-        
+        if len(y_axis) != 0:
+            plt.ylim(bottom = y_axis[0])
+            plt.ylim(top = y_axis[1])
         plt.ylabel('Number of sig sel neurons')
         plt.xlabel('Time from Go cue (s)')
         plt.legend()
         
         if save:
-            plt.savefig(self.path + r'number_sig_neurons.png')
+            plt.savefig(self.path + r'number_sig_neurons.pdf')
         
         plt.show()
         
@@ -2394,7 +2405,7 @@ class Session:
         plt.show()
         
         
-    def single_neuron_sel(self, type):
+    def single_neuron_sel(self, type, save=False):
         """Plots proportion of stim/lick/reward/mixed cells over trial using two different methods
         
         Inputs are 'Chen 2017' or 'Susu method'
@@ -2403,6 +2414,8 @@ class Session:
         ----------
         type : str
             'Chen 2017' or 'Susu method' to indicate which paper figure to replicate
+        save : bool, optional
+            Whether to save as pdf
             
         Returns 
         -------
@@ -2433,44 +2446,50 @@ class Session:
                 
                 # for n in range(self.num_neurons):
                 for n in self.good_neurons:
-                    dff = [self.dff[0, trial][n, t] for trial in self.i_good_trials]
+                    dff = [self.dff[0, trial][n, t] for trial in self.i_good_non_stim_trials]
                     
-                    df = pd.DataFrame({'stim': self.R_correct[self.i_good_trials] + self.R_wrong[self.i_good_trials],
-                                       'lick': self.R_correct[self.i_good_trials] + self.L_wrong[self.i_good_trials],
-                                       'reward': self.R_correct[self.i_good_trials] + self.L_correct[self.i_good_trials],
+                    df = pd.DataFrame({'stim': self.R_correct[self.i_good_non_stim_trials] + self.R_wrong[self.i_good_non_stim_trials],
+                                       'lick': self.R_correct[self.i_good_non_stim_trials] + self.L_wrong[self.i_good_non_stim_trials],
+                                       'reward': self.R_correct[self.i_good_non_stim_trials] + self.L_correct[self.i_good_non_stim_trials],
                                        'dff': dff})
                     
-                    model = ols("""dff ~ C(stim) + C(lick) + C(reward) +
-                                    C(stim):C(lick) + C(stim):C(reward) + C(lick):C(reward) +
-                                    C(stim):C(lick):C(reward)""", data = df).fit()
-                    
-                    table = sm.stats.anova_lm(model, type=2)
+                    # model = ols("""dff ~ C(stim) + C(lick) + C(reward) +
+                    #                 C(stim):C(lick) + C(stim):C(reward) + C(lick):C(reward) +
+                    #                 C(stim):C(lick):C(reward)""", data = df).fit()
+                                    
+                    model = ols("""dff ~ C(stim) + C(lick) + C(reward)""", data = df).fit()
+
+                    table = sm.stats.anova_lm(model)
                     
                     sig = np.where(np.array(table['PR(>F)'] < 0.01) == True)[0]
                     h=False
+                    
                     if len(sig) == 0:
                         continue
                     
-                    if 6 in sig:
-                        h = True
+                    # if 6 in sig or 3 in sig or 4 in sig or 5 in sig:
+                    #     # h = True
+                    #     m+=1
+                    #     # continue
+                
+                    # if 3 in sig:
+                    #     # s+=1
+                    #     # l+=1
+                    #     m = m if h else m+1
+                    #     h=True
+
+                    # elif 4 in sig:
+                    #     # s+=1
+                    #     # r+=1
+                    #     m+=1
+
+                    # elif 5 in sig:
+                    #     # l+=1
+                    #     # r+=1
+                    #     m+=1
+
+                    if len(sig) > 0:
                         m+=1
-                        
-                    if 3 in sig:
-                        s+=1
-                        l+=1
-                        m = m if h else m+1
-
-                    elif 4 in sig:
-                        s+=1
-                        r+=1
-                        m+=1
-
-                    elif 5 in sig:
-                        l+=1
-                        r+=1
-                        m+=1
-
-
                     elif 0 in sig:
                         s+=1
                     elif 1 in sig:
@@ -2488,13 +2507,14 @@ class Session:
             f, axarr = plt.subplots(1,4, sharey='row', figsize=(20,5))
             x = np.arange(-5.97,4,self.fs)[:self.time_cutoff] if 'CW03' not in self.path else np.arange(-6.97,4,self.fs)[:self.time_cutoff]
 
-            axarr[0].plot(x, np.array(stim)/self.num_neurons, color='magenta')
+            num_neurons = len(self.good_neurons)
+            axarr[0].plot(x, np.array(stim)/num_neurons, color='magenta')
             axarr[0].set_title('Lick direction cell')
-            axarr[1].plot(x, np.array(lick)/self.num_neurons, color='lime')
+            axarr[1].plot(x, np.array(lick)/num_neurons, color='lime')
             axarr[1].set_title('Object location cell')
-            axarr[2].plot(x, np.array(reward)/self.num_neurons, color='cyan')
+            axarr[2].plot(x, np.array(reward)/num_neurons, color='cyan')
             axarr[2].set_title('Outcome cell')
-            axarr[3].plot(x, np.array(mixed)/self.num_neurons, color='gold')
+            axarr[3].plot(x, np.array(mixed)/num_neurons, color='gold')
             axarr[3].set_title('Mixed cell')
 
             for i in range(4):
@@ -2502,6 +2522,8 @@ class Session:
                 axarr[i].axvline(0, color = 'grey', alpha=0.5, ls = '--')
                 axarr[i].axvline(-4.3, color = 'grey', alpha=0.5, ls = '--')
                 axarr[i].axvline(-3, color = 'grey', alpha=0.5, ls = '--')
+            if save:
+                plt.savefig(self.path + r'single_neuron_sel.pdf')
                 
             plt.show()
             
@@ -2557,10 +2579,18 @@ class Session:
                 
             return stim_neurons, choice_neurons, action_neurons, outcome_neurons
 
-    def stim_choice_outcome_selectivity(self):
+    def stim_choice_outcome_selectivity(self, save=False, y_axis = 0):
         """Plots selectivity traces of stim/lick/reward/mixed cells using Susu's method
         
         Susu method called from single_neuron_sel method
+        
+        Parameters
+        ----------
+        save : bool, optional
+            Whether to save fig as pdf
+        y_axis : int
+            0 if to leave unchanged, else int that is the ylim top limit
+        
 
         """
         stim_neurons, choice_neurons, _, outcome_neurons = self.single_neuron_sel('Susu method')
@@ -2588,6 +2618,7 @@ class Session:
     
             axarr[0].set_title(titles[0])
             
+
         #######################################
         
 
@@ -2628,8 +2659,12 @@ class Session:
             axarr[i].axvline(0, color = 'grey', alpha=0.5, ls = '--')
             axarr[i].axvline(-4.3, color = 'grey', alpha=0.5, ls = '--')
             axarr[i].axvline(-3, color = 'grey', alpha=0.5, ls = '--')        
-            axarr[i].axhline(0, color = 'grey', alpha=0.5, ls = '--')        
-
+            axarr[i].axhline(0, color = 'grey', alpha=0.5, ls = '--')
+            if y_axis != 0:
+                axarr[i].set_ylim(top=y_axis)
+        if save:
+            plt.savefig(self.path + r'stim_choice_outcome_selectivity.pdf')
+            
         plt.show()
         return stim_neurons, choice_neurons, outcome_neurons, stim_sel, choice_sel, outcome_sel
 
@@ -2740,10 +2775,11 @@ class Session:
          
         # Find all delay selective neurons first:
         # Selectivity returns positive if left pref, neg if right pref
-        delay_selective_neurons, selectivity = self.get_epoch_selective(range(self.delay+9, self.response),
-                                                                        p = p,
-                                                                        return_stat=True,
-                                                                        lickdir=False)
+        # delay_selective_neurons, selectivity = self.get_epoch_selective(range(self.delay+9, self.response),
+        #                                                                 p = p,
+        #                                                                 return_stat=True,
+        #                                                                 lickdir=False)
+        
         selectivity = self.get_epoch_mean_diff(range(self.delay+9, self.response))
         order = np.argsort(selectivity) # sorts from lowest to highest
          
@@ -2751,7 +2787,7 @@ class Session:
         # Exclude opto trials
         neurons = []
         for n in order:
-            neurons += [delay_selective_neurons[n]]
+            neurons += [self.good_neurons[n]]
             # pref, l_trials, r_trials = self.screen_preference(neuron, range(self.delay, self.response))
 
         return neurons, np.take(selectivity,order)
