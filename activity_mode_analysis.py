@@ -28,23 +28,26 @@ from sklearn.decomposition import PCA
 # path = r'F:\data\BAYLORCW021\python\2023_04_27'
 # path = r'F:\data\BAYLORCW021\python\2023_05_03'
 
-path = r'F:\data\BAYLORCW034\python\2023_10_24'
+path = r'F:\data\BAYLORCW032\python\2023_10_25'
+path = r'F:\data\BAYLORCW032\python\2023_10_05'
 
 
-l1 = Mode(path)
+l1 = Mode(path, use_reg = True)
 
-a, b = l1.plot_activity_modes_ctl()
+# a, b = l1.plot_activity_modes_ctl()
 
-a, b = l1.plot_activity_modes_err()
+# a, b = l1.plot_activity_modes_err()
 
 
-a, b = l1.plot_activity_modes_opto()
+# a, b = l1.plot_activity_modes_opto()
 
-a, b = l1.plot_activity_modes_opto(error=True)
+# a, b = l1.plot_activity_modes_opto(error=True)
 
-l1.plot_behaviorally_relevant_modes()
-l1.plot_behaviorally_relevant_modes_opto(error=True)
-
+orthonormal_basis, mean = l1.plot_behaviorally_relevant_modes()
+# l1.plot_behaviorally_relevant_modes_opto(error=True)
+path = r'F:\data\BAYLORCW032\python\2023_10_24'
+l1 = Mode(path, use_reg = True)
+l1.plot_behaviorally_relevant_modes_appliedCD(orthonormal_basis, mean)
 ### Recovery for stim over sessions
 # total_var = []
 # alldates = ['06_16', '06_19', '06_21', '06_22', '06_23', '07_05', '07_06',

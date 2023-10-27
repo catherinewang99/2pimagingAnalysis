@@ -36,7 +36,7 @@ path = r'F:\data\BAYLORCW021\python\2023_04_27'
 path = r'F:\data\BAYLORCW030\python\2023_06_21'
 path = r'F:\data\BAYLORCW036\python\2023_10_17'
 path = r'F:\data\BAYLORCW034\python\2023_10_22'
-path = r'F:\data\BAYLORCW032\python\2023_10_19'
+path = r'F:\data\BAYLORCW032\python\2023_10_05'
 
 # l1 = session.Session(path, layer_num=6,  sess_reg=True)
 l1 = session.Session(path)

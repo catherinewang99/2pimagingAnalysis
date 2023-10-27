@@ -17,9 +17,9 @@ import time
 
 class Mode(Session):
     
-    def __init__(self, path, layer_num='all', time_epochs = [7, 13, 28]):
+    def __init__(self, path,  use_reg=False, layer_num='all'):
         # Inherit all parameters and functions of session.py
-        super().__init__(path, layer_num=layer_num) 
+        super().__init__(path, layer_num=layer_num, use_reg=use_reg) 
         
         counter = 0
         for n in self.good_neurons:
@@ -73,11 +73,12 @@ class Mode(Session):
             counter += 1
             
         self.T_cue_aligned_sel = np.arange(self.time_cutoff)
-        self.time_epochs = time_epochs
         
         self.start_t = 3
     
-    
+        time_epochs = [self.sample, self.delay, self.response]
+        self.time_epochs = time_epochs
+
     
     def basis_col(self, A):
         # Bases
@@ -314,26 +315,26 @@ class Mode(Session):
         if ctl:
             
             wt = (PSTH_yes_correct - PSTH_no_correct)/2
-            i_t = np.where((T_cue_aligned_sel > t_sample) & (T_cue_aligned_sel < t_delay))[0]
+            i_t = np.where((T_cue_aligned_sel > t_sample + int(round(0.4*(1/self.fs))) ) & (T_cue_aligned_sel < t_delay + int(round(0.4*(1/self.fs))) ))[0]
             CD_stim_mode = np.mean(wt[:, i_t], axis=1)
         
             wt = (PSTH_yes_correct - PSTH_no_correct)/2
-            i_t = np.where((T_cue_aligned_sel > t_delay) & (T_cue_aligned_sel < t_response))[0]
+            i_t = np.where((T_cue_aligned_sel > t_delay + int(round(0.4*(1/self.fs))) ) & (T_cue_aligned_sel < t_response + int(round(0.4*(1/self.fs))) ))[0]
             CD_choice_mode = np.mean(wt[:, i_t], axis=1)
             
             wt = (PSTH_yes_correct + PSTH_no_correct)/2
-            i_t = np.where((T_cue_aligned_sel > t_response) & (T_cue_aligned_sel < (t_response + 12)))[0]
+            i_t = np.where((T_cue_aligned_sel > t_response + int(round(0.4*(1/self.fs))) ) & (T_cue_aligned_sel < (t_response + int(round(1.7*(1/self.fs))))))[0]
             CD_outcome_mode = np.mean(wt[:, i_t], axis=1)
             
            
             wt = (PSTH_yes_correct - PSTH_no_correct)/2
-            i_t = np.where((T_cue_aligned_sel > (t_sample + 1)) & (T_cue_aligned_sel < (t_sample + 3)))[0]
+            i_t = np.where((T_cue_aligned_sel > (t_sample + int(round(0.4*(1/self.fs))) )) & (T_cue_aligned_sel < (t_sample + int(round(0.8*(1/self.fs))) )))[0]
             CD_sample_mode = np.mean(wt[:, i_t], axis=1)
             
-            i_t = np.where((T_cue_aligned_sel > (t_response - 3)) & (T_cue_aligned_sel < (t_response - 1)))[0]
+            i_t = np.where((T_cue_aligned_sel > (t_response - int(round(0.4*(1/self.fs))) )) & (T_cue_aligned_sel < (t_response + int(round(0.1*(1/self.fs))) )))[0]
             CD_delay_mode = np.mean(wt[:, i_t], axis=1)
             
-            i_t = np.where((T_cue_aligned_sel > (t_response + 1)) & (T_cue_aligned_sel < (t_response + 3)))[0]
+            i_t = np.where((T_cue_aligned_sel > (t_response + int(round(0.4*(1/self.fs))) )) & (T_cue_aligned_sel < (t_response + int(round(0.8*(1/self.fs))) )))[0]
             CD_go_mode = np.mean(wt[:, i_t], axis=1)
             
             wt = (PSTH_yes_correct + PSTH_no_correct)/2
@@ -348,26 +349,26 @@ class Mode(Session):
         elif not ctl:
             
             wt = (PSTH_yes_correct + PSTH_yes_error) / 2 - (PSTH_no_correct + PSTH_no_error) / 2
-            i_t = np.where((T_cue_aligned_sel > t_sample) & (T_cue_aligned_sel < t_delay))[0]
+            i_t = np.where((T_cue_aligned_sel > t_sample + int(round(0.4*(1/self.fs))) ) & (T_cue_aligned_sel < t_delay + int(round(0.4*(1/self.fs))) ))[0]
             CD_stim_mode = np.mean(wt[:, i_t], axis=1)
         
             wt = (PSTH_yes_correct + PSTH_no_error) / 2 - (PSTH_no_correct + PSTH_yes_error) / 2
-            i_t = np.where((T_cue_aligned_sel > t_delay) & (T_cue_aligned_sel < t_response))[0]
+            i_t = np.where((T_cue_aligned_sel > t_delay + int(round(0.4*(1/self.fs))) ) & (T_cue_aligned_sel < t_response + int(round(0.4*(1/self.fs))) ))[0]
             CD_choice_mode = np.mean(wt[:, i_t], axis=1)
             
             wt = (PSTH_yes_correct + PSTH_no_correct) / 2 - (PSTH_yes_error + PSTH_no_error) / 2
-            i_t = np.where((T_cue_aligned_sel > t_response) & (T_cue_aligned_sel < (t_response + 12)))[0]
+            i_t = np.where((T_cue_aligned_sel > t_response + int(round(0.4*(1/self.fs))) ) & (T_cue_aligned_sel < (t_response + int(round(1.7*(1/self.fs))))))[0]
             CD_outcome_mode = np.mean(wt[:, i_t], axis=1)
             
            
             wt = PSTH_yes_correct - PSTH_no_correct
-            i_t = np.where((T_cue_aligned_sel > (t_sample + 1)) & (T_cue_aligned_sel < (t_sample + 3)))[0]
+            i_t = np.where((T_cue_aligned_sel > (t_sample + int(round(0.4*(1/self.fs))) )) & (T_cue_aligned_sel < (t_sample + int(round(0.8*(1/self.fs))) )))[0]
             CD_sample_mode = np.mean(wt[:, i_t], axis=1)
             
-            i_t = np.where((T_cue_aligned_sel > (t_response - 3)) & (T_cue_aligned_sel < (t_response - 1)))[0]
+            i_t = np.where((T_cue_aligned_sel > (t_response - int(round(0.4*(1/self.fs))) )) & (T_cue_aligned_sel < (t_response + int(round(0.1*(1/self.fs))) )))[0]
             CD_delay_mode = np.mean(wt[:, i_t], axis=1)
             
-            i_t = np.where((T_cue_aligned_sel > (t_response + 1)) & (T_cue_aligned_sel < (t_response + 3)))[0]
+            i_t = np.where((T_cue_aligned_sel > (t_response + int(round(0.4*(1/self.fs))) )) & (T_cue_aligned_sel < (t_response + int(round(0.8*(1/self.fs))) )))[0]
             CD_go_mode = np.mean(wt[:, i_t], axis=1)
             
             wt = (PSTH_yes_correct + PSTH_no_correct)/2
@@ -589,17 +590,17 @@ class Mode(Session):
         proj_allDim_err = np.dot(activityRLerr_test.T, orthonormal_basis)
         
         plt.figure()
-        plt.bar(mode_ID, var_allDim[mode_ID-1])
+        plt.bar(range(len(mode_ID)), var_allDim[mode_ID-1])
+        plt.xticks(range(7), mode_ID)
         plt.xlabel('Activity modes')
         plt.ylabel('Frac var.')
         plt.title(f'Total Cross Validated Var Explained: {np.sum(var_allDim[mode_ID]):.4f}')
         
         n_plot = 0
         plt.figure()
-        for i_mode in mode_ID:
+        for i_mode in mode_ID-1:
             n_plot += 1
             print(f'plotting mode {n_plot}')
-            
             proj_iPC_allBtstrp = np.zeros((20, activityRL_test.shape[1]))
             projErr_iPC_allBtstrp = np.zeros((20, activityRLerr_test.shape[1]))
             for i_btstrp in range(20):
@@ -625,7 +626,7 @@ class Mode(Session):
         plt.ylabel('Activity proj.')
         plt.xlabel('Time')
         
-        return None
+        return orthonormal_basis, np.mean(activityRL_train, axis=1)[:, None]
     
     def plot_behaviorally_relevant_modes_opto(self, error=False):
         # plot behaviorally relevant activity modes only
@@ -665,14 +666,15 @@ class Mode(Session):
         proj_allDim_err = np.dot(activityRLerr_test.T, orthonormal_basis)
         
         plt.figure()
-        plt.bar(mode_ID, var_allDim[mode_ID-1])
+        plt.bar(range(len(mode_ID)), var_allDim[mode_ID-1])
+        plt.xticks(range(7), mode_ID)
         plt.xlabel('Activity modes')
         plt.ylabel('Frac var.')
         plt.title(f'Total Cross Validated Var Explained: {np.sum(var_allDim[mode_ID]):.4f}')
         
         n_plot = 0
         plt.figure()
-        for i_mode in mode_ID:
+        for i_mode in mode_ID-1:
             n_plot += 1
 
             print(f'plotting mode {n_plot}')
@@ -791,12 +793,86 @@ class Mode(Session):
         
         
         
+### ACROSS SESSION CODING ###
         
         
         
         
         
+    def plot_behaviorally_relevant_modes_appliedCD(self, orthonormal_basis, mean):
+        # plot behaviorally relevant activity modes only
+        # separates trials into train vs test sets
+        mode_ID = np.array([1, 2, 6, 3, 7, 8, 9])
+        mode_name = ['stimulus', 'choice', 'action', 'outcome', 'ramping', 'go', 'response']
         
+        # orthonormal_basis, var_allDim = self.func_compute_activity_modes_DRT([self.PSTH_r_train_correct, 
+        #                                                                     self.PSTH_l_train_correct, 
+        #                                                                     self.PSTH_r_train_error, 
+        #                                                                     self.PSTH_l_train_error], ctl=False)
+        
+        activityRL_train= np.concatenate((self.PSTH_r_train_correct, 
+                                        self.PSTH_l_train_correct, 
+                                        self.PSTH_r_train_error, 
+                                        self.PSTH_l_train_error), axis=1)
+
+        activityRL_test= np.concatenate((self.PSTH_r_test_correct, 
+                                        self.PSTH_l_test_correct), axis=1)
+        
+        activityRLerr_test = np.concatenate((self.PSTH_r_test_error, 
+                                             self.PSTH_l_test_error), axis = 1)
+        
+        
+        T_cue_aligned_sel = self.T_cue_aligned_sel
+        
+        # Correct trials
+        activityRL_test = activityRL_test - np.tile(mean, (1, activityRL_test.shape[1]))  # remove mean
+        proj_allDim = np.dot(activityRL_test.T, orthonormal_basis)
+        var_allDim = np.sum(proj_allDim ** 2, axis=0)
+        var_allDim = var_allDim[~np.isnan(var_allDim)]
+
+        var_allDim /= np.sum(var_allDim)
+        
+        
+        # Error trials
+        activityRLerr_test = activityRLerr_test - np.tile(mean, (1, activityRLerr_test.shape[1]))  # remove mean
+        proj_allDim_err = np.dot(activityRLerr_test.T, orthonormal_basis)
+        
+        # plt.figure()
+        # plt.bar(range(len(mode_ID)), var_allDim[mode_ID-1])
+        # plt.xticks(range(7), mode_ID)
+        # plt.xlabel('Activity modes')
+        # plt.ylabel('Frac var.')
+        # plt.title(f'Total Cross Validated Var Explained: {np.sum(var_allDim[mode_ID]):.4f}')
+        
+        n_plot = 0
+        plt.figure()
+        for i_mode in mode_ID-1:
+            n_plot += 1
+            print(f'plotting mode {n_plot}')
+            proj_iPC_allBtstrp = np.zeros((20, activityRL_test.shape[1]))
+            projErr_iPC_allBtstrp = np.zeros((20, activityRLerr_test.shape[1]))
+            for i_btstrp in range(20):
+                i_sample = np.random.choice(range(activityRL_test.shape[0]), activityRL_test.shape[0], replace=True)
+                proj_iPC_allBtstrp[i_btstrp,:] = np.dot(activityRL_test[i_sample,:].T, orthonormal_basis[i_sample, i_mode])
+                projErr_iPC_allBtstrp[i_btstrp,:] = np.dot(activityRLerr_test[i_sample,:].T, orthonormal_basis[i_sample, i_mode])
+            
+            plt.subplot(2, 4, n_plot)
+            self.func_plot_mean_and_sem(T_cue_aligned_sel, projErr_iPC_allBtstrp[:,:len(T_cue_aligned_sel)], '#6666ff', '#ccccff', 2)
+            self.func_plot_mean_and_sem(T_cue_aligned_sel, projErr_iPC_allBtstrp[:,len(T_cue_aligned_sel):], '#ff6666', '#ffcccc', 2)
+            self.func_plot_mean_and_sem(T_cue_aligned_sel, proj_iPC_allBtstrp[:,:len(T_cue_aligned_sel)], 'b', '#9999ff', 2)
+            self.func_plot_mean_and_sem(T_cue_aligned_sel, proj_iPC_allBtstrp[:,len(T_cue_aligned_sel):], 'r', '#ff9999', 2)
+            
+            # y_scale = np.mean(np.concatenate((proj_iPC_allBtstrp, projErr_iPC_allBtstrp)))
+            # plt.plot([-2.6,-2.6],[min(y_scale), max(y_scale)]*1.2,'k:') 
+            # plt.plot([-1.3,-1.3],[min(y_scale), max(y_scale)]*1.2,'k:')
+            # plt.plot([0,0],[min(y_scale), max(y_scale)]*1.2,'k:')
+            
+            # plt.xlim([-3.2, 2.2])
+            plt.title(f'mode {mode_name[n_plot-1]}')
+
+        plt.subplot(2, 4, 1)
+        plt.ylabel('Activity proj.')
+        plt.xlabel('Time')
         
         
         

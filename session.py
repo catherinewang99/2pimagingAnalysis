@@ -91,7 +91,6 @@ class Session:
                             
                         for t in range(self.num_trials):
 
-                               
                             add = layer['dff'][0, t]
                             self.dff[0, t] = np.vstack((self.dff[0, t], add))
                     
@@ -1030,7 +1029,9 @@ class Session:
             left_ = [l[epoch] for l in left]
             right_ = [r[epoch] for r in right]
             
-            d = np.mean(np.mean(right_,axis=0) - np.mean(left_,axis=0)) / np.mean(cat((np.mean(left_, axis = 1), np.mean(right_, axis = 1))))
+            #average across trials
+            # d = np.mean(np.mean(right_,axis=0) - np.mean(left_,axis=0)) / np.mean(cat((np.mean(left_, axis = 1), np.mean(right_, axis = 1))))
+            d = (np.mean(right_) - np.mean(left_)) / np.mean(cat((np.mean(left_, axis = 1), np.mean(right_, axis = 1))))
             
             diffs += [d]
             
@@ -2451,6 +2452,7 @@ class Session:
                     df = pd.DataFrame({'stim': self.R_correct[self.i_good_non_stim_trials] + self.R_wrong[self.i_good_non_stim_trials],
                                        'lick': self.R_correct[self.i_good_non_stim_trials] + self.L_wrong[self.i_good_non_stim_trials],
                                        'reward': self.R_correct[self.i_good_non_stim_trials] + self.L_correct[self.i_good_non_stim_trials],
+                                       'constant' : np.ones(len(self.i_good_non_stim_trials)),
                                        'dff': dff})
                     
                     # model = ols("""dff ~ C(stim) + C(lick) + C(reward) +

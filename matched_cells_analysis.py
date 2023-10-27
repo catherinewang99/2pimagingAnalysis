@@ -27,9 +27,9 @@ from sklearn.preprocessing import normalize
 
 
  #%% 
-path = r'F:\data\BAYLORCW036\python\2023_10_09'
+path = r'F:\data\BAYLORCW032\python\2023_10_08'
 s1 = session.Session(path, layer_num =1)
-path = r'F:\data\BAYLORCW036\python\2023_10_16'
+path = r'F:\data\BAYLORCW032\python\2023_10_25'
 s2 = session.Session(path, layer_num =1)
 
 epoch = range(s1.delay, s1.response)
@@ -42,13 +42,13 @@ right_stack_post = np.zeros(s2.time_cutoff)
 left_stack_post = np.zeros(s2.time_cutoff) 
 
 for lnum in range(1,6):
-    path = r'F:\data\BAYLORCW036\python\2023_10_09'
+    path = r'F:\data\BAYLORCW032\python\2023_10_08'
     s1 = session.Session(path, layer_num=lnum)
-    path = r'F:\data\BAYLORCW036\python\2023_10_16'
+    path = r'F:\data\BAYLORCW032\python\2023_10_25'
     s2 = session.Session(path, layer_num=lnum)
     
     neurons_ranked, selectivity = s1.ranked_cells_by_selectivity(p=0.05)
-    matched_neurons=np.load(r'F:\data\BAYLORCW036\python\cellreg\layer{}\1009_1016pairs_proc.npy'.format(lnum-1))
+    matched_neurons=np.load(r'F:\data\BAYLORCW032\python\cellreg\layer{}\1008_1025translationspairs_proc.npy'.format(lnum-1))
     for nnum in range(len(neurons_ranked)):
         
         if neurons_ranked[nnum] not in matched_neurons[:,0]:
@@ -84,13 +84,13 @@ right_stack_post = np.zeros(s2.time_cutoff)
 left_stack_post = np.zeros(s2.time_cutoff) 
 
 for lnum in range(1,6):
-    path = r'F:\data\BAYLORCW036\python\2023_10_09'
+    path = r'F:\data\BAYLORCW032\python\2023_10_08'
     s1 = session.Session(path, layer_num=lnum)
-    path = r'F:\data\BAYLORCW036\python\2023_10_16'
+    path = r'F:\data\BAYLORCW032\python\2023_10_25'
     s2 = session.Session(path, layer_num=lnum)
     
     neurons_ranked, selectivity = s2.ranked_cells_by_selectivity(p=0.05)
-    matched_neurons=np.load(r'F:\data\BAYLORCW036\python\cellreg\layer{}\1009_1016pairs_proc.npy'.format(lnum-1))
+    matched_neurons=np.load(r'F:\data\BAYLORCW032\python\cellreg\layer{}\1008_1025translationspairs_proc.npy'.format(lnum-1))
     for nnum in range(len(neurons_ranked)):
         
         if neurons_ranked[nnum] not in matched_neurons[:,1]:
@@ -121,7 +121,7 @@ for lnum in range(1,6):
 #%% 
         
 f, axarr = plt.subplots(2,2, sharex='col', figsize=(15,10))
-vmin, vmax= -0.5,0.5
+vmin, vmax= -0,0.5
 ## FIRST SESS
 # Right trials first
 right_stack = normalize(right_stack)
@@ -144,14 +144,14 @@ f.colorbar(leftim, shrink = 0.2)
 
 ## SECOND SESS
 # Right trials first
-right_stack_post = normalize(right_stack_post[1:])
+right_stack_post = normalize(right_stack_post)
 # right_stack_post = (right_stack_post[1:])
 right_im = axarr[0,1].imshow(right_stack_post, cmap='viridis', interpolation='nearest', aspect='auto', vmin=vmin, vmax=vmax)
 axarr[0,1].axis('off')
 f.colorbar(right_im, shrink = 0.2)
 axarr[0,1].set_title("Session 2")
 # Left trials
-left_stack_post = normalize(left_stack_post[1:])
+left_stack_post = normalize(left_stack_post)
 # left_stack_post = (left_stack_post[1:])
 leftim = axarr[1,1].imshow(left_stack_post, cmap='viridis', interpolation='nearest', aspect='auto',vmin=vmin, vmax=vmax)
 axarr[1,1].axis('off')

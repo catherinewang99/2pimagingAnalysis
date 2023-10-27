@@ -25,13 +25,13 @@ import behavior
 # b = behavior.Behavior('F:\data\Behavior data\BAYLORCW028\python_behavior', behavior_only=True)
 # b.learning_progression(imaging=True)
 
-# b = behavior.Behavior('F:\data\Behavior data\BAYLORCW035\python_behavior', behavior_only=True)
-# b.learning_progression(imaging=True)
-# b.learning_progression()
-
 b = behavior.Behavior('F:\data\Behavior data\BAYLORCW034\python_behavior', behavior_only=True)
 b.learning_progression(imaging=True)
 b.learning_progression()
+
+# b = behavior.Behavior('F:\data\Behavior data\BAYLORCW034\python_behavior', behavior_only=True)
+# b.learning_progression(imaging=True)
+# b.learning_progression()
 
 # b = behavior.Behavior('F:\data\Behavior data\BAYLORCW021\python_behavior', behavior_only=True)
 # b.learning_progression(window = 100)
