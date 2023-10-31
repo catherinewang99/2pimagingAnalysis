@@ -23,6 +23,7 @@ from scipy.stats import mannwhitneyu
 from scipy.stats import mstats
 from LinRegpval import LinearRegression
 plt.rcParams['pdf.fonttype'] = 42 
+import time 
 
 class Session:
     """
@@ -66,9 +67,15 @@ class Session:
             layer_og = scio.loadmat(r'{}\layer_{}.mat'.format(path, layer_num))
             layer = copy.deepcopy(layer_og)
             self.dff = layer['dff']
+            self.fs = 1/6
+            print(use_reg)
+            if use_reg:
+                self.good_neurons = np.load(path + r'\layer{}_registered_neurons.npy'.format(layer_num-1))
 
+            
         else:
             # Load all layers
+
             self.dff = None
             counter = 0
             for layer_pth in os.listdir(path):
@@ -97,6 +104,8 @@ class Session:
                             self.dff[0, t] = np.vstack((self.dff[0, t], add))
                     
                     counter += 1
+            self.fs = 1/(30/counter)
+
                             
 
                                         
@@ -110,7 +119,6 @@ class Session:
         self.num_trials = self.dff.shape[1] 
         
         self.time_cutoff = self.determine_cutoff()
-        self.fs = 1/6
         self.recording_loc = 'l'
         # self.skew = layer['skew']
         
@@ -1238,9 +1246,10 @@ class Session:
                         
 
         if return_sel:
-            err = np.std(pref, axis=0) / np.sqrt(len(pref)) 
-            err += np.std(nonpref, axis=0) / np.sqrt(len(nonpref))
-            return np.mean(pref, axis=0) - np.mean(nonpref, axis=0), err
+            # err = np.std(pref, axis=0) / np.sqrt(len(pref)) 
+            # err += np.std(nonpref, axis=0) / np.sqrt(len(nonpref))
+            # return np.mean(pref, axis=0) - np.mean(nonpref, axis=0), err
+            return nonpref, pref
         else:
             return contra_neurons, ipsi_neurons, contra_LR, ipsi_LR
     
@@ -1881,7 +1890,7 @@ class Session:
         plt.show()
         
 
-    def plot_rasterPSTH_sidebyside(self, neuron_num, bias=False):
+    def plot_rasterPSTH_sidebyside(self, neuron_num, bias=False,save=[]):
         """Plot heatmap then averaged L/R trace for a single neuron comparing control and opto trials
                                 
         Parameters
@@ -1988,6 +1997,8 @@ class Session:
         axarr[0,1].set_title(title)
         axarr[1,0].set_ylabel('dF/F0')
         
+        if len(save) != 0:
+            plt.savefig(save)
         plt.show()
         
 
@@ -2451,7 +2462,8 @@ class Session:
             mixed = []
                 
             for t in range(self.time_cutoff):
-                
+                start_time = time.time()
+
                 s,l,r,m = 0,0,0,0
                 
                 # for n in range(self.num_neurons):
@@ -2470,43 +2482,26 @@ class Session:
                                     
                     model = ols("""dff ~ C(stim) + C(lick) + C(reward) + C(constant)""", data = df).fit()
 
-                    table = sm.stats.anova_lm(model)
+                    # table = sm.stats.anova_lm(model)
+                    # sig = np.where(np.array(table['PR(>F)'] < 0.01) == True)[0]
                     
-                    sig = np.where(np.array(table['PR(>F)'] < 0.01) == True)[0]
-                    h=False
+                    results = (model.summary2().tables[1]['P>|t|'] < 0.01).to_numpy()[1:]
+                    # h=False
                     
-                    if len(sig) == 0:
-                        continue
+                    if sum(results) > 1:
+                        m += 1
+                        
+                    elif results[0]:
+                        s += 1
                     
-                    # if 6 in sig or 3 in sig or 4 in sig or 5 in sig:
-                    #     # h = True
-                    #     m+=1
-                    #     # continue
-                
-                    # if 3 in sig:
-                    #     # s+=1
-                    #     # l+=1
-                    #     m = m if h else m+1
-                    #     h=True
+                    elif results[1]:
+                        l += 1
+                        
+                    elif results[2]:
+                        r += 1
+                        
+                print("Runtime timestep {} : {} secs".format(t, time.time() - start_time))
 
-                    # elif 4 in sig:
-                    #     # s+=1
-                    #     # r+=1
-                    #     m+=1
-
-                    # elif 5 in sig:
-                    #     # l+=1
-                    #     # r+=1
-                    #     m+=1
-
-                    if len(sig) > 0:
-                        m+=1
-                    elif 0 in sig:
-                        s+=1
-                    elif 1 in sig:
-                        l+=1
-                    elif 2 in sig:
-                        r+=1
                         
 
                 
@@ -2568,15 +2563,17 @@ class Session:
                                            cat((mean_count(LR, range(self.time_cutoff - 6,self.time_cutoff)), mean_count(RL, range(self.time_cutoff - 6,self.time_cutoff)))))
                 
                 # stim += [stimp]
-                stim += stimp<0.05
-                choice += choicep<0.05
-                action += actionp<0.05
-                outcome += outcomep<0.05
+                pval = 0.001
                 
-                stim_neurons += [n] if stimp<0.05 else []
-                choice_neurons += [n] if choicep<0.05 else []
-                action_neurons += [n] if actionp<0.05 else []
-                outcome_neurons += [n] if outcomep<0.05 else []
+                stim += stimp<pval
+                choice += choicep<pval
+                action += actionp<pval
+                outcome += outcomep<pval
+                
+                stim_neurons += [n] if stimp<pval else []
+                choice_neurons += [n] if choicep<pval else []
+                action_neurons += [n] if actionp<pval else []
+                outcome_neurons += [n] if outcomep<pval else []
                 
                 
             plt.bar(['stim', 'choice', 'action', 'outcome'], [stim/len(self.good_neurons), 
@@ -2616,7 +2613,12 @@ class Session:
         
         
             
-        sel, err = self.contra_ipsi_pop(epochs[0], return_sel=True, selective_n = stim_neurons)
+        nonpref, pref = self.contra_ipsi_pop(epochs[0], return_sel=True, selective_n = stim_neurons)
+        
+        err = np.std(pref, axis=0) / np.sqrt(len(pref)) 
+        err += np.std(nonpref, axis=0) / np.sqrt(len(nonpref))
+        sel = np.mean(pref, axis=0) - np.mean(nonpref, axis=0) 
+        stim_sel = nonpref, pref
         
         if type(sel) != np.ndarray:
             print("Empty selectivity vec: {}".format(sel))
@@ -2633,8 +2635,11 @@ class Session:
         #######################################
         
 
-        sel, err = self.contra_ipsi_pop(epochs[1], return_sel=True, selective_n = choice_neurons)
-
+        nonpref, pref = self.contra_ipsi_pop(epochs[1], return_sel=True, selective_n = choice_neurons)
+        err = np.std(pref, axis=0) / np.sqrt(len(pref)) 
+        err += np.std(nonpref, axis=0) / np.sqrt(len(nonpref))
+        sel = np.mean(pref, axis=0) - np.mean(nonpref, axis=0)
+        choice_sel = nonpref, pref
         
         if type(sel) != np.ndarray:
             print("Empty selectivity vec: {}".format(sel))
@@ -2650,8 +2655,12 @@ class Session:
         
         #######################################
 
-        sel, err = self.contra_ipsi_pop(epochs[2], return_sel=True, selective_n = outcome_neurons)
-
+        nonpref, pref = self.contra_ipsi_pop(epochs[2], return_sel=True, selective_n = outcome_neurons)
+        err = np.std(pref, axis=0) / np.sqrt(len(pref)) 
+        err += np.std(nonpref, axis=0) / np.sqrt(len(nonpref))
+        sel = np.mean(pref, axis=0) - np.mean(nonpref, axis=0)
+        outcome_sel = nonpref, pref
+        
         axarr[2].plot(x, sel, color='dodgerblue')
                 
         axarr[2].fill_between(x, sel - err, 
@@ -2791,7 +2800,7 @@ class Session:
         #                                                                 return_stat=True,
         #                                                                 lickdir=False)
         
-        selectivity = self.get_epoch_mean_diff(range(self.delay+9, self.response))
+        selectivity = self.get_epoch_mean_diff(range(self.response-12, self.response))
         order = np.argsort(selectivity) # sorts from lowest to highest
          
         # Split trials into half, maintaining lick right and lick left proportions

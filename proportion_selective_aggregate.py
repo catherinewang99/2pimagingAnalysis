@@ -17,37 +17,6 @@ from scipy.stats import chisquare
 import pandas as pd
 plt.rcParams['pdf.fonttype'] = '42' 
 
-###Proportion of selective contra ipsi ###
-
-## Aggregate plot NAIVE ##
-allcontra, allipsi = [], []
-paths = [r'F:\data\BAYLORCW032\python\2023_10_05',
-        r'F:\data\BAYLORCW034\python\2023_10_12',
-        r'F:\data\BAYLORCW036\python\2023_10_09']
-
-for path in paths:
-    l1 = session.Session(path)
-    contra, ipsi = l1.plot_number_of_sig_neurons(return_nums=True)
-    allcontra += [contra]
-    allipsi += [ipsi]
-
-
-
-# x = np.arange(-6.97,6,self.fs)[:self.time_cutoff]
-
-# plt.bar(x, contra, color = 'b', edgecolor = 'white', width = 0.17, label = 'contra')
-# plt.bar(x, -ipsi, color = 'r',edgecolor = 'white', width = 0.17, label = 'ipsi')
-# plt.axvline(-4.3)
-# plt.axvline(-3)
-# plt.axvline(0)
-# # if len(y_axis) != 0:
-# #     plt.ylim(bottom = y_axis[0])
-# #     plt.ylim(top = y_axis[1])
-# plt.ylabel('Number of sig sel neurons')
-# plt.xlabel('Time from Go cue (s)')
-# plt.legend()
-
-## Aggregate plot TRAINED ##
 
 
 # path = r'F:\data\BAYLORCW032\python\2023_10_05'
@@ -127,14 +96,24 @@ for path in paths:
 
 ### Trained sessions ###
 
-### Selectivity trace for stim choice outcome ###
-# path = r'F:\data\BAYLORCW036\python\2023_10_09'
-# l1 = session.Session(path)
-# stim_neurons, choice_neurons, outcome_neurons, stim_sel, choice_sel, outcome_sel = l1.stim_choice_outcome_selectivity()
+### Proportion of stim choice outcome neurons ###
 
-# path = r'F:\data\BAYLORCW036\python\2023_10_28'
-# l1 = session.Session(path)
-# stim_neurons, choice_neurons, outcome_neurons, stim_sel, choice_sel, outcome_sel = l1.stim_choice_outcome_selectivity()
+
+
+
+### Selectivity trace for stim choice outcome ###
+
+
+
+
+
+path = r'F:\data\BAYLORCW036\python\2023_10_09'
+l1 = session.Session(path)
+stim_neurons, choice_neurons, outcome_neurons, stim_sel, choice_sel, outcome_sel = l1.stim_choice_outcome_selectivity()
+
+path = r'F:\data\BAYLORCW036\python\2023_10_28'
+l1 = session.Session(path)
+stim_neurons, choice_neurons, outcome_neurons, stim_sel, choice_sel, outcome_sel = l1.stim_choice_outcome_selectivity()
 
 
 # path = r'F:\data\BAYLORCW035\python\2023_10_11'

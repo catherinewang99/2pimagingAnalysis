@@ -38,9 +38,11 @@ for l_num in range(1,6):
             continue
         
         n1 = matched_neurons[idx[0], 0]   
-        s1.plot_rasterPSTH_sidebyside(n1)
+        
+        savepath = r'F:\data\SFN 2023\matched_neuron_{}_{}.pdf'
+        s1.plot_rasterPSTH_sidebyside(n1,save=savepath.format(n1, 'naive'))
         # n2 = matched_neurons[i, 1]   
-        s2.plot_rasterPSTH_sidebyside(n)
+        s2.plot_rasterPSTH_sidebyside(n,save=savepath.format(n1, 'trained'))
 
 
 
@@ -54,6 +56,46 @@ path1 = r'F:\data\BAYLORCW032\python\2023_10_24'
 s2 = session.Session(path1, layer_num =1)
 match_n_path = r'F:\data\BAYLORCW032\python\cellreg\layer{}\1005_1024translationspairs_proc.npy'
 epoch = range(s1.delay, s1.response)
+
+
+#%% DEBUGGING SECTION
+path1 = r'F:\data\BAYLORCW032\python\2023_10_24'
+s2 = session.Session(path1, layer_num =1)
+epoch = range(s2.delay+9, s2.response)
+neurons_ranked, selectivity = s2.ranked_cells_by_selectivity(p=0.05)
+counter =0
+
+right_stack_post = np.zeros(s2.time_cutoff) 
+left_stack_post = np.zeros(s2.time_cutoff) 
+
+for nnum in range(len(neurons_ranked)):
+    # s2.plot_rasterPSTH_sidebyside(i)
+    # counter +=1
+    
+    neuron = neurons_ranked[nnum]
+    r,l = s2.get_trace_matrix(neuron)
+    
+    right_trace = np.mean(r, axis=0) #/ np.mean(np.mean(r, axis=0)[epoch])
+    left_trace = np.mean(l, axis=0) #/ np.mean(np.mean(l, axis=0)[epoch])
+    
+    right_stack_post = np.vstack((right_stack_post, right_trace))
+    left_stack_post = np.vstack((left_stack_post, left_trace))
+
+f, axarr = plt.subplots(2, sharex='col', figsize=(15,10))
+vmin, vmax= -0,0.5
+
+right_stack_post = normalize(right_stack_post)
+# right_stack_post = (right_stack_post[1:])
+right_im = axarr[0].imshow(right_stack_post, cmap='viridis', interpolation='nearest', aspect='auto', vmin=vmin, vmax=vmax)
+axarr[0].axis('off')
+f.colorbar(right_im, shrink = 0.2)
+axarr[0].set_title("Session 2")
+# Left trials
+left_stack_post = normalize(left_stack_post)
+# left_stack_post = (left_stack_post[1:])
+leftim = axarr[1].imshow(left_stack_post, cmap='viridis', interpolation='nearest', aspect='auto',vmin=vmin, vmax=vmax)
+axarr[1].axis('off')
+f.colorbar(leftim, shrink = 0.2)
 
 #%%
 # NAIVE --> TRAINED
@@ -103,12 +145,16 @@ left_stack = np.zeros(s1.time_cutoff)
 right_stack_post = np.zeros(s2.time_cutoff) 
 left_stack_post = np.zeros(s2.time_cutoff) 
 
+overallsel = []
 for lnum in range(1,6):
-    s1 = session.Session(path, layer_num=lnum)
-    s2 = session.Session(path1, layer_num=lnum)
+    s1 = session.Session(path, layer_num=lnum, use_reg=True)
+    s2 = session.Session(path1, layer_num=lnum, use_reg=True)
     
     neurons_ranked, selectivity = s2.ranked_cells_by_selectivity(p=0.05)
     matched_neurons=np.load(match_n_path.format(lnum-1))
+    
+    overallsel += selectivity
+    
     for nnum in range(len(neurons_ranked)):
         
         if neurons_ranked[nnum] not in matched_neurons[:,1]:
@@ -121,8 +167,8 @@ for lnum in range(1,6):
         neuron = matched_neurons[nind, 0] # Grab the ranked neuron
         r,l = s1.get_trace_matrix(neuron, lickdir=True)
         
-        right_trace = np.mean(r, axis=0) / np.mean(np.mean(r, axis=0)[0,epoch])
-        left_trace = np.mean(l, axis=0) / np.mean(np.mean(l, axis=0)[0,epoch])
+        right_trace = np.mean(r, axis=0)# / np.mean(np.mean(r, axis=0)[0,epoch])
+        left_trace = np.mean(l, axis=0)# / np.mean(np.mean(l, axis=0)[0,epoch])
         
         right_stack = np.vstack((right_stack, right_trace))
         left_stack = np.vstack((left_stack, left_trace))
@@ -131,11 +177,18 @@ for lnum in range(1,6):
         neuron = neurons_ranked[nnum]
         r,l = s2.get_trace_matrix(neuron, lickdir=True)
         
-        right_trace = np.mean(r, axis=0) / np.mean(np.mean(r, axis=0)[epoch])
-        left_trace = np.mean(l, axis=0) / np.mean(np.mean(l, axis=0)[epoch])
+        right_trace = np.mean(r, axis=0)# / np.mean(np.mean(r, axis=0)[epoch])
+        left_trace = np.mean(l, axis=0) #/ np.mean(np.mean(l, axis=0)[epoch])
         
         right_stack_post = np.vstack((right_stack_post, right_trace))
         left_stack_post = np.vstack((left_stack_post, left_trace))
+
+right_stack = np.take(right_stack, np.argsort(overallsel), axis = 0)
+left_stack = np.take(left_stack, np.argsort(overallsel), axis = 0)
+
+right_stack_post = np.take(right_stack_post, np.argsort(overallsel), axis = 0)
+left_stack_post = np.take(left_stack_post, np.argsort(overallsel), axis = 0)
+
 #%% 
         
 f, axarr = plt.subplots(2,2, sharex='col', figsize=(15,10))
