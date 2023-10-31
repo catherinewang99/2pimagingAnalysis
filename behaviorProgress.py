@@ -12,6 +12,8 @@ import scipy.io as scio
 import matplotlib.pyplot as plt
 import session
 import behavior
+plt.rcParams['pdf.fonttype'] = '42' 
+
 # from neuralFuncs import plot_average_PSTH
 
 
@@ -25,13 +27,13 @@ import behavior
 # b = behavior.Behavior('F:\data\Behavior data\BAYLORCW028\python_behavior', behavior_only=True)
 # b.learning_progression(imaging=True)
 
-b = behavior.Behavior('F:\data\Behavior data\BAYLORCW034\python_behavior', behavior_only=True)
-b.learning_progression(imaging=True)
-b.learning_progression()
-
 # b = behavior.Behavior('F:\data\Behavior data\BAYLORCW034\python_behavior', behavior_only=True)
 # b.learning_progression(imaging=True)
 # b.learning_progression()
+
+b = behavior.Behavior('F:\data\Behavior data\BAYLORCW021\python_behavior', behavior_only=True)
+# b.learning_progression_no_EL(imaging=True)
+b.learning_progression_no_EL(window = 200,save=True)
 
 # b = behavior.Behavior('F:\data\Behavior data\BAYLORCW021\python_behavior', behavior_only=True)
 # b.learning_progression(window = 100)
@@ -42,15 +44,32 @@ b.learning_progression()
 
 ### Compare learning curves ####
 
+# window = 200
 # b = behavior.Behavior('F:\data\Behavior data\BAYLORCW032\python_behavior', behavior_only=True)
-# delays, acc_arr_32, numtrials_32 = b.learning_progression(return_results = True)
+# delays, acc_arr_32, numtrials_32 = b.learning_progression(return_results = True, window=window)
 
 
 # b = behavior.Behavior('F:\data\Behavior data\BAYLORCW034\python_behavior', behavior_only=True)
-# delays, acc_arr, numtrials = b.learning_progression(return_results = True)
+# delays, acc_arr, numtrials = b.learning_progression(return_results = True, window=window)
 
 # b = behavior.Behavior('F:\data\Behavior data\BAYLORCW036\python_behavior', behavior_only=True)
-# delays, acc_arr_36, numtrials_36 = b.learning_progression(return_results = True)
+# delays, acc_arr_36, numtrials_36 = b.learning_progression(return_results = True, window=window)
+
+
+# plt.scatter(numtrials_32[4], (acc_arr_32[numtrials_32[0]:numtrials_32[4]] - acc_arr_32[numtrials_32[0]])[-1], marker='o', s=150, alpha = 0.5, color = 'r')
+# plt.scatter(numtrials_32[10] - numtrials_32[6], (acc_arr_32[numtrials_32[6]:numtrials_32[10]] - acc_arr_32[numtrials_32[6]])[-1], marker='o', s=150, alpha = 0.5, color = 'r')
+# plt.scatter(numtrials_32[6] - numtrials_32[4], (acc_arr_32[numtrials_32[4]:numtrials_32[6]] - acc_arr_32[numtrials_32[4]])[-1], marker='o', s=150, alpha = 0.5, color = 'g')
+# plt.scatter(numtrials_32[12] - numtrials_32[10], (acc_arr_32[numtrials_32[10]:numtrials_32[12]] - acc_arr_32[numtrials_32[10]])[-1], marker='o', s=150, alpha = 0.5, color = 'g')
+
+
+# plt.scatter(numtrials_36[2], (acc_arr_36[numtrials_36[0]:numtrials_36[2]] - acc_arr_36[numtrials_36[0]])[-1], marker='o', s=150, alpha = 0.5, color = 'r')
+# plt.scatter(numtrials_36[5] - numtrials_36[2], (acc_arr_36[numtrials_36[2]:numtrials_36[5]] - acc_arr_36[numtrials_36[2]])[-1], marker='o', s=150, alpha = 0.5, color = 'g')
+
+# plt.scatter(numtrials[2], (acc_arr[numtrials[0]:numtrials[2]] - acc_arr[numtrials[0]])[-1], marker='o', s=150, alpha = 0.5, color = 'r')
+# plt.scatter(numtrials[6] - numtrials[4], (acc_arr[numtrials[4]:numtrials[6]] - acc_arr[numtrials[4]])[-1], marker='o', s=150, alpha = 0.5, color = 'r')
+# plt.scatter(numtrials[4] - numtrials[2], (acc_arr[numtrials[2]:numtrials[4]] - acc_arr[numtrials[2]])[-1], marker='o', s=150, alpha = 0.5, color = 'g')
+# plt.scatter(numtrials[8] - numtrials[6], (acc_arr[numtrials[6]:numtrials[8]] - acc_arr[numtrials[6]])[-1], marker='o', s=150, alpha = 0.5, color = 'g')
+
 
 # plt.plot(acc_arr_32[numtrials_32[0]:numtrials_32[4]] - acc_arr_32[numtrials_32[0]], color='r')
 # plt.plot(acc_arr_32[numtrials_32[6]:numtrials_32[10]] - acc_arr_32[numtrials_32[6]], color='r')
@@ -65,10 +84,36 @@ b.learning_progression()
 # plt.plot(acc_arr[numtrials[2]:numtrials[4]] - acc_arr[numtrials[2]], color='g', label='Varied delay')
 # plt.plot(acc_arr[numtrials[6]:numtrials[8]] - acc_arr[numtrials[6]], color='g')
 
+
 # plt.ylabel('Change in performance accuracy')
 # plt.xlabel('Number of trials')
 
 # plt.legend()
+# plt.savefig(r'F:\data\SFN 2023\comparedelayleearning.pdf',transparent=True)
+# plt.show()
+
+
+### Compare all learning curves together
+
+# f, axarr = plt.subplots(2, 1, sharex='col', figsize=(10,6))
+
+# all_acc = []
+# all_EL = []
+# for idx in [34, 32, 36]:
+#     b = behavior.Behavior('F:\data\Behavior data\BAYLORCW0{}\python_behavior'.format(idx), behavior_only=True)
+#     earlylicksarr, correctarr, _ = b.get_acc_EL(window=100)
+#     axarr[0].plot(correctarr, 'g', alpha =0.75)        
+#     axarr[0].set_ylabel('% correct')
+#     axarr[0].axhline(y=0.7, alpha = 0.5, color='orange')
+#     axarr[0].axhline(y=0.5, alpha = 0.5, color='red', ls = '--')
+#     axarr[0].set_ylim(0, 1)
+    
+#     # Early licking
+    
+#     axarr[1].plot(earlylicksarr, 'b', alpha=0.75)        
+#     axarr[1].set_ylabel('% Early licks')
+#     axarr[1].set_xlabel('Trials')
+# plt.savefig(r'F:\data\SFN 2023\alllearningcurves.pdf',transparent=True)
 # plt.show()
 
 ### Plot session to match GLM HMM

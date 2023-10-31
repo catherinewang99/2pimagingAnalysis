@@ -348,6 +348,7 @@ class Behavior():
         correctarr = np.array([])
         earlylicksarr = np.array([])
         num_trials = []
+        window = int(window/2)
         
         for sess in range(self.total_sessions):
             
@@ -356,7 +357,7 @@ class Behavior():
             delay = self.delay_duration[sess]
             
             if imaging:
-                if 3 not in delay:
+                if 3 not in delay or len(set(delay)) > 1:
                     continue
                 # if 'CW028' in self.path and sess ==1:
                 #     continue
@@ -366,10 +367,10 @@ class Behavior():
             # delay_duration = np.append(delay_duration, self.delay_duration[sess][window:-window])
             
             correct = self.L_correct[sess] + self.R_correct[sess]
-            correct = np.convolve(correct, np.ones(window)/window, mode = 'same')
+            correct = np.convolve(correct, np.ones(window*2)/(window*2), mode = 'same')
             correctarr = np.append(correctarr, correct[window:-window])
             
-            earlylicks = np.convolve(self.early_lick[sess], np.ones(window)/window, mode = 'same')
+            earlylicks = np.convolve(self.early_lick[sess], np.ones(window*2)/(window*2), mode = 'same')
             earlylicksarr = np.append(earlylicksarr, earlylicks[window:-window])
             
             num_trials += [len(self.L_correct[sess])-(window*2)]
@@ -412,8 +413,115 @@ class Behavior():
             
             return delay_duration, correctarr, cat(([0], num_trials))
         
+    def learning_progression_no_EL(self, window = 50, save=False, imaging=False, return_results=False):
+        
+        # Figures showing learning over protocol
+        
+        f, axarr = plt.subplots(2, 1, sharex='col', figsize=(16,12))
+        
+        # Concatenate all sessions
+        delay_duration = np.array([])
+        correctarr = np.array([])
+        earlylicksarr = np.array([])
+        num_trials = []
+        window = int(window/2)
+        
+        for sess in range(self.total_sessions):
+            
+
+            # delay = np.convolve(self.delay_duration[sess], np.ones(window)/window, mode = 'same')
+            delay = self.delay_duration[sess]
+            
+            if imaging:
+                if 3 not in delay or len(set(delay)) > 1:
+                    continue
+                # if 'CW028' in self.path and sess ==1:
+                #     continue
+            
+            delay_duration = np.append(delay_duration, delay[window:-window])
+
+            # delay_duration = np.append(delay_duration, self.delay_duration[sess][window:-window])
+            
+            correct = self.L_correct[sess] + self.R_correct[sess]
+            correct = np.convolve(correct, np.ones(window*2)/(window*2), mode = 'same')
+            correctarr = np.append(correctarr, correct[window:-window])
+            
+            earlylicks = np.convolve(self.early_lick[sess], np.ones(window*2)/(window*2), mode = 'same')
+            earlylicksarr = np.append(earlylicksarr, earlylicks[window:-window])
+            
+            num_trials += [len(self.L_correct[sess])-(window*2)]
+        num_trials = np.cumsum(num_trials)
+        
+        # Protocol
+        
+        axarr[0].plot(delay_duration, 'r')
+        axarr[0].set_ylabel('Delay duration (s)')
+
+        
+        # Performance
+        
+        axarr[1].plot(correctarr, 'g')        
+        axarr[1].set_ylabel('% correct')
+        axarr[1].axhline(y=0.7, alpha = 0.5, color='orange')
+        axarr[1].axhline(y=0.5, alpha = 0.5, color='red', ls = '--')
+        axarr[1].set_ylim(0, 1)
+        
+
+        axarr[1].set_xlabel('Trials')
         
         
+        # Denote separate sessions
+        
+        for num in num_trials:
+            axarr[0].axvline(num, color = 'grey', alpha=0.5, ls = '--')
+            axarr[1].axvline(num, color = 'grey', alpha=0.5, ls = '--')
+        
+        if save:
+            plt.savefig(self.path + r'\learningcurve.pdf')
+        plt.show()
+        
+        
+        if return_results:
+            
+            return delay_duration, correctarr, cat(([0], num_trials))
+            
+    def get_acc_EL(self, window = 50, imaging=False):
+        
+
+        # Concatenate all sessions
+        delay_duration = np.array([])
+        correctarr = np.array([])
+        earlylicksarr = np.array([])
+        num_trials = []
+        window = int(window/2)
+        
+        for sess in range(self.total_sessions):
+            
+
+            # delay = np.convolve(self.delay_duration[sess], np.ones(window)/window, mode = 'same')
+            delay = self.delay_duration[sess]
+            
+            if imaging:
+                if 3 not in delay or len(set(delay)) > 1:
+                    continue
+                # if 'CW028' in self.path and sess ==1:
+                #     continue
+            
+            delay_duration = np.append(delay_duration, delay[window:-window])
+
+            # delay_duration = np.append(delay_duration, self.delay_duration[sess][window:-window])
+            
+            correct = self.L_correct[sess] + self.R_correct[sess]
+            correct = np.convolve(correct, np.ones(window*2)/(window*2), mode = 'same')
+            correctarr = np.append(correctarr, correct[window:-window])
+            
+            earlylicks = np.convolve(self.early_lick[sess], np.ones(window*2)/(window*2), mode = 'same')
+            earlylicksarr = np.append(earlylicksarr, earlylicks[window:-window])
+            
+            num_trials += [len(self.L_correct[sess])-(window*2)]
+        num_trials = np.cumsum(num_trials)
+          
+        return earlylicksarr, correctarr, cat(([0], num_trials))
         
         
         

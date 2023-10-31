@@ -21,6 +21,8 @@ from statsmodels.formula.api import ols
 import pandas as pd
 from scipy.stats import mannwhitneyu
 from scipy.stats import mstats
+from LinRegpval import LinearRegression
+plt.rcParams['pdf.fonttype'] = 42 
 
 class Session:
     """
@@ -1031,7 +1033,8 @@ class Session:
             
             #average across trials
             # d = np.mean(np.mean(right_,axis=0) - np.mean(left_,axis=0)) / np.mean(cat((np.mean(left_, axis = 1), np.mean(right_, axis = 1))))
-            d = (np.mean(right_) - np.mean(left_)) / np.mean(cat((np.mean(left_, axis = 1), np.mean(right_, axis = 1))))
+            # d = (np.mean(right_) - np.mean(left_)) / np.mean(cat((np.mean(left_, axis = 1), np.mean(right_, axis = 1))))
+            d = (np.mean(right_) - np.mean(left_))
             
             diffs += [d]
             
@@ -1990,11 +1993,14 @@ class Session:
 
 ### EPHYS PLOTS TO MY DATA ###
 
-    def plot_number_of_sig_neurons(self, save=False, y_axis = []):
+    def plot_number_of_sig_neurons(self, return_nums=False, save=False, y_axis = []):
         """Plots number of contra / ipsi neurons over course of trial
                                 
         Parameters
         ----------
+        return_nums : bool, optional
+            return number of contra ispi neurons to do an aggregate plot
+        
         save : bool, optional
             Whether to save fig to file (default False)
             
@@ -2041,6 +2047,9 @@ class Session:
             
             contra[t] = sum(np.array(sig_neurons) == -1)
             ipsi[t] = sum(np.array(sig_neurons) == 1)
+        
+        if return_nums:
+            return contra, ipsi
 
         plt.bar(x, contra, color = 'b', edgecolor = 'white', width = 0.17, label = 'contra')
         plt.bar(x, -ipsi, color = 'r',edgecolor = 'white', width = 0.17, label = 'ipsi')
@@ -2459,7 +2468,7 @@ class Session:
                     #                 C(stim):C(lick) + C(stim):C(reward) + C(lick):C(reward) +
                     #                 C(stim):C(lick):C(reward)""", data = df).fit()
                                     
-                    model = ols("""dff ~ C(stim) + C(lick) + C(reward)""", data = df).fit()
+                    model = ols("""dff ~ C(stim) + C(lick) + C(reward) + C(constant)""", data = df).fit()
 
                     table = sm.stats.anova_lm(model)
                     

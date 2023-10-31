@@ -19,20 +19,42 @@ import pandas as pd
 from sklearn.preprocessing import normalize
 
 
-### Single neuron PSTHs over sessions ###
+
+ #%% ### Single neuron PSTHs over sessions ###
+ 
+for l_num in range(1,6):
+    path = r'F:\data\BAYLORCW032\python\2023_10_05'
+    s1 = session.Session(path, layer_num = l_num)
+    path1 = r'F:\data\BAYLORCW032\python\2023_10_24'
+    s2 = session.Session(path1, layer_num = l_num)
+    match_n_path = r'F:\data\BAYLORCW032\python\cellreg\layer{}\1005_1024translationspairs_proc.npy'
+    epoch = range(s1.delay, s1.response)
+    matched_neurons=np.load(match_n_path.format(l_num-1))
+    
+    for n in s2.get_epoch_selective(range(s2.delay, s2.response)):
+        idx = np.where(matched_neurons[:, 1] == n)[0]
+        if len(idx) == 0:
+            print('Neuron {} not matched'.format(n))
+            continue
+        
+        n1 = matched_neurons[idx[0], 0]   
+        s1.plot_rasterPSTH_sidebyside(n1)
+        # n2 = matched_neurons[i, 1]   
+        s2.plot_rasterPSTH_sidebyside(n)
 
 
 
-### Heatmap analysis over sessions ###
+ #%% ### Heatmap analysis over sessions ###
 
 
- #%% 
-path = r'F:\data\BAYLORCW032\python\2023_10_08'
+ #%% Set paths
+path = r'F:\data\BAYLORCW032\python\2023_10_05'
 s1 = session.Session(path, layer_num =1)
-path = r'F:\data\BAYLORCW032\python\2023_10_25'
-s2 = session.Session(path, layer_num =1)
-
+path1 = r'F:\data\BAYLORCW032\python\2023_10_24'
+s2 = session.Session(path1, layer_num =1)
+match_n_path = r'F:\data\BAYLORCW032\python\cellreg\layer{}\1005_1024translationspairs_proc.npy'
 epoch = range(s1.delay, s1.response)
+
 #%%
 # NAIVE --> TRAINED
 right_stack = np.zeros(s1.time_cutoff) 
@@ -42,13 +64,11 @@ right_stack_post = np.zeros(s2.time_cutoff)
 left_stack_post = np.zeros(s2.time_cutoff) 
 
 for lnum in range(1,6):
-    path = r'F:\data\BAYLORCW032\python\2023_10_08'
     s1 = session.Session(path, layer_num=lnum)
-    path = r'F:\data\BAYLORCW032\python\2023_10_25'
-    s2 = session.Session(path, layer_num=lnum)
+    s2 = session.Session(path1, layer_num=lnum)
     
     neurons_ranked, selectivity = s1.ranked_cells_by_selectivity(p=0.05)
-    matched_neurons=np.load(r'F:\data\BAYLORCW032\python\cellreg\layer{}\1008_1025translationspairs_proc.npy'.format(lnum-1))
+    matched_neurons=np.load(match_n_path.format(lnum-1))
     for nnum in range(len(neurons_ranked)):
         
         if neurons_ranked[nnum] not in matched_neurons[:,0]:
@@ -84,13 +104,11 @@ right_stack_post = np.zeros(s2.time_cutoff)
 left_stack_post = np.zeros(s2.time_cutoff) 
 
 for lnum in range(1,6):
-    path = r'F:\data\BAYLORCW032\python\2023_10_08'
     s1 = session.Session(path, layer_num=lnum)
-    path = r'F:\data\BAYLORCW032\python\2023_10_25'
-    s2 = session.Session(path, layer_num=lnum)
+    s2 = session.Session(path1, layer_num=lnum)
     
     neurons_ranked, selectivity = s2.ranked_cells_by_selectivity(p=0.05)
-    matched_neurons=np.load(r'F:\data\BAYLORCW032\python\cellreg\layer{}\1008_1025translationspairs_proc.npy'.format(lnum-1))
+    matched_neurons=np.load(match_n_path.format(lnum-1))
     for nnum in range(len(neurons_ranked)):
         
         if neurons_ranked[nnum] not in matched_neurons[:,1]:

@@ -29,10 +29,10 @@ from sklearn.decomposition import PCA
 # path = r'F:\data\BAYLORCW021\python\2023_05_03'
 
 path = r'F:\data\BAYLORCW032\python\2023_10_25'
-path = r'F:\data\BAYLORCW032\python\2023_10_05'
+path = r'F:\data\BAYLORCW036\python\2023_10_28'
 
 
-l1 = Mode(path, use_reg = True)
+l1 = Mode(path)#, use_reg = True)
 
 # a, b = l1.plot_activity_modes_ctl()
 
@@ -44,8 +44,8 @@ l1 = Mode(path, use_reg = True)
 # a, b = l1.plot_activity_modes_opto(error=True)
 
 orthonormal_basis, mean = l1.plot_behaviorally_relevant_modes()
-# l1.plot_behaviorally_relevant_modes_opto(error=True)
-path = r'F:\data\BAYLORCW032\python\2023_10_24'
+l1.plot_behaviorally_relevant_modes_opto(error=True)
+path = r'F:\data\BAYLORCW034\python\2023_10_27'
 l1 = Mode(path, use_reg = True)
 l1.plot_behaviorally_relevant_modes_appliedCD(orthonormal_basis, mean)
 ### Recovery for stim over sessions
