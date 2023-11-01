@@ -26,7 +26,7 @@ path = r'F:\data\BAYLORCW030\python\2023_06_03'
 
 path = r'F:\data\BAYLORCW030\python\2023_07_10'
 
-path = r'F:\data\BAYLORCW034\python\2023_10_18'
+path = r'F:\data\BAYLORCW032\python\2023_10_24'
 
 l1 = session.Session(path)
 
@@ -96,7 +96,8 @@ for n in l1.get_epoch_selective(range(l1.delay, l1.response)):
 #     l1.plot_raster_and_PSTH(n, bias= True)
 
         
-    
+savepath = r'F:\data\SFN 2023\ipsi_selective_neuron.pdf'
+
     
     
     

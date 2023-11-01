@@ -68,7 +68,6 @@ class Session:
             layer = copy.deepcopy(layer_og)
             self.dff = layer['dff']
             self.fs = 1/6
-            print(use_reg)
             if use_reg:
                 self.good_neurons = np.load(path + r'\layer{}_registered_neurons.npy'.format(layer_num-1))
 

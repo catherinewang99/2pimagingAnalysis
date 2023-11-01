@@ -104,13 +104,18 @@ left_stack = np.zeros(s1.time_cutoff)
 
 right_stack_post = np.zeros(s2.time_cutoff) 
 left_stack_post = np.zeros(s2.time_cutoff) 
+overallsel = []
 
 for lnum in range(1,6):
-    s1 = session.Session(path, layer_num=lnum)
-    s2 = session.Session(path1, layer_num=lnum)
+    s1 = session.Session(path, layer_num=lnum, use_reg=True)
+    s2 = session.Session(path1, layer_num=lnum, use_reg=True)
+    
     
     neurons_ranked, selectivity = s1.ranked_cells_by_selectivity(p=0.05)
     matched_neurons=np.load(match_n_path.format(lnum-1))
+    
+    overallsel = np.append(overallsel, selectivity)
+
     for nnum in range(len(neurons_ranked)):
         
         if neurons_ranked[nnum] not in matched_neurons[:,0]:
@@ -137,6 +142,12 @@ for lnum in range(1,6):
         
         right_stack_post = np.vstack((right_stack_post, right_trace))
         left_stack_post = np.vstack((left_stack_post, left_trace))
+        
+right_stack = np.take(right_stack, np.argsort(overallsel), axis = 0)
+left_stack = np.take(left_stack, np.argsort(overallsel), axis = 0)
+
+right_stack_post = np.take(right_stack_post, np.argsort(overallsel), axis = 0)
+left_stack_post = np.take(left_stack_post, np.argsort(overallsel), axis = 0)
 #%%
 # TRAINED --> NAIVE
 right_stack = np.zeros(s1.time_cutoff) 
@@ -153,7 +164,7 @@ for lnum in range(1,6):
     neurons_ranked, selectivity = s2.ranked_cells_by_selectivity(p=0.05)
     matched_neurons=np.load(match_n_path.format(lnum-1))
     
-    overallsel += selectivity
+    overallsel = np.append(overallsel, selectivity)
     
     for nnum in range(len(neurons_ranked)):
         
@@ -192,38 +203,40 @@ left_stack_post = np.take(left_stack_post, np.argsort(overallsel), axis = 0)
 #%% 
         
 f, axarr = plt.subplots(2,2, sharex='col', figsize=(15,10))
-vmin, vmax= -0,0.5
+vmin, vmax= -0.05,0.4
 ## FIRST SESS
 # Right trials first
-right_stack = normalize(right_stack)
+# right_stack = normalize(right_stack[:, 6:])
 # right_stack = (right_stack[1:])
-right_im = axarr[0,0].imshow(right_stack, cmap='viridis', interpolation='nearest', aspect='auto', vmin=vmin, vmax=vmax)
-axarr[0,0].axis('off')
+right_im = axarr[1,0].imshow(right_stack, cmap='viridis', interpolation='nearest', aspect='auto', vmin=vmin, vmax=vmax)
+axarr[1,0].axis('off')
 f.colorbar(right_im, shrink = 0.2)
 axarr[0,0].set_title("Session 1")
-axarr[0,0].set_ylabel("Right trials")
+axarr[1,0].set_ylabel("Right trials")
 
 # Left trials
-left_stack = normalize(left_stack)
+# left_stack = normalize(left_stack[:, 6:])
 # left_stack = (left_stack[1:])
-leftim = axarr[1,0].imshow(left_stack, cmap='viridis', interpolation='nearest', aspect='auto',vmin=vmin, vmax=vmax)
-axarr[1,0].axis('off')
-axarr[1,0].set_ylabel("Left trials")
+leftim = axarr[0,0].imshow(left_stack, cmap='viridis', interpolation='nearest', aspect='auto',vmin=vmin, vmax=vmax)
+axarr[0,0].axis('off')
+axarr[0,0].set_ylabel("Left trials")
 
 f.colorbar(leftim, shrink = 0.2)
 
 
 ## SECOND SESS
 # Right trials first
-right_stack_post = normalize(right_stack_post)
+# right_stack_post = normalize(right_stack_post[:, 6:])
 # right_stack_post = (right_stack_post[1:])
-right_im = axarr[0,1].imshow(right_stack_post, cmap='viridis', interpolation='nearest', aspect='auto', vmin=vmin, vmax=vmax)
-axarr[0,1].axis('off')
+right_im = axarr[1,1].imshow(right_stack_post, cmap='viridis', interpolation='nearest', aspect='auto', vmin=vmin, vmax=vmax)
+axarr[1,1].axis('off')
 f.colorbar(right_im, shrink = 0.2)
 axarr[0,1].set_title("Session 2")
 # Left trials
-left_stack_post = normalize(left_stack_post)
+# left_stack_post = normalize(left_stack_post[:, 6:])
 # left_stack_post = (left_stack_post[1:])
-leftim = axarr[1,1].imshow(left_stack_post, cmap='viridis', interpolation='nearest', aspect='auto',vmin=vmin, vmax=vmax)
-axarr[1,1].axis('off')
+leftim = axarr[0,1].imshow(left_stack_post, cmap='viridis', interpolation='nearest', aspect='auto',vmin=vmin, vmax=vmax)
+axarr[0,1].axis('off')
 f.colorbar(leftim, shrink = 0.2)
+
+plt.savefig(r'F:\data\SFN 2023\trained_matched_pop.pdf')
