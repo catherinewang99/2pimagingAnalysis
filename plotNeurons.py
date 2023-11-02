@@ -96,7 +96,8 @@ for n in l1.get_epoch_selective(range(l1.delay, l1.response)):
 #     l1.plot_raster_and_PSTH(n, bias= True)
 
         
-savepath = r'F:\data\SFN 2023\ipsi_selective_neuron.pdf'
+savepath = r'F:\data\SFN 2023\left_selective_neuron.pdf'
+l1.plot_rasterPSTH_sidebyside(556,save=savepath)
 
     
     

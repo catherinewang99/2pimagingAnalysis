@@ -415,6 +415,74 @@ class Mode(Session):
         print("Runtime: {} secs".format(time.time() - start_time))
         return orthonormal_basis, var_allDim
 
+    def func_compute_epoch_decoder(self, input_, epoch, ctl=True):
+    
+        # Inputs: Left Right Correct Error traces of ALL neurons that are selective
+        #           time stamps for analysis?
+        #           time epochs
+        # Outputs: Orthonormal basis (nxn) where n = # of neurons
+        #           activity variance of each dimension (nx1)
+        
+        # Actual method uses SVD decomposition
+        
+        T_cue_aligned_sel = self.T_cue_aligned_sel 
+        time_epochs = self.time_epochs
+    
+        t_sample = time_epochs[0]
+        t_delay = time_epochs[1]
+        t_response = time_epochs[2]
+        
+        if ctl:
+            PSTH_yes_correct, PSTH_no_correct = input_
+        else:
+            PSTH_yes_correct, PSTH_no_correct, PSTH_yes_error, PSTH_no_error = input_
+    
+
+        
+        if ctl:
+            
+            wt = (PSTH_yes_correct - PSTH_no_correct)/2
+            i_t = np.where((T_cue_aligned_sel > t_delay + int(round(0.4*(1/self.fs))) ) & (T_cue_aligned_sel < t_response + int(round(0.4*(1/self.fs))) ))[0]
+            CD_choice_mode = np.mean(wt[:, i_t], axis=1)
+
+        elif not ctl:
+
+        
+            wt = (PSTH_yes_correct + PSTH_no_error) / 2 - (PSTH_no_correct + PSTH_yes_error) / 2
+            i_t = np.where((T_cue_aligned_sel > t_delay + int(round(0.4*(1/self.fs))) ) & (T_cue_aligned_sel < t_response + int(round(0.4*(1/self.fs))) ))[0]
+            CD_choice_mode = np.mean(wt[:, i_t], axis=1)
+
+        activityRL = np.concatenate((PSTH_yes_correct, PSTH_no_correct), axis=1)
+        activityRL = activityRL - np.mean(activityRL, axis=1, keepdims=True) # remove?
+        u, s, v = np.linalg.svd(activityRL.T)
+        proj_allDim = activityRL.T @ v
+    
+        # Variance of each dimension normalized
+        var_s = np.square(np.diag(s[0:proj_allDim.shape[1]]))
+        var_allDim = var_s / np.sum(var_s)
+    
+        # Relevant choice dims
+        CD_choice_mode = [] # Late delay period
+        
+        CD_choice_mode = CD_choice_mode / np.linalg.norm(CD_choice_mode)
+        
+        # Reshape 
+        
+        CD_choice_mode = np.reshape(CD_choice_mode, (-1, 1)) 
+
+        start_time = time.time()
+        input_ = np.concatenate((CD_choice_mode, v), axis=1)
+        # orthonormal_basis = self.Gram_Schmidt_process(input_)
+        orthonormal_basis, _ = np.linalg.qr(input_, mode='complete')  # lmao
+        
+        proj_allDim = np.dot(activityRL.T, orthonormal_basis)
+        var_allDim = np.sum(proj_allDim**2, axis=0)
+        var_allDim = var_allDim[~np.isnan(var_allDim)]
+        
+        var_allDim = var_allDim / np.sum(var_allDim)
+        
+        print("Runtime: {} secs".format(time.time() - start_time))
+        return orthonormal_basis, var_allDim
     
     def plot_activity_modes_err(self):
         # plot activity modes
