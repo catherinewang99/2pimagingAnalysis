@@ -24,6 +24,7 @@ from scipy.stats import mstats
 from LinRegpval import LinearRegression
 plt.rcParams['pdf.fonttype'] = 42 
 import time 
+import random
 
 class Session:
     """
@@ -600,7 +601,7 @@ class Session:
         
         return idx
     
-    def get_trace_matrix(self, neuron_num, error=False, bias_trials = [], non_bias=False, both=False, lickdir=False, opto=False):
+    def get_trace_matrix(self, neuron_num, error=False, bias_trials = [], rtrials=[],ltrials=[], non_bias=False, both=False, lickdir=False, opto=False):
         
         """Returns matrices of dF/F0 traces over right/left trials of a single neuron
         
@@ -615,6 +616,8 @@ class Session:
             Indicates if correct or incorrect trials wanted (default False)
         bias_trials :  list, optional
             List of bias trials that are used to build matrix (default empty list)
+        rtrials and ltrials : lists, optional
+            Which specific right and left trials to grab
         non_bias : bool, optional
             If True, returns all trials NOT in previous bias_trials variable
             (default False)
@@ -667,7 +670,9 @@ class Session:
                 right_trials = [b for b in ctlright_trials if b not in bias_trials]
                 left_trials = [b for b in ctlleft_trials if b not in bias_trials]
 
-
+        if len(rtrials) >0 and len(ltrials) > 0:
+            right_trials = rtrials
+            left_trials = ltrials
             
         # Filter out opto trials
         if not opto:
@@ -692,7 +697,7 @@ class Session:
     
 
     
-    def get_trace_matrix_multiple(self, neuron_nums, error=False, bias_trials = [], non_bias=False, both=False, lickdir=False, opto=False):
+    def get_trace_matrix_multiple(self, neuron_nums, error=False, bias_trials = [], rtrials=[],ltrials=[], non_bias=False, both=False, lickdir=False, opto=False):
         
        
         """Returns matrices of dF/F0 traces averaged over right/left trials of multiple neurons
@@ -709,6 +714,8 @@ class Session:
             Indicates if correct or incorrect trials wanted (default False)
         bias_trials :  list, optional
             List of bias trials that are used to build matrix (default empty list)
+        rtrials and ltrials : lists, optional
+            Which specific right and left trials to grab
         non_bias : bool, optional
             If True, returns all trials NOT in previous bias_trials variable
             (default False)
@@ -735,6 +742,8 @@ class Session:
             R_av_dff, L_av_dff = self.get_trace_matrix(neuron_num, 
                                                        error=error, 
                                                        bias_trials = bias_trials, 
+                                                       rtrials=[],
+                                                       ltrials=[],
                                                        non_bias=non_bias, 
                                                        both=both, 
                                                        lickdir=lickdir,
@@ -1040,7 +1049,7 @@ class Session:
         
         return selective_neurons
     
-    def get_epoch_mean_diff(self, epoch):
+    def get_epoch_mean_diff(self, epoch, trials):
         """Identifies neurons that are selective in a given epoch using mean 
         difference during selected epoch
         
@@ -1050,6 +1059,8 @@ class Session:
         ----------
         epoch : list
             Range of timesteps to evaluate selectivity over
+        trials : tuple
+            List of r and l trials to use
 
             
         Returns
@@ -1060,9 +1071,10 @@ class Session:
 
         """
         diffs = []
+        r,l=trials
         # for neuron in range(self.num_neurons):
         for neuron in self.good_neurons: # Only look at non-noise neurons
-            right, left = self.get_trace_matrix(neuron)
+            right, left = self.get_trace_matrix(neuron, rtrials=r, ltrials =l)
 
             
             left_ = [l[epoch] for l in left]
@@ -2906,8 +2918,11 @@ class Session:
         #                                                                 p = p,
         #                                                                 return_stat=True,
         #                                                                 lickdir=False)
+        R,L = self.lick_correct_direction('r'), self.lick_correct_direction('l')
+        random.shuffle(R), random.shuffle(L)
+        train_r, train_l, test_r, test_l = np.array(R)[:int(len(R)/2)], np.array(R)[int(len(R)/2):], np.array(L)[:int(len(L)/2)], np.array(L)[int(len(L)/2):]
         
-        selectivity = self.get_epoch_mean_diff(range(self.response-12, self.response))
+        selectivity = self.get_epoch_mean_diff(range(self.response-12, self.response), (train_r, train_l))
         order = np.argsort(selectivity) # sorts from lowest to highest
          
         # Split trials into half, maintaining lick right and lick left proportions
@@ -2917,7 +2932,7 @@ class Session:
             neurons += [self.good_neurons[n]]
             # pref, l_trials, r_trials = self.screen_preference(neuron, range(self.delay, self.response))
 
-        return neurons, np.take(selectivity,order)
+        return neurons, np.take(selectivity,order), (test_r, test_l)
         
 
 

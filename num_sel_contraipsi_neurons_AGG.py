@@ -46,12 +46,14 @@ plt.bar(x, -np.sum(allipsi, axis=0), color = 'r',edgecolor = 'white', width = 0.
 plt.axvline(-4.3)
 plt.axvline(-3)
 plt.axvline(0)
-plt.ylim(bottom = -100)
-plt.ylim(top = 90)
+plt.ylim(bottom = -180)
+plt.ylim(top = 250)
+# plt.ylim(bottom = -100)
+# plt.ylim(top = 90)
 plt.ylabel('Number of sig sel neurons')
 plt.xlabel('Time from Go cue (s)')
 plt.legend()
-# plt.savefig(r'F:\data\SFN 2023\naive_num_sel_neurons.pdf')
+plt.savefig(r'F:\data\SFN 2023\naive_num_sel_neuronsALL.pdf')
 
 plt.show()
 #%%
@@ -61,7 +63,7 @@ allcontra, allipsi = [], []
 # new sessions
 paths = [
         r'F:\data\BAYLORCW032\python\2023_10_16',
-        # r'F:\data\BAYLORCW034\python\2023_10_22',
+        r'F:\data\BAYLORCW034\python\2023_10_22',
         r'F:\data\BAYLORCW036\python\2023_10_19'
         ]
 for path in paths:
@@ -79,12 +81,14 @@ plt.bar(x, -np.sum(allipsi, axis=0), color = 'r',edgecolor = 'white', width = 0.
 plt.axvline(-4.3)
 plt.axvline(-3)
 plt.axvline(0)
-plt.ylim(bottom = -100)
-plt.ylim(top = 90)
+plt.ylim(bottom = -180)
+plt.ylim(top = 250)
+# plt.ylim(bottom = -100)
+# plt.ylim(top = 90)
 plt.ylabel('Number of sig sel neurons')
 plt.xlabel('Time from Go cue (s)')
 plt.legend()
-plt.savefig(r'F:\data\SFN 2023\learning_num_sel_neurons.pdf')
+plt.savefig(r'F:\data\SFN 2023\learning_num_sel_neuronsALL.pdf')
 plt.show()
 
 
@@ -100,7 +104,7 @@ paths = [r'F:\data\BAYLORCW032\python\2023_10_24',
 #testing new sessions
 paths = [
         r'F:\data\BAYLORCW032\python\2023_10_25',
-        # r'F:\data\BAYLORCW034\python\2023_10_27',
+        r'F:\data\BAYLORCW034\python\2023_10_27',
         r'F:\data\BAYLORCW036\python\2023_10_30'
         ]
 for path in paths:
@@ -119,9 +123,9 @@ plt.axvline(-4.3)
 plt.axvline(-3)
 plt.axvline(0)
 # if len(y_axis) != 0:
-plt.ylim(bottom = -100)
-plt.ylim(top = 90)
+plt.ylim(bottom = -180)
+plt.ylim(top = 250)
 plt.ylabel('Number of sig sel neurons')
 plt.xlabel('Time from Go cue (s)')
 plt.legend()
-plt.savefig(r'F:\data\SFN 2023\trained_num_sel_neurons.pdf')
+plt.savefig(r'F:\data\SFN 2023\trained_num_sel_neuronsALL.pdf')

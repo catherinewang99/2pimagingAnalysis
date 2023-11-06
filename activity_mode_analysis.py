@@ -81,13 +81,28 @@ plt.ylim(bottom=0.4, top =1)
 plt.savefig( 'F:\data\SFN 2023\CD_delay_DB_trainednaive.pdf')
 
 plt.show()
+#%%
+# Choice decoder
+# NAIVE to TRAINED
+path = r'F:\data\BAYLORCW032\python\2023_10_08'
+l1 = Mode(path, use_reg = True)
+orthonormal_basis, mean = l1.plot_CD(save = 'F:\data\SFN 2023\CDdelay_naive_trainednaive.pdf')
 
-# Choice decodeer
-# l1 = Mode(path, use_reg = True)
-orthonormal_basis, mean = l1.plot_CD()
-# path = r'F:\data\BAYLORCW032\python\2023_10_25'
-# l1 = Mode(path, use_reg = True)
-# l1.plot_appliedCD(orthonormal_basis, mean)
+path = r'F:\data\BAYLORCW032\python\2023_10_25'
+l1 = Mode(path, use_reg = True)
+l1.plot_appliedCD(orthonormal_basis, mean, save = 'F:\data\SFN 2023\CDdelay_expert_trainednaive.pdf')
+
+#TRAINED to NAIVE
+path = r'F:\data\BAYLORCW032\python\2023_10_25'
+l1 = Mode(path, use_reg = True)
+orthonormal_basis, mean = l1.plot_CD(save = 'F:\data\SFN 2023\CDdelay_expert_trainedexpert.pdf')
+
+path = r'F:\data\BAYLORCW032\python\2023_10_08'
+l1 = Mode(path, use_reg = True)
+l1.plot_appliedCD(orthonormal_basis, mean,save = 'F:\data\SFN 2023\CDdelay_naive_trainedexpert.pdf')
+
+#%%
+#Behavioral modes
 # a, b = l1.plot_activity_modes_ctl()
 
 # a, b = l1.plot_activity_modes_err()
@@ -102,7 +117,7 @@ orthonormal_basis, mean = l1.plot_CD()
 # path = r'F:\data\BAYLORCW034\python\2023_10_27'
 # l1 = Mode(path, use_reg = True)
 # l1.plot_behaviorally_relevant_modes_appliedCD(orthonormal_basis, mean)
-
+#%%
 ### Recovery for stim over sessions
 # total_var = []
 # alldates = ['06_16', '06_19', '06_21', '06_22', '06_23', '07_05', '07_06',
