@@ -26,14 +26,68 @@ from sklearn.decomposition import PCA
 # path = r'F:\data\BAYLORCW021\python\2023_02_13'
 # path = r'F:\data\BAYLORCW021\python\2023_04_25'
 # path = r'F:\data\BAYLORCW021\python\2023_04_27'
+path = r'F:\data\BAYLORCW032\python\2023_10_24'
+# path = r'F:\data\BAYLORCW036\python\2023_10_28'
+
+l1 = Mode(path, use_reg = True)
+l1.plot_CD()
+# orthonormal_basis, mean, db, acc_within = l1.decision_boundary()
+# print(np.mean(acc_within))
+
 # path = r'F:\data\BAYLORCW021\python\2023_05_03'
+#%%
+save = 'F:\data\SFN 2023\CD_delay_expert_trainedexpert.pdf'
+
+# DECODER ANALYSIS
+path = r'F:\data\BAYLORCW032\python\2023_10_25'
+# path = r'F:\data\BAYLORCW036\python\2023_10_28'
+
+l1 = Mode(path, use_reg = True)
+orthonormal_basis, mean, db, acc_within = l1.decision_boundary()
+print(np.mean(acc_within))
+
+
+path = r'F:\data\BAYLORCW032\python\2023_10_08'
+l1 = Mode(path, use_reg = True)
+acc_without = l1.decision_boundary_appliedCD(orthonormal_basis, mean, db)
+
+plt.bar([0,1], [np.mean(acc_within), np.mean(acc_without)])
+plt.errorbar([0,1], [np.mean(acc_within), np.mean(acc_without)],
+             [np.std(acc_within)/np.sqrt(len(acc_within)), np.std(acc_without)/np.sqrt(len(acc_without))],
+             color = 'r')
+plt.xticks([0,1], ['Expert:Expert', 'Expert:Naive'])
+plt.ylim(bottom=0.4, top =1)
+plt.savefig( 'F:\data\SFN 2023\CD_delay_DB_trainedexpert.pdf')
+plt.show()
+
+path = r'F:\data\BAYLORCW032\python\2023_10_08'
+# path = r'F:\data\BAYLORCW036\python\2023_10_28'
+
+l1 = Mode(path, use_reg = True)
+orthonormal_basis, mean, db, acc_within = l1.decision_boundary()
+print(np.mean(acc_within))
+
 
 path = r'F:\data\BAYLORCW032\python\2023_10_25'
-path = r'F:\data\BAYLORCW036\python\2023_10_28'
+l1 = Mode(path, use_reg = True)
+acc_without = l1.decision_boundary_appliedCD(orthonormal_basis, mean, db)
 
+plt.bar([0,1], [np.mean(acc_within), np.mean(acc_without)])
+plt.errorbar([0,1], [np.mean(acc_within), np.mean(acc_without)],
+             [np.std(acc_within)/np.sqrt(len(acc_within)), np.std(acc_without)/np.sqrt(len(acc_without))],
+             color = 'r')
+plt.xticks([0,1], ['Naive:Naive', 'Naive:Expert'])
+plt.ylim(bottom=0.4, top =1)
+plt.savefig( 'F:\data\SFN 2023\CD_delay_DB_trainednaive.pdf')
 
-l1 = Mode(path)#, use_reg = True)
+plt.show()
 
+# Choice decodeer
+# l1 = Mode(path, use_reg = True)
+orthonormal_basis, mean = l1.plot_CD()
+# path = r'F:\data\BAYLORCW032\python\2023_10_25'
+# l1 = Mode(path, use_reg = True)
+# l1.plot_appliedCD(orthonormal_basis, mean)
 # a, b = l1.plot_activity_modes_ctl()
 
 # a, b = l1.plot_activity_modes_err()
@@ -43,11 +97,12 @@ l1 = Mode(path)#, use_reg = True)
 
 # a, b = l1.plot_activity_modes_opto(error=True)
 
-orthonormal_basis, mean = l1.plot_behaviorally_relevant_modes()
-l1.plot_behaviorally_relevant_modes_opto(error=True)
-path = r'F:\data\BAYLORCW034\python\2023_10_27'
-l1 = Mode(path, use_reg = True)
-l1.plot_behaviorally_relevant_modes_appliedCD(orthonormal_basis, mean)
+# orthonormal_basis, mean = l1.plot_behaviorally_relevant_modes()
+# l1.plot_behaviorally_relevant_modes_opto(error=True)
+# path = r'F:\data\BAYLORCW034\python\2023_10_27'
+# l1 = Mode(path, use_reg = True)
+# l1.plot_behaviorally_relevant_modes_appliedCD(orthonormal_basis, mean)
+
 ### Recovery for stim over sessions
 # total_var = []
 # alldates = ['06_16', '06_19', '06_21', '06_22', '06_23', '07_05', '07_06',

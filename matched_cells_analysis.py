@@ -203,7 +203,7 @@ left_stack_post = np.take(left_stack_post, np.argsort(overallsel), axis = 0)
 #%% 
         
 f, axarr = plt.subplots(2,2, sharex='col', figsize=(15,10))
-vmin, vmax= -0.05,0.4
+vmin, vmax= 0,0.32
 ## FIRST SESS
 # Right trials first
 # right_stack = normalize(right_stack[:, 6:])

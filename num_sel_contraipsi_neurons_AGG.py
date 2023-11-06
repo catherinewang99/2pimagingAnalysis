@@ -18,15 +18,21 @@ import pandas as pd
 plt.rcParams['pdf.fonttype'] = '42' 
 
 ##Proportion of selective contra ipsi ###
-
+#%%
 # Aggregate plot NAIVE ##
 allcontra, allipsi = [], []
 paths = [r'F:\data\BAYLORCW032\python\2023_10_05',
         # r'F:\data\BAYLORCW034\python\2023_10_12',
         r'F:\data\BAYLORCW036\python\2023_10_09']
+# new sessions
+paths = [
+        r'F:\data\BAYLORCW032\python\2023_10_08',
+        r'F:\data\BAYLORCW034\python\2023_10_12',
+        r'F:\data\BAYLORCW036\python\2023_10_09'
+        ]
 
 for path in paths:
-    l1 = session.Session(path)
+    l1 = session.Session(path, use_reg=True, triple=True)
     contra, ipsi = l1.plot_number_of_sig_neurons(return_nums=True)
     allcontra += [contra]
     allipsi += [ipsi]
@@ -40,38 +46,82 @@ plt.bar(x, -np.sum(allipsi, axis=0), color = 'r',edgecolor = 'white', width = 0.
 plt.axvline(-4.3)
 plt.axvline(-3)
 plt.axvline(0)
-plt.ylim(bottom = -140)
-plt.ylim(top = 160)
+plt.ylim(bottom = -100)
+plt.ylim(top = 90)
 plt.ylabel('Number of sig sel neurons')
 plt.xlabel('Time from Go cue (s)')
 plt.legend()
-plt.savefig(r'F:\data\SFN 2023\naive_num_sel_neurons.pdf')
+# plt.savefig(r'F:\data\SFN 2023\naive_num_sel_neurons.pdf')
 
+plt.show()
+#%%
+# Aggregate plot LEARNING ##
+allcontra, allipsi = [], []
+
+# new sessions
+paths = [
+        r'F:\data\BAYLORCW032\python\2023_10_16',
+        # r'F:\data\BAYLORCW034\python\2023_10_22',
+        r'F:\data\BAYLORCW036\python\2023_10_19'
+        ]
+for path in paths:
+    l1 = session.Session(path, use_reg=True, triple=True)
+    contra, ipsi = l1.plot_number_of_sig_neurons(return_nums=True)
+    allcontra += [contra]
+    allipsi += [ipsi]
+
+
+
+x = np.arange(-6.97,6,l1.fs)[:l1.time_cutoff]
+
+plt.bar(x, np.sum(allcontra, axis=0), color = 'b', edgecolor = 'white', width = 0.17, label = 'contra')
+plt.bar(x, -np.sum(allipsi, axis=0), color = 'r',edgecolor = 'white', width = 0.17, label = 'ipsi')
+plt.axvline(-4.3)
+plt.axvline(-3)
+plt.axvline(0)
+plt.ylim(bottom = -100)
+plt.ylim(top = 90)
+plt.ylabel('Number of sig sel neurons')
+plt.xlabel('Time from Go cue (s)')
+plt.legend()
+plt.savefig(r'F:\data\SFN 2023\learning_num_sel_neurons.pdf')
+plt.show()
+
+
+
+#%%
 # Aggregate plot TRAINED ##
-# allcontra, allipsi = [], []
-# paths = [r'F:\data\BAYLORCW032\python\2023_10_24',
-#         # r'F:\data\BAYLORCW034\python\2023_10_27',
-#         r'F:\data\BAYLORCW036\python\2023_10_28']
+allcontra, allipsi = [], []
+#original sessions
+paths = [r'F:\data\BAYLORCW032\python\2023_10_24',
+        # r'F:\data\BAYLORCW034\python\2023_10_27',
+        r'F:\data\BAYLORCW036\python\2023_10_28']
 
-# for path in paths:
-#     l1 = session.Session(path)
-#     contra, ipsi = l1.plot_number_of_sig_neurons(return_nums=True)
-#     allcontra += [contra]
-#     allipsi += [ipsi]
+#testing new sessions
+paths = [
+        r'F:\data\BAYLORCW032\python\2023_10_25',
+        # r'F:\data\BAYLORCW034\python\2023_10_27',
+        r'F:\data\BAYLORCW036\python\2023_10_30'
+        ]
+for path in paths:
+    l1 = session.Session(path, use_reg=True, triple=True)
+    contra, ipsi = l1.plot_number_of_sig_neurons(return_nums=True)
+    allcontra += [contra]
+    allipsi += [ipsi]
 
 
 
-# x = np.arange(-6.97,6,l1.fs)[:l1.time_cutoff]
+x = np.arange(-6.97,6,l1.fs)[:l1.time_cutoff]
 
-# plt.bar(x, np.sum(allcontra, axis=0), color = 'b', edgecolor = 'white', width = 0.17, label = 'contra')
-# plt.bar(x, -np.sum(allipsi, axis=0), color = 'r',edgecolor = 'white', width = 0.17, label = 'ipsi')
-# plt.axvline(-4.3)
-# plt.axvline(-3)
-# plt.axvline(0)
-# # if len(y_axis) != 0:
-# plt.ylim(bottom = -140)
-# plt.ylim(top = 160)
-# plt.ylabel('Number of sig sel neurons')
-# plt.xlabel('Time from Go cue (s)')
-# plt.legend()
-# plt.savefig(r'F:\data\SFN 2023\trained_num_sel_neurons.pdf')
+plt.bar(x, np.sum(allcontra, axis=0), color = 'b', edgecolor = 'white', width = 0.17, label = 'contra')
+plt.bar(x, -np.sum(allipsi, axis=0), color = 'r',edgecolor = 'white', width = 0.17, label = 'ipsi')
+plt.axvline(-4.3)
+plt.axvline(-3)
+plt.axvline(0)
+# if len(y_axis) != 0:
+plt.ylim(bottom = -100)
+plt.ylim(top = 90)
+plt.ylabel('Number of sig sel neurons')
+plt.xlabel('Time from Go cue (s)')
+plt.legend()
+plt.savefig(r'F:\data\SFN 2023\trained_num_sel_neurons.pdf')

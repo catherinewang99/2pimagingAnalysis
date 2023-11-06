@@ -42,7 +42,7 @@ class Session:
     """
     
     
-    def __init__(self, path, layer_num='all', use_reg = False, sess_reg = False, guang=False, passive=False):
+    def __init__(self, path, layer_num='all', use_reg = False, triple = False, sess_reg = False, guang=False, passive=False):
         
         """
         Parameters
@@ -69,7 +69,11 @@ class Session:
             self.dff = layer['dff']
             self.fs = 1/6
             if use_reg:
-                self.good_neurons = np.load(path + r'\layer{}_registered_neurons.npy'.format(layer_num-1))
+                if triple:
+                    self.good_neurons = np.load(path + r'\layer{}_triple_registered_neurons.npy'.format(layer_num-1))
+                else:
+                    self.good_neurons = np.load(path + r'\layer{}_registered_neurons.npy'.format(layer_num-1))
+
 
             
         else:
@@ -84,18 +88,26 @@ class Session:
                     
                     if self.dff == None:
                         
-                        if use_reg != False:
-                            # raise NotImplementedError("Multi plane reg not implemented!")
-                            self.good_neurons = np.load(path + r'\layer{}_registered_neurons.npy'.format(counter))
+                        if use_reg:
+                            if triple:
+                                self.good_neurons = np.load(path + r'\layer{}_triple_registered_neurons.npy'.format(counter))
+
+                            else:
+                                self.good_neurons = np.load(path + r'\layer{}_registered_neurons.npy'.format(counter))
+
                             # self.good_neurons = layer['dff'][:, :][neurons]
                         self.dff = layer['dff']
                         self.num_trials = layer['dff'].shape[1] 
                         
                     else:
-                        if use_reg != False:
+                        if use_reg:
                             # raise NotImplementedError("Multi plane reg not implemented!")
-                            neurons = np.load(path + r'\layer{}_registered_neurons.npy'.format(counter))
-                            self.good_neurons = np.append(self.good_neurons, neurons + self.dff[0,0].shape[0])
+                            if triple:
+                                neurons = np.load(path + r'\layer{}_triple_registered_neurons.npy'.format(counter))
+                                self.good_neurons = np.append(self.good_neurons, neurons + self.dff[0,0].shape[0])
+                            else:
+                                neurons = np.load(path + r'\layer{}_registered_neurons.npy'.format(counter))
+                                self.good_neurons = np.append(self.good_neurons, neurons + self.dff[0,0].shape[0])
                             
                         for t in range(self.num_trials):
 
@@ -952,6 +964,24 @@ class Session:
             for j in range(self.num_neurons):
                 self.dff[0, i][j] = (self.dff[0, i][j] - overall_mean) / std
                 
+    def is_selective(self, neuron, epoch, p = 0.0001, bias=False, lickdir = False):
+        right, left = self.get_trace_matrix(neuron)
+        if lickdir:
+            right, left = self.get_trace_matrix(neuron, lickdir=True)
+            
+            
+        if bias:
+            biasidx = self.find_bias_trials()
+            right,left = self.get_trace_matrix(neuron, bias_trials= biasidx)
+        
+        left_ = [l[epoch] for l in left]
+        right_ = [r[epoch] for r in right]
+        tstat, p_val = stats.ttest_ind(np.mean(left_, axis = 1), np.mean(right_, axis = 1))
+        # p = 0.01/self.num_neurons
+        # p = 0.01
+        # p = 0.0001
+        return p_val < p
+        
         
 
     def get_epoch_selective(self, epoch, p = 0.0001, bias=False, return_stat = False, lickdir = False):
@@ -2425,7 +2455,7 @@ class Session:
         plt.show()
         
         
-    def single_neuron_sel(self, type, save=False):
+    def single_neuron_sel(self, type, p=0.01, save=False):
         """Plots proportion of stim/lick/reward/mixed cells over trial using two different methods
         
         Inputs are 'Chen 2017' or 'Susu method'
@@ -2449,10 +2479,11 @@ class Session:
             coeff = 1/(len(XX) * len(timebin))
             
             # numerator = sum([sum(XX[t][timebin]) for t in range(len(XX))])
-            numerator = np.mean([XX[t][timebin] for t in range(len(XX))], axis=0)
+            numerator = np.mean([XX[t][timebin] for t in range(len(XX))], axis=1)
             
-            return numerator 
-        
+            # numerator = np.sum([XX[t][timebin] for t in range(len(XX))])
+            # return numerator * coeff
+            return numerator
         if type == 'Chen 2017':
             
             stim = []
@@ -2461,6 +2492,89 @@ class Session:
             mixed = []
                 
             for t in range(self.time_cutoff):
+                start_time = time.time()
+
+                s,l,r,m = 0,0,0,0
+                
+                # for n in range(self.num_neurons):
+                for n in self.good_neurons:
+                    dff = [self.dff[0, trial][n, t] for trial in self.i_good_non_stim_trials]
+                    
+                    df = pd.DataFrame({'stim': self.R_correct[self.i_good_non_stim_trials] + self.R_wrong[self.i_good_non_stim_trials],
+                                       'lick': self.R_correct[self.i_good_non_stim_trials] + self.L_wrong[self.i_good_non_stim_trials],
+                                       'reward': self.R_correct[self.i_good_non_stim_trials] + self.L_correct[self.i_good_non_stim_trials],
+                                       'constant' : np.ones(len(self.i_good_non_stim_trials)),
+                                       'dff': dff})
+                    
+                    # model = ols("""dff ~ C(stim) + C(lick) + C(reward) +
+                    #                 C(stim):C(lick) + C(stim):C(reward) + C(lick):C(reward) +
+                    #                 C(stim):C(lick):C(reward)""", data = df).fit()
+                                    
+                    model = ols("""dff ~ C(stim) + C(lick) + C(reward) + C(constant)""", data = df).fit()
+
+                    # table = sm.stats.anova_lm(model)
+                    # sig = np.where(np.array(table['PR(>F)'] < 0.01) == True)[0]
+                    
+                    results = (model.summary2().tables[1]['P>|t|'] < 0.01).to_numpy()[1:]
+                    # h=False
+                    
+                    # if sum(results) > 1:
+                    #     m += 1
+                        
+                    if results[0]:
+                        s += 1
+                    
+                    elif results[1]:
+                        l += 1
+                        
+                    elif results[2]:
+                        r += 1
+                        
+                print("Runtime timestep {} : {} secs".format(t, time.time() - start_time))
+
+                stim += [s]
+                lick += [l]
+                reward += [r]
+                mixed += [m]
+            
+            f, axarr = plt.subplots(1,4, sharey='row', figsize=(20,5))
+            x = np.arange(-5.97,4,self.fs)[:self.time_cutoff] if 'CW03' not in self.path else np.arange(-6.97,4,self.fs)[:self.time_cutoff]
+
+            num_neurons = len(self.good_neurons)
+            axarr[0].plot(x, np.array(lick)/num_neurons, color='magenta')
+            axarr[0].set_title('Lick direction cell')
+            axarr[1].plot(x, np.array(stim)/num_neurons, color='lime')
+            axarr[1].set_title('Object location cell')
+            axarr[2].plot(x, np.array(reward)/num_neurons, color='cyan')
+            axarr[2].set_title('Outcome cell')
+            axarr[3].plot(x, np.array(mixed)/num_neurons, color='gold')
+            axarr[3].set_title('Mixed cell')
+
+            for i in range(4):
+                
+                axarr[i].axvline(0, color = 'grey', alpha=0.5, ls = '--')
+                axarr[i].axvline(-4.3, color = 'grey', alpha=0.5, ls = '--')
+                axarr[i].axvline(-3, color = 'grey', alpha=0.5, ls = '--')
+            if save:
+                plt.savefig(self.path + r'single_neuron_sel.pdf')
+                
+            plt.show()
+            
+            return stim, lick, reward, mixed
+            
+        if type == 'Chen proportions':
+            
+            
+            stim, lick, reward = [],[],[]
+            
+            stimtime, delaytime, outcometime = range(self.sample, self.delay), range(self.response-6, self.response), range(self.time_cutoff - 6, self.time_cutoff)
+
+            for t in range(self.time_cutoff):
+                
+                if t not in cat((stimtime, delaytime, outcometime)):
+                    
+                    continue
+                    
                 start_time = time.time()
 
                 s,l,r,m = 0,0,0,0
@@ -2501,39 +2615,15 @@ class Session:
                         
                 print("Runtime timestep {} : {} secs".format(t, time.time() - start_time))
 
-                        
-
-                
-                stim += [s]
-                lick += [l]
-                reward += [r]
-                mixed += [m]
+                if t in stimtime:
+                    stim += [s]
+                elif t in delaytime:
+                    lick += [l]
+                elif t in outcometime:
+                    reward += [r]
             
-            f, axarr = plt.subplots(1,4, sharey='row', figsize=(20,5))
-            x = np.arange(-5.97,4,self.fs)[:self.time_cutoff] if 'CW03' not in self.path else np.arange(-6.97,4,self.fs)[:self.time_cutoff]
+            return np.mean(stim), np.mean(lick), 0, np.mean(reward)
 
-            num_neurons = len(self.good_neurons)
-            axarr[0].plot(x, np.array(stim)/num_neurons, color='magenta')
-            axarr[0].set_title('Lick direction cell')
-            axarr[1].plot(x, np.array(lick)/num_neurons, color='lime')
-            axarr[1].set_title('Object location cell')
-            axarr[2].plot(x, np.array(reward)/num_neurons, color='cyan')
-            axarr[2].set_title('Outcome cell')
-            axarr[3].plot(x, np.array(mixed)/num_neurons, color='gold')
-            axarr[3].set_title('Mixed cell')
-
-            for i in range(4):
-                
-                axarr[i].axvline(0, color = 'grey', alpha=0.5, ls = '--')
-                axarr[i].axvline(-4.3, color = 'grey', alpha=0.5, ls = '--')
-                axarr[i].axvline(-3, color = 'grey', alpha=0.5, ls = '--')
-            if save:
-                plt.savefig(self.path + r'single_neuron_sel.pdf')
-                
-            plt.show()
-            
-            return stim, lick, reward, mixed
-            
         if type == 'Susu method':
             
             stim, choice, action, outcome = 0,0,0,0
@@ -2547,6 +2637,13 @@ class Session:
                 
                 RL, LR = self.get_trace_matrix(n, error=True)
                 
+                # Match trial numbers
+                length = min([len(RR), len(LL), len(RL), len(LR)])
+                RR = np.array(RR)[np.random.choice(len(RR), length, replace=False)]
+                LL = np.array(LL)[np.random.choice(len(LL), length, replace=False)]
+                RL = np.array(RL)[np.random.choice(len(RL), length, replace=False)]
+                LR = np.array(LR)[np.random.choice(len(LR), length, replace=False)]
+                
                 # stim = (mean_count(RR, range(7,13)) + mean_count(RL, range(7,13))) - (mean_count(LL, range(7,13)) + mean_count(LR, range(7,13)))
                 # choice = (mean_count(RR, range(21,28)) + mean_count(LR, range(21,28))) - (mean_count(LL, range(21,28)) + mean_count(RL, range(21,28)))
                 # action = (mean_count(RR, range(28,34)) + mean_count(LR, range(28,34))) - (mean_count(LL, range(28,34)) + mean_count(RL, range(28,34)))
@@ -2554,15 +2651,26 @@ class Session:
                 
                 _, stimp = mannwhitneyu(cat((mean_count(RR, range(self.sample,self.delay)), mean_count(RL, range(self.sample,self.delay)))),
                                         cat((mean_count(LL, range(self.sample,self.delay)), mean_count(LR, range(self.sample,self.delay)))))
-                _, choicep = mannwhitneyu(cat((mean_count(RR, range(self.response-7,self.response)), mean_count(LR, range(self.response-7,self.response)))),
-                                          cat((mean_count(LL, range(self.response-7,self.response)), mean_count(RL, range(self.response-7,self.response)))))
+                _, choicep = mannwhitneyu(cat((mean_count(RR, range(self.response-6,self.response)), mean_count(LR, range(self.response-6,self.response)))),
+                                          cat((mean_count(LL, range(self.response-6,self.response)), mean_count(RL, range(self.response-6,self.response)))))
                 _, actionp = mannwhitneyu(cat((mean_count(RR, range(self.response,self.time_cutoff)), mean_count(LR, range(self.response,self.time_cutoff)))),
                                           cat((mean_count(LL, range(self.response,self.time_cutoff)), mean_count(RL, range(self.response,self.time_cutoff)))))
                 _, outcomep = mannwhitneyu(cat((mean_count(LL, range(self.time_cutoff - 6,self.time_cutoff)), mean_count(RR, range(self.time_cutoff - 6,self.time_cutoff)))),
-                                           cat((mean_count(LR, range(self.time_cutoff - 6,self.time_cutoff)), mean_count(RL, range(self.time_cutoff - 6,self.time_cutoff)))))
+                                            cat((mean_count(LR, range(self.time_cutoff - 6,self.time_cutoff)), mean_count(RL, range(self.time_cutoff - 6,self.time_cutoff)))))
+                
+                # _, stimp = mannwhitneyu(mean_count(RR, range(self.sample,self.delay)) + mean_count(RL, range(self.sample,self.delay)),
+                #                         mean_count(LL, range(self.sample,self.delay)) + mean_count(LR, range(self.sample,self.delay)))
+                # _, choicep = mannwhitneyu(mean_count(RR, range(self.response-6,self.response)) + mean_count(LR, range(self.response-6,self.response)),
+                #                           mean_count(LL, range(self.response-6,self.response))+ mean_count(RL, range(self.response-6,self.response)))
+                # _, actionp = mannwhitneyu(mean_count(RR, range(self.response,self.time_cutoff)) + mean_count(LR, range(self.response,self.time_cutoff)),
+                #                           mean_count(LL, range(self.response,self.time_cutoff)) + mean_count(RL, range(self.response,self.time_cutoff)))
+                # _, outcomep = mannwhitneyu(mean_count(LL, range(self.time_cutoff - 6,self.time_cutoff)) + mean_count(RR, range(self.time_cutoff - 6,self.time_cutoff)),
+                #                            mean_count(LR, range(self.time_cutoff - 6,self.time_cutoff)) + mean_count(RL, range(self.time_cutoff - 6,self.time_cutoff)))
+
+                
                 
                 # stim += [stimp]
-                pval = 0.001
+                pval = p
                 
                 stim += stimp<pval
                 choice += choicep<pval

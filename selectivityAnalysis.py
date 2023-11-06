@@ -36,7 +36,7 @@ path = r'F:\data\BAYLORCW021\python\2023_04_27'
 path = r'G:\BAYLORCW030\python\2023_06_21'
 path = r'F:\data\BAYLORCW036\python\2023_10_17'
 path = r'F:\data\BAYLORCW034\python\2023_10_22'
-path = r'F:\data\BAYLORCW032\python\2023_10_05'
+path = r'F:\data\BAYLORCW032\python\2023_10_25'
 
 # l1 = session.Session(path, layer_num=6,  sess_reg=True)
 l1 = session.Session(path)
@@ -52,7 +52,7 @@ l1 = session.Session(path)
 
 # l1.plot_three_selectivity()
 
-# l1.population_sel_timecourse()
+l1.population_sel_timecourse()
 
 l1.plot_number_of_sig_neurons()
 
@@ -67,6 +67,7 @@ stim_neurons, choice_neurons, outcome_neurons, stim_sel, choice_sel, outcome_sel
 # n_numneurons = l1.num_neurons
 
 tstim, tlick, treward, tmixed = l1.single_neuron_sel('Chen 2017')
+# tstim, tlick, treward, tmixed = l1.single_neuron_sel('Chen 2017')
 
 # path = r'F:\data\BAYLORCW021\python\2023_04_27'
 # l2 = session.Session(path)
