@@ -102,6 +102,50 @@ l1 = Mode(path, use_reg = True)
 l1.plot_appliedCD(orthonormal_basis, mean,save = 'F:\data\SFN 2023\CDdelay_naive_trainedexpert.pdf')
 
 #%%
+# Stimulus decoder
+# NAIVE to TRAINED
+path = r'F:\data\BAYLORCW032\python\2023_10_08'
+l1 = Mode(path, use_reg = True)
+orthonormal_basis, mean = l1.plot_CD(epoch=range(l1.sample + 1, l1.delay + 1))
+
+path = r'F:\data\BAYLORCW032\python\2023_10_25'
+l1 = Mode(path, use_reg = True)
+l1.plot_appliedCD(orthonormal_basis, mean)
+
+#TRAINED to NAIVE
+path = r'F:\data\BAYLORCW032\python\2023_10_25'
+l1 = Mode(path, use_reg = True)
+orthonormal_basis, mean = l1.plot_CD(epoch=range(l1.sample + 1, l1.delay + 1))
+
+path = r'F:\data\BAYLORCW032\python\2023_10_08'
+l1 = Mode(path, use_reg = True)
+l1.plot_appliedCD(orthonormal_basis, mean)
+
+# Different dates
+
+# path = r'F:\data\BAYLORCW032\python\2023_10_05'
+# l1 = Mode(path, use_reg = True)
+# orthonormal_basis, mean = l1.plot_CD(epoch=range(l1.sample + 1, l1.delay + 1))
+
+# path = r'F:\data\BAYLORCW032\python\2023_10_24'
+# l1 = Mode(path, use_reg = True)
+# l1.plot_appliedCD(orthonormal_basis, mean)
+
+# #TRAINED to NAIVE
+# path = r'F:\data\BAYLORCW032\python\2023_10_24'
+# l1 = Mode(path, use_reg = True)
+# orthonormal_basis, mean = l1.plot_CD(epoch=range(l1.sample + 1, l1.delay + 1))
+
+# path = r'F:\data\BAYLORCW032\python\2023_10_05'
+# l1 = Mode(path, use_reg = True)
+# l1.plot_appliedCD(orthonormal_basis, mean)
+#%% Opto effect on CD dimension
+
+path = r'F:\data\BAYLORCW032\python\2023_10_25'
+l1 = Mode(path, use_reg = True)
+l1.plot_CD_opto()
+
+#%%
 #Behavioral modes
 # a, b = l1.plot_activity_modes_ctl()
 
@@ -112,7 +156,7 @@ l1.plot_appliedCD(orthonormal_basis, mean,save = 'F:\data\SFN 2023\CDdelay_naive
 
 # a, b = l1.plot_activity_modes_opto(error=True)
 
-# orthonormal_basis, mean = l1.plot_behaviorally_relevant_modes()
+orthonormal_basis, mean = l1.plot_behaviorally_relevant_modes()
 # l1.plot_behaviorally_relevant_modes_opto(error=True)
 # path = r'F:\data\BAYLORCW034\python\2023_10_27'
 # l1 = Mode(path, use_reg = True)

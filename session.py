@@ -601,7 +601,41 @@ class Session:
         
         return idx
     
-    def get_trace_matrix(self, neuron_num, error=False, bias_trials = [], rtrials=[],ltrials=[], non_bias=False, both=False, lickdir=False, opto=False):
+    def trial_type_direction(self, direction):
+        """Finds trial numbers corresponding to trial type direction
+        
+        Filters out early lick and non i_good trials but includes correct and 
+        error trials
+
+        Parameters
+        ----------
+        direction : str
+            'r' or 'l' indicating desired trial type
+        
+        Returns
+        -------
+        idx : array
+            list of trials corresponding to specified lick direction
+        """
+        
+        ## Returns list of indices of actual lick left/right trials
+        
+        if direction == 'l':
+            idx = np.where((self.L_correct + self.L_wrong) == 1)[0]
+        elif direction == 'r':
+            idx = np.where((self.R_correct + self.R_wrong) == 1)[0]
+        else:
+            raise Exception("Sorry, only 'r' or 'l' input accepted!")
+            
+        early_idx = np.where(self.early_lick == 1)[0]
+        
+        idx = [i for i in idx if i not in early_idx]
+        
+        idx = [i for i in idx if i in self.i_good_trials]
+        
+        return idx
+    
+    def get_trace_matrix(self, neuron_num, error=False, bias_trials = [], rtrials=[],ltrials=[], non_bias=False, both=False, lickdir=False, trialtype = False, opto=False):
         
         """Returns matrices of dF/F0 traces over right/left trials of a single neuron
         
@@ -627,6 +661,8 @@ class Session:
         lickdir : bool, optional
             If True, returns matrix R/L based on actual lick direction instead
             of instructed (default False)
+        trialtype : bool, optional
+            If True, returns matrix R/L based on trial type direction 
         opto : bool, optional
             If True, returns only the optogenetic stimulation trials. Otherwise,
             only returns the control trials. (default False)
@@ -640,6 +676,8 @@ class Session:
 
         if lickdir:
             R,L = self.lick_actual_direction('r'), self.lick_actual_direction('l')
+        elif trialtype or opto: # always group opto by trial type
+            R,L = self.trial_type_direction('r'), self.trial_type_direction('l')
         else:
             R,L = self.lick_correct_direction('r'), self.lick_correct_direction('l')
         
@@ -697,7 +735,7 @@ class Session:
     
 
     
-    def get_trace_matrix_multiple(self, neuron_nums, error=False, bias_trials = [], rtrials=[],ltrials=[], non_bias=False, both=False, lickdir=False, opto=False):
+    def get_trace_matrix_multiple(self, neuron_nums, error=False, bias_trials = [], rtrials=[],ltrials=[], non_bias=False, both=False, lickdir=False, trialtype = False, opto=False):
         
        
         """Returns matrices of dF/F0 traces averaged over right/left trials of multiple neurons
@@ -725,6 +763,8 @@ class Session:
         lickdir : bool, optional
             If True, returns matrix R/L based on actual lick direction instead
             of instructed (default False)
+        trialtype : bool, optional
+            If True, returns matrix R/L based on trial type direction 
         opto : bool, optional
             If True, returns only the optogenetic stimulation trials. Otherwise,
             only returns the control trials. (default False)
@@ -747,6 +787,7 @@ class Session:
                                                        non_bias=non_bias, 
                                                        both=both, 
                                                        lickdir=lickdir,
+                                                       trialtype=trialtype,
                                                        opto=opto)
  
             
