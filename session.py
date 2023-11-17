@@ -2610,13 +2610,14 @@ class Session:
                     # table = sm.stats.anova_lm(model)
                     # sig = np.where(np.array(table['PR(>F)'] < 0.01) == True)[0]
                     
-                    results = (model.summary2().tables[1]['P>|t|'] < 0.01).to_numpy()[1:]
+                    results = (model.summary2().tables[1]['P>|t|'] < p).to_numpy()[1:]
                     # h=False
                     
-                    if sum(results) > 1:
-                        m += 1
+                    # if sum(results) > 1:
+                    #     m += 1
+                    
                         
-                    elif results[0]:
+                    if results[0]:
                         s += 1
                     
                     elif results[1]:
@@ -2920,9 +2921,9 @@ class Session:
         #                                                                 lickdir=False)
         R,L = self.lick_correct_direction('r'), self.lick_correct_direction('l')
         random.shuffle(R), random.shuffle(L)
-        train_r, train_l, test_r, test_l = np.array(R)[:int(len(R)/2)], np.array(R)[int(len(R)/2):], np.array(L)[:int(len(L)/2)], np.array(L)[int(len(L)/2):]
+        train_r, test_r, train_l, test_l = np.array(R)[:int(len(R)/2)], np.array(R)[int(len(R)/2):], np.array(L)[:int(len(L)/2)], np.array(L)[int(len(L)/2):]
         
-        selectivity = self.get_epoch_mean_diff(range(self.response-12, self.response), (train_r, train_l))
+        selectivity = self.get_epoch_mean_diff(range(self.response-9, self.response), (train_r, train_l))
         order = np.argsort(selectivity) # sorts from lowest to highest
          
         # Split trials into half, maintaining lick right and lick left proportions

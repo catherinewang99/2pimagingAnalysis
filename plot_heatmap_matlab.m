@@ -1,6 +1,6 @@
 % Define vmin and vmax values
-vmin = 0.05;
-vmax = 0.32;
+vmin = -0;
+vmax = 0.15;
 
 % Load or define your data matrices (e.g., right_stack, left_stack, right_stack_post, left_stack_post)
 
@@ -14,7 +14,9 @@ right_im = imagesc(right_stack, [vmin, vmax]);
 axis off;
 % colorbar('Location', 'southoutside');
 title('Session 1 - Right Trials');
-
+xline(9, '--w');
+xline(17, '--w');
+xline(35, '--w');
 % Create a figure for the second heatmap
 f2 = figure;
 ax2 = axes;
@@ -22,7 +24,9 @@ leftim = imagesc(left_stack, [vmin, vmax]);
 axis off;
 % colorbar('Location', 'southoutside');
 title('Session 1 - Left Trials');
-
+xline(9, '--w');
+xline(17, '--w');
+xline(35, '--w');
 % Create a figure for the third heatmap
 f3 = figure;
 ax3 = axes;
@@ -30,7 +34,9 @@ right_im_post = imagesc(right_stack_post, [vmin, vmax]);
 axis off;
 % colorbar('Location', 'southoutside');
 title('Session 2 - Right Trials');
-
+xline(9, '--w');
+xline(17, '--w');
+xline(35, '--w');
 % Create a figure for the fourth heatmap
 f4 = figure;
 ax4 = axes;
@@ -38,12 +44,14 @@ leftim_post = imagesc(left_stack_post, [vmin, vmax]);
 axis off;
 % colorbar('Location', 'southoutside');
 title('Session 2 - Left Trials');
-
+xline(9, '--w');
+xline(17, '--w');
+xline(35, '--w');
 % Save the figures as needed
-print(f1, 'F:\data\SFN 2023\session1_right_trials.pdf', '-dpdf', '-bestfit');
-print(f2, 'F:\data\SFN 2023\session1_left_trials.pdf', '-dpdf', '-bestfit');
-print(f3, 'F:\data\SFN 2023\session2_right_trials.pdf', '-dpdf', '-bestfit');
-print(f4, 'F:\data\SFN 2023\session2_left_trials.pdf', '-dpdf', '-bestfit');
+print(f1, 'F:\data\SFN 2023\nsession1_right_trials.pdf', '-dpdf', '-bestfit');
+print(f2, 'F:\data\SFN 2023\nsession1_left_trials.pdf', '-dpdf', '-bestfit');
+print(f3, 'F:\data\SFN 2023\nsession2_right_trials.pdf', '-dpdf', '-bestfit');
+print(f4, 'F:\data\SFN 2023\nsession2_left_trials.pdf', '-dpdf', '-bestfit');
 
 
 

@@ -130,7 +130,7 @@ plt.show()
 
 #%% Chen et al method
 
-p = 0.05
+p = 0.01
 #NAIVE
 
 paths = [
@@ -139,18 +139,21 @@ paths = [
         r'F:\data\BAYLORCW036\python\2023_10_09'
         ]
 
-total_n = 0
-s,c,o = 0,0,0
+naivetotal_n = 0
+naives,naivec,naiveo = 0,0,0
 naivestim, naivechoice, naiveoutcome = [],[],[]
+
 for path in paths:
     l1 = session.Session(path, use_reg=True, triple=True)
-    s, c, _, o = l1.single_neuron_sel('Chen proportions')
+    s, c, _, o = l1.single_neuron_sel('Chen proportions', p=p)
     # s = len(stim_neurons)
     # c = len(choice_neurons)
     # o = len(outcome_neurons)
-    
+    naives += s
+    naivec += c
+    naiveo += o
+    naivetotal_n += len(l1.good_neurons)
     total_n = len(l1.good_neurons)
-
     naivestim += [s/total_n]
     naivechoice += [c/total_n]
     naiveoutcome += [o/total_n]
@@ -161,18 +164,22 @@ paths = [
         r'F:\data\BAYLORCW036\python\2023_10_19'
         ]
 
-total_n = 0
-s,c,o = 0,0,0
+learningtotal_n = 0
+learnings,learningc,learningo = 0,0,0
 learningstim, learningchoice, learningoutcome = [],[],[]
 
 for path in paths:
     l1 = session.Session(path, use_reg=True, triple=True)
-    s, c, _, o = l1.single_neuron_sel('Chen proportions')
+    s, c, _, o = l1.single_neuron_sel('Chen proportions',p=p)
     # s = len(stim_neurons)
     # c = len(choice_neurons)
     # o = len(outcome_neurons)
-    
+    learnings+=s
+    learningc += c
+    learningo += o
+    learningtotal_n += len(l1.good_neurons)
     total_n = len(l1.good_neurons)
+
     learningstim += [s/total_n]
     learningchoice += [c/total_n]
     learningoutcome += [o/total_n]
@@ -186,18 +193,22 @@ paths = [
         r'F:\data\BAYLORCW036\python\2023_10_30'
         ]
 
-total_n = 0
-s,c,o = 0,0,0
+experttotal_n = 0
+experts,expertc,experto = 0,0,0
 expertstim, expertchoice, expertoutcome = [],[],[]
 
 for path in paths:
     l1 = session.Session(path, use_reg=True, triple=True)
-    s, c, _, o = l1.single_neuron_sel('Chen proportions')
+    s, c, _, o = l1.single_neuron_sel('Chen proportions',p=p)
     # s += len(stim_neurons)
     # c += len(choice_neurons)
     # o += len(outcome_neurons)
-    
+    experts += s
+    expertc += c
+    experto += o
+    experttotal_n += len(l1.good_neurons)
     total_n = len(l1.good_neurons)
+
     expertstim += [s/total_n]
     expertchoice += [c/total_n]
     expertoutcome += [o/total_n]
@@ -216,17 +227,17 @@ naivestim, naivechoice, naiveoutcome = np.mean(naivestim), np.mean(naivechoice),
 learningstim, learningchoice, learningoutcome = np.mean(learningstim), np.mean(learningchoice), np.mean(learningoutcome)
 expertstim, expertchoice, expertoutcome = np.mean(expertstim), np.mean(expertchoice), np.mean(expertoutcome)
 
-plt.plot([1,4,7], [naivestim, learningstim, expertstim], color='green',label='Stimulus')
-plt.plot([1,4,7], [naivechoice, learningchoice, expertchoice], color='purple', label='Choice')
-plt.plot([1,4,7], [naiveoutcome, learningoutcome, expertoutcome], color='dodgerblue', label='Outcome')
+plt.plot([1,4,7], [naives/naivetotal_n, learnings/learningtotal_n, experts/experttotal_n], color='green',label='Stimulus')
+plt.plot([1,4,7], [naivec/naivetotal_n, learningc/learningtotal_n, expertc/experttotal_n], color='purple', label='Choice')
+plt.plot([1,4,7], [naiveo/naivetotal_n, learningo/learningtotal_n, experto/experttotal_n], color='dodgerblue', label='Outcome')
 
-plt.errorbar([1,4,7], [naivestim, learningstim, expertstim], yerr = [naivestimerr, naivechoiceerr, naiveoutcomeerr], color='green')
-plt.errorbar([1,4,7], [naivechoice, learningchoice, expertchoice], yerr = [learningstimerr, learningchoiceerr, learningoutcomeerr], color='purple')
-plt.errorbar([1,4,7], [naiveoutcome, learningoutcome, expertoutcome], yerr = [expertstimerr, expertchoiceerr, expertoutcomeerr], color='dodgerblue')
+plt.errorbar([1,4,7], [naives/naivetotal_n, learnings/learningtotal_n, experts/experttotal_n], yerr = [naivestimerr, naivechoiceerr, naiveoutcomeerr], color='green')
+plt.errorbar([1,4,7], [naivec/naivetotal_n, learningc/learningtotal_n, expertc/experttotal_n], yerr = [learningstimerr, learningchoiceerr, learningoutcomeerr], color='purple')
+plt.errorbar([1,4,7], [naiveo/naivetotal_n, learningo/learningtotal_n, experto/experttotal_n], yerr = [expertstimerr, expertchoiceerr, expertoutcomeerr], color='dodgerblue')
 
-plt.scatter([1,4,7], [naivestim, learningstim, expertstim], color='lightgreen', marker = 'o', s=150, alpha = 0.5)
-plt.scatter([1,4,7], [naivechoice, learningchoice, expertchoice], color='violet', marker = 'o', s=150, alpha = 0.5)
-plt.scatter([1,4,7], [naiveoutcome, learningoutcome, expertoutcome], color='lightskyblue',  marker = 'o', s=150, alpha = 0.5)
+plt.scatter([1,4,7], [naives/naivetotal_n, learnings/learningtotal_n, experts/experttotal_n], color='lightgreen', marker = 'o', s=150, alpha = 0.5)
+plt.scatter([1,4,7], [naivec/naivetotal_n, learningc/learningtotal_n, expertc/experttotal_n], color='violet', marker = 'o', s=150, alpha = 0.5)
+plt.scatter([1,4,7], [naiveo/naivetotal_n, learningo/learningtotal_n, experto/experttotal_n], color='lightskyblue',  marker = 'o', s=150, alpha = 0.5)
 
 plt.xticks([1,4,7], ['Naive', 'Learning', 'Expert'])
 plt.xlabel('Training stage')

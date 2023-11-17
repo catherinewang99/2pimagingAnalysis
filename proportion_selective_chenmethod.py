@@ -35,14 +35,21 @@ paths = [[r'F:\data\BAYLORCW032\python\2023_10_08',
         ]
 # paths = [[
 #             r'F:\data\BAYLORCW032\python\2023_10_08',
-#              r'F:\data\BAYLORCW036\python\2023_10_09',
-#          ],
+#               r'F:\data\BAYLORCW036\python\2023_10_09',
+#           ],
     
 # path = [       [r'F:\data\BAYLORCW036\python\2023_10_19',
 #           r'F:\data\BAYLORCW032\python\2023_10_16'
 #          ],
          
-paths =[         [
+paths =[
+        
+        [
+            r'F:\data\BAYLORCW032\python\2023_10_08',
+              r'F:\data\BAYLORCW036\python\2023_10_09',
+          ],
+
+         [
             r'F:\data\BAYLORCW032\python\2023_10_25',
             r'F:\data\BAYLORCW036\python\2023_10_30',
             ],
@@ -86,6 +93,6 @@ for path_ in paths:
         axarr[i].axvline(0, color = 'grey', alpha=0.5, ls = '--')
         axarr[i].axvline(-4.3, color = 'grey', alpha=0.5, ls = '--')
         axarr[i].axvline(-3, color = 'grey', alpha=0.5, ls = '--')
-    plt.savefig(r'F:\data\SFN 2023\single_neuron_sel{}.pdf'.format(counter))
+    plt.savefig(r'F:\data\SFN 2023\newsingle_neuron_sel{}.pdf'.format(counter))
         
     plt.show()
