@@ -27,9 +27,16 @@ class Mode(Session):
         r_trials = np.random.permutation(sum([self.R_correct[i] for i in self.i_good_non_stim_trials if not self.early_lick[i]]))
         l_trials = np.random.permutation(sum([self.L_correct[i] for i in self.i_good_non_stim_trials if not self.early_lick[i]]))
         
-        
         self.r_train_idx, self.l_train_idx = r_trials[:int(numr/2)], l_trials[:int(numl/2)]
         self.r_test_idx, self.l_test_idx = r_trials[int(numr/2):], l_trials[int(numl/2):]
+
+
+        numr, numl = sum([self.R_correct[i] + self.R_wrong[i] for i in self.i_good_trials if self.stim_ON[i] and not self.early_lick[i]]), sum([self.L_correct[i] + self.L_wrong[i] for i in self.i_good_trials if self.stim_ON[i] and not self.early_lick[i]])
+        r_trials = np.random.permutation(sum([self.R_correct[i] + self.R_wrong[i] for i in self.i_good_trials if self.stim_ON[i] and not self.early_lick[i]]))
+        l_trials = np.random.permutation(sum([self.L_correct[i] + self.L_wrong[i] for i in self.i_good_trials if self.stim_ON[i] and not self.early_lick[i]]))
+        
+        self.r_train_opto_idx, self.l_train_opto_idx = r_trials[:int(numr/2)], l_trials[:int(numl/2)]
+        self.r_test_opto_idx, self.l_test_opto_idx = r_trials[int(numr/2):], l_trials[int(numl/2):]
         
         counter = 0
         
@@ -42,7 +49,8 @@ class Mode(Session):
             
             r_train, l_train, r_test, l_test = self.train_test_split_data_ctl(r, l)
             r_err_train, l_err_train, r_err_test, l_err_test = self.train_test_split_data(r_err, l_err)
-            r_opto_train, l_opto_train, r_opto_test, l_opto_test = self.train_test_split_data(r_opto, l_opto)
+            
+            r_opto_train, l_opto_train, r_opto_test, l_opto_test = self.train_test_split_data_opto(r_opto, l_opto)
             r_opto_err_train, l_opto_err_train, r_opto_err_test, l_opto_err_test = self.train_test_split_data(r_opto_err, l_opto_err)
             
             if counter == 0:
@@ -284,6 +292,23 @@ class Mode(Session):
         
         return r_train, l_train, r_test, l_test    
     
+    def train_test_split_data_opto(self, r, l):
+        
+        # Splits data into train and test sets (50/50 split)
+        
+        # r_idx, l_idx = np.random.permutation(np.arange(len(r))), np.random.permutation(np.arange(len(l)))
+        
+        # r_train_idx, l_train_idx = r_idx[:round(len(r) / 2)], l_idx[:round(len(l) / 2)]
+        
+        # r_test_idx, l_test_idx = r_idx[round(len(r) / 2):], l_idx[round(len(l) / 2):]
+        
+        r_train_idx, l_train_idx, r_test_idx, l_test_idx = self.r_train_opto_idx, self.l_train_opto_idx, self.r_test_opto_idx, self.l_test_opto_idx
+        
+        r_train, l_train = np.mean(np.array(r)[r_train_idx], axis = 0), np.mean(np.array(l)[l_train_idx], axis = 0)
+        r_test, l_test = np.mean(np.array(r)[r_test_idx], axis = 0), np.mean(np.array(l)[l_test_idx], axis = 0)
+        
+        return r_train, l_train, r_test, l_test    
+    
     def train_test_split_data(self, r, l):
         
         # Splits data into train and test sets (50/50 split)
@@ -503,7 +528,7 @@ class Mode(Session):
             # CD_all = LDA().fit(np.vstack((self.PSTH_r_train_correct[:,t], self.PSTH_l_train_correct[:,t])).T, [0,1])
                          # cat((np.ones(self.PSTH_r_train_correct.shape[0]), np.zeros(self.PSTH_l_train_correct.shape[0]))))
 
-            CD_all += [self.PSTH_r_train_correct[:,t] - self.PSTH_l_train_correct[:,t]]
+            CD_all += [PSTH_yes_correct[:,t] - PSTH_no_correct[:,t]]
         CD_choice_mode = np.mean(CD_all, axis=0)          
         # return CD_choice_mode, 0
         
@@ -539,6 +564,62 @@ class Mode(Session):
         print("Runtime: {} secs".format(time.time() - start_time))
         return orthonormal_basis, var_allDim
     
+    def func_compute_persistent_decoder(self, input_, epoch):
+    
+        # Inputs: Left Right Correct Error traces of ALL neurons that are selective
+        #           time stamps for analysis?
+        #           time epochs
+        # Outputs: Orthonormal basis (nxn) where n = # of neurons
+        #           activity variance of each dimension (nx1)
+        
+        # Actual method uses SVD decomposition
+        
+        PSTH_yes_correct, PSTH_no_correct, PSTH_yes_opto, PSTH_no_opto = input_
+    
+        # CD_all = self.KD_LDA2(self.PSTH_r_train_correct, self.PSTH_l_train_correct, rs=None)
+        CD_all = []
+        for t in epoch:
+            # CD_all = LDA().fit(np.vstack((self.PSTH_r_train_correct[:,t], self.PSTH_l_train_correct[:,t])).T, [0,1])
+                         # cat((np.ones(self.PSTH_r_train_correct.shape[0]), np.zeros(self.PSTH_l_train_correct.shape[0]))))
+
+            CD_all += [((PSTH_yes_correct[:,t] + PSTH_no_correct[:,t]) / 2) - 
+                       ((PSTH_yes_opto[:,t] + PSTH_no_opto[:,t]) / 2)]
+        CD_choice_mode = np.mean(CD_all, axis=0)          
+        # return CD_choice_mode, 0
+        
+        activityRL = np.concatenate([PSTH_yes_correct, PSTH_no_correct, PSTH_yes_opto, PSTH_no_opto], axis=1)
+        activityRL = activityRL - np.mean(activityRL, axis=1, keepdims=True) # remove?
+        u, s, v = np.linalg.svd(activityRL.T)
+        proj_allDim = activityRL.T @ v
+    
+        # Variance of each dimension normalized
+        var_s = np.square(np.diag(s[0:proj_allDim.shape[1]]))
+        var_allDim = var_s / np.sum(var_s)
+    
+        # Relevant choice dims
+        # CD_choice_mode = [] # Late delay period
+        
+        CD_choice_mode = CD_choice_mode / np.linalg.norm(CD_choice_mode)
+        # return CD_choice_mode, 0
+        # Reshape 
+        
+        CD_choice_mode = np.reshape(CD_choice_mode, (-1, 1)) 
+
+        start_time = time.time()
+        input_ = np.concatenate((CD_choice_mode, v), axis=1)
+        # orthonormal_basis = self.Gram_Schmidt_process(input_)
+        orthonormal_basis, _ = np.linalg.qr(input_, mode='complete')  # lmao
+        
+        proj_allDim = np.dot(activityRL.T, orthonormal_basis)
+        var_allDim = np.sum(proj_allDim**2, axis=0)
+        var_allDim = var_allDim[~np.isnan(var_allDim)]
+        
+        var_allDim = var_allDim / np.sum(var_allDim)
+        
+        print("Runtime: {} secs".format(time.time() - start_time))
+        return orthonormal_basis, var_allDim
+    
+    
     def plot_CD(self, epoch=None, save=None):
         if epoch is not None:
             orthonormal_basis, var_allDim = self.func_compute_epoch_decoder([self.PSTH_r_train_correct, 
@@ -558,8 +639,8 @@ class Mode(Session):
         
         r_trials = [i for i in r_corr if i in self.i_good_non_stim_trials and not self.early_lick[i]]
         l_trials = [i for i in l_corr if i in self.i_good_non_stim_trials and not self.early_lick[i]]
-        # r_trials = np.where([self.R_correct[i] for i in self.i_good_non_stim_trials if not self.early_lick[i]])
-        # l_trials = np.where([self.L_correct[i] for i in self.i_good_non_stim_trials if not self.early_lick[i]])
+
+        
         x = np.arange(-6.97,4,self.fs)[:self.time_cutoff]
 
         # orthonormal_basis = orthonormal_basis.reshape(-1,1)
@@ -1054,7 +1135,8 @@ class Mode(Session):
         
         # return orthonormal_basis, np.mean(activityRL_train, axis=1)[:, None]
         return orthonormal_basis, np.mean(activityRL_train, axis=1), db, decoderchoice
-        
+
+## Modes with optogenetic inhibition
     
     def plot_CD_opto(self, epoch=None, save=None):
         '''
@@ -1067,20 +1149,15 @@ class Mode(Session):
         else:
             
             orthonormal_basis, var_allDim = self.func_compute_epoch_decoder([self.PSTH_r_train_correct, 
-                                                                            self.PSTH_l_train_correct], range(self.delay+9, self.response))
+                                                                            self.PSTH_l_train_correct], range(self.delay+12, self.response))
         activityRL_train= np.concatenate((self.PSTH_r_train_correct, 
                                         self.PSTH_l_train_correct), axis=1)
 
         activityRL_test= np.concatenate((self.PSTH_r_test_correct, 
                                         self.PSTH_l_test_correct), axis=1)
         
-        r_corr = np.where(self.R_correct)[0]
-        l_corr = np.where(self.L_correct)[0]
-        
-        r_trials = [i for i in r_corr if i in self.i_good_non_stim_trials and not self.early_lick[i]]
-        l_trials = [i for i in l_corr if i in self.i_good_non_stim_trials and not self.early_lick[i]]
-        # r_trials = np.where([self.R_correct[i] for i in self.i_good_non_stim_trials if not self.early_lick[i]])
-        # l_trials = np.where([self.L_correct[i] for i in self.i_good_non_stim_trials if not self.early_lick[i]])
+
+       
         x = np.arange(-6.97,4,self.fs)[:self.time_cutoff]
 
         # orthonormal_basis = orthonormal_basis.reshape(-1,1)
@@ -1120,6 +1197,8 @@ class Mode(Session):
 
         activityRL_opto= np.concatenate((r_opto, l_opto), axis=1)
         
+        r_corr = np.where(self.R_correct + self.R_wrong)[0]
+        l_corr = np.where(self.L_correct + self.L_wrong)[0]
         # Project for every opto trial
         r_trials = [i for i in r_corr if self.stim_ON[i] and not self.early_lick[i]]
         l_trials = [i for i in l_corr if self.stim_ON[i] and not self.early_lick[i]]
@@ -1142,7 +1221,7 @@ class Mode(Session):
             
             
         # Opto trials
-        activityRL_opto = activityRL_opto - np.tile(np.mean(activityRL_train, axis=1)[:, None], (1, activityRL_test.shape[1]))  # remove mean
+        activityRL_opto = activityRL_opto - np.tile(np.mean(activityRL_train, axis=1)[:, None], (1, activityRL_opto.shape[1]))  # remove mean
         proj_allDim = np.dot(activityRL_opto.T, orthonormal_basis)
         
         plt.plot(x, proj_allDim[:len(self.T_cue_aligned_sel), i_pc], 'b', linewidth = 2)
@@ -1155,7 +1234,7 @@ class Mode(Session):
                  proj_allDim[:len(self.T_cue_aligned_sel), i_pc] + stats.sem(r_proj, axis=0),
                  color=['#b4b2dc'])
         
-        plt.hlines(y=max(proj_allDim[:, i_pc]) + 1, xmin=-3, xmax=-2, linewidth=10, color='red')
+        plt.hlines(y=max(proj_allDim[:, i_pc]) + 0.5, xmin=-3, xmax=-2, linewidth=10, color='red')
 
         if save is not None:
             plt.savefig(save)
@@ -1163,7 +1242,119 @@ class Mode(Session):
         plt.show()
         # axs[0, 0].set_ylabel('Activity proj.')
         # axs[3, 0].set_xlabel('Time')
+        
+    def plot_persistent_mode_opto(self, epoch=None, save=None):
+        '''
+        Plots similar figure as Li et al 2016 Fig 3c to view the effect of
+        photoinhibition on L/R CD traces
+        '''
+        if epoch is not None:
+            orthonormal_basis, var_allDim = self.func_compute_persistent_decoder([self.PSTH_r_train_correct, 
+                                                                            self.PSTH_l_train_correct,
+                                                                            self.PSTH_r_train_opto,
+                                                                            self.PSTH_l_train_opto], epoch)
+        else:
             
+            orthonormal_basis, var_allDim = self.func_compute_persistent_decoder([self.PSTH_r_train_correct, 
+                                                                            self.PSTH_l_train_correct,
+                                                                            self.PSTH_r_train_opto,
+                                                                            self.PSTH_l_train_opto], range(self.response, self.response+3))
+            
+        activityRL_train= np.concatenate([self.PSTH_r_train_correct, 
+                                        self.PSTH_l_train_correct,
+                                        self.PSTH_r_train_opto,
+                                        self.PSTH_l_train_opto], axis=1)
+
+        activityRL_test= np.concatenate((self.PSTH_r_test_correct, 
+                                        self.PSTH_l_test_correct), axis=1)
+        
+
+        x = np.arange(-6.97,4,self.fs)[:self.time_cutoff]
+
+        # orthonormal_basis = orthonormal_basis.reshape(-1,1)
+        i_pc = 0
+
+        # Project for every control trial
+        # for t in self.r_test_idx:
+        #     activity = self.dff[0, r_trials[t]][self.good_neurons] 
+        #     activity = activity - np.tile(np.mean(activityRL_train, axis=1)[:, None], (1, activity.shape[1]))
+        #     proj_allDim = np.dot(activity.T, orthonormal_basis)
+        #     # plt.plot(x, proj_allDim[:len(self.T_cue_aligned_sel), i_pc], 'b', alpha = 0.5,  linewidth = 0.5)
+            
+        # for t in self.l_test_idx:
+        #     activity = self.dff[0, l_trials[t]][self.good_neurons]
+        #     activity = activity - np.tile(np.mean(activityRL_train, axis=1)[:, None], (1, activity.shape[1]))
+        #     proj_allDim = np.dot(activity.T, orthonormal_basis)
+        #     # plt.plot(x, proj_allDim[:len(self.T_cue_aligned_sel), i_pc], 'r', alpha = 0.5, linewidth = 0.5)
+            
+            
+        # Correct trials
+        activityRL_test = activityRL_test - np.tile(np.mean(activityRL_train, axis=1)[:, None], (1, activityRL_test.shape[1]))  # remove mean
+        proj_allDim = np.dot(activityRL_test.T, orthonormal_basis)
+
+        
+        # Plot average control traces as dotted lines
+        plt.plot(x, proj_allDim[:len(self.T_cue_aligned_sel), i_pc], 'b', ls = '--', linewidth = 0.5)
+        plt.plot(x, proj_allDim[len(self.T_cue_aligned_sel):, i_pc], 'r', ls = '--', linewidth = 0.5)
+        plt.title("Choice decoder projections with opto")
+        plt.axvline(-4.3, color = 'grey', alpha=0.5, ls = '--')
+        plt.axvline(-3, color = 'grey', alpha=0.5, ls = '--')
+        plt.axvline(0, color = 'grey', alpha=0.5, ls = '--')
+        plt.ylabel('CD_delay projection (a.u.)')
+        
+        
+        
+        
+        r_corr = np.where(self.R_correct + self.R_wrong)[0]
+        l_corr = np.where(self.L_correct + self.L_wrong)[0]
+        
+        r_trials = [i for i in r_corr if self.stim_ON[i] and not self.early_lick[i]]
+        l_trials = [i for i in l_corr if self.stim_ON[i] and not self.early_lick[i]]
+        
+        # r_opto, l_opto = self.get_trace_matrix_multiple(self.good_neurons, opto=True)
+
+        activityRL_opto= np.concatenate((self.PSTH_r_test_opto, self.PSTH_l_test_opto), axis=1)
+        
+        # Project for every opto trial
+
+        
+        r_proj = []
+        l_proj = []
+        for t in self.r_test_opto_idx:
+            activity = self.dff[0, r_trials[t]][self.good_neurons] 
+            activity = activity - np.tile(np.mean(activityRL_train, axis=1)[:, None], (1, activity.shape[1]))
+            proj_allDim = np.dot(activity.T, orthonormal_basis)
+            r_proj += [proj_allDim[:len(self.T_cue_aligned_sel), i_pc]]
+            # plt.plot(x, proj_allDim[:len(self.T_cue_aligned_sel), i_pc], 'b', alpha = 0.5,  linewidth = 0.5)
+            
+        for t in self.l_test_opto_idx:
+            activity = self.dff[0, l_trials[t]][self.good_neurons] 
+            activity = activity - np.tile(np.mean(activityRL_train, axis=1)[:, None], (1, activity.shape[1]))
+            proj_allDim = np.dot(activity.T, orthonormal_basis)
+            l_proj += [proj_allDim[:len(self.T_cue_aligned_sel), i_pc]]
+            # plt.plot(x, proj_allDim[:len(self.T_cue_aligned_sel), i_pc], 'r', alpha = 0.5, linewidth = 0.5)
+            
+            
+        # Opto trials
+        activityRL_opto = activityRL_opto - np.tile(np.mean(activityRL_train, axis=1)[:, None], (1, activityRL_opto.shape[1]))  # remove mean
+        proj_allDim = np.dot(activityRL_opto.T, orthonormal_basis)
+        
+        plt.plot(x, proj_allDim[:len(self.T_cue_aligned_sel), i_pc], 'b', linewidth = 2)
+        plt.plot(x, proj_allDim[len(self.T_cue_aligned_sel):, i_pc], 'r', linewidth = 2)
+        
+        plt.fill_between(x, proj_allDim[len(self.T_cue_aligned_sel):, i_pc] - stats.sem(l_proj, axis=0), 
+                 proj_allDim[len(self.T_cue_aligned_sel):, i_pc] +  stats.sem(l_proj, axis=0),
+                 color=['#ffaeb1'])
+        plt.fill_between(x, proj_allDim[:len(self.T_cue_aligned_sel), i_pc] - stats.sem(r_proj, axis=0), 
+                 proj_allDim[:len(self.T_cue_aligned_sel), i_pc] + stats.sem(r_proj, axis=0),
+                 color=['#b4b2dc'])
+        
+        plt.hlines(y=max(proj_allDim[:, i_pc]) + 0.5, xmin=-3, xmax=-2, linewidth=10, color='red')
+
+        if save is not None:
+            plt.savefig(save)
+            
+        plt.show()
 ### ACROSS SESSION CODING ###
         
         

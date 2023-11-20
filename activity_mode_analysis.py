@@ -29,8 +29,8 @@ from sklearn.decomposition import PCA
 path = r'F:\data\BAYLORCW032\python\2023_10_24'
 # path = r'F:\data\BAYLORCW036\python\2023_10_28'
 
-l1 = Mode(path, use_reg = True)
-l1.plot_CD()
+# l1 = Mode(path, use_reg = True)
+# l1.plot_CD()
 # orthonormal_basis, mean, db, acc_within = l1.decision_boundary()
 # print(np.mean(acc_within))
 
@@ -140,11 +140,39 @@ l1.plot_appliedCD(orthonormal_basis, mean)
 # l1 = Mode(path, use_reg = True)
 # l1.plot_appliedCD(orthonormal_basis, mean)
 #%% Opto effect on CD dimension
+from activityMode import Mode
 
 path = r'F:\data\BAYLORCW032\python\2023_10_25'
 l1 = Mode(path, use_reg = True)
 l1.plot_CD_opto()
 
+path = r'F:\data\BAYLORCW032\python\2023_10_24'
+l1 = Mode(path, use_reg = True)
+l1.plot_CD_opto()
+
+# path = r'F:\data\BAYLORCW034\python\2023_10_27'
+# l1 = Mode(path)
+# l1.plot_CD_opto()
+
+# path = r'F:\data\BAYLORCW036\python\2023_10_09'
+# l1 = Mode(path)
+# l1.plot_CD_opto()
+
+# path = r'F:\data\BAYLORCW036\python\2023_10_19'
+# l1 = Mode(path)
+# l1.plot_CD_opto()
+
+# path = r'F:\data\BAYLORCW036\python\2023_10_30'
+# l1 = Mode(path)
+# l1.plot_CD_opto()
+
+
+#%% Opto effect on Persistent mode
+from activityMode import Mode
+
+path = r'F:\data\BAYLORCW036\python\2023_10_30'
+l1 = Mode(path)
+l1.plot_persistent_mode_opto()
 #%%
 #Behavioral modes
 # a, b = l1.plot_activity_modes_ctl()
