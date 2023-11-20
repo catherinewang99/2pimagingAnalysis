@@ -19,10 +19,16 @@ plt.rcParams['pdf.fonttype'] = 42
 
 class Mode(Session):
     
-    def __init__(self, path,  use_reg=False, layer_num='all'):
+    def __init__(self, path,  use_reg=False, triple=False, layer_num='all'):
         # Inherit all parameters and functions of session.py
-        super().__init__(path, layer_num=layer_num, use_reg=use_reg) 
+        super().__init__(path, layer_num=layer_num, use_reg=use_reg, triple=triple) 
         
+        
+        # Construct train and test sets for control and opto trials
+        # built this section so we can split trials into train/test and track at the same time 
+        # for error bar creation in some subsequent graphs
+        
+        #control trials
         numr, numl = sum([self.R_correct[i] for i in self.i_good_non_stim_trials if not self.early_lick[i]]), sum([self.L_correct[i] for i in self.i_good_non_stim_trials if not self.early_lick[i]])
         r_trials = np.random.permutation(sum([self.R_correct[i] for i in self.i_good_non_stim_trials if not self.early_lick[i]]))
         l_trials = np.random.permutation(sum([self.L_correct[i] for i in self.i_good_non_stim_trials if not self.early_lick[i]]))
@@ -30,7 +36,7 @@ class Mode(Session):
         self.r_train_idx, self.l_train_idx = r_trials[:int(numr/2)], l_trials[:int(numl/2)]
         self.r_test_idx, self.l_test_idx = r_trials[int(numr/2):], l_trials[int(numl/2):]
 
-
+        #opto trials
         numr, numl = sum([self.R_correct[i] + self.R_wrong[i] for i in self.i_good_trials if self.stim_ON[i] and not self.early_lick[i]]), sum([self.L_correct[i] + self.L_wrong[i] for i in self.i_good_trials if self.stim_ON[i] and not self.early_lick[i]])
         r_trials = np.random.permutation(sum([self.R_correct[i] + self.R_wrong[i] for i in self.i_good_trials if self.stim_ON[i] and not self.early_lick[i]]))
         l_trials = np.random.permutation(sum([self.L_correct[i] + self.L_wrong[i] for i in self.i_good_trials if self.stim_ON[i] and not self.early_lick[i]]))
@@ -1065,7 +1071,7 @@ class Mode(Session):
         Use method from Guang's paper
         """
         orthonormal_basis, _ = self.func_compute_epoch_decoder([self.PSTH_r_train_correct, 
-                                                                            self.PSTH_l_train_correct], [self.response-3])
+                                                                self.PSTH_l_train_correct], [self.response-3])
         activityRL_train= np.concatenate((self.PSTH_r_train_correct, 
                                         self.PSTH_l_train_correct), axis=1)
 
@@ -1101,6 +1107,11 @@ class Mode(Session):
         # db = ((np.mean(projright,axis=0) / np.var(projright, axis=0)) + (np.mean(projleft,axis=0) / np.var(projleft, axis=0))) / (((1/ np.var(projright, axis=0))) + (1/ np.var(projleft, axis=0)))
         db = ((np.mean(projright) / np.var(projright)) + (np.mean(projleft) / np.var(projleft))) / (((1/ np.var(projright))) + (1/ np.var(projleft)))
         
+        # include error trials in the test results as well
+        r_test_err = [i for i in self.i_good_non_stim_trials if not self.early_lick[i] and self.L_wrong[i]]
+        
+        l_test_err = [i for i in self.i_good_non_stim_trials if not self.early_lick[i] and self.R_wrong[i]]
+        
         decoderchoice = []
         # Project and compare to DB
         for t in self.r_test_idx:
@@ -1108,14 +1119,25 @@ class Mode(Session):
             activity = activity - (np.mean(activityRL_train, axis=1))
             proj_allDim = np.dot(activity.T, orthonormal_basis)
             decoderchoice += [proj_allDim > db]
-            # decoderchoice += [(np.mean(proj_allDim) / np.var(proj_allDim)) > db]            
+            # decoderchoice += [(np.mean(proj_allDim) / np.var(proj_allDim)) > db]    
+            
+        for t in r_test_err:
+            activity = self.dff[0, t][self.good_neurons, self.response-3] 
+            activity = activity - (np.mean(activityRL_train, axis=1))
+            proj_allDim = np.dot(activity.T, orthonormal_basis)
+            decoderchoice += [proj_allDim > db]
+            
         for t in self.l_test_idx:
             activity = self.dff[0, l_trials[t]][self.good_neurons, self.response-3] 
             activity = activity - (np.mean(activityRL_train, axis=1))
             proj_allDim = np.dot(activity.T, orthonormal_basis)
             decoderchoice += [proj_allDim < db]
             # decoderchoice += [(np.mean(proj_allDim) / np.var(proj_allDim)) < db]            
-            
+        for t in l_test_err:
+            activity = self.dff[0, t][self.good_neurons, self.response-3] 
+            activity = activity - (np.mean(activityRL_train, axis=1))
+            proj_allDim = np.dot(activity.T, orthonormal_basis)
+            decoderchoice += [proj_allDim < db]            
         
         # # ax = axs.flatten()[0]
         # plt.plot(x, proj_allDim[:len(self.T_cue_aligned_sel), i_pc], 'b', linewidth = 2)
