@@ -322,7 +322,7 @@ class Session:
         
         return data[s<m]
     
-    def get_pearsonscorr_neuron(self, cutoff = 0.7):
+    def get_pearsonscorr_neuron(self, cutoff = 0.7, postreg= False):
         """Filters neurons based on the consistency of their signal
         
         Only returns neurons that have a consistent trace over all trials
@@ -333,6 +333,8 @@ class Session:
         ----------
         cutoff : int, optional
             p-value cutoff to use in Pearson's correlation test
+        postreg : bool, optional
+            whether or not to use good neurons or all neurons
         
         Returns
         -------
@@ -357,7 +359,9 @@ class Session:
         
         first, last = self.i_good_trials[:100], self.i_good_trials[-100:]
         
-        for neuron_num in range(self.num_neurons):
+        neuronlist = range(self.num_neurons) if not postreg else self.good_neurons
+        
+        for neuron_num in neuronlist:
             R_av_dff = []
             for i in evens:
                 # R_av_dff += [self.normalize_by_baseline(self.dff[0, i][neuron_num, :self.time_cutoff])]
