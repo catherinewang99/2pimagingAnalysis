@@ -534,7 +534,7 @@ class Mode(Session):
             # CD_all = LDA().fit(np.vstack((self.PSTH_r_train_correct[:,t], self.PSTH_l_train_correct[:,t])).T, [0,1])
                          # cat((np.ones(self.PSTH_r_train_correct.shape[0]), np.zeros(self.PSTH_l_train_correct.shape[0]))))
 
-            CD_all += [PSTH_yes_correct[:,t] - PSTH_no_correct[:,t]]
+            CD_all += [(PSTH_yes_correct[:,t] - PSTH_no_correct[:,t]) / 2]
         CD_choice_mode = np.mean(CD_all, axis=0)          
         # return CD_choice_mode, 0
         
@@ -896,7 +896,7 @@ class Mode(Session):
         plt.subplot(2, 4, 1)
         plt.ylabel('Activity proj.')
         plt.xlabel('Time')
-        
+        plt.show()
         return orthonormal_basis, np.mean(activityRL_train, axis=1)[:, None]
     
     def plot_behaviorally_relevant_modes_opto(self, error=False):
@@ -1458,7 +1458,7 @@ class Mode(Session):
         plt.ylabel('Activity proj.')
         plt.xlabel('Time')
         
-        
+        plt.show()
         
         
     def plot_appliedCD(self, orthonormal_basis, mean, save=None):

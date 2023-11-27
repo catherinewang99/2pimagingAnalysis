@@ -36,45 +36,78 @@ paths = [[r'F:\data\BAYLORCW032\python\2023_10_08',
             r'F:\data\BAYLORCW036\python\cellreg\layer{}\1009_1019_1030pairs_proc.npy'],
         ]
 
+naivepath =r'F:\data\BAYLORCW032\python\2023_10_05'
+learningpath =  r'F:\data\BAYLORCW032\python\2023_10_19'
+expertpath =r'F:\data\BAYLORCW032\python\2023_10_24'
+
+naivepath, learningpath, expertpath = [ r'F:\data\BAYLORCW034\python\2023_10_12',
+   r'F:\data\BAYLORCW034\python\2023_10_22',
+   r'F:\data\BAYLORCW034\python\2023_10_27',]
+
+naivepath, learningpath, expertpath =[r'F:\data\BAYLORCW036\python\2023_10_09',
+            r'F:\data\BAYLORCW036\python\2023_10_19',
+            r'F:\data\BAYLORCW036\python\2023_10_30',]
 #%% Choice dimension
 
-path = r'F:\data\BAYLORCW032\python\2023_10_24'
+path = expertpath
 l1 = Mode(path, use_reg = True, triple=True)
 orthonormal_basis, mean = l1.plot_CD()
 
-path = r'F:\data\BAYLORCW032\python\2023_10_19'
+path =learningpath
 l1 = Mode(path, use_reg = True, triple=True)
 l1.plot_appliedCD(orthonormal_basis, mean)
 
-path = r'F:\data\BAYLORCW032\python\2023_10_05'
+path = naivepath
 l1 = Mode(path, use_reg = True, triple=True)
 l1.plot_appliedCD(orthonormal_basis, mean)
 
 #%% Stim dimension
 
-path = r'F:\data\BAYLORCW032\python\2023_10_24'
+path = expertpath
 l1 = Mode(path, use_reg = True, triple=True)
-orthonormal_basis, mean = l1.plot_CD(epoch=range(l1.sample+2, l1.delay+2))
+orthonormal_basis, mean = l1.plot_CD(epoch=range(l1.sample+2, l1.delay+3))
 
-path = r'F:\data\BAYLORCW032\python\2023_10_19'
-l1 = Mode(path, use_reg = True, triple=True)
-l1.plot_appliedCD(orthonormal_basis, mean)
-
-path = r'F:\data\BAYLORCW032\python\2023_10_05'
+path = learningpath
 l1 = Mode(path, use_reg = True, triple=True)
 l1.plot_appliedCD(orthonormal_basis, mean)
 
+path = naivepath
+l1 = Mode(path, use_reg = True, triple=True)
+l1.plot_appliedCD(orthonormal_basis, mean)
 
-#%% Stim dimension
 
-path = r'F:\data\BAYLORCW032\python\2023_10_24'
+#%% action dimension
+
+path = expertpath
 l1 = Mode(path, use_reg = True, triple=True)
 orthonormal_basis, mean = l1.plot_CD(epoch=range(l1.response+1, l1.response+5))
 
-path = r'F:\data\BAYLORCW032\python\2023_10_19'
+path = learningpath
 l1 = Mode(path, use_reg = True, triple=True)
 l1.plot_appliedCD(orthonormal_basis, mean)
 
-path = r'F:\data\BAYLORCW032\python\2023_10_05'
+path = naivepath
 l1 = Mode(path, use_reg = True, triple=True)
 l1.plot_appliedCD(orthonormal_basis, mean)
+
+#%% Use Full method
+
+naivepath, learningpath, expertpath = [r'F:\data\BAYLORCW032\python\2023_10_08',
+          r'F:\data\BAYLORCW032\python\2023_10_16',
+          r'F:\data\BAYLORCW032\python\2023_10_25',]
+naivepath, learningpath, expertpath =[r'F:\data\BAYLORCW036\python\2023_10_09',
+            r'F:\data\BAYLORCW036\python\2023_10_19',
+            r'F:\data\BAYLORCW036\python\2023_10_30',]
+path = expertpath
+l1 = Mode(path, use_reg = True, triple=True)
+orthonormal_basis, mean = l1.plot_behaviorally_relevant_modes()
+
+path = learningpath
+l1 = Mode(path, use_reg = True, triple=True)
+l1.plot_behaviorally_relevant_modes_appliedCD(orthonormal_basis, mean)
+
+path = naivepath
+l1 = Mode(path, use_reg = True, triple=True)
+l1.plot_behaviorally_relevant_modes_appliedCD(orthonormal_basis, mean)
+
+

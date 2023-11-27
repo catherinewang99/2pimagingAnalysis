@@ -27,13 +27,17 @@ plt.rcParams['pdf.fonttype'] = '42'
 # b = behavior.Behavior('F:\data\Behavior data\BAYLORCW028\python_behavior', behavior_only=True)
 # b.learning_progression(imaging=True)
 
-# b = behavior.Behavior('F:\data\Behavior data\BAYLORCW034\python_behavior', behavior_only=True)
+# b = behavior.Behavior('F:\data\Behavior data\BAYLORCW035\python_behavior', behavior_only=True)
 # b.learning_progression(imaging=True)
-# b.learning_progression()
+# b.learning_progression(window=100)
 
-b = behavior.Behavior('F:\data\Behavior data\BAYLORCW021\python_behavior', behavior_only=True)
+b = behavior.Behavior('F:\data\Behavior data\BAYLORCW037\python_behavior', behavior_only=True)
+b.learning_progression(imaging=True)
+b.learning_progression()
+
+# b = behavior.Behavior('F:\data\Behavior data\BAYLORCW021\python_behavior', behavior_only=True)
 # b.learning_progression_no_EL(imaging=True)
-b.learning_progression_no_EL(window = 200,save=True)
+# b.learning_progression_no_EL(window = 200,save=True)
 
 # b = behavior.Behavior('F:\data\Behavior data\BAYLORCW021\python_behavior', behavior_only=True)
 # b.learning_progression(window = 100)
