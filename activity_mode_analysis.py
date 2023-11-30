@@ -140,13 +140,43 @@ l1.plot_appliedCD(orthonormal_basis, mean)
 # l1 = Mode(path, use_reg = True)
 # l1.plot_appliedCD(orthonormal_basis, mean)
 #%%
-from activityMode import Mode
+# from activityMode import Mode
+# paths = [r'F:\data\BAYLORCW032\python\2023_10_08',
+#           r'F:\data\BAYLORCW032\python\2023_10_16',
+#           r'F:\data\BAYLORCW032\python\2023_10_25',]
 
-path = r'F:\data\BAYLORCW032\python\2023_10_25'
-l1 = Mode(path)
-# l1.plot_CD()
-# d = l1.plot_performance_distfromCD()
-_,_,_,db = l1.decision_boundary()
+# perf = []
+# for path in paths:
+
+#     l1 = Mode(path)
+#     # l1.plot_CD()
+#     # d = l1.plot_performance_distfromCD()
+#     _,_,_,db = l1.decision_boundary(opto=True)
+#     perf += [np.mean(db)]
+
+# plt.bar(range(3), perf)
+# plt.ylim([0.5,1])
+# plt.show()
+
+paths = [r'F:\data\BAYLORCW032\python\2023_10_05',
+          r'F:\data\BAYLORCW032\python\2023_10_19',
+          r'F:\data\BAYLORCW032\python\2023_10_24',]
+
+perf, perfctl = [], []
+for path in paths:
+
+    l1 = Mode(path)
+    # l1.plot_CD()
+    # d = l1.plot_performance_distfromCD()
+    _,_,_,dbctl = l1.decision_boundary(opto=False)
+    _,_,_,db = l1.decision_boundary(opto=True)
+    perf += [np.mean(db)]
+    perfctl += [np.mean(dbctl)]
+    
+plt.bar(range(3), perf)
+plt.ylim([0.5,1])
+plt.show()
+
 #%% Opto effect on CD dimension
 from activityMode import Mode
 

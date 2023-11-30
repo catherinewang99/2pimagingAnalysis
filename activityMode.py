@@ -1112,7 +1112,34 @@ class Mode(Session):
 
         decoderchoice = []
         if opto:
-            a=1
+            # Project for every trial
+        
+            r_opto, l_opto = self.get_trace_matrix_multiple(self.good_neurons, opto=True)
+    
+            activityRL_opto= np.concatenate((r_opto, l_opto), axis=1)
+            
+            r_corr = np.where(self.R_correct + self.R_wrong)[0]
+            l_corr = np.where(self.L_correct + self.L_wrong)[0]
+            # Project for every opto trial
+            r_trials = [i for i in r_corr if self.stim_ON[i] and not self.early_lick[i]]
+            l_trials = [i for i in l_corr if self.stim_ON[i] and not self.early_lick[i]]
+            
+
+            for r in r_trials:
+                activity = self.dff[0, r][self.good_neurons] 
+                activity = activity - np.tile(np.mean(activityRL_train, axis=1)[:, None], (1, activity.shape[1]))
+                proj_allDim = np.dot(activity.T, orthonormal_basis)
+                decoderchoice += [proj_allDim[self.response-1, i_pc]<db]
+                plt.plot(x, proj_allDim[:len(self.T_cue_aligned_sel), i_pc], 'b', alpha = 0.5,  linewidth = 0.5)
+                
+            for l in l_trials:
+                activity = self.dff[0, l][self.good_neurons]
+                activity = activity - np.tile(np.mean(activityRL_train, axis=1)[:, None], (1, activity.shape[1]))
+                proj_allDim = np.dot(activity.T, orthonormal_basis)
+                decoderchoice += [proj_allDim[self.response-1, i_pc]>db]
+                plt.plot(x, proj_allDim[:len(self.T_cue_aligned_sel), i_pc], 'r', alpha = 0.5, linewidth = 0.5)
+                
+                
         else:
             # Project for every trial
             for t in self.r_test_idx:
