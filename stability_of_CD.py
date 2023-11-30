@@ -92,12 +92,12 @@ l1.plot_appliedCD(orthonormal_basis, mean)
 
 #%% Use Full method
 
-naivepath, learningpath, expertpath = [r'F:\data\BAYLORCW032\python\2023_10_08',
-          r'F:\data\BAYLORCW032\python\2023_10_16',
-          r'F:\data\BAYLORCW032\python\2023_10_25',]
-naivepath, learningpath, expertpath =[r'F:\data\BAYLORCW036\python\2023_10_09',
-            r'F:\data\BAYLORCW036\python\2023_10_19',
-            r'F:\data\BAYLORCW036\python\2023_10_30',]
+naivepath, learningpath, expertpath = [r'F:\data\BAYLORCW032\python\2023_10_05',
+          r'F:\data\BAYLORCW032\python\2023_10_19',
+          r'F:\data\BAYLORCW032\python\2023_10_24',]
+# naivepath, learningpath, expertpath =[r'F:\data\BAYLORCW036\python\2023_10_09',
+#             r'F:\data\BAYLORCW036\python\2023_10_19',
+#             r'F:\data\BAYLORCW036\python\2023_10_30',]
 path = expertpath
 l1 = Mode(path, use_reg = True, triple=True)
 orthonormal_basis, mean = l1.plot_behaviorally_relevant_modes()

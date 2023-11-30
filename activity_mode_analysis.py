@@ -139,16 +139,24 @@ l1.plot_appliedCD(orthonormal_basis, mean)
 # path = r'F:\data\BAYLORCW032\python\2023_10_05'
 # l1 = Mode(path, use_reg = True)
 # l1.plot_appliedCD(orthonormal_basis, mean)
-#%% Opto effect on CD dimension
+#%%
 from activityMode import Mode
 
 path = r'F:\data\BAYLORCW032\python\2023_10_25'
-l1 = Mode(path, use_reg = True)
-l1.plot_CD_opto()
+l1 = Mode(path)
+# l1.plot_CD()
+# d = l1.plot_performance_distfromCD()
+_,_,_,db = l1.decision_boundary()
+#%% Opto effect on CD dimension
+from activityMode import Mode
 
-path = r'F:\data\BAYLORCW032\python\2023_10_24'
-l1 = Mode(path, use_reg = True)
-l1.plot_CD_opto()
+# path = r'F:\data\BAYLORCW032\python\2023_10_25'
+# l1 = Mode(path, use_reg = True)
+# l1.plot_CD_opto()
+
+# path = r'F:\data\BAYLORCW032\python\2023_10_24'
+# l1 = Mode(path, use_reg = True)
+# l1.plot_CD_opto()
 
 # path = r'F:\data\BAYLORCW034\python\2023_10_27'
 # l1 = Mode(path)
@@ -166,7 +174,25 @@ l1.plot_CD_opto()
 # l1 = Mode(path)
 # l1.plot_CD_opto()
 
+#IPSI INHIB DAYS
+paths = [r'F:\data\BAYLORCW032\python\2023_10_08',
+          r'F:\data\BAYLORCW032\python\2023_10_16',
+          r'F:\data\BAYLORCW032\python\2023_10_25',]
 
+
+paths =    [r'F:\data\BAYLORCW036\python\2023_10_07',
+            r'F:\data\BAYLORCW036\python\2023_10_17',
+            r'F:\data\BAYLORCW036\python\2023_10_30',]
+
+# paths =          [ r'F:\data\BAYLORCW034\python\2023_10_10',
+#             r'F:\data\BAYLORCW034\python\2023_10_18',
+#             r'F:\data\BAYLORCW034\python\2023_10_28',]
+for path in paths:
+    # l1 = Mode(path, use_reg = True, triple=True)
+    # l1.plot_CD_opto()
+    
+    l1 = Mode(path)
+    l1.plot_CD_opto()
 #%% Opto effect on Persistent mode
 from activityMode import Mode
 

@@ -1062,16 +1062,17 @@ class Mode(Session):
         return np.array(vectors)
 
         
+## DECODING ANALYSIS ##
         
-    def decision_boundary(self):
+    def decision_boundary(self, opto=False):
         """
         Calculate decision boundary across trials of CD
         
         
         Use method from Guang's paper
         """
-        orthonormal_basis, _ = self.func_compute_epoch_decoder([self.PSTH_r_train_correct, 
-                                                                self.PSTH_l_train_correct], [self.response-3])
+        orthonormal_basis, var_allDim = self.func_compute_epoch_decoder([self.PSTH_r_train_correct, 
+                                                                        self.PSTH_l_train_correct], range(self.delay+9, self.response))
         activityRL_train= np.concatenate((self.PSTH_r_train_correct, 
                                         self.PSTH_l_train_correct), axis=1)
 
@@ -1083,80 +1084,251 @@ class Mode(Session):
         
         r_trials = [i for i in r_corr if i in self.i_good_non_stim_trials and not self.early_lick[i]]
         l_trials = [i for i in l_corr if i in self.i_good_non_stim_trials and not self.early_lick[i]]
-        # r_trials = np.where([self.R_correct[i] for i in self.i_good_non_stim_trials if not self.early_lick[i]])
-        # l_trials = np.where([self.L_correct[i] for i in self.i_good_non_stim_trials if not self.early_lick[i]])
+
+        
         x = np.arange(-6.97,4,self.fs)[:self.time_cutoff]
 
-
+        # orthonormal_basis = orthonormal_basis.reshape(-1,1)
         i_pc = 0
+        projright, projleft = [], []
+        
         projright, projleft = [], []
         # Project for every trial in train set for DB
         for t in self.r_train_idx:
-            activity = self.dff[0, r_trials[t]][self.good_neurons, self.response-3] 
-            activity = activity - (np.mean(activityRL_train, axis=1))
+            activity = self.dff[0, r_trials[t]][self.good_neurons] 
+            activity = activity 
             proj_allDim = np.dot(activity.T, orthonormal_basis)
-            projright += [proj_allDim]
+            projright += [proj_allDim[self.response-1, i_pc]]
             
         for t in self.l_train_idx:
-            activity = self.dff[0, l_trials[t]][self.good_neurons, self.response-3]
-            activity = activity - (np.mean(activityRL_train, axis=1))
+            activity = self.dff[0, l_trials[t]][self.good_neurons]
+            activity = activity 
             proj_allDim = np.dot(activity.T, orthonormal_basis)
-            projleft += [proj_allDim]
+            projleft += [proj_allDim[self.response-1, i_pc]]
+
+
+
+        db = ((np.mean(projright) / np.var(projright)) + (np.mean(projleft) / np.var(projleft))) / (((1/ np.var(projright))) + (1/ np.var(projleft)))
+
+        decoderchoice = []
+        if opto:
+            a=1
+        else:
+            # Project for every trial
+            for t in self.r_test_idx:
+                activity = self.dff[0, r_trials[t]][self.good_neurons] 
+                activity = activity - np.tile(np.mean(activityRL_train, axis=1)[:, None], (1, activity.shape[1]))
+                proj_allDim = np.dot(activity.T, orthonormal_basis)
+    
+                decoderchoice += [proj_allDim[self.response-1, i_pc]<db]
+                plt.plot(x, proj_allDim[:len(self.T_cue_aligned_sel), i_pc], 'b', alpha = 0.5,  linewidth = 0.5)
+                # plt.scatter(x[self.response-1],[proj_allDim[self.response-1, i_pc]], color='b')
+                
+            for t in self.l_test_idx:
+                activity = self.dff[0, l_trials[t]][self.good_neurons]
+                activity = activity -np.tile(np.mean(activityRL_train, axis=1)[:, None], (1, activity.shape[1]))
+                proj_allDim = np.dot(activity.T, orthonormal_basis)
+    
+                decoderchoice += [proj_allDim[self.response-1, i_pc]>db]
+                plt.plot(x, proj_allDim[:len(self.T_cue_aligned_sel), i_pc], 'r', alpha = 0.5, linewidth = 0.5)
+                # plt.scatter(x[self.response-1],[proj_allDim[self.response-1, i_pc]], color='r')
+            
+        
+            
+            # include error trials in the test results as well
+            r_test_err = [i for i in self.i_good_non_stim_trials if not self.early_lick[i] and self.L_wrong[i]]
+            l_test_err = [i for i in self.i_good_non_stim_trials if not self.early_lick[i] and self.R_wrong[i]]
+            
+    
+            for t in r_test_err:
+                activity = self.dff[0, t][self.good_neurons] 
+                activity = activity - np.tile(np.mean(activityRL_train, axis=1)[:, None], (1, activity.shape[1]))
+                proj_allDim = np.dot(activity.T, orthonormal_basis)
+                decoderchoice += [proj_allDim[self.response-1, i_pc] > db]
+       
+            for t in l_test_err:
+                activity = self.dff[0, t][self.good_neurons] 
+                activity = activity - np.tile(np.mean(activityRL_train, axis=1)[:, None], (1, activity.shape[1]))
+                proj_allDim = np.dot(activity.T, orthonormal_basis)
+                decoderchoice += [proj_allDim[self.response-1, i_pc] < db]            
+        
+
+        
+        return orthonormal_basis, np.mean(activityRL_train, axis=1), db, decoderchoice
+    
+    def plot_performance_distfromCD(self, opto=False):
+        """
+        Replicates Li et al., 2016 Fig 4b, where performance is calculated across
+        trial types as a function of distance from CD trajectores in the last 
+        timestep before Go cue (last 400ms)
+        
+        Parameters
+        ----------
+        opto : bool, optional
+            Whether to plot opto trials
+            
+        Returns
+        -------
+        None.
+
+        """
+        save=None
+        orthonormal_basis, var_allDim = self.func_compute_epoch_decoder([self.PSTH_r_train_correct, 
+                                                                        self.PSTH_l_train_correct], range(self.delay+9, self.response))
+        activityRL_train= np.concatenate((self.PSTH_r_train_correct, 
+                                        self.PSTH_l_train_correct), axis=1)
+
+        activityRL_test= np.concatenate((self.PSTH_r_test_correct, 
+                                        self.PSTH_l_test_correct), axis=1)
+        
+        r_corr = np.where(self.R_correct)[0]
+        l_corr = np.where(self.L_correct)[0]
+        
+        r_trials = [i for i in r_corr if i in self.i_good_non_stim_trials and not self.early_lick[i]]
+        l_trials = [i for i in l_corr if i in self.i_good_non_stim_trials and not self.early_lick[i]]
+
+        
+        x = np.arange(-6.97,4,self.fs)[:self.time_cutoff]
+
+        # orthonormal_basis = orthonormal_basis.reshape(-1,1)
+        i_pc = 0
+        projright, projleft = [], []
+        
+        projright, projleft = [], []
+        # Project for every trial in train set for DB
+        for t in self.r_train_idx:
+            activity = self.dff[0, r_trials[t]][self.good_neurons] 
+            activity = activity 
+            proj_allDim = np.dot(activity.T, orthonormal_basis)
+            projright += [proj_allDim[self.response-1, i_pc]]
+            
+        for t in self.l_train_idx:
+            activity = self.dff[0, l_trials[t]][self.good_neurons]
+            activity = activity 
+            proj_allDim = np.dot(activity.T, orthonormal_basis)
+            projleft += [proj_allDim[self.response-1, i_pc]]
+
+
+
+        db = ((np.mean(projright) / np.var(projright)) + (np.mean(projleft) / np.var(projleft))) / (((1/ np.var(projright))) + (1/ np.var(projleft)))
+
+        decoderchoice = []
+
+        # Project for every trial
+        for t in self.r_test_idx:
+            activity = self.dff[0, r_trials[t]][self.good_neurons] 
+            activity = activity - np.tile(np.mean(activityRL_train, axis=1)[:, None], (1, activity.shape[1]))
+            proj_allDim = np.dot(activity.T, orthonormal_basis)
+
+            decoderchoice += [proj_allDim[self.response-1, i_pc]<db]
+            plt.plot(x, proj_allDim[:len(self.T_cue_aligned_sel), i_pc], 'b', alpha = 0.5,  linewidth = 0.5)
+            # plt.scatter(x[self.response-1],[proj_allDim[self.response-1, i_pc]], color='b')
+            
+        for t in self.l_test_idx:
+            activity = self.dff[0, l_trials[t]][self.good_neurons]
+            activity = activity - np.tile(np.mean(activityRL_train, axis=1)[:, None], (1, activity.shape[1]))
+            proj_allDim = np.dot(activity.T, orthonormal_basis)
+
+            decoderchoice += [proj_allDim[self.response-1, i_pc]>db]
+            plt.plot(x, proj_allDim[:len(self.T_cue_aligned_sel), i_pc], 'r', alpha = 0.5, linewidth = 0.5)
+            # plt.scatter(x[self.response-1],[proj_allDim[self.response-1, i_pc]], color='r')
+            
+        # Correct trials
+        activityRL_test = activityRL_test - np.tile(np.mean(activityRL_train, axis=1)[:, None], (1, activityRL_test.shape[1]))  # remove mean
+        proj_allDim = np.dot(activityRL_test.T, orthonormal_basis)
+
+        
+        # ax = axs.flatten()[0]
+        plt.plot(x, proj_allDim[:len(self.T_cue_aligned_sel), i_pc], 'b', linewidth = 2)
+        plt.plot(x, proj_allDim[len(self.T_cue_aligned_sel):, i_pc], 'r', linewidth = 2)
+        plt.title("Choice decoder projections")
+        plt.axvline(-4.3, color = 'grey', alpha=0.5, ls = '--')
+        plt.axvline(-3, color = 'grey', alpha=0.5, ls = '--')
+        plt.axvline(0, color = 'grey', alpha=0.5, ls = '--')
+        plt.ylabel('CD_delay projection (a.u.)')
+        plt.scatter(x[self.response-1], [db])
+
+        if save is not None:
+            plt.savefig(save)
+            
+
+        plt.show()
+        
+        return decoderchoice
+        
+        
+        
+        
+        # orthonormal_basis, var_allDim = self.func_compute_epoch_decoder([self.PSTH_r_train_correct, 
+        #                                                                 self.PSTH_l_train_correct], range(self.delay+9, self.response))
+        # activityRL_train= np.concatenate((self.PSTH_r_train_correct, 
+        #                                 self.PSTH_l_train_correct), axis=1)
+
+        # activityRL_test= np.concatenate((self.PSTH_r_test_correct, 
+        #                                 self.PSTH_l_test_correct), axis=1)
+        
+        # r_corr = np.where(self.R_correct)[0]
+        # l_corr = np.where(self.L_correct)[0]
+        
+        # r_trials = [i for i in r_corr if i in self.i_good_non_stim_trials and not self.early_lick[i]]
+        # l_trials = [i for i in l_corr if i in self.i_good_non_stim_trials and not self.early_lick[i]]
+        # # r_trials = np.where([self.R_correct[i] for i in self.i_good_non_stim_trials if not self.early_lick[i]])
+        # # l_trials = np.where([self.L_correct[i] for i in self.i_good_non_stim_trials if not self.early_lick[i]])
+        # x = np.arange(-6.97,4,self.fs)[:self.time_cutoff]
+
+
+        # i_pc = 0
+        # projright, projleft = [], []
+        # # Project for every trial in train set for DB
+        # for t in self.r_train_idx:
+        #     activity = self.dff[0, r_trials[t]][self.good_neurons] 
+        #     activity = activity - np.tile(np.mean(activityRL_train, axis=1)[:, None], (1, activity.shape[1]))
+        #     proj_allDim = np.dot(activity.T, orthonormal_basis)
+        #     projright += [proj_allDim[self.response-1]]
+            
+        # for t in self.l_train_idx:
+        #     activity = self.dff[0, l_trials[t]][self.good_neurons]
+        #     activity = activity - np.tile(np.mean(activityRL_train, axis=1)[:, None], (1, activity.shape[1]))
+        #     proj_allDim = np.dot(activity.T, orthonormal_basis)
+        #     projleft += [proj_allDim[self.response-1]]
             
         # Calculate DB
         # db = ((np.mean(projright,axis=0) / np.var(projright, axis=0)) + (np.mean(projleft,axis=0) / np.var(projleft, axis=0))) / (((1/ np.var(projright, axis=0))) + (1/ np.var(projleft, axis=0)))
-        db = ((np.mean(projright) / np.var(projright)) + (np.mean(projleft) / np.var(projleft))) / (((1/ np.var(projright))) + (1/ np.var(projleft)))
+        # db = ((np.mean(projright) / np.var(projright)) + (np.mean(projleft) / np.var(projleft))) / (((1/ np.var(projright))) + (1/ np.var(projleft)))
         
-        # include error trials in the test results as well
-        r_test_err = [i for i in self.i_good_non_stim_trials if not self.early_lick[i] and self.L_wrong[i]]
+        # # include error trials in the test results as well
+        # r_test_err = [i for i in self.i_good_non_stim_trials if not self.early_lick[i] and self.L_wrong[i]]
         
-        l_test_err = [i for i in self.i_good_non_stim_trials if not self.early_lick[i] and self.R_wrong[i]]
+        # l_test_err = [i for i in self.i_good_non_stim_trials if not self.early_lick[i] and self.R_wrong[i]]
         
-        decoderchoice = []
-        # Project and compare to DB
-        for t in self.r_test_idx:
-            activity = self.dff[0, r_trials[t]][self.good_neurons, self.response-3] 
-            activity = activity - (np.mean(activityRL_train, axis=1))
-            proj_allDim = np.dot(activity.T, orthonormal_basis)
-            decoderchoice += [proj_allDim > db]
-            # decoderchoice += [(np.mean(proj_allDim) / np.var(proj_allDim)) > db]    
+        # decoderchoice = []
+        # # Project and compare to DB
+        # for t in self.r_test_idx:
+        #     activity = self.dff[0, r_trials[t]][self.good_neurons] 
+        #     activity = activity - np.tile(np.mean(activityRL_train, axis=1)[:, None], (1, activity.shape[1]))
+        #     proj_allDim = np.dot(activity.T, orthonormal_basis)
+        #     decoderchoice += [proj_allDim[self.response-1] > db]
+        #     # decoderchoice += [(np.mean(proj_allDim) / np.var(proj_allDim)) > db]    
             
-        for t in r_test_err:
-            activity = self.dff[0, t][self.good_neurons, self.response-3] 
-            activity = activity - (np.mean(activityRL_train, axis=1))
-            proj_allDim = np.dot(activity.T, orthonormal_basis)
-            decoderchoice += [proj_allDim > db]
+        # # for t in r_test_err:
+        # #     activity = self.dff[0, t][self.good_neurons, self.response-3] 
+        # #     activity = activity - (np.mean(activityRL_train, axis=1))
+        # #     proj_allDim = np.dot(activity.T, orthonormal_basis)
+        #     # decoderchoice += [proj_allDim > db]
             
-        for t in self.l_test_idx:
-            activity = self.dff[0, l_trials[t]][self.good_neurons, self.response-3] 
-            activity = activity - (np.mean(activityRL_train, axis=1))
-            proj_allDim = np.dot(activity.T, orthonormal_basis)
-            decoderchoice += [proj_allDim < db]
-            # decoderchoice += [(np.mean(proj_allDim) / np.var(proj_allDim)) < db]            
-        for t in l_test_err:
-            activity = self.dff[0, t][self.good_neurons, self.response-3] 
-            activity = activity - (np.mean(activityRL_train, axis=1))
-            proj_allDim = np.dot(activity.T, orthonormal_basis)
-            decoderchoice += [proj_allDim < db]            
+        # for t in self.l_test_idx:
+        #     activity = self.dff[0, l_trials[t]][self.good_neurons] 
+        #     activity = activity - np.tile(np.mean(activityRL_train, axis=1)[:, None], (1, activity.shape[1]))
+        #     proj_allDim = np.dot(activity.T, orthonormal_basis)
+        #     decoderchoice += [proj_allDim[self.response-1] < db]
+        #     # decoderchoice += [(np.mean(proj_allDim) / np.var(proj_allDim)) < db]            
+        # # for t in l_test_err:
+        # #     activity = self.dff[0, t][self.good_neurons, self.response-3] 
+        # #     activity = activity - (np.mean(activityRL_train, axis=1))
+        # #     proj_allDim = np.dot(activity.T, orthonormal_basis)
+        # #     decoderchoice += [proj_allDim < db]            
         
-        # # ax = axs.flatten()[0]
-        # plt.plot(x, proj_allDim[:len(self.T_cue_aligned_sel), i_pc], 'b', linewidth = 2)
-        # plt.plot(x, proj_allDim[len(self.T_cue_aligned_sel):, i_pc], 'r', linewidth = 2)
-        # plt.title("Choice decoder projections")
-        # plt.axvline(-4.3, color = 'grey', alpha=0.5, ls = '--')
-        # plt.axvline(-3, color = 'grey', alpha=0.5, ls = '--')
-        # plt.axvline(0, color = 'grey', alpha=0.5, ls = '--')
-        # plt.ylabel('CD_delay projection (a.u.)')
-        
-        # if save is not None:
-        #     plt.savefig(save)
-            
-        # plt.show()
-        # axs[0, 0].set_ylabel('Activity proj.')
-        # axs[3, 0].set_xlabel('Time')
-        
-        # return orthonormal_basis, np.mean(activityRL_train, axis=1)[:, None]
-        return orthonormal_basis, np.mean(activityRL_train, axis=1), db, decoderchoice
+        # return decoderchoice
 
 ## Modes with optogenetic inhibition
     
@@ -1377,6 +1549,9 @@ class Mode(Session):
             plt.savefig(save)
             
         plt.show()
+        
+        
+
 ### ACROSS SESSION CODING ###
         
         

@@ -10,6 +10,7 @@ for j = 1:length(lst)
         namesplit = split(lst(j).name, '_');
         mkdir([path 'python\' strjoin(namesplit(2:4), '_')])
         
+
         % Get neural data
         lyrs = size(obj.roi_plane,2);
         for i = 1:lyrs
