@@ -63,3 +63,46 @@ for path in paths:
     plt.xticks([0], ['Left ALM -> behavior'])
     plt.ylim(bottom=0.4, top =1)
     plt.show()
+#%% UNMATCHED ACROSS PERTURBATION/CONTROL TRIALS
+# from activityMode import Mode
+paths = [r'F:\data\BAYLORCW032\python\2023_10_08',
+          r'F:\data\BAYLORCW032\python\2023_10_16',
+          r'F:\data\BAYLORCW032\python\2023_10_25',]
+
+# perf = []
+# for path in paths:
+
+#     l1 = Mode(path)
+#     # l1.plot_CD()
+#     # d = l1.plot_performance_distfromCD()
+#     _,_,_,db = l1.decision_boundary(opto=True)
+#     perf += [np.mean(db)]
+
+# plt.bar(range(3), perf)
+# plt.ylim([0.5,1])
+# plt.show()
+
+# paths = [r'F:\data\BAYLORCW032\python\2023_10_05',
+#           r'F:\data\BAYLORCW032\python\2023_10_19',
+#           r'F:\data\BAYLORCW032\python\2023_10_24',]
+
+perf, perfctl = [], []
+for path in paths:
+
+    l1 = Mode(path)
+    # l1.plot_CD()
+    # d = l1.plot_performance_distfromCD()
+    _,_,_,dbctl = l1.decision_boundary(opto=False)
+    _,_,_,db = l1.decision_boundary(opto=True)
+    perf += [np.mean(db)]
+    perfctl += [np.mean(dbctl)]
+    
+plt.bar(np.arange(3)+0.2, perf, 0.4, label="Perturbation trials")
+
+plt.bar(np.arange(3)-0.2, perfctl, 0.4, label="Control trials")
+
+plt.xticks(range(3), ["Naive", "learning", "Expert"])
+plt.ylim([0.4,1])
+plt.legend()
+plt.show()
+

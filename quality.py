@@ -25,9 +25,9 @@ from session import Session
 
 class QC(Session):
 
-    def __init__(self, path, layer_num='all', guang=False, passive=False):
+    def __init__(self, path, layer_num='all', guang=False, passive=False, quality=True):
         
-        super().__init__(path, layer_num, guang, passive)
+        super().__init__(path, layer_num, guang, passive, quality)
             
         
     ### Quality analysis section ###

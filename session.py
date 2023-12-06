@@ -43,7 +43,7 @@ class Session:
     """
     
     
-    def __init__(self, path, layer_num='all', use_reg = False, triple = False, sess_reg = False, guang=False, passive=False):
+    def __init__(self, path, layer_num='all', use_reg = False, triple = False, sess_reg = False, guang=False, passive=False, quality=False):
         
         """
         Parameters
@@ -61,6 +61,8 @@ class Session:
             Boolean indicating is Guang's data is being used (default False)
         passive : bool, optional
             If dataset is from passive experiment (default False)
+        quality : bool, optional
+            If parent class is quality
         """        
         
         if layer_num != 'all':
@@ -178,7 +180,8 @@ class Session:
         # Measure that automatically crops out water leak trials before norming
         if not self.find_low_mean_F():
 
-            self.plot_mean_F()
+            if quality:
+                self.plot_mean_F()
             print("No water leak!")
             if guang:
                 # Guang's data
@@ -510,6 +513,33 @@ class Session:
         
         
         print('New number of good trials: {}'.format(len(self.i_good_trials)))
+        
+    def performance_in_trials(self, trials):
+        """
+        Get the performance as a percentage correct for the given trials numbers
+
+        Parameters
+        ----------
+        trials : list
+            List of trials to calculate correctness.
+
+        Returns
+        -------
+        A single number corresponding to proportion correct in left and right trials.
+
+        """
+        
+        proportion_correct_left = np.sum(self.L_correct[trials]) / np.sum(self.L_correct[trials] + self.L_wrong[trials] + self.L_ignore[trials])
+        proportion_correct_right = np.sum(self.R_correct[trials]) /  np.sum(self.R_correct[trials] + self.R_wrong[trials] + self.R_ignore[trials])
+        proportion_correct = np.sum(self.L_correct[trials] + self.R_correct[trials]) / np.sum(self.L_correct[trials] + 
+                                                                                              self.L_wrong[trials] + 
+                                                                                              self.L_ignore[trials] +
+                                                                                              self.R_correct[trials] + 
+                                                                                              self.R_wrong[trials] + 
+                                                                                              self.R_ignore[trials])
+                                                                                          
+    
+        return proportion_correct_right, proportion_correct_left, proportion_correct
     
     def lick_correct_direction(self, direction):
         """Finds trial numbers corresponding to correct lick in specified direction
@@ -1093,6 +1123,55 @@ class Session:
             return selective_neurons, all_tstat
         
         return selective_neurons
+    
+    def get_epoch_tstat(self, epoch, neurons, split=False, bias=False, lickdir = False):
+        """
+        Get tstat of provided neurons during provided epoch
+
+        Parameters
+        ----------
+        epoch : list
+            DESCRIPTION.
+        neurons : list
+            DESCRIPTION.
+        split : bool, optional
+            Return pos and neg separately if true
+
+        Returns
+        -------
+        List of t-statistics associated with input neurons.
+
+        """
+        
+        all_tstat = []
+        poststat, negtstat = [],[]
+        # for neuron in range(self.num_neurons):
+        for neuron in neurons: # Only look at provided neurons
+            right, left = self.get_trace_matrix(neuron)
+            if lickdir:
+                right, left = self.get_trace_matrix(neuron, lickdir=True)
+                
+                
+            if bias:
+                biasidx = self.find_bias_trials()
+                right,left = self.get_trace_matrix(neuron, bias_trials= biasidx)
+            
+            left_ = [l[epoch] for l in left]
+            right_ = [r[epoch] for r in right]
+            tstat, p_val = stats.ttest_ind(np.mean(left_, axis = 1), np.mean(right_, axis = 1))
+
+
+            all_tstat += [tstat] # Positive if L selective, negative if R selective
+            if split:
+                if tstat > 0:
+                    poststat += [tstat]
+                else:
+                    negtstat += [tstat]
+
+        if split:
+            return poststat, negtstat
+        return all_tstat
+    
     
     def get_epoch_mean_diff(self, epoch, trials):
         """Identifies neurons that are selective in a given epoch using mean 
@@ -2470,7 +2549,7 @@ class Session:
         axarr.axvline(0, color = 'grey', alpha=0.5, ls = '--')
         axarr.hlines(y=max(cat((selo, sel))), xmin=-3, xmax=-2, linewidth=10, color='red')
 
-        axarr.set_title('Optogenetic effect on selectivity')                  
+        axarr.set_title('Optogenetic effect on selectivity (n = {} neurons)'.format(len(self.selective_neurons)))                  
         axarr.set_xlabel('Time from Go cue (s)')
         axarr.set_ylabel('Selectivity')
         # axarr[0].plot(x, sel, 'black')

@@ -39,11 +39,15 @@ paths = [[r'F:\data\BAYLORCW032\python\2023_10_08',
 paths = [r'F:\data\BAYLORCW032\python\2023_10_05',
           r'F:\data\BAYLORCW032\python\2023_10_19',
           r'F:\data\BAYLORCW032\python\2023_10_24',]
+# IPSI
+paths = [r'F:\data\BAYLORCW032\python\2023_10_08',
+          r'F:\data\BAYLORCW032\python\2023_10_16',
+          r'F:\data\BAYLORCW032\python\2023_10_25',]
 for path in paths:
     
     l1 = Mode(path, use_reg=True, triple=True)
     
-    l1.selectivity_optogenetics(p=0.01)
+    l1.selectivity_optogenetics(p=0.05)
     l1.plot_CD_opto()
 
 #%% CW34 matched
@@ -68,16 +72,23 @@ for path in paths:
     l1.selectivity_optogenetics(p=0.01)
     l1.plot_CD_opto()
 
-#%% Unmatched
+#%% CW32 Unmatched
 
+#CONTRA
 path = r'F:\data\BAYLORCW032\python\2023_10_24'
 paths = [r'F:\data\BAYLORCW032\python\2023_10_05',
           r'F:\data\BAYLORCW032\python\2023_10_19',
           r'F:\data\BAYLORCW032\python\2023_10_24',]
+
+# IPSI
+# paths = [r'F:\data\BAYLORCW032\python\2023_10_08',
+#           r'F:\data\BAYLORCW032\python\2023_10_16',
+#            r'F:\data\BAYLORCW032\python\2023_10_25',]
+
 for path in paths:
     l1 = session.Session(path)
     
-    l1.selectivity_optogenetics()
+    l1.selectivity_optogenetics(p=0.01)
 #%% CW34 unmatched
 
 paths = [ r'F:\data\BAYLORCW034\python\2023_10_12',
@@ -92,6 +103,26 @@ for path in paths:
 paths = [r'F:\data\BAYLORCW036\python\2023_10_09',
            r'F:\data\BAYLORCW036\python\2023_10_19',
            r'F:\data\BAYLORCW036\python\2023_10_30',]
+for path in paths:
+    
+    l1 = session.Session(path)
+    
+    l1.selectivity_optogenetics(p=0.01)
+    
+#%% CW35 unmatched
+paths = [r'F:\data\BAYLORCW035\python\2023_10_12',
+            r'F:\data\BAYLORCW035\python\2023_10_26',
+           r'F:\data\BAYLORCW035\python\2023_11_29',]
+for path in paths:
+    
+    l1 = session.Session(path)
+    
+    l1.selectivity_optogenetics(p=0.01)
+    
+#%% CW37 unmatched
+paths = [r'F:\data\BAYLORCW037\python\2023_11_21',
+           r'F:\data\BAYLORCW037\python\2023_11_28',]
+           # r'F:\data\BAYLORCW035\python\2023_11_29',]
 for path in paths:
     
     l1 = session.Session(path)

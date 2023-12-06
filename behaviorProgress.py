@@ -14,15 +14,55 @@ import session
 import behavior
 plt.rcParams['pdf.fonttype'] = '42' 
 
-# from neuralFuncs import plot_average_PSTH
 
 
-# layer_1 = scio.loadmat(r'E:\data\BAYLORCW022\python\2022_12_15\layer_1.mat')
-# layer_2 = scio.loadmat(r'E:\data\BAYLORCW022\python\2022_12_15\layer_2.mat')
+#%% Plot behavior in opto trials over learning
+import session
 
-# behavior = scio.loadmat(r'E:\data\BAYLORCW022\python\2022_12_15\behavior.mat')
+paths = [r'F:\data\BAYLORCW032\python\2023_10_08',
+          r'F:\data\BAYLORCW032\python\2023_10_16',
+          r'F:\data\BAYLORCW032\python\2023_10_25',]
 
-### Plot learning progression
+# paths = [r'F:\data\BAYLORCW032\python\2023_10_05',
+#           r'F:\data\BAYLORCW032\python\2023_10_19',
+#           r'F:\data\BAYLORCW032\python\2023_10_24',]
+performance_opto = []
+performance_ctl = []
+counter = -1
+fig = plt.figure()
+
+for path in paths:
+    counter += 1
+    l1 = session.Session(path)
+    stim_trials = np.where(l1.stim_ON)[0]
+    control_trials = np.where(~l1.stim_ON)[0]
+    
+    perf_right, perf_left, perf_all = l1.performance_in_trials(stim_trials)
+    performance_opto += [perf_all]
+    plt.scatter(counter + 0.2, perf_right, c='b', marker='x')
+    plt.scatter(counter + 0.2, perf_left, c='r', marker='x')
+   
+    perf_rightctl, perf_left, perf_all = l1.performance_in_trials(control_trials)
+    performance_ctl += [perf_all]
+    plt.scatter(counter - 0.2, perf_rightctl, c='b', marker='o')
+    plt.scatter(counter - 0.2, perf_left, c='r', marker='o')
+   
+
+plt.scatter(counter + 0.2, perf_right, c='b', marker='x', label="Perturbation trials")
+plt.scatter(counter - 0.2, perf_rightctl, c='b', marker='o', label="Control trials")
+
+plt.bar(np.arange(3)+0.2, performance_opto, 0.4, fill=False)
+
+plt.bar(np.arange(3)-0.2, performance_ctl, 0.4, fill=False)
+
+plt.xticks(range(3), ["Naive", "Learning", "Expert"])
+# plt.ylim([0.4,1])
+plt.legend()
+plt.show()
+
+
+    
+#%% Plot learning progression
 
 # b = behavior.Behavior('F:\data\Behavior data\BAYLORCW028\python_behavior', behavior_only=True)
 # b.learning_progression(imaging=True)
@@ -46,7 +86,7 @@ b.learning_progression()
 # b = behavior.Behavior('F:\data\Behavior data\BAYLORCW027\python_behavior', behavior_only=True)
 # b.learning_progression(window = 50)
 
-### Compare learning curves ####
+#%% Compare learning curves ####
 
 # window = 200
 # b = behavior.Behavior('F:\data\Behavior data\BAYLORCW032\python_behavior', behavior_only=True)
@@ -97,7 +137,7 @@ b.learning_progression()
 # plt.show()
 
 
-### Compare all learning curves together
+#%% Compare all learning curves together
 
 # f, axarr = plt.subplots(2, 1, sharex='col', figsize=(10,6))
 
@@ -120,7 +160,7 @@ b.learning_progression()
 # plt.savefig(r'F:\data\SFN 2023\alllearningcurves.pdf',transparent=True)
 # plt.show()
 
-### Plot session to match GLM HMM
+#%% Plot session to match GLM HMM
 # sessions = ['20230215', '20230322', '20230323',  '20230403', '20230406', '20230409', '20230411',
 #             '20230413', '20230420', '20230421', '20230423', '20230424', '20230427',
 #             '20230426', '20230503', '20230508', '20230509', '20230510', '20230511', '20230512',
@@ -131,7 +171,7 @@ b.learning_progression()
 
 
 
-### Plot over all imaging sessions
+#%% Plot over all imaging sessions
 
 # b = behavior.Behavior('F:\data\BAYLORCW022\python')
 # b.plot_LR_performance_over_sessions()
@@ -145,7 +185,7 @@ b.learning_progression()
 # b.plot_LR_performance_over_sessions()
 # b.plot_early_lick()
 
-### Plot single session performance - diagnostic session
+#%% Plot single session performance - diagnostic session
 
 # b = behavior.Behavior(r'F:\data\BAYLORCW022\python\2023_03_04', single=True)
 # b.plot_single_session(save=True)
