@@ -23,9 +23,20 @@ paths = [r'F:\data\BAYLORCW032\python\2023_10_08',
           r'F:\data\BAYLORCW032\python\2023_10_16',
           r'F:\data\BAYLORCW032\python\2023_10_25',]
 
-# paths = [r'F:\data\BAYLORCW032\python\2023_10_05',
-#           r'F:\data\BAYLORCW032\python\2023_10_19',
-#           r'F:\data\BAYLORCW032\python\2023_10_24',]
+paths = [r'F:\data\BAYLORCW032\python\2023_10_05',
+          r'F:\data\BAYLORCW032\python\2023_10_19',
+          r'F:\data\BAYLORCW032\python\2023_10_24',]
+
+
+paths = [    r'F:\data\BAYLORCW034\python\2023_10_12',
+            r'F:\data\BAYLORCW034\python\2023_10_22',
+            r'F:\data\BAYLORCW034\python\2023_10_27',
+            r'F:\data\BAYLORCW034\python\2023_11_22']
+
+# paths = [r'F:\data\BAYLORCW036\python\2023_10_09',
+#            r'F:\data\BAYLORCW036\python\2023_10_19',
+#            r'F:\data\BAYLORCW036\python\2023_10_30',]
+
 performance_opto = []
 performance_ctl = []
 counter = -1
@@ -51,11 +62,11 @@ for path in paths:
 plt.scatter(counter + 0.2, perf_right, c='b', marker='x', label="Perturbation trials")
 plt.scatter(counter - 0.2, perf_rightctl, c='b', marker='o', label="Control trials")
 
-plt.bar(np.arange(3)+0.2, performance_opto, 0.4, fill=False)
+plt.bar(np.arange(len(paths))+0.2, performance_opto, 0.4, fill=False)
 
-plt.bar(np.arange(3)-0.2, performance_ctl, 0.4, fill=False)
+plt.bar(np.arange(len(paths))-0.2, performance_ctl, 0.4, fill=False)
 
-plt.xticks(range(3), ["Naive", "Learning", "Expert"])
+# plt.xticks(range(len(paths)), ["Naive", "Learning", "Expert"])
 # plt.ylim([0.4,1])
 plt.legend()
 plt.show()

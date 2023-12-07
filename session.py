@@ -201,6 +201,7 @@ class Session:
         if not sess_reg and not use_reg:
             self.good_neurons, _ = self.get_pearsonscorr_neuron(cutoff=0.5)
         elif sess_reg:
+            print(sess_reg)
             self.good_neurons = np.load(path + r'\registered_neurons.npy')
         
     def crop_baseline(self):
@@ -742,8 +743,10 @@ class Session:
                 right_trials = [b for b in ctlright_trials if b not in bias_trials]
                 left_trials = [b for b in ctlleft_trials if b not in bias_trials]
 
-        if len(rtrials) >0 and len(ltrials) > 0:
+        if len(rtrials) > 0:
             right_trials = rtrials
+
+        if len(ltrials) > 0:
             left_trials = ltrials
             
         # Filter out opto trials
@@ -1068,7 +1071,7 @@ class Session:
         
         
 
-    def get_epoch_selective(self, epoch, p = 0.0001, bias=False, return_stat = False, lickdir = False):
+    def get_epoch_selective(self, epoch, p = 0.0001, bias=False, rtrials=[], ltrials=[], return_stat = False, lickdir = False):
         """Identifies neurons that are selective in a given epoch
         
         Saves neuron list in self.selective_neurons as well.
@@ -1081,6 +1084,8 @@ class Session:
             P-value cutoff to be deemed selectivity (default 0.0001)
         bias : bool, optional
             If true, only use the bias trials to evaluate (default False)
+        rtrials, ltrials: list, optional
+            If provided, use these trials to evaluate selectivty
         return_stat : bool, optional
             If true, returns the t-statistic to use for ranking
         lickdir : bool, optional
@@ -1098,9 +1103,9 @@ class Session:
         all_tstat = []
         # for neuron in range(self.num_neurons):
         for neuron in self.good_neurons: # Only look at non-noise neurons
-            right, left = self.get_trace_matrix(neuron)
+            right, left = self.get_trace_matrix(neuron, rtrials=rtrials, ltrials=ltrials)
             if lickdir:
-                right, left = self.get_trace_matrix(neuron, lickdir=True)
+                right, left = self.get_trace_matrix(neuron, lickdir=True, rtrials=rtrials, ltrials=ltrials)
                 
                 
             if bias:
@@ -1124,7 +1129,7 @@ class Session:
         
         return selective_neurons
     
-    def get_epoch_tstat(self, epoch, neurons, split=False, bias=False, lickdir = False):
+    def get_epoch_tstat(self, epoch, neurons, bias=False, rtrials=[], ltrials=[], lickdir = False):
         """
         Get tstat of provided neurons during provided epoch
 
@@ -1134,8 +1139,8 @@ class Session:
             DESCRIPTION.
         neurons : list
             DESCRIPTION.
-        split : bool, optional
-            Return pos and neg separately if true
+        rtrials, ltrials: list, optional
+            If provided, use these trials to evaluate selectivty
 
         Returns
         -------
@@ -1147,9 +1152,9 @@ class Session:
         poststat, negtstat = [],[]
         # for neuron in range(self.num_neurons):
         for neuron in neurons: # Only look at provided neurons
-            right, left = self.get_trace_matrix(neuron)
+            right, left = self.get_trace_matrix(neuron, rtrials=rtrials, ltrials=ltrials)
             if lickdir:
-                right, left = self.get_trace_matrix(neuron, lickdir=True)
+                right, left = self.get_trace_matrix(neuron, lickdir=True, rtrials=rtrials, ltrials=ltrials)
                 
                 
             if bias:
@@ -1162,15 +1167,13 @@ class Session:
 
 
             all_tstat += [tstat] # Positive if L selective, negative if R selective
-            if split:
-                if tstat > 0:
-                    poststat += [tstat]
-                else:
-                    negtstat += [tstat]
+            if tstat > 0:
+                poststat += [tstat]
+            else:
+                negtstat += [tstat]
 
-        if split:
-            return poststat, negtstat
-        return all_tstat
+
+        return all_tstat, poststat, negtstat
     
     
     def get_epoch_mean_diff(self, epoch, trials):
@@ -2467,7 +2470,7 @@ class Session:
         plt.show()
 
 
-    def selectivity_optogenetics(self, save=False, p = 0.0001):
+    def selectivity_optogenetics(self, save=False, p = 0.0001, return_traces = False):
         """Plots overall selectivity trace across opto vs control trials
         
         Uses late delay epoch to calculate selectivity
@@ -2587,10 +2590,11 @@ class Session:
         if save:
             plt.savefig(self.path + r'opto_effect_on_selectivity.png')
 
-        
         plt.show()
         
-        
+        if return_traces:
+            return pref, nonpref, optop, optonp
+            
     def single_neuron_sel(self, type, p=0.01, save=False):
         """Plots proportion of stim/lick/reward/mixed cells over trial using two different methods
         
