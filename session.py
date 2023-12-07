@@ -3021,7 +3021,7 @@ class Session:
         return bias_trials
             
     
-    def ranked_cells_by_selectivity(self, p=0.01):
+    def ranked_cells_by_selectivity(self, epoch, p=0.0001):
         """Returns list of neurons based on trial type selectivity 
         
         Goes from most right preferring to most left preferring (rank 1 through -1)
@@ -3048,10 +3048,12 @@ class Session:
         #                                                                 return_stat=True,
         #                                                                 lickdir=False)
         R,L = self.lick_correct_direction('r'), self.lick_correct_direction('l')
-        random.shuffle(R), random.shuffle(L)
+        random.shuffle(R)
+        random.shuffle(L)
         train_r, test_r, train_l, test_l = np.array(R)[:int(len(R)/2)], np.array(R)[int(len(R)/2):], np.array(L)[:int(len(L)/2)], np.array(L)[int(len(L)/2):]
         
-        selectivity = self.get_epoch_mean_diff(range(self.response-9, self.response), (train_r, train_l))
+        selectivity = self.get_epoch_mean_diff(epoch, (train_r, train_l)) # sort by difference
+        selectivity, _, _ = self.get_epoch_tstat(epoch, self.good_neurons, rtrials = train_r, ltrials = train_l)
         order = np.argsort(selectivity) # sorts from lowest to highest
          
         # Split trials into half, maintaining lick right and lick left proportions
@@ -3061,7 +3063,9 @@ class Session:
             neurons += [self.good_neurons[n]]
             # pref, l_trials, r_trials = self.screen_preference(neuron, range(self.delay, self.response))
 
-        return neurons, np.take(selectivity,order), (test_r, test_l)
+        # return neurons, np.take(selectivity,order), (test_r, test_l) # Used to plot heatmap
+        
+        return order, np.take(selectivity,order), (test_r, test_l)
         
 
 
