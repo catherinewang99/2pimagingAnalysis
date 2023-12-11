@@ -113,7 +113,8 @@ for path in paths:
 #%% CW35 unmatched
 paths = [r'F:\data\BAYLORCW035\python\2023_10_12',
             r'F:\data\BAYLORCW035\python\2023_10_26',
-           r'F:\data\BAYLORCW035\python\2023_11_29',]
+           r'F:\data\BAYLORCW035\python\2023_11_29',
+           r'F:\data\BAYLORCW035\python\2023_12_07',]
 for path in paths:
     
     l1 = session.Session(path)
@@ -122,8 +123,8 @@ for path in paths:
     
 #%% CW37 unmatched
 paths = [r'F:\data\BAYLORCW037\python\2023_11_21',
-           r'F:\data\BAYLORCW037\python\2023_11_28',]
-           # r'F:\data\BAYLORCW035\python\2023_11_29',]
+          r'F:\data\BAYLORCW037\python\2023_11_28',
+            r'F:\data\BAYLORCW035\python\2023_12_08',]
 for path in paths:
     
     l1 = session.Session(path)
