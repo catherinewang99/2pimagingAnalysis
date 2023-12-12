@@ -28,16 +28,16 @@ agg_mice_paths = [[[r'F:\data\BAYLORCW032\python\2023_10_08',
           r'F:\data\BAYLORCW032\python\cellreg\layer{}\1008_1016_1025pairs_proc.npy'],]]
 
          
-agg_mice_paths=    [ [[ r'F:\data\BAYLORCW034\python\2023_10_12',
-            r'F:\data\BAYLORCW034\python\2023_10_22',
-            r'F:\data\BAYLORCW034\python\2023_10_27',
-            r'F:\data\BAYLORCW034\python\cellreg\layer{}\1012_1022_1027pairs_proc.npy'],]]
+# agg_mice_paths=    [ [[ r'F:\data\BAYLORCW034\python\2023_10_12',
+#             r'F:\data\BAYLORCW034\python\2023_10_22',
+#             r'F:\data\BAYLORCW034\python\2023_10_27',
+#             r'F:\data\BAYLORCW034\python\cellreg\layer{}\1012_1022_1027pairs_proc.npy'],]]
          
-# agg_mice_paths=   [[[r'F:\data\BAYLORCW036\python\2023_10_09',
-#             r'F:\data\BAYLORCW036\python\2023_10_19',
-#             r'F:\data\BAYLORCW036\python\2023_10_30',
-#             r'F:\data\BAYLORCW036\python\cellreg\layer{}\1009_1019_1030pairs_proc.npy'],
-#         ]]
+agg_mice_paths=   [[[r'F:\data\BAYLORCW036\python\2023_10_09',
+            r'F:\data\BAYLORCW036\python\2023_10_19',
+            r'F:\data\BAYLORCW036\python\2023_10_30',
+            r'F:\data\BAYLORCW036\python\cellreg\layer{}\1009_1019_1030pairs_proc.npy'],
+        ]]
 
 #%% Plot all mice together
 
@@ -200,9 +200,6 @@ for paths in agg_mice_paths:
 
 
 
-
-
-
 bins = 25                
 plt.hist(rexpertsel, bins=bins, color='b', alpha = 0.7)
 plt.hist(lexpertsel, bins=bins, color='r', alpha = 0.7)
@@ -287,7 +284,344 @@ plt.axhline(y=0, color='grey')
 plt.show()
 
 
+#%% Plot neurons type of change in selectivity over training naive --> expert
+
+# Make a scatter plot showing the t-stat in naïve on x-axis
+# and the expert t-stat for same neuron on y-axis
 
 
+p=0.05
+rexpertsel, rlearningsel, rnaivesel = [],[],[]
+lexpertsel, llearningsel, lnaivesel = [],[],[]
+
+expertsel, learningsel, naivesel = [],[],[]
+
+
+for paths in agg_mice_paths:
+    allsel = []
+    for allpath in paths:
+        path = allpath[0] # Naive session
+        s1 = session.Session(path, use_reg=True, triple=True)
+        
+        # epoch = range(s1.response+6, s1.response+12) # Response selective
+        epoch = range(s1.response-9, s1.response) # Delay selective
+        # epoch = range(s1.delay-3, s1.delay+3) # Stimulus selective
+
+        rtrials = s1.lick_correct_direction('r')
+        random.shuffle(rtrials)
+        rtrials_train = rtrials[:50]
+        rtrials_test = rtrials[50:]  
+        
+        ltrials = s1.lick_correct_direction('l')
+        random.shuffle(ltrials)
+        ltrials_train = ltrials[:50]
+        ltrials_test = ltrials[50:]              
+        
+        s1_neurons = s1.get_epoch_selective(epoch, p=p, rtrials=rtrials_train, ltrials=ltrials_train)
+        allstat, poststat, negtstat = s1.get_epoch_tstat(epoch, s1_neurons, rtrials=rtrials_test, ltrials=ltrials_test)
+
+        naivesel += allstat
+        
+        idx = [np.where(s1.good_neurons == s)[0][0] for s in s1_neurons] # positions of selective neurons
+        
+        ## Intermediate and expert
+        path1 = allpath[1]
+        s2 = session.Session(path1, use_reg=True, triple=True)
+        path2 = allpath[2]
+        s3 = session.Session(path2, use_reg=True, triple=True)
+        
+        
+        for i in range(len(idx)):
+            
+            allstat, _, _ = s2.get_epoch_tstat(epoch, [s2.good_neurons[idx[i]]])
+            learningsel += allstat
+            allstat, _, _ = s3.get_epoch_tstat(epoch, [s3.good_neurons[idx[i]]])
+            expertsel += allstat
+
+
+plt.scatter(naivesel, learningsel, color='green', label='Learning')
+plt.axvline(0, color = 'grey', ls='-')
+plt.axhline(0, color = 'grey', ls='-')
+plt.xlabel('Naive selectivity')
+plt.ylabel('Learning/Expert selectivity')
+plt.title('Naive vs later stage sel for same neurons')
+
+for i in range(len(naivesel)):
+    
+    plt.vlines(naivesel[i], ymin = min(learningsel[i], expertsel[i]), ymax = max(learningsel[i], expertsel[i]), color='grey', ls='--')
+
+plt.scatter(naivesel, expertsel, color='red', label='Expert')
+plt.legend()
+plt.show()
+
+
+maginc, magdec, magsw = 0,0,0
+for i in range(len(naivesel)):
+    
+    if np.sign(naivesel[i]) != np.sign(expertsel[i]):
+        
+        magsw += 1
+
+    elif np.sign(expertsel[i]) * (expertsel[i] - naivesel[i]) > 0:
+        
+        maginc += 1
+    
+    elif np.sign(expertsel[i]) * (expertsel[i] - naivesel[i]) < 0:
+        
+        magdec += 1
+        
+
+plt.bar(range(3), np.array([maginc, magdec, magsw])/sum([maginc, magdec, magsw]))
+plt.xticks(range(3), ['Magn increase', 'Magn decrease', 'Magn switch'])
+plt.ylabel('Proportion of selective neurons')
+plt.title('Types of selectivity change across learning')
+plt.show()
+        
+
+#%% Plot neurons type of change in selectivity over training expert --> naive
+
+# Make a scatter plot showing the t-stat in naïve on x-axis
+# and the expert t-stat for same neuron on y-axis
+
+
+p=0.05
+rexpertsel, rlearningsel, rnaivesel = [],[],[]
+lexpertsel, llearningsel, lnaivesel = [],[],[]
+
+expertsel, learningsel, naivesel = [],[],[]
+
+
+for paths in agg_mice_paths:
+    allsel = []
+    for allpath in paths:
+        path = allpath[2] # Expert session
+        s1 = session.Session(path, use_reg=True, triple=True)
+        
+        # epoch = range(s1.response+6, s1.response+12) # Response selective
+        epoch = range(s1.response-9, s1.response) # Delay selective
+        # epoch = range(s1.delay-3, s1.delay+3) # Stimulus selective
+
+        rtrials = s1.lick_correct_direction('r')
+        random.shuffle(rtrials)
+        rtrials_train = rtrials[:50]
+        rtrials_test = rtrials[50:]  
+        
+        ltrials = s1.lick_correct_direction('l')
+        random.shuffle(ltrials)
+        ltrials_train = ltrials[:50]
+        ltrials_test = ltrials[50:]              
+        
+        s1_neurons = s1.get_epoch_selective(epoch, p=p, rtrials=rtrials_train, ltrials=ltrials_train)
+        allstat, poststat, negtstat = s1.get_epoch_tstat(epoch, s1_neurons, rtrials=rtrials_test, ltrials=ltrials_test)
+
+        expertsel += allstat
+        
+        idx = [np.where(s1.good_neurons == s)[0][0] for s in s1_neurons] # positions of selective neurons
+        
+        ## Intermediate and expert
+        path1 = allpath[1]
+        s2 = session.Session(path1, use_reg=True, triple=True)
+        path2 = allpath[0]
+        s3 = session.Session(path2, use_reg=True, triple=True)
+        
+        
+        for i in range(len(idx)):
+            
+            allstat, _, _ = s2.get_epoch_tstat(epoch, [s2.good_neurons[idx[i]]])
+            learningsel += allstat
+            allstat, _, _ = s3.get_epoch_tstat(epoch, [s3.good_neurons[idx[i]]])
+            naivesel += allstat
+
+
+plt.scatter(expertsel, learningsel, color='green', label='Learning')
+plt.axvline(0, color = 'grey', ls='-')
+plt.axhline(0, color = 'grey', ls='-')
+plt.xlabel('Expert selectivity')
+plt.ylabel('Naive/Learning selectivity')
+plt.title('Expert vs earlier stage sel for same neurons')
+
+for i in range(len(naivesel)):
+    
+    plt.vlines(expertsel[i], ymin = min(learningsel[i], naivesel[i]), ymax = max(learningsel[i], naivesel[i]), color='grey', ls='--')
+
+plt.scatter(expertsel, naivesel, color='red', label='Naive')
+plt.legend()
+plt.show()
+
+
+maginc, magdec, magsw = 0,0,0
+for i in range(len(naivesel)):
+    
+    if np.sign(naivesel[i]) != np.sign(expertsel[i]):
+        
+        magsw += 1
+
+    elif np.sign(expertsel[i]) * (expertsel[i] - naivesel[i]) > 0:
+        
+        maginc += 1
+    
+    elif np.sign(expertsel[i]) * (expertsel[i] - naivesel[i]) < 0:
+        
+        magdec += 1
+        
+
+plt.bar(range(3), np.array([maginc, magdec, magsw])/sum([maginc, magdec, magsw]))
+plt.xticks(range(3), ['Magn increase', 'Magn decrease', 'Magn switch'])
+plt.ylabel('Proportion of selective neurons')
+plt.title('Types of selectivity change across learning')
+plt.show()
+
+#%% Plot neurons type of change in selectivity over training LEARNING!
+
+# Make a scatter plot showing the t-stat in naïve on x-axis
+# and the expert t-stat for same neuron on y-axis
+
+
+p=0.05
+rexpertsel, rlearningsel, rnaivesel = [],[],[]
+lexpertsel, llearningsel, lnaivesel = [],[],[]
+
+expertsel, learningsel, naivesel = [],[],[]
+
+
+for paths in agg_mice_paths:
+    allsel = []
+    for allpath in paths:
+        path = allpath[1] # Expert session
+        s1 = session.Session(path, use_reg=True, triple=True)
+        
+        # epoch = range(s1.response+6, s1.response+12) # Response selective
+        epoch = range(s1.response-9, s1.response) # Delay selective
+        # epoch = range(s1.delay-3, s1.delay+3) # Stimulus selective
+
+        rtrials = s1.lick_correct_direction('r')
+        random.shuffle(rtrials)
+        rtrials_train = rtrials[:50]
+        rtrials_test = rtrials[50:]  
+        
+        ltrials = s1.lick_correct_direction('l')
+        random.shuffle(ltrials)
+        ltrials_train = ltrials[:50]
+        ltrials_test = ltrials[50:]              
+        
+        s1_neurons = s1.get_epoch_selective(epoch, p=p, rtrials=rtrials_train, ltrials=ltrials_train)
+        allstat, poststat, negtstat = s1.get_epoch_tstat(epoch, s1_neurons, rtrials=rtrials_test, ltrials=ltrials_test)
+
+        learningsel += allstat
+        
+        idx = [np.where(s1.good_neurons == s)[0][0] for s in s1_neurons] # positions of selective neurons
+        
+        ## Intermediate and expert
+        path1 = allpath[2]
+        s2 = session.Session(path1, use_reg=True, triple=True)
+        path2 = allpath[0]
+        s3 = session.Session(path2, use_reg=True, triple=True)
+        
+        
+        for i in range(len(idx)):
+            
+            allstat, _, _ = s2.get_epoch_tstat(epoch, [s2.good_neurons[idx[i]]])
+            expertsel += allstat
+            allstat, _, _ = s3.get_epoch_tstat(epoch, [s3.good_neurons[idx[i]]])
+            naivesel += allstat
+
+
+plt.scatter(learningsel, expertsel, color='green', label='Expert')
+plt.axvline(0, color = 'grey', ls='-')
+plt.axhline(0, color = 'grey', ls='-')
+plt.xlabel('Expert selectivity')
+plt.ylabel('Naive/Learning selectivity')
+plt.title('Expert vs earlier stage sel for same neurons')
+
+for i in range(len(naivesel)):
+    
+    plt.vlines(learningsel[i], ymin = min(expertsel[i], naivesel[i]), ymax = max(expertsel[i], naivesel[i]), color='grey', ls='--')
+
+plt.scatter(learningsel, naivesel, color='red', label='Naive')
+plt.legend()
+plt.show()
+
+
+maginc, magdec, magsw = 0,0,0
+for i in range(len(naivesel)):
+        
+    if np.sign(naivesel[i]) != np.sign(expertsel[i]):
+        
+        magsw += 1
+
+    elif np.sign(expertsel[i]) * (expertsel[i] - naivesel[i]) > 0:
+        
+        maginc += 1
+    
+    elif np.sign(expertsel[i]) * (expertsel[i] - naivesel[i]) < 0:
+        
+        magdec += 1
+        
+
+plt.bar(range(3), np.array([maginc, magdec, magsw])/sum([maginc, magdec, magsw]))
+plt.xticks(range(3), ['Magn increase', 'Magn decrease', 'Magn switch'])
+plt.ylabel('Proportion of selective neurons')
+plt.title('Types of selectivity change across learning')
+plt.show()
+
+# Average delta selectivity over expert selectivity
+deltamag = []
+for i in range(len(learningsel)):
+
+    deltamag += [np.abs(naivesel[i]-expertsel[i])]
+
+order = np.argsort(learningsel)
+deltamag = np.take(deltamag,order)
+learningsel = np.take(learningsel,order)
+
+plt.scatter(learningsel, deltamag)
+plt.plot(learningsel, deltamag)
+
+#%% Single neuron traces:
+
+for paths in agg_mice_paths:
+    allsel = []
+    for allpath in paths:
+        path = allpath[0] # Naive session
+        s1 = session.Session(path, use_reg=True, triple=True)
+        
+        # epoch = range(s1.response+6, s1.response+12) # Response selective
+        epoch = range(s1.response-9, s1.response) # Delay selective
+        # epoch = range(s1.delay-3, s1.delay+3) # Stimulus selective
+
+        rtrials = s1.lick_correct_direction('r')
+        random.shuffle(rtrials)
+        rtrials_train = rtrials[:50]
+        rtrials_test = rtrials[50:]  
+        
+        ltrials = s1.lick_correct_direction('l')
+        random.shuffle(ltrials)
+        ltrials_train = ltrials[:50]
+        ltrials_test = ltrials[50:]              
+        
+        s1_neurons = s1.get_epoch_selective(epoch, p=p, rtrials=rtrials_train, ltrials=ltrials_train)
+        allstat, _, _ = s1.get_epoch_tstat(epoch, s1_neurons, rtrials=rtrials_test, ltrials=ltrials_test)
+
+        sorted_s1_neurons = np.take(s1_neurons, np.argsort(allstat))
+        
+        ## Intermediate and expert
+        path1 = allpath[1]
+        s2 = session.Session(path1, use_reg=True, triple=True)
+        path2 = allpath[2]
+        s3 = session.Session(path2, use_reg=True, triple=True)
+        
+        for n in sorted_s1_neurons:
+            idx = np.where(s1.good_neurons == n)[0][0] # positions of selective neurons
+
+            # Naive
+            s1.plot_rasterPSTH_sidebyside(n)
+            
+            # Learning
+            s2.plot_rasterPSTH_sidebyside(s2.good_neurons[idx])
+
+            # Expert
+            s3.plot_rasterPSTH_sidebyside(s3.good_neurons[idx])
+
+    
 
 

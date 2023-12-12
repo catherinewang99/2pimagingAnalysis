@@ -80,7 +80,7 @@ plt.show()
 
 b = behavior.Behavior('F:\data\Behavior data\BAYLORCW035\python_behavior', behavior_only=True)
 b.learning_progression(imaging=True)
-b.learning_progression(window=100)
+b.learning_progression(window=150)
 
 b = behavior.Behavior('F:\data\Behavior data\BAYLORCW037\python_behavior', behavior_only=True)
 b.learning_progression(imaging=True)
