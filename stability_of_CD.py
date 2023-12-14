@@ -48,6 +48,10 @@ expertpath =r'F:\data\BAYLORCW032\python\2023_10_24'
 #             r'F:\data\BAYLORCW036\python\2023_10_19',
 #             r'F:\data\BAYLORCW036\python\2023_10_30',]
 
+naivepath, learningpath, expertpath =[r'F:\data\BAYLORCW035\python\2023_10_12',
+            r'F:\data\BAYLORCW035\python\2023_10_26',
+            r'F:\data\BAYLORCW035\python\2023_12_12',]
+
 #%% Choice dimension define on learning sess
 
 path = learningpath

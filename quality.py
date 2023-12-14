@@ -60,10 +60,8 @@ class QC(Session):
         # for neuron in self.good_neurons:
             dfftrial = []
             for trial in range(len(stim_dff)):
-                if 'CW03' in self.path:
-                    dfftrial += [stim_dff[trial][neuron, :self.time_cutoff]]
-                else:
-                    dfftrial += [stim_dff[trial][neuron, :self.time_cutoff]]
+
+                dfftrial += [stim_dff[trial][neuron, :self.time_cutoff]]
 
             stack = np.vstack((stack, np.mean(np.array(dfftrial), axis=0)))
 
@@ -73,7 +71,7 @@ class QC(Session):
         axarr[0,0].set_title('Opto')
         axarr[0,0].axvline(x=delay, c='b', linewidth = 0.5)
         axarr[1,0].plot(np.mean(stack, axis = 0))
-        axarr[1,0].set_ylim(top=self.fs)
+        # axarr[1,0].set_ylim(top=self.fs)
         axarr[1,0].axvline(x=delay, c='b', linewidth = 0.5)
         # axarr[1,0].set_xticks(range(0,stack.shape[1], 10), [int(d) for d in x[::10]])
         
@@ -84,21 +82,18 @@ class QC(Session):
 
             dfftrial = []
             for trial in range(len(non_stim_dff)):
-                if 'CW03' in self.path:
-                    dfftrial += [non_stim_dff[trial][neuron, :self.time_cutoff]]
-                else:
-                    dfftrial += [non_stim_dff[trial][neuron, :self.time_cutoff]]
+
+                dfftrial += [non_stim_dff[trial][neuron, :self.time_cutoff]]
 
             stack = np.vstack((stack, np.mean(np.array(dfftrial), axis=0)))
 
         stack = normalize(stack[1:])
-
         axarr[0,1].matshow(stack, cmap='gray', interpolation='nearest', aspect='auto')
         axarr[0,1].axis('off')
         axarr[0,1].set_title('Control')
 
         axarr[1,1].plot(np.mean(stack, axis = 0))
-        axarr[1,1].set_ylim(top=0.2)
+        # axarr[1,1].set_ylim(top=0.2)
         axarr[1,0].set_ylabel('dF/F0')
         # axarr[1,1].set_xticks(range(0,stack.shape[1], 10), [int(d) for d in x[::10]])
         axarr[1,0].set_xlabel('Time from Go cue (s)')
