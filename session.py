@@ -158,6 +158,14 @@ class Session:
         self.L_ignore = cat(behavior['L_ignore_tmp'])
         self.R_ignore = cat(behavior['R_ignore_tmp'])
                 
+        self.L_trials = np.sort(cat((np.where(self.L_correct)[0], 
+                                     np.where(self.L_wrong)[0],
+                                     np.where(self.L_ignore)[0])))
+        
+        self.R_trials = np.sort(cat((np.where(self.R_correct)[0], 
+                                     np.where(self.R_wrong)[0],
+                                     np.where(self.R_ignore)[0]))) 
+        
         self.stim_ON = cat(behavior['StimDur_tmp']) > 0
         if 'StimLevel' in behavior.keys():
             self.stim_level = cat(behavior['StimLevel'])
@@ -886,6 +894,7 @@ class Session:
         plt.plot(self.dff[0, trial][neuron_num], 'b-')
         plt.title("Neuron {}: PSTH for trial {}".format(neuron_num, trial))
         plt.show()
+        
 
     def plot_population_PSTH(self, neurons, opto = False):
         """Plots many neurons PSTH over R/L trials
@@ -1283,7 +1292,7 @@ class Session:
 
     def plot_selectivity(self, neuron_num, plot=True, epoch=[]):
         
-        """Plots a single line representing selectivity of given neuron over trial
+        """Plots a single line representing selectivity of given neuron over all trials
         
         Evaluates the selectivity using preference in delay epoch
         

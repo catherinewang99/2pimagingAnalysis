@@ -37,7 +37,7 @@ path = r'G:\BAYLORCW030\python\2023_06_21'
 path = r'F:\data\BAYLORCW036\python\2023_10_17'
 path = r'F:\data\BAYLORCW034\python\2023_10_22'
 path = r'F:\data\BAYLORCW032\python\2023_10_25'
-
+path = r'F:\data\BAYLORCW037\python\2023_12_08'
 # l1 = session.Session(path, layer_num=6,  sess_reg=True)
 l1 = session.Session(path)
 # l1 = decon.Deconvolved(path)
@@ -58,8 +58,24 @@ l1 = session.Session(path)
 
 # l1.selectivity_table_by_epoch()
 
-l1.selectivity_optogenetics()
+# l1.selectivity_optogenetics()
+#%%
 
+neurons = l1.get_epoch_selective(range(l1.response-9, l1.response))
+stimtrials = np.where(l1.stim_ON)[0]
+for trial in stimtrials:
+    
+    if trial in l1.R_trials:
+        # continue
+        plt.plot(l1.dff[0, trial][neurons[0]], 'b-',alpha=0.5)
+    else:
+        continue
+        plt.plot(l1.dff[0, trial][neurons[0]], 'r-',alpha=0.5)
+
+
+plt.xlim(0,l1.time_cutoff)
+plt.show()
+    
 ## For selective neurons
 # l1 = session.Session(path)
 

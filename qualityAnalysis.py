@@ -27,6 +27,9 @@ path = r'F:\data\BAYLORCW037\python\2023_12_13'
 # path = r'F:\data\BAYLORCW021\python\2023_02_15'
 # path = r'F:\data\BAYLORCW032\python\2023_10_08'
 
+path = r'F:\data\BAYLORCW037\python\2023_12_15'
+
+
 l1 = quality.QC(path)
 # l1.plot_pearsons_correlation()
 # var = l1.plot_variance_spread()
