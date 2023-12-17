@@ -41,9 +41,9 @@ paths = [r'F:\data\BAYLORCW035\python\2023_10_12',
             r'F:\data\BAYLORCW035\python\2023_10_26',
             r'F:\data\BAYLORCW035\python\2023_12_14',]
 
-paths = [r'F:\data\BAYLORCW037\python\2023_11_21',
-            r'F:\data\BAYLORCW037\python\2023_11_28',
-            r'F:\data\BAYLORCW037\python\2023_12_15',]
+# paths = [r'F:\data\BAYLORCW037\python\2023_11_21',
+#             r'F:\data\BAYLORCW037\python\2023_11_28',
+#             r'F:\data\BAYLORCW037\python\2023_12_15',]
 
 performance_opto = []
 performance_ctl = []
