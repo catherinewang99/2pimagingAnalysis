@@ -207,6 +207,7 @@ class Session:
         self.i_good_non_stim_trials = [t for t in self.i_good_trials if not self.stim_ON[t]]
 
         if not sess_reg and not use_reg:
+            print("Using Pearsons corr to filter neurons.")
             self.good_neurons, _ = self.get_pearsonscorr_neuron(cutoff=0.5)
         elif sess_reg:
             print(sess_reg)

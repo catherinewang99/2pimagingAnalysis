@@ -39,7 +39,7 @@ paths = [r'F:\data\BAYLORCW036\python\2023_10_09',
 
 paths = [r'F:\data\BAYLORCW035\python\2023_10_12',
             r'F:\data\BAYLORCW035\python\2023_10_26',
-            r'F:\data\BAYLORCW035\python\2023_12_14',]
+            r'F:\data\BAYLORCW035\python\2023_12_16',]
 
 # paths = [r'F:\data\BAYLORCW037\python\2023_11_21',
 #             r'F:\data\BAYLORCW037\python\2023_11_28',
@@ -88,11 +88,11 @@ plt.show()
 
 b = behavior.Behavior('F:\data\Behavior data\BAYLORCW035\python_behavior', behavior_only=True)
 b.learning_progression(imaging=True)
-b.learning_progression(window=150)
+# b.learning_progression(window=150)
 
-b = behavior.Behavior('F:\data\Behavior data\BAYLORCW037\python_behavior', behavior_only=True)
-b.learning_progression(imaging=True)
-b.learning_progression()
+# b = behavior.Behavior('F:\data\Behavior data\BAYLORCW037\python_behavior', behavior_only=True)
+# b.learning_progression(imaging=True)
+# b.learning_progression()
 
 # b = behavior.Behavior('F:\data\Behavior data\BAYLORCW021\python_behavior', behavior_only=True)
 # b.learning_progression_no_EL(imaging=True)
