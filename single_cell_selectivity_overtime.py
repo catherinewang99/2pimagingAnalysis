@@ -56,7 +56,18 @@ agg_mice_paths = [[[r'F:\data\BAYLORCW032\python\2023_10_08',
             r'F:\data\BAYLORCW036\python\2023_10_19',
             r'F:\data\BAYLORCW036\python\2023_10_30',
             r'F:\data\BAYLORCW036\python\cellreg\layer{}\1009_1019_1030pairs_proc.npy'],
-        ]]
+        ],
+    
+    [[r'F:\data\BAYLORCW035\python\2023_10_26',
+            r'F:\data\BAYLORCW035\python\2023_12_07',
+            r'F:\data\BAYLORCW035\python\2023_12_15',],
+        ],
+    
+    [[r'F:\data\BAYLORCW037\python\2023_11_21',
+            r'F:\data\BAYLORCW037\python\2023_12_08',
+            r'F:\data\BAYLORCW037\python\2023_12_15',],
+        ]    
+    ]
 
 #%% Plot expert --> naive
 
@@ -71,7 +82,7 @@ for paths in agg_mice_paths:
         path = allpath[2] # Expert session
         s1 = session.Session(path, use_reg=True, triple=True)
         
-        # epoch = range(s1.response+6, s1.response+12) # Response selective
+        epoch = range(s1.response+6, s1.response+12) # Response selective
         epoch = range(s1.response-9, s1.response) # Delay selective
         # epoch = range(s1.delay-3, s1.delay+3) # Stimulus selective
 
@@ -86,7 +97,9 @@ for paths in agg_mice_paths:
         ltrials_test = ltrials[50:]              
         
         s1_neurons = s1.get_epoch_selective(epoch, p=p, rtrials=rtrials_train, ltrials=ltrials_train)
-        allstat, poststat, negtstat = s1.get_epoch_tstat(epoch, s1_neurons, rtrials=rtrials_test, ltrials=ltrials_test)
+        # allstat, poststat, negtstat = s1.get_epoch_tstat(epoch, s1_neurons, rtrials=rtrials_test, ltrials=ltrials_test)
+        allstat, poststat, negtstat = s1.get_epoch_selectivity(epoch, s1_neurons, rtrials=rtrials_test, ltrials=ltrials_test)
+
         rexpertsel += negtstat
         lexpertsel += poststat
         allsel += allstat
@@ -171,7 +184,8 @@ for paths in agg_mice_paths:
         ltrials_test = ltrials[50:]              
         
         s1_neurons = s1.get_epoch_selective(epoch, p=p, rtrials=rtrials_train, ltrials=ltrials_train)
-        allstat, poststat, negtstat = s1.get_epoch_tstat(epoch, s1_neurons, rtrials=rtrials_test, ltrials=ltrials_test)
+        # allstat, poststat, negtstat = s1.get_epoch_tstat(epoch, s1_neurons, rtrials=rtrials_test, ltrials=ltrials_test)
+        allstat, poststat, negtstat = s1.get_epoch_selectivity(epoch, s1_neurons, rtrials=rtrials_test, ltrials=ltrials_test)
         rexpertsel += negtstat
         lexpertsel += poststat
         allsel += allstat

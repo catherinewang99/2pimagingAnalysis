@@ -1184,6 +1184,51 @@ class Session:
 
 
         return all_tstat, poststat, negtstat
+
+    def get_epoch_selectivity(self, epoch, neurons, bias=False, rtrials=[], ltrials=[], lickdir = False):
+        """
+        Get adjusted L/R difference of provided neurons during provided epoch
+
+        Parameters
+        ----------
+        epoch : list
+            DESCRIPTION.
+        neurons : list
+            DESCRIPTION.
+        rtrials, ltrials: list, optional
+            If provided, use these trials to evaluate selectivty
+
+        Returns
+        -------
+        List of diff associated with input neurons.
+
+        """
+        
+        all_tstat = []
+        poststat, negtstat = [],[]
+        # for neuron in range(self.num_neurons):
+        for neuron in neurons: # Only look at provided neurons
+            right, left = self.get_trace_matrix(neuron, rtrials=rtrials, ltrials=ltrials)
+            if lickdir:
+                right, left = self.get_trace_matrix(neuron, lickdir=True, rtrials=rtrials, ltrials=ltrials)
+                
+                
+            if bias:
+                biasidx = self.find_bias_trials()
+                right,left = self.get_trace_matrix(neuron, bias_trials= biasidx)
+            
+            left_ = [l[epoch] for l in left]
+            right_ = [r[epoch] for r in right]
+            diff = np.sum(np.mean(left_, axis = 0) - np.mean(right_, axis = 0))
+
+            tstat = diff / np.sum(np.mean(left_, axis = 0) + np.mean(right_, axis = 0))
+            all_tstat += [tstat] # Positive if L selective, negative if R selective
+            if tstat > 0:
+                poststat += [tstat]
+            else:
+                negtstat += [tstat]
+                
+        return all_tstat, poststat, negtstat
     
     
     def get_epoch_mean_diff(self, epoch, trials):

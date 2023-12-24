@@ -51,6 +51,15 @@ expertpath =r'F:\data\BAYLORCW032\python\2023_10_24'
 naivepath, learningpath, expertpath =[r'F:\data\BAYLORCW035\python\2023_10_12',
             r'F:\data\BAYLORCW035\python\2023_10_26',
             r'F:\data\BAYLORCW035\python\2023_12_12',]
+
+naivepath, learningpath, expertpath =[r'F:\data\BAYLORCW035\python\2023_10_26',
+            r'F:\data\BAYLORCW035\python\2023_12_07',
+            r'F:\data\BAYLORCW035\python\2023_12_15',]
+
+    
+naivepath, learningpath, expertpath =[r'F:\data\BAYLORCW037\python\2023_11_21',
+            r'F:\data\BAYLORCW037\python\2023_12_08',
+            r'F:\data\BAYLORCW037\python\2023_12_15',]
 #%% Choice dimension unmatched
 
 path = expertpath

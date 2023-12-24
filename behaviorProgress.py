@@ -158,26 +158,26 @@ b.learning_progression(imaging=True)
 
 #%% Compare all learning curves together
 
-# f, axarr = plt.subplots(2, 1, sharex='col', figsize=(10,6))
+f, axarr = plt.subplots(2, 1, sharex='col', figsize=(10,6))
 
-# all_acc = []
-# all_EL = []
-# for idx in [34, 32, 36]:
-#     b = behavior.Behavior('F:\data\Behavior data\BAYLORCW0{}\python_behavior'.format(idx), behavior_only=True)
-#     earlylicksarr, correctarr, _ = b.get_acc_EL(window=100)
-#     axarr[0].plot(correctarr, 'g', alpha =0.75)        
-#     axarr[0].set_ylabel('% correct')
-#     axarr[0].axhline(y=0.7, alpha = 0.5, color='orange')
-#     axarr[0].axhline(y=0.5, alpha = 0.5, color='red', ls = '--')
-#     axarr[0].set_ylim(0, 1)
+all_acc = []
+all_EL = []
+for idx in [34, 32, 36, 37]:
+    b = behavior.Behavior('F:\data\Behavior data\BAYLORCW0{}\python_behavior'.format(idx), behavior_only=True)
+    earlylicksarr, correctarr, _ = b.get_acc_EL(window=100)
+    axarr[0].plot(correctarr, 'g', alpha =0.75)        
+    axarr[0].set_ylabel('% correct')
+    axarr[0].axhline(y=0.7, alpha = 0.5, color='orange')
+    axarr[0].axhline(y=0.5, alpha = 0.5, color='red', ls = '--')
+    axarr[0].set_ylim(0, 1)
     
-#     # Early licking
+    # Early licking
     
-#     axarr[1].plot(earlylicksarr, 'b', alpha=0.75)        
-#     axarr[1].set_ylabel('% Early licks')
-#     axarr[1].set_xlabel('Trials')
+    axarr[1].plot(earlylicksarr, 'b', alpha=0.75)        
+    axarr[1].set_ylabel('% Early licks')
+    axarr[1].set_xlabel('Trials')
 # plt.savefig(r'F:\data\SFN 2023\alllearningcurves.pdf',transparent=True)
-# plt.show()
+plt.show()
 
 #%% Plot session to match GLM HMM
 # sessions = ['20230215', '20230322', '20230323',  '20230403', '20230406', '20230409', '20230411',

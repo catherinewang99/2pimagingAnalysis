@@ -27,7 +27,7 @@ path = r'F:\data\BAYLORCW037\python\2023_11_22'
 # path = r'F:\data\BAYLORCW021\python\2023_02_15'
 # path = r'F:\data\BAYLORCW032\python\2023_10_08'
 
-path = r'F:\data\BAYLORCW035\python\2023_12_16'
+path = r'F:\data\BAYLORCW035\python\2023_12_12'
 
 
 l1 = quality.QC(path)
