@@ -40,26 +40,26 @@ naivepath =r'F:\data\BAYLORCW032\python\2023_10_05'
 learningpath =  r'F:\data\BAYLORCW032\python\2023_10_19'
 expertpath =r'F:\data\BAYLORCW032\python\2023_10_24'
 
-# naivepath, learningpath, expertpath = [ r'F:\data\BAYLORCW034\python\2023_10_12',
-#     r'F:\data\BAYLORCW034\python\2023_10_22',
-#     r'F:\data\BAYLORCW034\python\2023_10_27',]
+naivepath, learningpath, expertpath = [ r'F:\data\BAYLORCW034\python\2023_10_12',
+    r'F:\data\BAYLORCW034\python\2023_10_22',
+    r'F:\data\BAYLORCW034\python\2023_10_27',]
 
-# naivepath, learningpath, expertpath =[r'F:\data\BAYLORCW036\python\2023_10_09',
-#             r'F:\data\BAYLORCW036\python\2023_10_19',
-#             r'F:\data\BAYLORCW036\python\2023_10_30',]
+naivepath, learningpath, expertpath =[r'F:\data\BAYLORCW036\python\2023_10_09',
+            r'F:\data\BAYLORCW036\python\2023_10_19',
+            r'F:\data\BAYLORCW036\python\2023_10_30',]
 
-naivepath, learningpath, expertpath =[r'F:\data\BAYLORCW035\python\2023_10_12',
-            r'F:\data\BAYLORCW035\python\2023_10_26',
-            r'F:\data\BAYLORCW035\python\2023_12_12',]
+# naivepath, learningpath, expertpath =[r'F:\data\BAYLORCW035\python\2023_10_12',
+#             r'F:\data\BAYLORCW035\python\2023_10_26',
+#             r'F:\data\BAYLORCW035\python\2023_12_12',]
 
-naivepath, learningpath, expertpath =[r'F:\data\BAYLORCW035\python\2023_10_26',
-            r'F:\data\BAYLORCW035\python\2023_12_07',
-            r'F:\data\BAYLORCW035\python\2023_12_15',]
+# naivepath, learningpath, expertpath =[r'F:\data\BAYLORCW035\python\2023_10_26',
+#             r'F:\data\BAYLORCW035\python\2023_12_07',
+#             r'F:\data\BAYLORCW035\python\2023_12_15',]
 
     
-naivepath, learningpath, expertpath =[r'F:\data\BAYLORCW037\python\2023_11_21',
-            r'F:\data\BAYLORCW037\python\2023_12_08',
-            r'F:\data\BAYLORCW037\python\2023_12_15',]
+# naivepath, learningpath, expertpath =[r'F:\data\BAYLORCW037\python\2023_11_21',
+#             r'F:\data\BAYLORCW037\python\2023_12_08',
+#             r'F:\data\BAYLORCW037\python\2023_12_15',]
 #%% Choice dimension unmatched
 
 path = expertpath

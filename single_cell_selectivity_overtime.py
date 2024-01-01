@@ -67,6 +67,7 @@ agg_mice_paths = [[[r'F:\data\BAYLORCW032\python\2023_10_08',
             r'F:\data\BAYLORCW037\python\2023_12_08',
             r'F:\data\BAYLORCW037\python\2023_12_15',],
         ]    
+
     ]
 
 #%% Plot expert --> naive

@@ -55,7 +55,7 @@ plt.ylim(top = 250)
 plt.ylabel('Number of sig sel neurons')
 plt.xlabel('Time from Go cue (s)')
 plt.legend()
-# plt.savefig(r'F:\data\SFN 2023\naive_num_sel_neuronsALL.pdf')
+plt.savefig(r'F:\data\Fig 1\naive_num_sel_neuronsALL.pdf')
 
 plt.show()
 #%%
@@ -92,7 +92,7 @@ plt.ylim(top = 250)
 plt.ylabel('Number of sig sel neurons')
 plt.xlabel('Time from Go cue (s)')
 plt.legend()
-# plt.savefig(r'F:\data\SFN 2023\learning_num_sel_neuronsALL.pdf')
+plt.savefig(r'F:\data\Fig 1\learning_num_sel_neuronsALL.pdf')
 plt.show()
 
 
@@ -135,4 +135,4 @@ plt.ylim(top = 250)
 plt.ylabel('Number of sig sel neurons')
 plt.xlabel('Time from Go cue (s)')
 plt.legend()
-# plt.savefig(r'F:\data\SFN 2023\trained_num_sel_neuronsALL.pdf')
+plt.savefig(r'F:\data\Fig 1\trained_num_sel_neuronsALL.pdf')

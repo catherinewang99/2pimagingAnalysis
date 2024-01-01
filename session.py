@@ -2113,17 +2113,18 @@ class Session:
         plt.show()
         
 
-    def plot_rasterPSTH_sidebyside(self, neuron_num, bias=False,save=[]):
+    def plot_rasterPSTH_sidebyside(self, neuron_num, bias=False, fixaxis = False, save=[]):
         """Plot heatmap then averaged L/R trace for a single neuron comparing control and opto trials
                                 
         Parameters
         ----------
         neuron_num : int
             Neuron number to be evaluated
-        opto : bool, optional
-            Whether to plot optogenetic trials or not (default False)
         bias: bool, optional
             Whether to plot bias trials (default False)
+            
+        fixaxis : bool or tuple, optional
+            If given, use as the top/bottom lim for plotting
         """
         if bias:
             bias_trials = self.find_bias_trials()
@@ -2160,6 +2161,8 @@ class Session:
         axarr[1, 0].axvline(self.sample, linestyle = '--')
         axarr[1, 0].axvline(self.delay, linestyle = '--')
         axarr[1, 0].axvline(self.response, linestyle = '--')
+        if fixaxis != False:
+            axarr[1, 0].set_ylim([fixaxis[0], fixaxis[1]])
         
         x = range(self.time_cutoff)
 
@@ -2207,6 +2210,9 @@ class Session:
         axarr[1, 1].axvline(self.response, linestyle = '--')
         if not bias:
             axarr[1, 1].hlines(y=vmax, xmin=self.delay, xmax=self.delay + 5, linewidth=10, color='red')
+            
+        if fixaxis != False:
+            axarr[1, 1].set_ylim([fixaxis[0], fixaxis[1]])
         
         x = range(self.time_cutoff)
 

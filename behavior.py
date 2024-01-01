@@ -405,7 +405,9 @@ class Behavior():
             axarr[2].axvline(num, color = 'grey', alpha=0.5, ls = '--')
         
         if save:
-            plt.savefig(self.path + r'\learningcurve.png')
+            # plt.savefig(self.path + r'\learningcurve.png')
+            print("saving")
+            plt.savefig(save)
         plt.show()
         
         

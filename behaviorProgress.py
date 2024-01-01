@@ -86,13 +86,13 @@ plt.show()
 # b = behavior.Behavior('F:\data\Behavior data\BAYLORCW028\python_behavior', behavior_only=True)
 # b.learning_progression(imaging=True)
 
-b = behavior.Behavior('F:\data\Behavior data\BAYLORCW035\python_behavior', behavior_only=True)
-b.learning_progression(imaging=True)
-# b.learning_progression(window=150)
-
-# b = behavior.Behavior('F:\data\Behavior data\BAYLORCW037\python_behavior', behavior_only=True)
+b = behavior.Behavior('F:\data\Behavior data\BAYLORCW032\python_behavior', behavior_only=True)
 # b.learning_progression(imaging=True)
-# b.learning_progression()
+b.learning_progression(window=150, save =r'F:\data\Fig 1\CW32.pdf')
+
+b = behavior.Behavior('F:\data\Behavior data\BAYLORCW037\python_behavior', behavior_only=True)
+# b.learning_progression(imaging=True)
+b.learning_progression(window=200, save =r'F:\data\Fig 1\CW37.pdf')
 
 # b = behavior.Behavior('F:\data\Behavior data\BAYLORCW021\python_behavior', behavior_only=True)
 # b.learning_progression_no_EL(imaging=True)
@@ -107,52 +107,86 @@ b.learning_progression(imaging=True)
 
 #%% Compare learning curves ####
 
-# window = 200
-# b = behavior.Behavior('F:\data\Behavior data\BAYLORCW032\python_behavior', behavior_only=True)
-# delays, acc_arr_32, numtrials_32 = b.learning_progression(return_results = True, window=window)
+window = 200
+b = behavior.Behavior('F:\data\Behavior data\BAYLORCW032\python_behavior', behavior_only=True)
+delays, acc_arr_32, numtrials_32 = b.learning_progression(return_results = True, window=window)
 
 
-# b = behavior.Behavior('F:\data\Behavior data\BAYLORCW034\python_behavior', behavior_only=True)
-# delays, acc_arr, numtrials = b.learning_progression(return_results = True, window=window)
+b = behavior.Behavior('F:\data\Behavior data\BAYLORCW034\python_behavior', behavior_only=True)
+delays, acc_arr, numtrials = b.learning_progression(return_results = True, window=window)
 
-# b = behavior.Behavior('F:\data\Behavior data\BAYLORCW036\python_behavior', behavior_only=True)
-# delays, acc_arr_36, numtrials_36 = b.learning_progression(return_results = True, window=window)
-
-
-# plt.scatter(numtrials_32[4], (acc_arr_32[numtrials_32[0]:numtrials_32[4]] - acc_arr_32[numtrials_32[0]])[-1], marker='o', s=150, alpha = 0.5, color = 'r')
-# plt.scatter(numtrials_32[10] - numtrials_32[6], (acc_arr_32[numtrials_32[6]:numtrials_32[10]] - acc_arr_32[numtrials_32[6]])[-1], marker='o', s=150, alpha = 0.5, color = 'r')
-# plt.scatter(numtrials_32[6] - numtrials_32[4], (acc_arr_32[numtrials_32[4]:numtrials_32[6]] - acc_arr_32[numtrials_32[4]])[-1], marker='o', s=150, alpha = 0.5, color = 'g')
-# plt.scatter(numtrials_32[12] - numtrials_32[10], (acc_arr_32[numtrials_32[10]:numtrials_32[12]] - acc_arr_32[numtrials_32[10]])[-1], marker='o', s=150, alpha = 0.5, color = 'g')
+b = behavior.Behavior('F:\data\Behavior data\BAYLORCW036\python_behavior', behavior_only=True)
+delays, acc_arr_36, numtrials_36 = b.learning_progression(return_results = True, window=window)
 
 
-# plt.scatter(numtrials_36[2], (acc_arr_36[numtrials_36[0]:numtrials_36[2]] - acc_arr_36[numtrials_36[0]])[-1], marker='o', s=150, alpha = 0.5, color = 'r')
-# plt.scatter(numtrials_36[5] - numtrials_36[2], (acc_arr_36[numtrials_36[2]:numtrials_36[5]] - acc_arr_36[numtrials_36[2]])[-1], marker='o', s=150, alpha = 0.5, color = 'g')
 
-# plt.scatter(numtrials[2], (acc_arr[numtrials[0]:numtrials[2]] - acc_arr[numtrials[0]])[-1], marker='o', s=150, alpha = 0.5, color = 'r')
-# plt.scatter(numtrials[6] - numtrials[4], (acc_arr[numtrials[4]:numtrials[6]] - acc_arr[numtrials[4]])[-1], marker='o', s=150, alpha = 0.5, color = 'r')
-# plt.scatter(numtrials[4] - numtrials[2], (acc_arr[numtrials[2]:numtrials[4]] - acc_arr[numtrials[2]])[-1], marker='o', s=150, alpha = 0.5, color = 'g')
-# plt.scatter(numtrials[8] - numtrials[6], (acc_arr[numtrials[6]:numtrials[8]] - acc_arr[numtrials[6]])[-1], marker='o', s=150, alpha = 0.5, color = 'g')
+# New data 
+b = behavior.Behavior('F:\data\Behavior data\BAYLORCW035\python_behavior', behavior_only=True)
+delays, acc_arr_35, numtrials_35 = b.learning_progression(return_results = True, window=window)
 
-
-# plt.plot(acc_arr_32[numtrials_32[0]:numtrials_32[4]] - acc_arr_32[numtrials_32[0]], color='r')
-# plt.plot(acc_arr_32[numtrials_32[6]:numtrials_32[10]] - acc_arr_32[numtrials_32[6]], color='r')
-# plt.plot(acc_arr_32[numtrials_32[4]:numtrials_32[6]] - acc_arr_32[numtrials_32[4]], color='g')
-# plt.plot(acc_arr_32[numtrials_32[10]:numtrials_32[12]] - acc_arr_32[numtrials_32[10]], color='g')
-
-# plt.plot(acc_arr_36[numtrials_36[0]:numtrials_36[2]] - acc_arr_36[numtrials_36[0]], color='r')
-# plt.plot(acc_arr_36[numtrials_36[2]:numtrials_36[5]] - acc_arr_36[numtrials_36[2]], color='g')
-
-# plt.plot(acc_arr[numtrials[0]:numtrials[2]] - acc_arr[numtrials[0]], color='r')
-# plt.plot(acc_arr[numtrials[4]:numtrials[6]] - acc_arr[numtrials[4]], color='r', label='Full delay')
-# plt.plot(acc_arr[numtrials[2]:numtrials[4]] - acc_arr[numtrials[2]], color='g', label='Varied delay')
-# plt.plot(acc_arr[numtrials[6]:numtrials[8]] - acc_arr[numtrials[6]], color='g')
+b = behavior.Behavior('F:\data\Behavior data\BAYLORCW037\python_behavior', behavior_only=True)
+delays, acc_arr_37, numtrials_37 = b.learning_progression(return_results = True, window=window)
 
 
-# plt.ylabel('Change in performance accuracy')
-# plt.xlabel('Number of trials')
+# Points
+plt.scatter(numtrials_32[4], (acc_arr_32[numtrials_32[0]:numtrials_32[4]] - acc_arr_32[numtrials_32[0]])[-1], marker='o', s=150, alpha = 0.5, color = 'r')
+plt.scatter(numtrials_32[10] - numtrials_32[6], (acc_arr_32[numtrials_32[6]:numtrials_32[10]] - acc_arr_32[numtrials_32[6]])[-1], marker='o', s=150, alpha = 0.5, color = 'r')
+plt.scatter(numtrials_32[6] - numtrials_32[4], (acc_arr_32[numtrials_32[4]:numtrials_32[6]] - acc_arr_32[numtrials_32[4]])[-1], marker='o', s=150, alpha = 0.5, color = 'g')
+plt.scatter(numtrials_32[12] - numtrials_32[10], (acc_arr_32[numtrials_32[10]:numtrials_32[12]] - acc_arr_32[numtrials_32[10]])[-1], marker='o', s=150, alpha = 0.5, color = 'g')
 
-# plt.legend()
-# plt.savefig(r'F:\data\SFN 2023\comparedelayleearning.pdf',transparent=True)
+
+plt.scatter(numtrials_36[2], (acc_arr_36[numtrials_36[0]:numtrials_36[2]] - acc_arr_36[numtrials_36[0]])[-1], marker='o', s=150, alpha = 0.5, color = 'r')
+plt.scatter(numtrials_36[5] - numtrials_36[2], (acc_arr_36[numtrials_36[2]:numtrials_36[5]] - acc_arr_36[numtrials_36[2]])[-1], marker='o', s=150, alpha = 0.5, color = 'g')
+
+plt.scatter(numtrials[2], (acc_arr[numtrials[0]:numtrials[2]] - acc_arr[numtrials[0]])[-1], marker='o', s=150, alpha = 0.5, color = 'r')
+plt.scatter(numtrials[6] - numtrials[4], (acc_arr[numtrials[4]:numtrials[6]] - acc_arr[numtrials[4]])[-1], marker='o', s=150, alpha = 0.5, color = 'r')
+plt.scatter(numtrials[4] - numtrials[2], (acc_arr[numtrials[2]:numtrials[4]] - acc_arr[numtrials[2]])[-1], marker='o', s=150, alpha = 0.5, color = 'g')
+plt.scatter(numtrials[8] - numtrials[6], (acc_arr[numtrials[6]:numtrials[8]] - acc_arr[numtrials[6]])[-1], marker='o', s=150, alpha = 0.5, color = 'g')
+
+# Lines
+plt.plot(acc_arr_32[numtrials_32[0]:numtrials_32[4]] - acc_arr_32[numtrials_32[0]], color='r')
+plt.plot(acc_arr_32[numtrials_32[6]:numtrials_32[10]] - acc_arr_32[numtrials_32[6]], color='r')
+plt.plot(acc_arr_32[numtrials_32[4]:numtrials_32[6]] - acc_arr_32[numtrials_32[4]], color='g')
+plt.plot(acc_arr_32[numtrials_32[10]:numtrials_32[12]] - acc_arr_32[numtrials_32[10]], color='g')
+
+plt.plot(acc_arr_36[numtrials_36[0]:numtrials_36[2]] - acc_arr_36[numtrials_36[0]], color='r')
+plt.plot(acc_arr_36[numtrials_36[2]:numtrials_36[5]] - acc_arr_36[numtrials_36[2]], color='g')
+
+plt.plot(acc_arr[numtrials[0]:numtrials[2]] - acc_arr[numtrials[0]], color='r')
+plt.plot(acc_arr[numtrials[4]:numtrials[6]] - acc_arr[numtrials[4]], color='r', label='Full delay')
+plt.plot(acc_arr[numtrials[2]:numtrials[4]] - acc_arr[numtrials[2]], color='g', label='Varied delay')
+plt.plot(acc_arr[numtrials[6]:numtrials[8]] - acc_arr[numtrials[6]], color='g')
+
+
+#lines
+plt.plot(acc_arr_35[numtrials_35[0]:numtrials_35[4]] - acc_arr_35[numtrials_35[0]], color='r')
+plt.plot(acc_arr_35[numtrials_35[-3]:] - acc_arr_35[numtrials_35[-3]], color='r')
+plt.plot(acc_arr_35[numtrials_35[4]:numtrials_35[7]] - acc_arr_35[numtrials_35[4]], color='g')
+plt.plot(acc_arr_35[numtrials_35[23]:numtrials_35[27]] - acc_arr_35[numtrials_35[23]], color='g')
+
+plt.plot(acc_arr_37[numtrials_37[0]:numtrials_37[5]] - acc_arr_37[numtrials_37[0]], color='r')
+plt.plot(acc_arr_37[numtrials_37[10]:numtrials_37[13]] - acc_arr_37[numtrials_37[10]], color='r')
+plt.plot(acc_arr_37[numtrials_37[5]:numtrials_37[10]] - acc_arr_37[numtrials_37[5]], color='g')
+plt.plot(acc_arr_37[numtrials_37[13]:numtrials_37[15]] - acc_arr_37[numtrials_37[13]], color='g')
+
+#points
+
+plt.scatter(numtrials_35[4], (acc_arr_35[numtrials_35[0]:numtrials_35[4]] - acc_arr_35[numtrials_35[0]])[-1], marker='o', s=150, alpha = 0.5, color = 'r')
+plt.scatter(len(acc_arr_35) - numtrials_35[-3], (acc_arr_35[numtrials_35[-3]:] - acc_arr_35[numtrials_35[-3]])[-1], marker='o', s=150, alpha = 0.5, color = 'r')
+plt.scatter(numtrials_35[7] - numtrials_35[4], (acc_arr_35[numtrials_35[4]:numtrials_35[7]] - acc_arr_35[numtrials_35[4]])[-1], marker='o', s=150, alpha = 0.5, color = 'g')
+plt.scatter(numtrials_35[27] - numtrials_35[23], (acc_arr_35[numtrials_35[23]:numtrials_35[27]] - acc_arr_35[numtrials_35[23]])[-1], marker='o', s=150, alpha = 0.5, color = 'g')
+
+plt.scatter(numtrials_37[5], (acc_arr_37[numtrials_37[0]:numtrials_37[5]] - acc_arr_37[numtrials_37[0]])[-1], marker='o', s=150, alpha = 0.5, color = 'r')
+plt.scatter(numtrials_37[13] - numtrials_37[10], (acc_arr_37[numtrials_37[10]:numtrials_37[13]] - acc_arr_37[numtrials_37[10]])[-1], marker='o', s=150, alpha = 0.5, color = 'r')
+plt.scatter(numtrials_37[10] - numtrials_37[5], (acc_arr_37[numtrials_37[5]:numtrials_37[10]] - acc_arr_37[numtrials_37[4]])[-1], marker='o', s=150, alpha = 0.5, color = 'g')
+plt.scatter(numtrials_37[15] - numtrials_37[13], (acc_arr_37[numtrials_37[13]:numtrials_37[15]] - acc_arr_37[numtrials_37[13]])[-1], marker='o', s=150, alpha = 0.5, color = 'g')
+
+
+plt.ylabel('Change in performance accuracy')
+plt.xlabel('Number of trials')
+
+plt.legend()
+plt.savefig(r'F:\data\Fig 1\comparedelayleearning.pdf',transparent=True)
 # plt.show()
 
 
@@ -176,7 +210,7 @@ for idx in [34, 32, 36, 37]:
     axarr[1].plot(earlylicksarr, 'b', alpha=0.75)        
     axarr[1].set_ylabel('% Early licks')
     axarr[1].set_xlabel('Trials')
-# plt.savefig(r'F:\data\SFN 2023\alllearningcurves.pdf',transparent=True)
+plt.savefig(r'F:\data\Fig 1\alllearningcurves.pdf',transparent=True)
 plt.show()
 
 #%% Plot session to match GLM HMM
