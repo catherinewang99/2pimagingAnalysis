@@ -39,6 +39,10 @@ agg_mice_paths=   [[[r'F:\data\BAYLORCW036\python\2023_10_09',
             r'F:\data\BAYLORCW036\python\cellreg\layer{}\1009_1019_1030pairs_proc.npy'],
         ]]
 
+agg_mice_paths = [[[r'F:\data\BAYLORCW037\python\2023_11_21',
+            r'F:\data\BAYLORCW037\python\2023_12_08',
+            r'F:\data\BAYLORCW037\python\2023_12_15',]]]
+
 #%% Plot all mice together
 
 agg_mice_paths = [[[r'F:\data\BAYLORCW032\python\2023_10_08',
@@ -84,7 +88,7 @@ for paths in agg_mice_paths:
         s1 = session.Session(path, use_reg=True, triple=True)
         
         epoch = range(s1.response+6, s1.response+12) # Response selective
-        epoch = range(s1.response-9, s1.response) # Delay selective
+        # epoch = range(s1.response-9, s1.response) # Delay selective
         # epoch = range(s1.delay-3, s1.delay+3) # Stimulus selective
 
         rtrials = s1.lick_correct_direction('r')

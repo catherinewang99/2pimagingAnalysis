@@ -2710,8 +2710,10 @@ class Session:
         erro = np.std(optop, axis=0) / np.sqrt(len(optop)) 
         erro += np.std(optonp, axis=0) / np.sqrt(len(optonp))
         
+        # Add 0.4ms for the time lag factor
+        period = range( int(self.delay + 0.4*(1/self.fs)), int(self.delay + 1.4*(1/self.fs)))
         
-        recovery = np.mean(selo[self.delay:int(self.delay+1*(1/self.fs))] / sel[self.delay:int(self.delay+1*(1/self.fs))])
+        recovery = np.mean(selo[period] / sel[period])
         
         return recovery
 

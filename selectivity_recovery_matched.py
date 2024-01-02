@@ -16,6 +16,7 @@ import decon
 from scipy.stats import chisquare
 import pandas as pd
 from activityMode import Mode
+from scipy import stats
 cat=np.concatenate
 #%%
 paths = [[r'F:\data\BAYLORCW032\python\2023_10_08',
@@ -265,22 +266,26 @@ for paths in all_paths: # For each stage of training
         l1 = session.Session(path, use_reg=True, triple=True)
         # l1 = session.Session(path)
         temp = l1.modularity_proportion(p=0.01)
-        if temp > 0 or temp < 1: # Exclude values based on Chen et al method guideliens
+        if temp > 0 and temp < 1: # Exclude values based on Chen et al method guideliens
             recovery += [temp]
     
     all_recovery += [recovery]
         
 
-plt.bar(range(3), np.mean(all_recovery, axis = 1))
-plt.scatter(np.zeros(5), all_recovery[0])
-plt.scatter(np.ones(5), all_recovery[1])
-plt.scatter(np.ones(5)+1, all_recovery[2])
+plt.bar(range(3), [np.mean(a) for a in all_recovery])
+plt.scatter(np.zeros(len(all_recovery[0])), all_recovery[0])
+plt.scatter(np.ones(len(all_recovery[1])), all_recovery[1])
+plt.scatter(np.ones(len(all_recovery[2]))+1, all_recovery[2])
 
 plt.xticks(range(3), ['Naive', 'Learning', 'Expert'])
 plt.ylabel('Modularity')
-plt.savefig(r'F:\data\Fig 3\modularity_bargraph.pdf')
+# plt.savefig(r'F:\data\Fig 3\modularity_bargraph.pdf')
 
 plt.show()
 
-        
+# Add t-test:
+
+tstat, p_val = stats.ttest_ind(all_recovery[1], all_recovery[2], equal_var=False, permutations = np.inf, alternative='less')
+print("mod diff p-value: ", p_val)
+
         

@@ -19,6 +19,7 @@ from activityMode import Mode
 from matplotlib.pyplot import figure
 import numpy as np
 from sklearn.decomposition import PCA
+from scipy.stats import pearsonr
 plt.rcParams['pdf.fonttype'] = '42' 
 
 #%%
@@ -226,3 +227,44 @@ axarr[1,1].set_xlabel('CD_action_expert')
 axarr[1,1].set_ylabel('CD_delay_expert')
 
 plt.show()
+
+#%% Check reshuffling of action decoder weights across learning
+
+naivepath, learningpath, expertpath =[r'F:\data\BAYLORCW035\python\2023_10_26',
+            r'F:\data\BAYLORCW035\python\2023_12_07',
+            r'F:\data\BAYLORCW035\python\2023_12_15',]
+naivepath, learningpath, expertpath = [ r'F:\data\BAYLORCW034\python\2023_10_12',
+    r'F:\data\BAYLORCW034\python\2023_10_22',
+    r'F:\data\BAYLORCW034\python\2023_10_27',]
+
+    
+naivepath, learningpath, expertpath =[r'F:\data\BAYLORCW037\python\2023_11_21',
+            r'F:\data\BAYLORCW037\python\2023_12_08',
+            r'F:\data\BAYLORCW037\python\2023_12_15',]
+path = expertpath
+l1 = Mode(path, use_reg = True, triple=True)
+orthonormal_basis_exp, mean = l1.plot_CD(mode_input='action')
+
+path =learningpath
+l1 = Mode(path, use_reg = True, triple=True)
+orthonormal_basis_learning, mean = l1.plot_CD(mode_input='action')
+
+path = naivepath
+l1 = Mode(path, use_reg = True, triple=True)
+orthonormal_basis_naive, mean = l1.plot_CD(mode_input='action')
+
+plt.scatter(orthonormal_basis_exp, orthonormal_basis_learning)
+plt.title('Expert : Learning CD action')
+plt.show()
+
+plt.scatter(orthonormal_basis_learning, orthonormal_basis_naive)
+plt.title('Learning : Naive CD action')
+plt.show()
+
+corr, _ = pearsonr(orthonormal_basis_exp, orthonormal_basis_learning)
+print('Pearsons correlation: %.3f' % corr)
+
+corr, _ = pearsonr(orthonormal_basis_learning, orthonormal_basis_naive)
+print('Pearsons correlation: %.3f' % corr)
+
+

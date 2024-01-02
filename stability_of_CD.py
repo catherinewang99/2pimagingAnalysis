@@ -54,9 +54,9 @@ naivepath, learningpath, expertpath =[r'F:\data\BAYLORCW036\python\2023_10_09',
 #             r'F:\data\BAYLORCW035\python\2023_10_26',
 #             r'F:\data\BAYLORCW035\python\2023_12_12',]
 
-# naivepath, learningpath, expertpath =[r'F:\data\BAYLORCW035\python\2023_10_26',
-#             r'F:\data\BAYLORCW035\python\2023_12_07',
-#             r'F:\data\BAYLORCW035\python\2023_12_15',]
+naivepath, learningpath, expertpath =[r'F:\data\BAYLORCW035\python\2023_10_26',
+            r'F:\data\BAYLORCW035\python\2023_12_07',
+            r'F:\data\BAYLORCW035\python\2023_12_15',]
 
     
 naivepath, learningpath, expertpath =[r'F:\data\BAYLORCW037\python\2023_11_21',
@@ -66,15 +66,15 @@ naivepath, learningpath, expertpath =[r'F:\data\BAYLORCW037\python\2023_11_21',
 
 path = expertpath
 l1 = Mode(path)
-orthonormal_basis, mean = l1.plot_CD()
+orthonormal_basis, mean = l1.plot_CD(mode_input='action')
 
 path =learningpath
 l1 = Mode(path)
-orthonormal_basis, mean = l1.plot_CD()
+orthonormal_basis, mean = l1.plot_CD(mode_input='action')
 
 path = naivepath
 l1 = Mode(path)
-orthonormal_basis, mean = l1.plot_CD()
+orthonormal_basis, mean = l1.plot_CD(mode_input='action')
 
 #%% Choice dimension define on learning sess
 
