@@ -236,5 +236,51 @@ plt.savefig(r'F:\data\Fig 3\expert_sel_recovery.pdf')
 
 #%% Plot selectivity recovery as a bar graph
 
+# CONTRA PATHS:
+all_paths = [[    r'F:\data\BAYLORCW032\python\2023_10_05',
+            r'F:\data\BAYLORCW034\python\2023_10_12',
+            r'F:\data\BAYLORCW036\python\2023_10_09',
+            r'F:\data\BAYLORCW035\python\2023_10_26',
+            r'F:\data\BAYLORCW037\python\2023_11_21',],
+
+        [r'F:\data\BAYLORCW032\python\2023_10_19',
+            r'F:\data\BAYLORCW034\python\2023_10_22',
+            r'F:\data\BAYLORCW036\python\2023_10_19',
+            r'F:\data\BAYLORCW035\python\2023_12_07',
+            r'F:\data\BAYLORCW037\python\2023_12_08',],
 
 
+        [r'F:\data\BAYLORCW032\python\2023_10_24',
+            r'F:\data\BAYLORCW034\python\2023_10_27',
+            r'F:\data\BAYLORCW036\python\2023_10_30',
+            r'F:\data\BAYLORCW035\python\2023_12_15',
+            r'F:\data\BAYLORCW037\python\2023_12_15',]]
+
+naive_sel_recovery,learning_sel_recovery,expert_sel_recovery = [],[],[]
+all_recovery = []
+for paths in all_paths: # For each stage of training
+    recovery = []
+    for path in paths: # For each mouse
+        
+        l1 = session.Session(path, use_reg=True, triple=True)
+        # l1 = session.Session(path)
+        temp = l1.modularity_proportion(p=0.01)
+        if temp > 0 or temp < 1: # Exclude values based on Chen et al method guideliens
+            recovery += [temp]
+    
+    all_recovery += [recovery]
+        
+
+plt.bar(range(3), np.mean(all_recovery, axis = 1))
+plt.scatter(np.zeros(5), all_recovery[0])
+plt.scatter(np.ones(5), all_recovery[1])
+plt.scatter(np.ones(5)+1, all_recovery[2])
+
+plt.xticks(range(3), ['Naive', 'Learning', 'Expert'])
+plt.ylabel('Modularity')
+plt.savefig(r'F:\data\Fig 3\modularity_bargraph.pdf')
+
+plt.show()
+
+        
+        

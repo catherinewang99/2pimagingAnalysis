@@ -19,7 +19,9 @@ from activityMode import Mode
 from matplotlib.pyplot import figure
 import numpy as np
 from sklearn.decomposition import PCA
+plt.rcParams['pdf.fonttype'] = '42' 
 
+#%%
 paths = [r'F:\data\BAYLORCW032\python\2023_10_05',
           # r'F:\data\BAYLORCW032\python\2023_10_19',
           r'F:\data\BAYLORCW032\python\2023_10_24',]
@@ -87,7 +89,6 @@ axarr[0,0].set_ylabel('CD_delay_naive')
 axarr[0,0].set_xlabel('CD_action_naive')
 axarr[0,1].set_ylabel('CD_delay_expert')
 axarr[1,0].set_xlabel('CD_action_expert')
-
 
 plt.show()
 
@@ -165,6 +166,7 @@ axarr[1,0].set_xlabel('CD_action_expert')
 # axarr[1].set_ylabel('CD_delay_expert')
 # axarr[1].set_xlabel('CD_action_expert')
 f.suptitle('CD weights scattered (n={} neurons)'.format(CD_action_expert.shape[0]))
+plt.savefig(r'F:\data\Fig 2\scatter_CD_weights.pdf')
 
 plt.show()
 
