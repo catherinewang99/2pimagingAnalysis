@@ -261,6 +261,10 @@ plt.scatter(orthonormal_basis_learning, orthonormal_basis_naive)
 plt.title('Learning : Naive CD action')
 plt.show()
 
+plt.scatter(orthonormal_basis_exp, orthonormal_basis_naive)
+plt.title('Expert : Naive CD action')
+plt.show()
+
 corr, _ = pearsonr(orthonormal_basis_exp, orthonormal_basis_learning)
 print('Pearsons correlation: %.3f' % corr)
 
