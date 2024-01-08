@@ -514,7 +514,7 @@ class Session:
 
             # self.plot_mean_F()
 
-        self.plot_mean_F()
+        # self.plot_mean_F()
 
         # self.normalize_all_by_baseline()
         self.normalize_all_by_neural_baseline()
@@ -1219,7 +1219,7 @@ class Session:
             
             left_ = [l[epoch] for l in left]
             right_ = [r[epoch] for r in right]
-            diff = np.sum(np.mean(left_, axis = 0) - np.mean(right_, axis = 0))
+            diff = np.mean(np.mean(left_, axis = 0) - np.mean(right_, axis = 0))
 
             tstat = diff / np.sum(np.mean(left_, axis = 0) + np.mean(right_, axis = 0))
             all_tstat += [tstat] # Positive if L selective, negative if R selective
@@ -2723,7 +2723,7 @@ class Session:
 
         
         
-    def single_neuron_sel(self, type, p=0.01, save=False):
+    def single_neuron_sel(self, type, p=0.01, save=False, plot=True):
         """Plots proportion of stim/lick/reward/mixed cells over trial using two different methods
         
         Inputs are 'Chen 2017' or 'Susu method'
@@ -2951,19 +2951,20 @@ class Session:
                 action_neurons += [n] if actionp<pval else []
                 outcome_neurons += [n] if outcomep<pval else []
                 
-                
-            plt.bar(['stim', 'choice', 'action', 'outcome'], [stim/len(self.good_neurons), 
-                                                              choice/len(self.good_neurons), 
-                                                              action/len(self.good_neurons),
-                                                              outcome/len(self.good_neurons)])
-            plt.xlabel('Epoch selective')
-            plt.ylabel('Proportion of neurons')
-            # plt.ylim(0,0.5)
-            plt.show()
+            if plot:
+                plt.bar(['stim', 'choice', 'action', 'outcome'], [stim/len(self.good_neurons), 
+                                                                  choice/len(self.good_neurons), 
+                                                                  action/len(self.good_neurons),
+                                                                  outcome/len(self.good_neurons)])
+                plt.xlabel('Epoch selective')
+                plt.ylabel('Proportion of neurons')
+                # plt.ylim(0,0.5)
+                plt.show()
                 
             return stim_neurons, choice_neurons, action_neurons, outcome_neurons
 
-    def stim_choice_outcome_selectivity(self, save=False, y_axis = 0):
+
+    def stim_choice_outcome_selectivity(self, save=False, y_axis = 0, action=False):
         """Plots selectivity traces of stim/lick/reward/mixed cells using Susu's method
         
         Susu method called from single_neuron_sel method
@@ -2974,14 +2975,15 @@ class Session:
             Whether to save fig as pdf
         y_axis : int
             0 if to leave unchanged, else int that is the ylim top limit
+        action : bool, optional
+            if True, only return action selectivity trace
         
 
         """
-        stim_neurons, choice_neurons, _, outcome_neurons = self.single_neuron_sel('Susu method')
+        stim_neurons, choice_neurons, action_neurons, outcome_neurons = self.single_neuron_sel('Susu method', plot=False)
         
         stim_sel, outcome_sel, choice_sel = [], [], []
         
-        f, axarr = plt.subplots(1,3, sharey='row', figsize=(15,5))
         
         epochs = [range(self.sample,self.delay), range(self.delay,self.response), range(self.response,self.time_cutoff)]
         x = np.arange(-5.97,4,self.fs)[:self.time_cutoff] if 'CW03' not in self.path else np.arange(-6.97,4,self.fs)[:self.time_cutoff]
@@ -2996,6 +2998,22 @@ class Session:
         sel = np.mean(pref, axis=0) - np.mean(nonpref, axis=0) 
         stim_sel = nonpref, pref
         
+        ################## ACTION #####################
+        if action:
+            nonpref, pref = self.contra_ipsi_pop(range(self.response, self.response+6), return_sel=True, selective_n = action_neurons)
+            err = np.std(pref, axis=0) / np.sqrt(len(pref)) 
+            err += np.std(nonpref, axis=0) / np.sqrt(len(nonpref))
+            sel = np.mean(pref, axis=0) - np.mean(nonpref, axis=0)
+            action_sel = nonpref, pref
+            
+            if type(sel) != np.ndarray:
+                print("Empty selectivity vec: {}".format(sel))
+                
+            return action_sel
+        #######################################
+        f, axarr = plt.subplots(1,3, sharey='row', figsize=(15,5))
+
+
         if type(sel) != np.ndarray:
             print("Empty selectivity vec: {}".format(sel))
         else:

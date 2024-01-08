@@ -156,24 +156,24 @@ for path in paths:
 pref, nonpref, optop, optonp = np.zeros(61), np.zeros(61), np.zeros(61), np.zeros(61)
 num_neurons = 0
 # CONTRA PATHS:
-# paths = [    r'F:\data\BAYLORCW032\python\2023_10_05',
-#             r'F:\data\BAYLORCW034\python\2023_10_12',
-#             r'F:\data\BAYLORCW036\python\2023_10_09',
-#             r'F:\data\BAYLORCW035\python\2023_10_26',
-#             r'F:\data\BAYLORCW037\python\2023_11_21',]
+paths = [    r'F:\data\BAYLORCW032\python\2023_10_05',
+            # r'F:\data\BAYLORCW034\python\2023_10_12',
+            r'F:\data\BAYLORCW036\python\2023_10_09',
+            r'F:\data\BAYLORCW035\python\2023_10_26',
+            r'F:\data\BAYLORCW037\python\2023_11_21',]
 
-paths = [r'F:\data\BAYLORCW032\python\2023_10_19',
-            r'F:\data\BAYLORCW034\python\2023_10_22',
-            r'F:\data\BAYLORCW036\python\2023_10_19',
-            r'F:\data\BAYLORCW035\python\2023_12_07',
-            r'F:\data\BAYLORCW037\python\2023_12_08',]
+# paths = [r'F:\data\BAYLORCW032\python\2023_10_19',
+#             # r'F:\data\BAYLORCW034\python\2023_10_22',
+#             r'F:\data\BAYLORCW036\python\2023_10_19',
+#             r'F:\data\BAYLORCW035\python\2023_12_07',
+#             r'F:\data\BAYLORCW037\python\2023_12_08',]
 
 
-paths = [r'F:\data\BAYLORCW032\python\2023_10_24',
-            r'F:\data\BAYLORCW034\python\2023_10_27',
-            r'F:\data\BAYLORCW036\python\2023_10_30',
-            r'F:\data\BAYLORCW035\python\2023_12_15',
-            r'F:\data\BAYLORCW037\python\2023_12_15',]
+# paths = [r'F:\data\BAYLORCW032\python\2023_10_24',
+#             # r'F:\data\BAYLORCW034\python\2023_10_27',
+#             r'F:\data\BAYLORCW036\python\2023_10_30',
+#             r'F:\data\BAYLORCW035\python\2023_12_15',
+#             r'F:\data\BAYLORCW037\python\2023_12_15',]
 
 
 
@@ -232,27 +232,27 @@ axarr.hlines(y=max(cat((selo, sel))), xmin=-3, xmax=-2, linewidth=10, color='red
 axarr.set_title('Optogenetic effect on selectivity (n = {} neurons)'.format(num_neurons))                  
 axarr.set_xlabel('Time from Go cue (s)')
 axarr.set_ylabel('Selectivity')
-plt.savefig(r'F:\data\Fig 3\expert_sel_recovery.pdf')
+plt.savefig(r'F:\data\Fig 3\naive_sel_recovery.pdf')
 
 
 #%% Plot selectivity recovery as a bar graph
 
 # CONTRA PATHS:
 all_paths = [[    r'F:\data\BAYLORCW032\python\2023_10_05',
-            r'F:\data\BAYLORCW034\python\2023_10_12',
+            # r'F:\data\BAYLORCW034\python\2023_10_12',
             r'F:\data\BAYLORCW036\python\2023_10_09',
             r'F:\data\BAYLORCW035\python\2023_10_26',
             r'F:\data\BAYLORCW037\python\2023_11_21',],
 
         [r'F:\data\BAYLORCW032\python\2023_10_19',
-            r'F:\data\BAYLORCW034\python\2023_10_22',
+            # r'F:\data\BAYLORCW034\python\2023_10_22',
             r'F:\data\BAYLORCW036\python\2023_10_19',
             r'F:\data\BAYLORCW035\python\2023_12_07',
             r'F:\data\BAYLORCW037\python\2023_12_08',],
 
 
         [r'F:\data\BAYLORCW032\python\2023_10_24',
-            r'F:\data\BAYLORCW034\python\2023_10_27',
+            # r'F:\data\BAYLORCW034\python\2023_10_27',
             r'F:\data\BAYLORCW036\python\2023_10_30',
             r'F:\data\BAYLORCW035\python\2023_12_15',
             r'F:\data\BAYLORCW037\python\2023_12_15',]]

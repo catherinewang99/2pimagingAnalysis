@@ -487,9 +487,21 @@ class Behavior():
             
             return delay_duration, correctarr, cat(([0], num_trials))
             
-    def get_acc_EL(self, window = 50, imaging=False):
+    def get_acc_EL(self, window = 50, imaging=False, sessions=None):
+        """Returns agg accuracy over all sessions
         
-
+        Parameters
+        -------
+        window : int
+        imaging : bool
+        sessions : tuple, optional
+            if provided, use these session for the return array
+    
+        Returns
+        -------
+        int
+            int corresponding to the length of shortest trial in whole session
+        """
         # Concatenate all sessions
         delay_duration = np.array([])
         correctarr = np.array([])
@@ -497,7 +509,14 @@ class Behavior():
         num_trials = []
         window = int(window/2)
         
-        for sess in range(self.total_sessions):
+        if sessions != None:
+            start = sessions[0]
+            end = sessions[1]
+        else:
+            start = 0
+            end = self.total_sessions
+        
+        for sess in range(start, end):
             
 
             # delay = np.convolve(self.delay_duration[sess], np.ones(window)/window, mode = 'same')

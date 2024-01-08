@@ -52,9 +52,9 @@ agg_mice_paths = [[[r'F:\data\BAYLORCW032\python\2023_10_08',
 
          
         # [[ r'F:\data\BAYLORCW034\python\2023_10_12',
-        #      r'F:\data\BAYLORCW034\python\2023_10_22',
-        #      r'F:\data\BAYLORCW034\python\2023_10_27',
-        #      r'F:\data\BAYLORCW034\python\cellreg\layer{}\1012_1022_1027pairs_proc.npy'],],
+        #       r'F:\data\BAYLORCW034\python\2023_10_22',
+        #       r'F:\data\BAYLORCW034\python\2023_10_27',
+        #       r'F:\data\BAYLORCW034\python\cellreg\layer{}\1012_1022_1027pairs_proc.npy'],],
          
     [[r'F:\data\BAYLORCW036\python\2023_10_09',
             r'F:\data\BAYLORCW036\python\2023_10_19',
@@ -74,6 +74,55 @@ agg_mice_paths = [[[r'F:\data\BAYLORCW032\python\2023_10_08',
 
     ]
 
+#%% Plot bar graph showing retention of selectivity
+# Naive --> learning/expert
+
+learn_exp = []
+
+for paths in agg_mice_paths: # For each mouse
+
+    s1 = session.Session(paths[0][0], use_reg=True, triple=True)
+    epoch = range(s1.delay, s1.response)
+    
+    naive_sel = s1.get_epoch_selective(epoch, p=0.01)
+
+    s2 = session.Session(paths[0][1], use_reg=True, triple=True)
+    s3 = session.Session(paths[0][2], use_reg=True, triple=True)
+
+    learning = sum([s2.is_selective(s2.good_neurons[np.where(s1.good_neurons ==n)[0][0]], epoch) for n in naive_sel])
+    expert = sum([s3.is_selective(s3.good_neurons[np.where(s1.good_neurons ==n)[0][0]], epoch) for n in naive_sel])
+    
+    learn_exp += [[1, learning/len(naive_sel), expert/len(naive_sel)]]
+    plt.scatter(range(3), [1, learning/len(naive_sel), expert/len(naive_sel)])
+
+plt.bar(range(3), np.mean(learn_exp, axis=0), fill=False)
+plt.show()
+
+    
+
+# Expert --> learning/naive
+
+learn_naive = []
+
+for paths in agg_mice_paths: # For each mouse
+
+    s1 = session.Session(paths[0][2], use_reg=True, triple=True)
+    epoch = range(s1.delay, s1.response)
+    
+    exp_sel = s1.get_epoch_selective(epoch, p=0.01)
+
+    s2 = session.Session(paths[0][1], use_reg=True, triple=True)
+    s3 = session.Session(paths[0][0], use_reg=True, triple=True)
+
+    learning = sum([s2.is_selective(s2.good_neurons[np.where(s1.good_neurons ==n)[0][0]], epoch) for n in exp_sel])
+    naive = sum([s3.is_selective(s3.good_neurons[np.where(s1.good_neurons ==n)[0][0]], epoch) for n in exp_sel])
+    
+    learn_naive += [[naive/ len(exp_sel), learning/ len(exp_sel),1]]
+
+    plt.scatter(range(3), [naive/ len(exp_sel), learning/ len(exp_sel),1])
+
+plt.bar(range(3), np.mean(learn_naive, axis=0), fill=False)
+plt.show()
 #%% Plot expert --> naive
 
 p=0.05

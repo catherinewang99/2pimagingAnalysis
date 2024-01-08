@@ -171,13 +171,13 @@ plt.show()
 # b = behavior.Behavior('F:\data\Behavior data\BAYLORCW028\python_behavior', behavior_only=True)
 # b.learning_progression(imaging=True)
 
-b = behavior.Behavior('F:\data\Behavior data\BAYLORCW032\python_behavior', behavior_only=True)
+b = behavior.Behavior('F:\data\Behavior data\BAYLORCW035\python_behavior', behavior_only=True)
 # b.learning_progression(imaging=True)
-b.learning_progression(window=150, save =r'F:\data\Fig 1\CW32.pdf')
+b.learning_progression(window=150)#, save =r'F:\data\Fig 1\CW32.pdf')
 
-b = behavior.Behavior('F:\data\Behavior data\BAYLORCW037\python_behavior', behavior_only=True)
-# b.learning_progression(imaging=True)
-b.learning_progression(window=200, save =r'F:\data\Fig 1\CW37.pdf')
+# b = behavior.Behavior('F:\data\Behavior data\BAYLORCW037\python_behavior', behavior_only=True)
+# # b.learning_progression(imaging=True)
+# b.learning_progression(window=200, save =r'F:\data\Fig 1\CW37.pdf')
 
 # b = behavior.Behavior('F:\data\Behavior data\BAYLORCW021\python_behavior', behavior_only=True)
 # b.learning_progression_no_EL(imaging=True)
@@ -297,6 +297,52 @@ for idx in [34, 32, 36, 37]:
     axarr[1].set_xlabel('Trials')
 plt.savefig(r'F:\data\Fig 1\alllearningcurves.pdf',transparent=True)
 plt.show()
+
+#%% Separate learning curves by naive, learning, expert AGG all mice
+
+f, axarr = plt.subplots(1, 3, sharex='col', figsize=(20,6))
+
+all_acc = []
+all_EL = []
+mice_id = [32, 34, 36, 37, 35]
+
+sess = [[(0,4),(0,2), (0,2),(0,5),(0,4)],
+        [(4,11),(2,13),(2,15), (5,21), (4,40)],
+        [(11,14),(13,15), (15,17),(21,24), (40,43)]
+        ]
+
+length = [4, 35, 4]
+name = ['naive', 'learning', 'expert']
+for i in range(3):
+    fig = plt.figure(figsize =(length[i], 12)) 
+
+    for idx in range(5):
+        b = behavior.Behavior('F:\data\Behavior data\BAYLORCW0{}\python_behavior'.format(mice_id[idx]), 
+                              behavior_only=True)
+        _, correctarr, _ = b.get_acc_EL(window=150, sessions = sess[i][idx])
+        
+        plt.plot(correctarr, 'g', alpha =0.75)        
+        plt.ylabel('% correct')
+        plt.axhline(y=0.7, alpha = 0.5, color='orange')
+        plt.axhline(y=0.5, alpha = 0.5, color='red', ls = '--')
+        plt.ylim(0.18, 0.92)
+        
+        plt.scatter(len(correctarr), correctarr[-1], marker='o', s=650, alpha = 0.5, color = 'g')
+    plt.savefig(r'F:\data\Fig 1\alllearningcurves_{}.pdf'.format(name[i]),transparent=True)
+
+    plt.show()
+        # axarr[i].plot(correctarr, 'g', alpha =0.75)        
+        # axarr[i].set_ylabel('% correct')
+        # axarr[i].axhline(y=0.7, alpha = 0.5, color='orange')
+        # axarr[i].axhline(y=0.5, alpha = 0.5, color='red', ls = '--')
+        # axarr[i].set_ylim(0.25, 0.92)
+        
+        # axarr[i].scatter(len(correctarr), correctarr[-1], marker='o', s=200, alpha = 0.5, color = 'g')
+        
+# plt.savefig(r'F:\data\Fig 1\alllearningcurves_sep.pdf',transparent=True)
+
+plt.show()
+
 
 #%% Plot session to match GLM HMM
 # sessions = ['20230215', '20230322', '20230323',  '20230403', '20230406', '20230409', '20230411',

@@ -277,3 +277,70 @@ for i in range(3):
 
 plt.savefig(r'F:\data\Fig 2\trained_stim_choice_outcome_selectivity.pdf')
 plt.show()
+
+#%% Action mode selectivity trace:
+    
+allpaths = [ [
+        r'F:\data\BAYLORCW032\python\2023_10_08',
+        # r'F:\data\BAYLORCW034\python\2023_10_12',
+        r'F:\data\BAYLORCW036\python\2023_10_09',
+        r'F:\data\BAYLORCW035\python\2023_10_26',
+        r'F:\data\BAYLORCW037\python\2023_11_21',
+        ],
+    
+    
+    [
+        r'F:\data\BAYLORCW032\python\2023_10_16',
+        # r'F:\data\BAYLORCW034\python\2023_10_22',
+        r'F:\data\BAYLORCW036\python\2023_10_19',
+        r'F:\data\BAYLORCW035\python\2023_12_07',
+        r'F:\data\BAYLORCW037\python\2023_12_08',
+        ],
+    
+    
+    [
+        r'F:\data\BAYLORCW032\python\2023_10_25',
+        # r'F:\data\BAYLORCW034\python\2023_10_27',
+        r'F:\data\BAYLORCW036\python\2023_10_30',
+        r'F:\data\BAYLORCW035\python\2023_12_15',
+        r'F:\data\BAYLORCW037\python\2023_12_15',
+        ]
+    ]
+f, axarr = plt.subplots(1,3, figsize=(15,5))
+plt.setp(axarr, ylim=(-0.1,1.0))
+
+x = np.arange(-6.97,4,l1.fs)[:l1.time_cutoff]
+titles = ['Stimulus selective', 'Choice selective', 'Outcome selective']
+for i in range(3):
+    
+    stimnonpref, stimpref = [], []
+    
+    paths = allpaths[i]
+    for path in paths:
+        l1 = session.Session(path, use_reg=True, triple=True)
+        action_sel = l1.stim_choice_outcome_selectivity(action=True)
+    
+        snp, sp = action_sel
+        stimnonpref += snp
+        stimpref += sp
+        
+    
+    err = np.std(stimpref, axis=0) / np.sqrt(len(stimpref)) 
+    err += np.std(stimnonpref, axis=0) / np.sqrt(len(stimnonpref))
+    sel = np.mean(stimpref, axis=0) - np.mean(stimnonpref, axis=0) 
+    axarr[i].plot(x, sel, color='goldenrod')
+            
+    axarr[i].fill_between(x, sel - err, 
+              sel + err,
+              color='wheat')
+    
+    axarr[i].set_title(titles[0])
+
+    
+    axarr[i].axvline(0, color = 'grey', alpha=0.5, ls = '--')
+    axarr[i].axvline(-4.3, color = 'grey', alpha=0.5, ls = '--')
+    axarr[i].axvline(-3, color = 'grey', alpha=0.5, ls = '--')        
+    axarr[i].axhline(0, color = 'grey', alpha=0.5, ls = '--')
+    
+plt.savefig(r'F:\data\Fig 2\action_NLE_selectivity.pdf')
+plt.show()
