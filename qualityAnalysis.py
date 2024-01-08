@@ -15,6 +15,8 @@ from matplotlib.pyplot import figure
 from numpy import concatenate as cat
 from sklearn.preprocessing import normalize
 import quality
+from scipy import stats
+plt.rcParams['pdf.fonttype'] = '42' 
 
 
 path = r'F:\data\BAYLORCW021\python\2023_05_03'
@@ -27,7 +29,7 @@ path = r'F:\data\BAYLORCW037\python\2023_11_22'
 # path = r'F:\data\BAYLORCW021\python\2023_02_15'
 # path = r'F:\data\BAYLORCW032\python\2023_10_08'
 
-path = r'F:\data\BAYLORCW035\python\2023_12_12'
+path = r'F:\data\BAYLORCW034\python\2023_10_24'
 
 
 l1 = quality.QC(path)
@@ -137,10 +139,66 @@ l1.all_neurons_heatmap()
 # plt.hist(f01, alpha = 0.5, color='g')
 
 
+#%% Heatmap AGG over 5 mice
+
+paths = [r'F:\data\BAYLORCW032\python\2023_10_23',
+         r'F:\data\BAYLORCW036\python\2023_10_20',
+         r'F:\data\BAYLORCW034\python\2023_10_24',
+         r'F:\data\BAYLORCW035\python\2023_12_06',
+         r'F:\data\BAYLORCW037\python\2023_11_22'
+         ]
+
+allstack, allstimstack = np.zeros(61), np.zeros(61)
+for path in paths:
+    
+    l1 = quality.QC(path)
+
+    stack, stimstack = l1.all_neurons_heatmap(return_traces=True)
+
+    allstack = np.vstack((allstack, stack))
+    allstimstack = np.vstack((allstimstack, stimstack))
+    
+allstack = normalize(allstack[1:,6:])
+allstimstack = normalize(allstimstack[1:,6:])
+
+f, axarr = plt.subplots(2,2)#, sharex='col')
+x = np.arange(-5.97,4,l1.fs)[:l1.time_cutoff-6]
+# x = np.arange(-6.97,4,self.fs)[:self.time_cutoff]
 
 
+axarr[0,0].matshow(allstimstack, cmap='gray', interpolation='nearest', aspect='auto')
+axarr[0,0].axis('off')
+axarr[0,0].set_title('Opto')
+axarr[0,0].axvline(x=l1.delay-6, c='b', linewidth = 0.5)
+# axarr[0,0].axvline(x=-3, c='b', linewidth = 0.5)
 
+axarr[1,0].plot(x, np.mean(allstimstack, axis = 0))
+axarr[1,0].fill_between(x, np.mean(allstimstack, axis = 0) - stats.sem(allstimstack, axis=0), 
+          np.mean(allstimstack, axis = 0) + stats.sem(allstimstack, axis=0),
+          color='lightblue')   
+# axarr[1,0].set_ylim(top=self.fs)
+# axarr[1,0].axvline(x=l1.delay-6, c='b', linewidth = 0.5)
+axarr[1,0].axvline(x=-3, c='b', linewidth = 0.5)
+# axarr[1,0].set_xticks(range(0,allstack.shape[1], 10), [int(d) for d in x[::10]])
 
+axarr[0,1].matshow(allstack, cmap='gray', interpolation='nearest', aspect='auto')
+axarr[0,1].axis('off')
+axarr[0,1].set_title('Control')
+
+axarr[1,1].plot(x, np.mean(allstack, axis = 0))
+
+axarr[1,1].fill_between(x, np.mean(allstack, axis = 0) - stats.sem(allstack, axis=0), 
+          np.mean(allstack, axis = 0) + stats.sem(allstack, axis=0),
+          color='lightblue')   
+# axarr[1,1].set_ylim(top=0.2)
+axarr[1,0].set_ylabel('dF/F0')
+# axarr[1,1].set_xticks(range(0,allstack.shape[1], 10), [int(d) for d in x[::10]])
+axarr[1,0].set_xlabel('Time from Go cue (s)')
+
+plt.suptitle('n=3431 neurons')
+
+plt.savefig(r'F:\data\Fig 3\opto_effect.pdf')
+plt.show()
 
 
 

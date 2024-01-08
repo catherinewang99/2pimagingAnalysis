@@ -32,7 +32,7 @@ class QC(Session):
         
     ### Quality analysis section ###
             
-    def all_neurons_heatmap(self, save=False):
+    def all_neurons_heatmap(self, save=False, return_traces=False):
         
         # x = np.arange(-5.97,4,self.fs)[:self.time_cutoff] if 'CW03' not in self.path else np.arange(-6.97,4,self.fs)[:self.time_cutoff]
 
@@ -56,8 +56,8 @@ class QC(Session):
 
         stack = np.zeros(self.time_cutoff) # if 'CW03' not in self.path else np.zeros(self.time_cutoff-5)
 
-        for neuron in range(self.num_neurons):
-        # for neuron in self.good_neurons:
+        # for neuron in range(self.num_neurons):
+        for neuron in self.good_neurons:
             dfftrial = []
             for trial in range(len(stim_dff)):
 
@@ -77,8 +77,8 @@ class QC(Session):
         
         stack = np.zeros(self.time_cutoff) # if 'CW03' not in self.path else np.zeros(self.time_cutoff-5)
 
-        for neuron in range(self.num_neurons):
-        # for neuron in self.good_neurons:
+        # for neuron in range(self.num_neurons):
+        for neuron in self.good_neurons:
 
             dfftrial = []
             for trial in range(len(non_stim_dff)):
@@ -108,8 +108,8 @@ class QC(Session):
         stack = np.zeros(self.time_cutoff) # if 'CW03' not in self.path else np.zeros(self.time_cutoff-5)
         stimstack = np.zeros(self.time_cutoff) # if 'CW03' not in self.path else np.zeros(self.time_cutoff-5)
 
-        for neuron in range(self.num_neurons):
-        # for neuron in self.good_neurons:
+        # for neuron in range(self.num_neurons):
+        for neuron in self.good_neurons:
 
             dfftrial = []
             stimdfftrial = []
@@ -136,7 +136,9 @@ class QC(Session):
         # axarr[1,1].set_xticks(range(0,stack.shape[1], 10), [int(d) for d in x[::10]])
         plt.xlabel('Time from Go cue (s)')
         plt.show()
-        return None
+        
+        if return_traces:
+            return stack, stimstack
     
     def all_neurons_traces(self, save = False):
         
