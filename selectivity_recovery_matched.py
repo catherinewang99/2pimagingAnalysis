@@ -319,7 +319,7 @@ for paths in all_paths:
 
     for path in paths:
 
-        l1 = session.Session(path)
+        l1 = session.Session(path, use_reg=True, triple=True)
         temp = l1.modularity_proportion(p=0.01)
 
         if temp > 0 and temp < 1: # Exclude values based on Chen et al method guidelines
@@ -331,18 +331,26 @@ for paths in all_paths:
             _, _, perf_all = l1.performance_in_trials(stim_trials)
             _, _, perf_all_c = l1.performance_in_trials(control_trials)
             
+            # deltas += [perf_all / perf_all_c]
             deltas += [perf_all_c - perf_all]
 
-
-        
     all_deltas += [deltas]
-    all_mod = [modularity]
+    all_mod += [modularity]
+    
+    
+fig = plt.figure(figsize=(7,6))
 
 ls = ['Naive', 'Learning', 'Expert']
 
 for i in range(3):
     plt.scatter(all_mod[i], all_deltas[i], label = ls[i])
 
-plt.xlabel('Modularity')
-plt.ylabel('Behvioral delta')
+plt.xlabel('Modularity, unperturbed hemisphere')
+# plt.ylabel('Behvioral recovery, (frac. correct, photoinhib./control)')
+plt.ylabel('Behvioral recovery, (delta correct, control-photoinhib.)')
+plt.legend()
+plt.title('Pearsons correlation: {}, p-val: {}'.format(stats.pearsonr(cat(all_mod), cat(all_deltas))[0], 
+                                                       stats.pearsonr(cat(all_mod), cat(all_deltas))[1]))
+
+plt.savefig(r'F:\data\Fig 3\corr_behaviordiff_modularity_matched.pdf')
 plt.show()

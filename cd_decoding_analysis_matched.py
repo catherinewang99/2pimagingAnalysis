@@ -42,7 +42,7 @@ plt.errorbar([0,1,2], [np.mean(acc_naive), 1-np.mean(acc_learning), np.mean(acc_
 
 plt.xticks([0,1,2], ['Naive', 'Learning', 'Expert'])
 plt.ylim(bottom=0.4, top =1)
-plt.savefig('F:\data\Fig 2\CD_delay_decoding_NLE.pdf')
+# plt.savefig('F:\data\Fig 2\CD_delay_decoding_NLE.pdf')
 plt.show()
 #%% Decoding analysis applied across training stages for action CW37
 paths =[r'F:\data\BAYLORCW037\python\2023_11_21',
@@ -59,15 +59,15 @@ acc_learning = l1.decision_boundary_appliedCD('action', orthonormal_basis, mean,
 l1 = Mode(paths[0], use_reg=True, triple=True) #naive
 acc_naive = l1.decision_boundary_appliedCD('action', orthonormal_basis, mean, db)
 
-plt.bar([0,1,2], [np.mean(acc_naive), 1 - np.mean(acc_learning), np.mean(acc_expert)])
-plt.errorbar([0,1,2], [np.mean(acc_naive), 1-np.mean(acc_learning), np.mean(acc_expert)],
+plt.bar([0,1,2], [1-np.mean(acc_naive), 1 - np.mean(acc_learning), np.mean(acc_expert)])
+plt.errorbar([0,1,2], [1-np.mean(acc_naive), 1-np.mean(acc_learning), np.mean(acc_expert)],
              [np.std(acc_naive)/np.sqrt(len(acc_naive)), 
               np.std(acc_learning)/np.sqrt(len(acc_learning)),
               np.std(acc_expert)/np.sqrt(len(acc_expert))],
              color = 'r')
 
 plt.xticks([0,1,2], ['Naive', 'Learning', 'Expert'])
-plt.ylim(bottom=0.4, top =1)
+plt.ylim(bottom=0.5, top =1)
 plt.savefig('F:\data\Fig 2\CD_action_decoding_NLE.pdf')
 plt.show()
 #%% Decoding analysis applied across two training stages SFN
