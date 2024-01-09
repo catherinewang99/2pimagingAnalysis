@@ -18,6 +18,80 @@ from scipy.stats import chisquare
 import pandas as pd
 from activityMode import Mode
 
+#%% Decoding analysis applied across training stages for choice and action CW37
+paths =[r'F:\data\BAYLORCW037\python\2023_11_21',
+            r'F:\data\BAYLORCW037\python\2023_12_08',
+            r'F:\data\BAYLORCW037\python\2023_12_15',]
+
+l1 = Mode(paths[2], use_reg=True, triple=True) #Expert
+orthonormal_basis, mean, db, acc_expert = l1.decision_boundary(mode_input='choice')
+print(np.mean(acc_expert))
+# acc_expert = acc_expert if acc_expert > 0.5 else 1-acc_expert
+
+l1 = Mode(paths[1], use_reg=True, triple=True) #Expert
+acc_learning = l1.decision_boundary_appliedCD('choice', orthonormal_basis, mean, db)
+
+l1 = Mode(paths[0], use_reg=True, triple=True) #Expert
+acc_naive = l1.decision_boundary_appliedCD('choice', orthonormal_basis, mean, db)
+
+plt.bar([0,1,2], [np.mean(acc_naive), np.mean(acc_learning), np.mean(acc_expert)])
+plt.errorbar([0,1,2], [np.mean(acc_naive), np.mean(acc_learning), np.mean(acc_expert)],
+             [np.std(acc_naive)/np.sqrt(len(acc_naive)), 
+              np.std(acc_learning)/np.sqrt(len(acc_learning)),
+              np.std(acc_expert)/np.sqrt(len(acc_expert))],
+             color = 'r')
+
+plt.xticks([0,1,2], ['Naive', 'Learning', 'Expert'])
+# plt.ylim(bottom=0.4, top =1)
+# plt.savefig('F:\data\Fig 2\CD_delay_decoding_NLE.pdf')
+plt.show()
+
+#%% Decoding analysis applied across training stages SFN
+save = 'F:\data\SFN 2023\CD_delay_expert_trainedexpert.pdf'
+
+# DECODER ANALYSIS
+path = r'F:\data\BAYLORCW032\python\2023_10_25'
+# path = r'F:\data\BAYLORCW036\python\2023_10_28'
+
+l1 = Mode(path, use_reg = True)
+orthonormal_basis, mean, db, acc_within = l1.decision_boundary()
+print(np.mean(acc_within))
+
+
+path = r'F:\data\BAYLORCW032\python\2023_10_08'
+l1 = Mode(path, use_reg = True)
+acc_without = l1.decision_boundary_appliedCD(orthonormal_basis, mean, db)
+
+plt.bar([0,1], [np.mean(acc_within), np.mean(acc_without)])
+plt.errorbar([0,1], [np.mean(acc_within), np.mean(acc_without)],
+             [np.std(acc_within)/np.sqrt(len(acc_within)), np.std(acc_without)/np.sqrt(len(acc_without))],
+             color = 'r')
+plt.xticks([0,1], ['Expert:Expert', 'Expert:Naive'])
+plt.ylim(bottom=0.4, top =1)
+plt.savefig( 'F:\data\SFN 2023\CD_delay_DB_trainedexpert.pdf')
+plt.show()
+
+path = r'F:\data\BAYLORCW032\python\2023_10_08'
+# path = r'F:\data\BAYLORCW036\python\2023_10_28'
+
+l1 = Mode(path, use_reg = True)
+orthonormal_basis, mean, db, acc_within = l1.decision_boundary()
+print(np.mean(acc_within))
+
+
+path = r'F:\data\BAYLORCW032\python\2023_10_25'
+l1 = Mode(path, use_reg = True)
+acc_without = l1.decision_boundary_appliedCD(orthonormal_basis, mean, db)
+
+plt.bar([0,1], [np.mean(acc_within), np.mean(acc_without)])
+plt.errorbar([0,1], [np.mean(acc_within), np.mean(acc_without)],
+             [np.std(acc_within)/np.sqrt(len(acc_within)), np.std(acc_without)/np.sqrt(len(acc_without))],
+             color = 'r')
+plt.xticks([0,1], ['Naive:Naive', 'Naive:Expert'])
+plt.ylim(bottom=0.4, top =1)
+plt.savefig( 'F:\data\SFN 2023\CD_delay_DB_trainednaive.pdf')
+
+plt.show()
 # Plot choice decoding in control vs opto trials
 
 
@@ -108,9 +182,9 @@ plt.show()
 
 #%% matched across sessions
 # from activityMode import Mode
-paths = [r'F:\data\BAYLORCW032\python\2023_10_08',
-          r'F:\data\BAYLORCW032\python\2023_10_16',
-          r'F:\data\BAYLORCW032\python\2023_10_25',]
+# paths = [r'F:\data\BAYLORCW032\python\2023_10_08',
+#           r'F:\data\BAYLORCW032\python\2023_10_16',
+#           r'F:\data\BAYLORCW032\python\2023_10_25',]
 
 paths =[r'F:\data\BAYLORCW037\python\2023_11_21',
             r'F:\data\BAYLORCW037\python\2023_12_08',

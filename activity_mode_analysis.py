@@ -35,52 +35,7 @@ path = r'F:\data\BAYLORCW032\python\2023_10_24'
 # print(np.mean(acc_within))
 
 # path = r'F:\data\BAYLORCW021\python\2023_05_03'
-#%%
-save = 'F:\data\SFN 2023\CD_delay_expert_trainedexpert.pdf'
 
-# DECODER ANALYSIS
-path = r'F:\data\BAYLORCW032\python\2023_10_25'
-# path = r'F:\data\BAYLORCW036\python\2023_10_28'
-
-l1 = Mode(path, use_reg = True)
-orthonormal_basis, mean, db, acc_within = l1.decision_boundary()
-print(np.mean(acc_within))
-
-
-path = r'F:\data\BAYLORCW032\python\2023_10_08'
-l1 = Mode(path, use_reg = True)
-acc_without = l1.decision_boundary_appliedCD(orthonormal_basis, mean, db)
-
-plt.bar([0,1], [np.mean(acc_within), np.mean(acc_without)])
-plt.errorbar([0,1], [np.mean(acc_within), np.mean(acc_without)],
-             [np.std(acc_within)/np.sqrt(len(acc_within)), np.std(acc_without)/np.sqrt(len(acc_without))],
-             color = 'r')
-plt.xticks([0,1], ['Expert:Expert', 'Expert:Naive'])
-plt.ylim(bottom=0.4, top =1)
-plt.savefig( 'F:\data\SFN 2023\CD_delay_DB_trainedexpert.pdf')
-plt.show()
-
-path = r'F:\data\BAYLORCW032\python\2023_10_08'
-# path = r'F:\data\BAYLORCW036\python\2023_10_28'
-
-l1 = Mode(path, use_reg = True)
-orthonormal_basis, mean, db, acc_within = l1.decision_boundary()
-print(np.mean(acc_within))
-
-
-path = r'F:\data\BAYLORCW032\python\2023_10_25'
-l1 = Mode(path, use_reg = True)
-acc_without = l1.decision_boundary_appliedCD(orthonormal_basis, mean, db)
-
-plt.bar([0,1], [np.mean(acc_within), np.mean(acc_without)])
-plt.errorbar([0,1], [np.mean(acc_within), np.mean(acc_without)],
-             [np.std(acc_within)/np.sqrt(len(acc_within)), np.std(acc_without)/np.sqrt(len(acc_without))],
-             color = 'r')
-plt.xticks([0,1], ['Naive:Naive', 'Naive:Expert'])
-plt.ylim(bottom=0.4, top =1)
-plt.savefig( 'F:\data\SFN 2023\CD_delay_DB_trainednaive.pdf')
-
-plt.show()
 #%%
 # Choice decoder
 # NAIVE to TRAINED

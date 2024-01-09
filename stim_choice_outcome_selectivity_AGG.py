@@ -281,8 +281,8 @@ plt.show()
 #%% Action mode selectivity trace:
     
 allpaths = [ [
-        r'F:\data\BAYLORCW032\python\2023_10_08',
-        # r'F:\data\BAYLORCW034\python\2023_10_12',
+        # r'F:\data\BAYLORCW032\python\2023_10_08',
+        r'F:\data\BAYLORCW034\python\2023_10_12',
         r'F:\data\BAYLORCW036\python\2023_10_09',
         r'F:\data\BAYLORCW035\python\2023_10_26',
         r'F:\data\BAYLORCW037\python\2023_11_21',
@@ -290,8 +290,8 @@ allpaths = [ [
     
     
     [
-        r'F:\data\BAYLORCW032\python\2023_10_16',
-        # r'F:\data\BAYLORCW034\python\2023_10_22',
+        # r'F:\data\BAYLORCW032\python\2023_10_16',
+        r'F:\data\BAYLORCW034\python\2023_10_22',
         r'F:\data\BAYLORCW036\python\2023_10_19',
         r'F:\data\BAYLORCW035\python\2023_12_07',
         r'F:\data\BAYLORCW037\python\2023_12_08',
@@ -299,8 +299,8 @@ allpaths = [ [
     
     
     [
-        r'F:\data\BAYLORCW032\python\2023_10_25',
-        # r'F:\data\BAYLORCW034\python\2023_10_27',
+        # r'F:\data\BAYLORCW032\python\2023_10_25',
+        r'F:\data\BAYLORCW034\python\2023_10_27',
         r'F:\data\BAYLORCW036\python\2023_10_30',
         r'F:\data\BAYLORCW035\python\2023_12_15',
         r'F:\data\BAYLORCW037\python\2023_12_15',
@@ -342,5 +342,5 @@ for i in range(3):
     axarr[i].axvline(-3, color = 'grey', alpha=0.5, ls = '--')        
     axarr[i].axhline(0, color = 'grey', alpha=0.5, ls = '--')
     
-plt.savefig(r'F:\data\Fig 2\action_NLE_selectivity.pdf')
+# plt.savefig(r'F:\data\Fig 2\action_NLE_selectivity.pdf')
 plt.show()
