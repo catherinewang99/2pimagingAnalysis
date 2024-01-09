@@ -1195,7 +1195,7 @@ class Mode(Session):
         i_pc = 0
         projright, projleft = [], []
         
-        time_point_map = {'choice': self.response-1, 'action':self.response+2, 'stimulus':self.delay-1}
+        time_point_map = {'choice': self.response-1, 'action':self.response+7, 'stimulus':self.delay-1}
         time_point = time_point_map[mode_input]
         
         # Project for every trial in train set for DB
@@ -1203,13 +1203,13 @@ class Mode(Session):
             activity = self.dff[0, r_trials[t]][self.good_neurons] 
             activity = activity 
             proj_allDim = np.dot(activity.T, orthonormal_basis)
-            projright += [proj_allDim[time_point, i_pc]]
+            projright += [proj_allDim[time_point]]
             
         for t in self.l_train_idx:
             activity = self.dff[0, l_trials[t]][self.good_neurons]
             activity = activity 
             proj_allDim = np.dot(activity.T, orthonormal_basis)
-            projleft += [proj_allDim[time_point, i_pc]]
+            projleft += [proj_allDim[time_point]]
 
 
 
@@ -1234,15 +1234,15 @@ class Mode(Session):
                 activity = self.dff[0, r][self.good_neurons] 
                 activity = activity - np.tile(np.mean(activityRL_train, axis=1)[:, None], (1, activity.shape[1]))
                 proj_allDim = np.dot(activity.T, orthonormal_basis)
-                decoderchoice += [proj_allDim[time_point, i_pc]<db]
-                plt.plot(x, proj_allDim[:len(self.T_cue_aligned_sel), i_pc], 'b', alpha = 0.5,  linewidth = 0.5)
+                decoderchoice += [proj_allDim[time_point]<db]
+                # plt.plot(x, proj_allDim[:len(self.T_cue_aligned_sel)], 'b', alpha = 0.5,  linewidth = 0.5)
                 
             for l in l_trials:
                 activity = self.dff[0, l][self.good_neurons]
                 activity = activity - np.tile(np.mean(activityRL_train, axis=1)[:, None], (1, activity.shape[1]))
                 proj_allDim = np.dot(activity.T, orthonormal_basis)
-                decoderchoice += [proj_allDim[time_point, i_pc]>db]
-                plt.plot(x, proj_allDim[:len(self.T_cue_aligned_sel), i_pc], 'r', alpha = 0.5, linewidth = 0.5)
+                decoderchoice += [proj_allDim[time_point]>db]
+                # plt.plot(x, proj_allDim[:len(self.T_cue_aligned_sel)], 'r', alpha = 0.5, linewidth = 0.5)
                 
                 
         else:
@@ -1252,18 +1252,18 @@ class Mode(Session):
                 activity = activity - np.tile(np.mean(activityRL_train, axis=1)[:, None], (1, activity.shape[1]))
                 proj_allDim = np.dot(activity.T, orthonormal_basis)
     
-                decoderchoice += [proj_allDim[time_point, i_pc]<db]
-                plt.plot(x, proj_allDim[:len(self.T_cue_aligned_sel), i_pc], 'b', alpha = 0.5,  linewidth = 0.5)
-                # plt.scatter(x[time_point],[proj_allDim[time_point, i_pc]], color='b')
+                decoderchoice += [proj_allDim[time_point]<db]
+                # plt.plot(x, proj_allDim[:len(self.T_cue_aligned_sel)], 'b', alpha = 0.5,  linewidth = 0.5)
+                # plt.scatter(x[time_point],[proj_allDim[time_point]], color='b')
                 
             for t in self.l_test_idx:
                 activity = self.dff[0, l_trials[t]][self.good_neurons]
                 activity = activity -np.tile(np.mean(activityRL_train, axis=1)[:, None], (1, activity.shape[1]))
                 proj_allDim = np.dot(activity.T, orthonormal_basis)
     
-                decoderchoice += [proj_allDim[time_point, i_pc]>db]
-                plt.plot(x, proj_allDim[:len(self.T_cue_aligned_sel), i_pc], 'r', alpha = 0.5, linewidth = 0.5)
-                # plt.scatter(x[time_point],[proj_allDim[time_point, i_pc]], color='r')
+                decoderchoice += [proj_allDim[time_point]>db]
+                # plt.plot(x, proj_allDim[:len(self.T_cue_aligned_sel)], 'r', alpha = 0.5, linewidth = 0.5)
+                # plt.scatter(x[time_point],[proj_allDim[time_point]], color='r')
             
         
             # Exclude:
@@ -1277,13 +1277,13 @@ class Mode(Session):
                     activity = self.dff[0, t][self.good_neurons] 
                     activity = activity - np.tile(np.mean(activityRL_train, axis=1)[:, None], (1, activity.shape[1]))
                     proj_allDim = np.dot(activity.T, orthonormal_basis)
-                    decoderchoice += [proj_allDim[time_point, i_pc] > db]
+                    decoderchoice += [proj_allDim[time_point] > db]
            
                 for t in l_test_err:
                     activity = self.dff[0, t][self.good_neurons] 
                     activity = activity - np.tile(np.mean(activityRL_train, axis=1)[:, None], (1, activity.shape[1]))
                     proj_allDim = np.dot(activity.T, orthonormal_basis)
-                    decoderchoice += [proj_allDim[time_point, i_pc] < db]            
+                    decoderchoice += [proj_allDim[time_point] < db]            
         
 
         
@@ -1832,7 +1832,7 @@ class Mode(Session):
         Use method from Guang's paper
         """
         
-        time_point_map = {'choice': self.response-1, 'action':self.response+2, 'stimulus':self.delay-1}
+        time_point_map = {'choice': self.response-1, 'action':self.response+7, 'stimulus':self.delay-1}
         time_point = time_point_map[mode_input]
         
        
@@ -1867,10 +1867,6 @@ class Mode(Session):
             proj_allDim = np.dot(activity.T, orthonormal_basis)
             projleft += [proj_allDim]
             
-        # Calculate DB
-        # db = ((np.mean(projright,axis=0) / np.var(projright, axis=0)) + (np.mean(projleft,axis=0) / np.var(projleft, axis=0))) / (((1/ np.var(projright, axis=0))) + (1/ np.var(projleft, axis=0)))
-        # db = ((np.mean(projright) / np.var(projright)) + (np.mean(projleft) / np.var(projleft))) / (((1/ np.var(projright))) + (1/ np.var(projleft)))
-        
         decoderchoice = []
         # Project and compare to DB
         for t in self.r_test_idx:
@@ -1888,8 +1884,8 @@ class Mode(Session):
             
         
         # # ax = axs.flatten()[0]
-        # plt.plot(x, proj_allDim[:len(self.T_cue_aligned_sel), i_pc], 'b', linewidth = 2)
-        # plt.plot(x, proj_allDim[len(self.T_cue_aligned_sel):, i_pc], 'r', linewidth = 2)
+        # plt.plot(x, proj_allDim[:len(self.T_cue_aligned_sel)], 'b', linewidth = 2)
+        # plt.plot(x, proj_allDim[len(self.T_cue_aligned_sel):], 'r', linewidth = 2)
         # plt.title("Choice decoder projections")
         # plt.axvline(-4.3, color = 'grey', alpha=0.5, ls = '--')
         # plt.axvline(-3, color = 'grey', alpha=0.5, ls = '--')

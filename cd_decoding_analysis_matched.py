@@ -18,7 +18,7 @@ from scipy.stats import chisquare
 import pandas as pd
 from activityMode import Mode
 
-#%% Decoding analysis applied across training stages for choice and action CW37
+#%% Decoding analysis applied across training stages for choice CW37
 paths =[r'F:\data\BAYLORCW037\python\2023_11_21',
             r'F:\data\BAYLORCW037\python\2023_12_08',
             r'F:\data\BAYLORCW037\python\2023_12_15',]
@@ -26,7 +26,6 @@ paths =[r'F:\data\BAYLORCW037\python\2023_11_21',
 l1 = Mode(paths[2], use_reg=True, triple=True) #Expert
 orthonormal_basis, mean, db, acc_expert = l1.decision_boundary(mode_input='choice')
 print(np.mean(acc_expert))
-# acc_expert = acc_expert if acc_expert > 0.5 else 1-acc_expert
 
 l1 = Mode(paths[1], use_reg=True, triple=True) #Expert
 acc_learning = l1.decision_boundary_appliedCD('choice', orthonormal_basis, mean, db)
@@ -34,8 +33,34 @@ acc_learning = l1.decision_boundary_appliedCD('choice', orthonormal_basis, mean,
 l1 = Mode(paths[0], use_reg=True, triple=True) #Expert
 acc_naive = l1.decision_boundary_appliedCD('choice', orthonormal_basis, mean, db)
 
-plt.bar([0,1,2], [np.mean(acc_naive), np.mean(acc_learning), np.mean(acc_expert)])
-plt.errorbar([0,1,2], [np.mean(acc_naive), np.mean(acc_learning), np.mean(acc_expert)],
+plt.bar([0,1,2], [np.mean(acc_naive), 1 - np.mean(acc_learning), np.mean(acc_expert)])
+plt.errorbar([0,1,2], [np.mean(acc_naive), 1-np.mean(acc_learning), np.mean(acc_expert)],
+             [np.std(acc_naive)/np.sqrt(len(acc_naive)), 
+              np.std(acc_learning)/np.sqrt(len(acc_learning)),
+              np.std(acc_expert)/np.sqrt(len(acc_expert))],
+             color = 'r')
+
+plt.xticks([0,1,2], ['Naive', 'Learning', 'Expert'])
+plt.ylim(bottom=0.4, top =1)
+plt.savefig('F:\data\Fig 2\CD_delay_decoding_NLE.pdf')
+plt.show()
+#%% Decoding analysis applied across training stages for action CW37
+paths =[r'F:\data\BAYLORCW037\python\2023_11_21',
+            r'F:\data\BAYLORCW037\python\2023_12_08',
+            r'F:\data\BAYLORCW037\python\2023_12_15',]
+
+l1 = Mode(paths[2], use_reg=True, triple=True) #Expert
+orthonormal_basis, mean, db, acc_expert = l1.decision_boundary(mode_input='action')
+print(np.mean(acc_expert))
+
+l1 = Mode(paths[1], use_reg=True, triple=True) #learning
+acc_learning = l1.decision_boundary_appliedCD('action', orthonormal_basis, mean, db)
+
+l1 = Mode(paths[0], use_reg=True, triple=True) #naive
+acc_naive = l1.decision_boundary_appliedCD('action', orthonormal_basis, mean, db)
+
+plt.bar([0,1,2], [np.mean(acc_naive), 1 - np.mean(acc_learning), np.mean(acc_expert)])
+plt.errorbar([0,1,2], [np.mean(acc_naive), 1-np.mean(acc_learning), np.mean(acc_expert)],
              [np.std(acc_naive)/np.sqrt(len(acc_naive)), 
               np.std(acc_learning)/np.sqrt(len(acc_learning)),
               np.std(acc_expert)/np.sqrt(len(acc_expert))],
@@ -43,10 +68,9 @@ plt.errorbar([0,1,2], [np.mean(acc_naive), np.mean(acc_learning), np.mean(acc_ex
 
 plt.xticks([0,1,2], ['Naive', 'Learning', 'Expert'])
 # plt.ylim(bottom=0.4, top =1)
-# plt.savefig('F:\data\Fig 2\CD_delay_decoding_NLE.pdf')
+plt.savefig('F:\data\Fig 2\CD_action_decoding_NLE.pdf')
 plt.show()
-
-#%% Decoding analysis applied across training stages SFN
+#%% Decoding analysis applied across two training stages SFN
 save = 'F:\data\SFN 2023\CD_delay_expert_trainedexpert.pdf'
 
 # DECODER ANALYSIS
