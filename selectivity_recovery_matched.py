@@ -162,18 +162,18 @@ paths = [    r'F:\data\BAYLORCW032\python\2023_10_05',
             r'F:\data\BAYLORCW035\python\2023_10_26',
             r'F:\data\BAYLORCW037\python\2023_11_21',]
 
-# paths = [r'F:\data\BAYLORCW032\python\2023_10_19',
-#             # r'F:\data\BAYLORCW034\python\2023_10_22',
-#             r'F:\data\BAYLORCW036\python\2023_10_19',
-#             r'F:\data\BAYLORCW035\python\2023_12_07',
-#             r'F:\data\BAYLORCW037\python\2023_12_08',]
+paths = [r'F:\data\BAYLORCW032\python\2023_10_19',
+            # r'F:\data\BAYLORCW034\python\2023_10_22',
+            r'F:\data\BAYLORCW036\python\2023_10_19',
+            r'F:\data\BAYLORCW035\python\2023_12_07',
+            r'F:\data\BAYLORCW037\python\2023_12_08',]
 
 
-# paths = [r'F:\data\BAYLORCW032\python\2023_10_24',
-#             # r'F:\data\BAYLORCW034\python\2023_10_27',
-#             r'F:\data\BAYLORCW036\python\2023_10_30',
-#             r'F:\data\BAYLORCW035\python\2023_12_15',
-#             r'F:\data\BAYLORCW037\python\2023_12_15',]
+paths = [r'F:\data\BAYLORCW032\python\2023_10_24',
+            # r'F:\data\BAYLORCW034\python\2023_10_27',
+            r'F:\data\BAYLORCW036\python\2023_10_30',
+            r'F:\data\BAYLORCW035\python\2023_12_15',
+            r'F:\data\BAYLORCW037\python\2023_12_15',]
 
 
 
@@ -288,4 +288,61 @@ plt.show()
 tstat, p_val = stats.ttest_ind(all_recovery[1], all_recovery[2], equal_var=False, permutations = np.inf, alternative='less')
 print("mod diff p-value: ", p_val)
 
+#%% Correlate behavior recovery with modularity:
+    
+all_paths = [[    r'F:\data\BAYLORCW032\python\2023_10_05',
+            # r'F:\data\BAYLORCW034\python\2023_10_12',
+            r'F:\data\BAYLORCW036\python\2023_10_09',
+            r'F:\data\BAYLORCW035\python\2023_10_26',
+            r'F:\data\BAYLORCW037\python\2023_11_21',],
+
+             [r'F:\data\BAYLORCW032\python\2023_10_19',
+            # r'F:\data\BAYLORCW034\python\2023_10_22',
+            r'F:\data\BAYLORCW036\python\2023_10_19',
+            r'F:\data\BAYLORCW035\python\2023_12_07',
+            r'F:\data\BAYLORCW037\python\2023_12_08',],
+
+
+             [r'F:\data\BAYLORCW032\python\2023_10_24',
+            # r'F:\data\BAYLORCW034\python\2023_10_27',
+            r'F:\data\BAYLORCW036\python\2023_10_30',
+            r'F:\data\BAYLORCW035\python\2023_12_15',
+            r'F:\data\BAYLORCW037\python\2023_12_15',]]
+
+all_deltas = []
+all_mod = []
+
+for paths in all_paths:
+
+    deltas = []
+    modularity = []
+
+    for path in paths:
+
+        l1 = session.Session(path)
+        temp = l1.modularity_proportion(p=0.01)
+
+        if temp > 0 and temp < 1: # Exclude values based on Chen et al method guidelines
+            modularity += [temp]
+
+            stim_trials = np.where(l1.stim_ON)[0]
+            control_trials = np.where(~l1.stim_ON)[0]
+            
+            _, _, perf_all = l1.performance_in_trials(stim_trials)
+            _, _, perf_all_c = l1.performance_in_trials(control_trials)
+            
+            deltas += [perf_all_c - perf_all]
+
+
         
+    all_deltas += [deltas]
+    all_mod = [modularity]
+
+ls = ['Naive', 'Learning', 'Expert']
+
+for i in range(3):
+    plt.scatter(all_mod[i], all_deltas[i], label = ls[i])
+
+plt.xlabel('Modularity')
+plt.ylabel('Behvioral delta')
+plt.show()

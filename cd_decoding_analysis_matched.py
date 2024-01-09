@@ -67,7 +67,7 @@ plt.errorbar([0,1,2], [np.mean(acc_naive), 1-np.mean(acc_learning), np.mean(acc_
              color = 'r')
 
 plt.xticks([0,1,2], ['Naive', 'Learning', 'Expert'])
-# plt.ylim(bottom=0.4, top =1)
+plt.ylim(bottom=0.4, top =1)
 plt.savefig('F:\data\Fig 2\CD_action_decoding_NLE.pdf')
 plt.show()
 #%% Decoding analysis applied across two training stages SFN
