@@ -29,8 +29,10 @@ path = r'F:\data\BAYLORCW030\python\2023_07_10'
 
 path = r'F:\data\BAYLORCW032\python\2023_10_24'
 path = r'F:\data\BAYLORCW037\python\2023_11_21'
+path = r'F:\data\BAYLORCW034\python\2023_10_27'
+path = r'F:\data\BAYLORCW037\python\2023_12_15'
 
-l1 = session.Session(path)
+l1 = session.Session(path)#, use_reg=True, triple=True)
 
 # l1 = decon.Deconvolved(path)
 
@@ -71,7 +73,8 @@ l1 = session.Session(path)
 # l1.plot_contra_ipsi_pop()
 
 for i in l1.good_neurons[:10]:
-    l1.plot_rasterPSTH_sidebyside(i)
+    l1.plot_raster_and_PSTH(i)
+    # l1.plot_rasterPSTH_sidebyside(i)
     
     # l1.plot_raster_and_PSTH(i, bias= True)
 
@@ -89,17 +92,17 @@ for i in l1.good_neurons[:10]:
 #         # l1.plot_rasterPSTH_sidebyside(n)
 
     
-for n in l1.get_epoch_selective(range(l1.delay, l1.response)):
-# # #     # if l1.filter_by_deltas(n):
+# for n in l1.get_epoch_selective(range(l1.delay, l1.response)):
+# # # #     # if l1.filter_by_deltas(n):
 
-# # #         # plt.show()
-# # #     # l1.plot_selectivity(n)
-    l1.plot_rasterPSTH_sidebyside(n)
-#     l1.plot_raster_and_PSTH(n, bias= True)
+# # # #         # plt.show()
+# # # #     # l1.plot_selectivity(n)
+#     l1.plot_rasterPSTH_sidebyside(n)
+# #     l1.plot_raster_and_PSTH(n, bias= True)
 
         
 
-
+l1.plot_raster_and_PSTH(523)
     
     
     

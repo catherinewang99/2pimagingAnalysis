@@ -682,13 +682,13 @@ for paths in agg_mice_paths:
             idx = np.where(s1.good_neurons == n)[0][0] # positions of selective neurons
 
             # Naive
-            s1.plot_rasterPSTH_sidebyside(n)
+            s1.plot_raster_and_PSTH(n)
             
             # Learning
-            s2.plot_rasterPSTH_sidebyside(s2.good_neurons[idx])
+            s2.plot_raster_and_PSTH(s2.good_neurons[idx])
 
             # Expert
-            s3.plot_rasterPSTH_sidebyside(s3.good_neurons[idx])
+            s3.plot_raster_and_PSTH(s3.good_neurons[idx])
 
     
 #%% Get number to make SANKEY diagram SDR
@@ -824,8 +824,9 @@ c1, i1, ns1 = np.zeros(3),np.zeros(3),np.zeros(3)
 for paths in agg_mice_paths: # For each mouse
 
     s1 = session.Session(paths[0][1], use_reg=True, triple=True) # Naive
+    epoch = range(s1.response, s1.time_cutoff)
     
-    contra_neurons, ipsi_neurons, _, _ = s1.contra_ipsi_pop(range(s1.time_cutoff), p=p)
+    contra_neurons, ipsi_neurons, _, _ = s1.contra_ipsi_pop(epoch, p=p)
     naive_nonsel = [n for n in s1.good_neurons if n not in ipsi_neurons and n not in contra_neurons]
 
     og_SDR += [[len(contra_neurons), len(ipsi_neurons), len(naive_nonsel)]]
@@ -837,8 +838,8 @@ for paths in agg_mice_paths: # For each mouse
     # expert = sum([s3.is_selective(s3.good_neurons[np.where(s1.good_neurons ==n)[0][0]], epoch) for n in naive_sel])
     
     for n in contra_neurons:
-        if s2.is_selective(s2.good_neurons[np.where(s1.good_neurons ==n)[0][0]], range(s1.time_cutoff), p=p):
-            ipsi, _, _ = s2.screen_preference(s2.good_neurons[np.where(s1.good_neurons ==n)[0][0]], range(s1.time_cutoff))
+        if s2.is_selective(s2.good_neurons[np.where(s1.good_neurons ==n)[0][0]], epoch, p=p):
+            ipsi, _, _ = s2.screen_preference(s2.good_neurons[np.where(s1.good_neurons ==n)[0][0]], epoch)
             if not ipsi:
                 c1[0] += 1
             else:
@@ -847,8 +848,8 @@ for paths in agg_mice_paths: # For each mouse
             c1[2] += 1
     
     for n in ipsi_neurons:
-        if s2.is_selective(s2.good_neurons[np.where(s1.good_neurons ==n)[0][0]], range(s1.time_cutoff), p=p):
-            ipsi, _, _ = s2.screen_preference(s2.good_neurons[np.where(s1.good_neurons ==n)[0][0]], range(s1.time_cutoff))
+        if s2.is_selective(s2.good_neurons[np.where(s1.good_neurons ==n)[0][0]], epoch, p=p):
+            ipsi, _, _ = s2.screen_preference(s2.good_neurons[np.where(s1.good_neurons ==n)[0][0]], epoch)
             if not ipsi:
                 i1[0] += 1
             else:
@@ -858,8 +859,8 @@ for paths in agg_mice_paths: # For each mouse
     
 
     for n in naive_nonsel:
-        if s2.is_selective(s2.good_neurons[np.where(s1.good_neurons ==n)[0][0]], range(s1.time_cutoff), p=p):
-            ipsi, _, _ = s2.screen_preference(s2.good_neurons[np.where(s1.good_neurons ==n)[0][0]], range(s1.time_cutoff))
+        if s2.is_selective(s2.good_neurons[np.where(s1.good_neurons ==n)[0][0]], epoch, p=p):
+            ipsi, _, _ = s2.screen_preference(s2.good_neurons[np.where(s1.good_neurons ==n)[0][0]], epoch)
             if not ipsi:
                 ns1[0] += 1
             else:

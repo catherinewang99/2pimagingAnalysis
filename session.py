@@ -2044,7 +2044,7 @@ class Session:
         else:
             return False
         
-    def plot_raster_and_PSTH(self, neuron_num, opto=False, bias=False):
+    def plot_raster_and_PSTH(self, neuron_num, opto=False, bias=False, fixaxis = False, save=[]):
         """Plot heatmap then averaged L/R trace for a single neuron
                                 
         Parameters
@@ -2110,6 +2110,15 @@ class Session:
         axarr[1].axvline(self.delay, linestyle = '--')
         axarr[1].axvline(self.response, linestyle = '--')
         axarr[0].set_title(title)
+        if fixaxis != False:
+            axarr[1].set_ylim([fixaxis[0], fixaxis[1]])
+            
+        x = np.arange(-6.8,6,self.fs)[:self.time_cutoff]
+        axarr[1].set_xticks(range(4, self.time_cutoff, 6), [np.round(d) for d in x[4::6]])
+        
+        if len(save) != 0:
+            plt.savefig(save)
+            
         plt.show()
         
 
