@@ -1464,10 +1464,15 @@ class Mode(Session):
 
 ## Modes with optogenetic inhibition
     
-    def plot_CD_opto(self, epoch=None, save=None):
+    def plot_CD_opto(self, epoch=None, save=None, return_traces = False):
         '''
         Plots similar figure as Li et al 2016 Fig 3c to view the effect of
         photoinhibition on L/R CD traces
+        
+        Returns
+        -------
+        R then L for control, opto traces as well as error bars
+        
         '''
         if epoch is not None:
             orthonormal_basis, var_allDim = self.func_compute_epoch_decoder([self.PSTH_r_train_correct, 
@@ -1507,16 +1512,17 @@ class Mode(Session):
         activityRL_test = activityRL_test - np.tile(np.mean(activityRL_train, axis=1)[:, None], (1, activityRL_test.shape[1]))  # remove mean
         proj_allDim = np.dot(activityRL_test.T, orthonormal_basis)
 
-        
-        # Plot average control traces as dotted lines
-        plt.plot(x, proj_allDim[:len(self.T_cue_aligned_sel), i_pc], 'b', ls = '--', linewidth = 0.5)
-        plt.plot(x, proj_allDim[len(self.T_cue_aligned_sel):, i_pc], 'r', ls = '--', linewidth = 0.5)
-        plt.title("Choice decoder projections with opto")
-        plt.axvline(-4.3, color = 'grey', alpha=0.5, ls = '--')
-        plt.axvline(-3, color = 'grey', alpha=0.5, ls = '--')
-        plt.axvline(0, color = 'grey', alpha=0.5, ls = '--')
-        plt.ylabel('CD_delay projection (a.u.)')
-        
+        control_traces = proj_allDim[:len(self.T_cue_aligned_sel), i_pc], proj_allDim[len(self.T_cue_aligned_sel):, i_pc]
+        if not return_traces:
+            # Plot average control traces as dotted lines
+            plt.plot(x, proj_allDim[:len(self.T_cue_aligned_sel), i_pc], 'b', ls = '--', linewidth = 0.5)
+            plt.plot(x, proj_allDim[len(self.T_cue_aligned_sel):, i_pc], 'r', ls = '--', linewidth = 0.5)
+            plt.title("Choice decoder projections with opto")
+            plt.axvline(-4.3, color = 'grey', alpha=0.5, ls = '--')
+            plt.axvline(-3, color = 'grey', alpha=0.5, ls = '--')
+            plt.axvline(0, color = 'grey', alpha=0.5, ls = '--')
+            plt.ylabel('CD_delay projection (a.u.)')
+            
         
         
         r_opto, l_opto = self.get_trace_matrix_multiple(self.good_neurons, opto=True)
@@ -1549,6 +1555,12 @@ class Mode(Session):
         # Opto trials
         activityRL_opto = activityRL_opto - np.tile(np.mean(activityRL_train, axis=1)[:, None], (1, activityRL_opto.shape[1]))  # remove mean
         proj_allDim = np.dot(activityRL_opto.T, orthonormal_basis)
+        
+        if return_traces:
+            
+            opto_traces =  proj_allDim[:len(self.T_cue_aligned_sel), i_pc], proj_allDim[len(self.T_cue_aligned_sel):, i_pc]
+            error_bars = stats.sem(r_proj, axis=0), stats.sem(l_proj, axis=0)
+            return control_traces, opto_traces, error_bars
         
         plt.plot(x, proj_allDim[:len(self.T_cue_aligned_sel), i_pc], 'b', linewidth = 2)
         plt.plot(x, proj_allDim[len(self.T_cue_aligned_sel):, i_pc], 'r', linewidth = 2)
