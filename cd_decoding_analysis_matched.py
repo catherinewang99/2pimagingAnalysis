@@ -21,7 +21,64 @@ from scipy import stats
 
 #%% Decoding and behavior correlation
 
+allpaths = [[r'F:\data\BAYLORCW032\python\2023_10_08',
+          r'F:\data\BAYLORCW032\python\2023_10_16',
+          r'F:\data\BAYLORCW032\python\2023_10_25',
+          r'F:\data\BAYLORCW032\python\cellreg\layer{}\1008_1016_1025pairs_proc.npy'],
+         
+         # [ r'F:\data\BAYLORCW034\python\2023_10_12',
+         #    r'F:\data\BAYLORCW034\python\2023_10_22',
+         #    r'F:\data\BAYLORCW034\python\2023_10_27',
+         #    r'F:\data\BAYLORCW034\python\cellreg\layer{}\1012_1022_1027pairs_proc.npy'],
+         
+         [r'F:\data\BAYLORCW036\python\2023_10_09',
+            r'F:\data\BAYLORCW036\python\2023_10_19',
+            r'F:\data\BAYLORCW036\python\2023_10_30',
+            r'F:\data\BAYLORCW036\python\cellreg\layer{}\1009_1019_1030pairs_proc.npy'],
+         
+         [r'F:\data\BAYLORCW037\python\2023_11_21',
+                     r'F:\data\BAYLORCW037\python\2023_12_08',
+                     r'F:\data\BAYLORCW037\python\2023_12_15',],
+         
+          [r'F:\data\BAYLORCW035\python\2023_10_26',
+                      r'F:\data\BAYLORCW035\python\2023_12_07',
+                      r'F:\data\BAYLORCW035\python\2023_12_15',]
+        ]
 
+
+allaccs = []
+allbeh = []
+for paths in allpaths:
+    
+    l1 = Mode(paths[2], use_reg=True, triple=True) #Expert
+    orthonormal_basis, mean, db, acc_expert = l1.decision_boundary(mode_input='choice')
+    _, _, exp_beh = l1.performance_in_trials(l1.i_good_non_stim_trials)
+    exp = np.mean(acc_expert)
+    exp = exp if exp > 0.5 else 1-exp
+    
+    l1 = Mode(paths[1], use_reg=True, triple=True) #Learning
+    acc_learning = l1.decision_boundary_appliedCD('choice', orthonormal_basis, mean, db)
+    _, _, lea_beh = l1.performance_in_trials(l1.i_good_non_stim_trials)
+    lea = np.mean(acc_learning)
+    lea = lea if lea > 0.5 else 1-lea
+    
+    l1 = Mode(paths[0], use_reg=True, triple=True) #Naive
+    acc_naive = l1.decision_boundary_appliedCD('choice', orthonormal_basis, mean, db)
+    _, _, nai_beh = l1.performance_in_trials(l1.i_good_non_stim_trials)
+    nai = np.mean(acc_naive)
+    nai = nai if nai > 0.5 else 1-nai
+    
+    allaccs += [[nai, lea, exp]]
+    allbeh += [[nai_beh, lea_beh, exp_beh]]
+
+    plt.scatter([nai_beh, lea_beh, exp_beh], [nai, lea, exp])
+    plt.plot([nai_beh, lea_beh, exp_beh], [nai, lea, exp])
+    
+plt.xlabel('Behavioral performance')
+plt.ylabel('Decoder accuracy')
+plt.savefig('F:\data\Fig 2\CD_delay_behavior_corrAGG.pdf')
+
+plt.show()
 
 #%% Decoding analysis for all mice applied across training stages
 allpaths = [[r'F:\data\BAYLORCW032\python\2023_10_08',
@@ -29,10 +86,10 @@ allpaths = [[r'F:\data\BAYLORCW032\python\2023_10_08',
           r'F:\data\BAYLORCW032\python\2023_10_25',
           r'F:\data\BAYLORCW032\python\cellreg\layer{}\1008_1016_1025pairs_proc.npy'],
          
-         [ r'F:\data\BAYLORCW034\python\2023_10_12',
-            r'F:\data\BAYLORCW034\python\2023_10_22',
-            r'F:\data\BAYLORCW034\python\2023_10_27',
-            r'F:\data\BAYLORCW034\python\cellreg\layer{}\1012_1022_1027pairs_proc.npy'],
+           # [ r'F:\data\BAYLORCW034\python\2023_10_12',
+           #    r'F:\data\BAYLORCW034\python\2023_10_22',
+           #    r'F:\data\BAYLORCW034\python\2023_10_27',
+           #    r'F:\data\BAYLORCW034\python\cellreg\layer{}\1012_1022_1027pairs_proc.npy'],
          
          [r'F:\data\BAYLORCW036\python\2023_10_09',
             r'F:\data\BAYLORCW036\python\2023_10_19',
@@ -50,6 +107,9 @@ allpaths = [[r'F:\data\BAYLORCW032\python\2023_10_08',
 
 
 allaccs = []
+fig = plt.figure(figsize=(5,5))
+
+counter = 1
 for paths in allpaths:
     
     l1 = Mode(paths[2], use_reg=True, triple=True) #Expert
@@ -68,17 +128,24 @@ for paths in allpaths:
     nai = nai if nai > 0.5 else 1-nai
     
     allaccs += [[nai, lea, exp]]
-    
+    # plt.scatter([0,1,2], [nai, lea, exp], label=counter)
+    counter += 1
+
+
     
 plt.bar([0,1,2], np.mean(allaccs, axis=0))
 plt.errorbar([0,1,2], np.mean(allaccs, axis=0),
              stats.sem(allaccs, axis=0),
              color = 'r')
-
+for i in range(4):
+    plt.scatter([0,1,2], allaccs[i])
 plt.xticks([0,1,2], ['Naive', 'Learning', 'Expert'])
 plt.ylim(bottom=0.4, top =1)
-# plt.savefig('F:\data\Fig 2\CD_delay_decoding_NLE.pdf')
+# plt.savefig('F:\data\Fig 2\CD_action_AGG_decoding_NLEv1.pdf')
 plt.show()
+
+stats.ttest_ind(np.array(allaccs)[:, 0], np.array(allaccs)[:, 1])
+stats.ttest_ind(np.array(allaccs)[:, 2], np.array(allaccs)[:, 1])
 
 #%% Decoding analysis applied across training stages for choice CW37
 paths =[r'F:\data\BAYLORCW037\python\2023_11_21',
