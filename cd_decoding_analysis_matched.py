@@ -140,8 +140,8 @@ plt.errorbar([0,1,2], np.mean(allaccs, axis=0),
 for i in range(4):
     plt.scatter([0,1,2], allaccs[i])
 plt.xticks([0,1,2], ['Naive', 'Learning', 'Expert'])
-plt.ylim(bottom=0.4, top =1)
-# plt.savefig('F:\data\Fig 2\CD_action_AGG_decoding_NLEv1.pdf')
+plt.ylim(bottom=0.4, top =0.8)
+plt.savefig('F:\data\Fig 2\CD_delay_AGG_decoding_NLEvf.pdf')
 plt.show()
 
 stats.ttest_ind(np.array(allaccs)[:, 0], np.array(allaccs)[:, 1])
