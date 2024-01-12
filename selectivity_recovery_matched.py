@@ -392,6 +392,9 @@ for path in paths:
     # l1 = Mode(path)
     control_traces, opto_traces, error_bars = l1.plot_CD_opto(return_traces=True)
     
+    control_traces[0] = (control_traces[0] - np.mean(control_traces[0])) / np.std(control_traces[0])
+    control_traces[1] = (control_traces[1] - np.mean(control_traces[1])) / np.std(control_traces[1])
+    
     control_r = np.vstack((control_r, control_traces[0]))
     control_l = np.vstack((control_l, control_traces[1]))
     

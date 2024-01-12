@@ -158,18 +158,20 @@ for path in paths:
     allstack = np.vstack((allstack, stack))
     allstimstack = np.vstack((allstimstack, stimstack))
     
-allstack = normalize(allstack[1:,6:])
-allstimstack = normalize(allstimstack[1:,6:])
+allstack = allstack[1:,12:38]
+allstimstack = allstimstack[1:,12:38]
+# allstack = normalize(allstack[1:,12:38])
+# allstimstack = normalize(allstimstack[1:,12:38])
 
 f, axarr = plt.subplots(2,2)#, sharex='col')
-x = np.arange(-5.97,4,l1.fs)[:l1.time_cutoff-6]
+x = np.arange(-4.97,4,l1.fs)[:26]
 # x = np.arange(-6.97,4,self.fs)[:self.time_cutoff]
 
-
+ 
 axarr[0,0].matshow(allstimstack, cmap='gray', interpolation='nearest', aspect='auto')
 axarr[0,0].axis('off')
 axarr[0,0].set_title('Opto')
-axarr[0,0].axvline(x=l1.delay-6, c='b', linewidth = 0.5)
+axarr[0,0].axvline(x=l1.delay-12, c='b', linewidth = 0.5)
 # axarr[0,0].axvline(x=-3, c='b', linewidth = 0.5)
 
 axarr[1,0].plot(x, np.mean(allstimstack, axis = 0))
@@ -197,15 +199,28 @@ axarr[1,0].set_xlabel('Time from Go cue (s)')
 
 plt.suptitle('n=3431 neurons')
 
-plt.savefig(r'F:\data\Fig 3\opto_effect.pdf')
+# plt.savefig(r'F:\data\Fig 3\opto_effect.pdf')
 plt.show()
 
+#%% Overlay plots
 
+plt.plot(x, np.mean(allstimstack, axis = 0), color = 'red', label='Optogenetic stimulation trials')
+plt.fill_between(x, np.mean(allstimstack, axis = 0) - stats.sem(allstimstack, axis=0), 
+          np.mean(allstimstack, axis = 0) + stats.sem(allstimstack, axis=0),
+          color='lightcoral')   
+plt.plot(x, np.mean(allstack, axis = 0) + 0.02, color = 'grey', label='Control trials')
+plt.axvline(x=-3, c='b', linewidth = 0.5)
 
+plt.fill_between(x, np.mean(allstack, axis = 0) + 0.02 - stats.sem(allstack, axis=0), 
+          np.mean(allstack, axis = 0) + 0.02 + stats.sem(allstack, axis=0),
+          color='silver')   
+# axarr[1,1].set_ylim(top=0.2)
+plt.ylabel('dF/F0')
+# axarr[1,1].set_xticks(range(0,allstack.shape[1], 10), [int(d) for d in x[::10]])
+plt.xlabel('Time from Go cue (s)')
+plt.legend()
+plt.savefig(r'F:\data\Fig 3\opto_effect_overlay.pdf')
 
-
-
-
-
+plt.show()
 
 
