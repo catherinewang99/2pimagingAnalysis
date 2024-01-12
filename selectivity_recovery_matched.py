@@ -368,11 +368,11 @@ paths = [    r'F:\data\BAYLORCW032\python\2023_10_05',
             r'F:\data\BAYLORCW035\python\2023_10_26',
             r'F:\data\BAYLORCW037\python\2023_11_21',]
 
-paths = [r'F:\data\BAYLORCW032\python\2023_10_19',
-            # r'F:\data\BAYLORCW034\python\2023_10_22',
-            r'F:\data\BAYLORCW036\python\2023_10_19',
-            r'F:\data\BAYLORCW035\python\2023_12_07',
-            r'F:\data\BAYLORCW037\python\2023_12_08',]
+# paths = [r'F:\data\BAYLORCW032\python\2023_10_19',
+#             # r'F:\data\BAYLORCW034\python\2023_10_22',
+#             r'F:\data\BAYLORCW036\python\2023_10_19',
+#             r'F:\data\BAYLORCW035\python\2023_12_07',
+#             r'F:\data\BAYLORCW037\python\2023_12_08',]
 
 
 # paths = [r'F:\data\BAYLORCW032\python\2023_10_24',
@@ -392,9 +392,6 @@ for path in paths:
     # l1 = Mode(path)
     control_traces, opto_traces, error_bars = l1.plot_CD_opto(return_traces=True)
     
-    control_traces[0] = (control_traces[0] - np.mean(control_traces[0])) / np.std(control_traces[0])
-    control_traces[1] = (control_traces[1] - np.mean(control_traces[1])) / np.std(control_traces[1])
-    
     control_r = np.vstack((control_r, control_traces[0]))
     control_l = np.vstack((control_l, control_traces[1]))
     
@@ -403,6 +400,15 @@ for path in paths:
     
     error_r = np.vstack((error_r, error_bars[0]))
     error_l = np.vstack((error_l, error_bars[1]))
+    
+    # control_r = np.vstack((control_r, (control_traces[0] - np.mean(control_traces[0])) / np.std(control_traces[0])))
+    # control_l = np.vstack((control_l, (control_traces[1] - np.mean(control_traces[1])) / np.std(control_traces[1])))
+    
+    # opto_r = np.vstack((opto_r, (opto_traces[0] - np.mean(opto_traces[0])) / np.std(opto_traces[0])))
+    # opto_l = np.vstack((opto_l, (opto_traces[1] - np.mean(opto_traces[1])) / np.std(opto_traces[1])))
+    
+    # error_r = np.vstack((error_r, (error_bars[0] - np.mean(error_bars[0])) / np.std(error_bars[0])))
+    # error_l = np.vstack((error_l, (error_bars[1] - np.mean(error_bars[1])) / np.std(error_bars[1])))
     
 # Plotting    
 # Control trace:
@@ -428,6 +434,6 @@ plt.fill_between(x,  np.mean(opto_l[1:], axis=0) - np.mean(error_l[1:], axis=0),
          color=['#ffaeb1'])
 
 plt.hlines(y=1.5, xmin=-3, xmax=-2, linewidth=10, color='red')
-# plt.savefig(r'F:\data\Fig 3\CD_recovery_learning.pdf')
+plt.savefig(r'F:\data\Fig 3\CD_recovery_naive.pdf')
 
 plt.show()

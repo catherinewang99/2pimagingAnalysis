@@ -1464,7 +1464,7 @@ class Mode(Session):
 
 ## Modes with optogenetic inhibition
     
-    def plot_CD_opto(self, epoch=None, save=None, return_traces = False):
+    def plot_CD_opto(self, epoch=None, save=None, return_traces = False, normalize=True):
         '''
         Plots similar figure as Li et al 2016 Fig 3c to view the effect of
         photoinhibition on L/R CD traces
@@ -1506,12 +1506,19 @@ class Mode(Session):
         #     activity = activity - np.tile(np.mean(activityRL_train, axis=1)[:, None], (1, activity.shape[1]))
         #     proj_allDim = np.dot(activity.T, orthonormal_basis)
         #     # plt.plot(x, proj_allDim[:len(self.T_cue_aligned_sel), i_pc], 'r', alpha = 0.5, linewidth = 0.5)
+        if normalize:
+            # Get mean and STD
             
-            
+            proj_allDim = np.dot(activityRL_train.T, orthonormal_basis)
+            meantrain, meanstd = np.mean(proj_allDim), np.std(proj_allDim)
+
         # Correct trials
         activityRL_test = activityRL_test - np.tile(np.mean(activityRL_train, axis=1)[:, None], (1, activityRL_test.shape[1]))  # remove mean
         proj_allDim = np.dot(activityRL_test.T, orthonormal_basis)
+        if normalize:
 
+            proj_allDim = (proj_allDim - meantrain) / meanstd
+        
         control_traces = proj_allDim[:len(self.T_cue_aligned_sel), i_pc], proj_allDim[len(self.T_cue_aligned_sel):, i_pc]
         if not return_traces:
             # Plot average control traces as dotted lines
@@ -1555,7 +1562,10 @@ class Mode(Session):
         # Opto trials
         activityRL_opto = activityRL_opto - np.tile(np.mean(activityRL_train, axis=1)[:, None], (1, activityRL_opto.shape[1]))  # remove mean
         proj_allDim = np.dot(activityRL_opto.T, orthonormal_basis)
-        
+        if normalize:
+
+            proj_allDim = (proj_allDim - meantrain) / meanstd
+            
         if return_traces:
             
             opto_traces =  proj_allDim[:len(self.T_cue_aligned_sel), i_pc], proj_allDim[len(self.T_cue_aligned_sel):, i_pc]
