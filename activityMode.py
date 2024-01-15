@@ -750,32 +750,34 @@ class Mode(Session):
             activity = self.dff[0, r_trials[t]][self.good_neurons] 
             activity = activity - np.tile(np.mean(activityRL_train, axis=1)[:, None], (1, activity.shape[1]))
             proj_allDim = np.dot(activity.T, orthonormal_basis)
-            plt.plot(x, proj_allDim[:len(self.T_cue_aligned_sel)], 'b', alpha = 0.5,  linewidth = 0.5)
+            if plot:
+                plt.plot(x, proj_allDim[:len(self.T_cue_aligned_sel)], 'b', alpha = 0.5,  linewidth = 0.5)
             
         for t in self.l_test_idx:
             activity = self.dff[0, l_trials[t]][self.good_neurons]
             activity = activity - np.tile(np.mean(activityRL_train, axis=1)[:, None], (1, activity.shape[1]))
             proj_allDim = np.dot(activity.T, orthonormal_basis)
-            plt.plot(x, proj_allDim[:len(self.T_cue_aligned_sel)], 'r', alpha = 0.5, linewidth = 0.5)
+            if plot:
+                plt.plot(x, proj_allDim[:len(self.T_cue_aligned_sel)], 'r', alpha = 0.5, linewidth = 0.5)
             
         # Correct trials
         activityRL_test = activityRL_test - np.tile(np.mean(activityRL_train, axis=1)[:, None], (1, activityRL_test.shape[1]))  # remove mean
         proj_allDim = np.dot(activityRL_test.T, orthonormal_basis)
 
         
-        # ax = axs.flatten()[0]
-        plt.plot(x, proj_allDim[:len(self.T_cue_aligned_sel)], 'b', linewidth = 2)
-        plt.plot(x, proj_allDim[len(self.T_cue_aligned_sel):], 'r', linewidth = 2)
-        plt.title('{} decoder projections'.format(mode_input))
-        plt.axvline(-4.3, color = 'grey', alpha=0.5, ls = '--')
-        plt.axvline(-3, color = 'grey', alpha=0.5, ls = '--')
-        plt.axvline(0, color = 'grey', alpha=0.5, ls = '--')
-        plt.ylabel('CD_{} projection (a.u.)'.format(mode_input))
+        if plot:
+            plt.plot(x, proj_allDim[:len(self.T_cue_aligned_sel)], 'b', linewidth = 2)
+            plt.plot(x, proj_allDim[len(self.T_cue_aligned_sel):], 'r', linewidth = 2)
+            plt.title('{} decoder projections'.format(mode_input))
+            plt.axvline(-4.3, color = 'grey', alpha=0.5, ls = '--')
+            plt.axvline(-3, color = 'grey', alpha=0.5, ls = '--')
+            plt.axvline(0, color = 'grey', alpha=0.5, ls = '--')
+            plt.ylabel('CD_{} projection (a.u.)'.format(mode_input))
         
         if save is not None:
             plt.savefig(save)
-            
-        plt.show()
+        if plot:
+            plt.show()
         # axs[0, 0].set_ylabel('Activity proj.')
         # axs[3, 0].set_xlabel('Time')
         
@@ -2182,8 +2184,11 @@ class Mode(Session):
         # return orthonormal_basis, np.mean(activityRL_train, axis=1)[:, None]
         return decoderchoice
     
-### INPUT VECTOR
-    def input_vector(self):
+### STIM RELAETD VECTORS
+
+    
+    
+    def input_vector(self, cddelay = False):
         """
         Get the input vector by subtracting the optogenetic stimulation CD projection
         from the control trial projection
@@ -2193,23 +2198,147 @@ class Mode(Session):
         orthonormal basis of the input vector
 
         """
+        
+        # Using CD_delay
+        if cddelay:
+            activityRL_train= np.concatenate((self.PSTH_r_train_correct, 
+                                            self.PSTH_l_train_correct), axis=1)
+            
+            orthonormal_basis, mean = self.plot_CD(mode_input='choice', plot=False)
+            
+            activityRL_test= np.concatenate((self.PSTH_r_test_correct, 
+                                            self.PSTH_l_test_correct), axis=1)
+            
+            proj_allDim = np.dot(activityRL_test.T, orthonormal_basis) # Projection of activity along CD (CD.T dot x)
+            
+            r_opto, l_opto = self.get_trace_matrix_multiple(self.good_neurons, opto=True)
+    
+            activityRL_opto= np.concatenate((r_opto, l_opto), axis=1)
+            activityRL_opto = activityRL_opto - np.tile(np.mean(activityRL_train, axis=1)[:, None], (1, activityRL_opto.shape[1]))  # remove mean
+            proj_allDim_opto = np.dot(activityRL_opto.T, orthonormal_basis) # Projection of stim activity along CD (CD.T dot x)
+    
+    
+            input_vector_r = proj_allDim[:len(self.T_cue_aligned_sel)] - proj_allDim_opto[:len(self.T_cue_aligned_sel)]
+            input_vector_l = proj_allDim[len(self.T_cue_aligned_sel):] - proj_allDim_opto[len(self.T_cue_aligned_sel):]
+            
+            return input_vector_r, input_vector_l
+        
+        else:
+            
+        
+            # CD_all = self.KD_LDA2(self.PSTH_r_train_correct, self.PSTH_l_train_correct, rs=None)
+            CD_all = []
+            for t in range(self.delay+3, self.delay+6):
+                # CD_all = LDA().fit(np.vstack((self.PSTH_r_train_correct[:,t], self.PSTH_l_train_correct[:,t])).T, [0,1])
+                             # cat((np.ones(self.PSTH_r_train_correct.shape[0]), np.zeros(self.PSTH_l_train_correct.shape[0]))))
+                control_activity = np.mean([trial[self.good_neurons, t] for trial in self.dff[0, ~self.stim_ON]], axis=0)
+                opto_activity = np.mean([trial[self.good_neurons, t] for trial in self.dff[0, self.stim_ON]], axis=0)
+                # print(control_activity.shape)
+                CD_all += [(control_activity - opto_activity) / 2]
+                
+                
+            CD_input_mode = np.mean(CD_all, axis=0)          
+            # return CD_choice_mode, 0
+            return CD_input_mode
+
+    def recovery_vector(self, orthog=False):
+        """
+        Get the recovery vector by subtracting the end of delay(3s) post stimulation CD projection
+        from the beginning of post stim recovery (1.5s)
+
+        Returns
+        -------
+        orthonormal basis of the input vector
+
+        """
+                
+        # CD_all = self.KD_LDA2(self.PSTH_r_train_correct, self.PSTH_l_train_correct, rs=None)
+        # for t in range(self.delay+9, self.response):
+        # CD_all = LDA().fit(np.vstack((self.PSTH_r_train_correct[:,t], self.PSTH_l_train_correct[:,t])).T, [0,1])
+                     # cat((np.ones(self.PSTH_r_train_correct.shape[0]), np.zeros(self.PSTH_l_train_correct.shape[0]))))
+        recovered_activity = np.mean([trial[self.good_neurons, self.response] for trial in self.dff[0, self.stim_ON]], axis=0)
+        poststim_activity = np.mean([trial[self.good_neurons, self.delay+9] for trial in self.dff[0, self.stim_ON]], axis=0)
+        # print(control_activity.shape)
+        # CD_all = [(recovered_activity - poststim_activity) / 2]
+            
+        CD_recovery_mode = (recovered_activity - poststim_activity) / 2    
+        
+        if orthog: # Process to orthogonalize
+            # activityRL 
+            u, s, v = np.linalg.svd(activityRL.T)
+            proj_allDim = activityRL.T @ v
+        
+    
+        
+            # Relevant choice dims
+            # CD_choice_mode = [] # Late delay period
+            
+            CD_choice_mode = CD_choice_mode / np.linalg.norm(CD_choice_mode)
+            # return CD_choice_mode, 0
+            # Reshape 
+            
+            CD_choice_mode = np.reshape(CD_choice_mode, (-1, 1)) 
+    
+            start_time = time.time()
+            input_ = np.concatenate((CD_choice_mode, v), axis=1)
+            # orthonormal_basis = self.Gram_Schmidt_process(input_)
+            orthonormal_basis, _ = np.linalg.qr(input_, mode='complete')  # lmao
+        
+        
+        
+        return CD_recovery_mode
+
+    def project_on_cd(self, orthonormal_basis, plot=True):
+        
+        """
+        Project right and left trials on the given basis function
+
+        Returns
+        -------
+        orthonormal basis of the input vector
+        """
         activityRL_train= np.concatenate((self.PSTH_r_train_correct, 
                                         self.PSTH_l_train_correct), axis=1)
-        
-        orthonormal_basis, mean = self.plot_CD(mode_input='choice', plot=False)
         
         activityRL_test= np.concatenate((self.PSTH_r_test_correct, 
                                         self.PSTH_l_test_correct), axis=1)
         
+        r_corr = np.where(self.R_correct)[0]
+        l_corr = np.where(self.L_correct)[0]
+        
+        r_trials = [i for i in r_corr if i in self.i_good_non_stim_trials and not self.early_lick[i]]
+        l_trials = [i for i in l_corr if i in self.i_good_non_stim_trials and not self.early_lick[i]]
+
+        
+        x = np.arange(-6.97,4,self.fs)[:self.time_cutoff]
+
+        # orthonormal_basis = orthonormal_basis.reshape(-1,1)
+
+        # Project for every trial
+        for t in self.r_test_idx:
+            activity = self.dff[0, r_trials[t]][self.good_neurons] 
+            activity = activity - np.tile(np.mean(activityRL_train, axis=1)[:, None], (1, activity.shape[1]))
+            proj_allDim = np.dot(activity.T, orthonormal_basis)
+            if plot:
+                plt.plot(x, proj_allDim[:len(self.T_cue_aligned_sel)], 'b', alpha = 0.5,  linewidth = 0.5)
+            
+        for t in self.l_test_idx:
+            activity = self.dff[0, l_trials[t]][self.good_neurons]
+            activity = activity - np.tile(np.mean(activityRL_train, axis=1)[:, None], (1, activity.shape[1]))
+            proj_allDim = np.dot(activity.T, orthonormal_basis)
+            if plot:
+                plt.plot(x, proj_allDim[:len(self.T_cue_aligned_sel)], 'r', alpha = 0.5, linewidth = 0.5)
+            
+        # Correct trials
+        activityRL_test = activityRL_test - np.tile(np.mean(activityRL_train, axis=1)[:, None], (1, activityRL_test.shape[1]))  # remove mean
         proj_allDim = np.dot(activityRL_test.T, orthonormal_basis)
-        
-        r_opto, l_opto = self.get_trace_matrix_multiple(self.good_neurons, opto=True)
 
-        activityRL_opto= np.concatenate((r_opto, l_opto), axis=1)
-        activityRL_opto = activityRL_opto - np.tile(np.mean(activityRL_train, axis=1)[:, None], (1, activityRL_opto.shape[1]))  # remove mean
-        proj_allDim_opto = np.dot(activityRL_opto.T, orthonormal_basis)
-
-
-        input_vector = proj_allDim - proj_allDim_opto
         
-        
+        if plot:
+            plt.plot(x, proj_allDim[:len(self.T_cue_aligned_sel)], 'b', linewidth = 2)
+            plt.plot(x, proj_allDim[len(self.T_cue_aligned_sel):], 'r', linewidth = 2)
+            plt.title('Recovery vector decoder projections')
+            plt.axvline(-4.3, color = 'grey', alpha=0.5, ls = '--')
+            plt.axvline(-3, color = 'grey', alpha=0.5, ls = '--')
+            plt.axvline(0, color = 'grey', alpha=0.5, ls = '--')
+            plt.ylabel('CD_recovery projection (a.u.)')

@@ -444,8 +444,11 @@ plt.show()
 #%% Sort by selectivity pre-perturbation:
     
 # Recreate Fig 5F
+l1 = Mode(path, use_reg = True, triple=True)
 
+l1.plot_sorted_CD_opto()
 
+#%%
 
 
 
