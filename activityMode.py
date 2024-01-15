@@ -13,6 +13,7 @@ import scipy.io as scio
 from sklearn.preprocessing import normalize
 from session import Session
 import sympy
+from random import shuffle
 import time
 from sklearn.discriminant_analysis import LinearDiscriminantAnalysis as LDA
 plt.rcParams['pdf.fonttype'] = 42 
@@ -1536,8 +1537,8 @@ class Mode(Session):
 
         activityRL_opto= np.concatenate((r_opto, l_opto), axis=1)
         
-        r_corr = np.where(self.R_correct + self.R_wrong)[0]
-        l_corr = np.where(self.L_correct + self.L_wrong)[0]
+        r_corr = np.where(self.R_correct + self.L_wrong)[0]
+        l_corr = np.where(self.L_correct + self.R_wrong)[0]
         # Project for every opto trial
         r_trials = [i for i in r_corr if self.stim_ON[i] and not self.early_lick[i]]
         l_trials = [i for i in l_corr if self.stim_ON[i] and not self.early_lick[i]]
@@ -1704,7 +1705,260 @@ class Mode(Session):
             
         plt.show()
         
+
+
+    def plot_sorted_CD_opto(self, epoch=None, save=None, return_traces = False, normalize=True):
+        '''
+        Plots similar figure as Chen et al Fig 5FG to view the effect of selectivity on
+        photoinhibition on L/R CD traces
         
+        Returns
+        -------
+        R then L for control, opto traces as well as error bars
+        
+        '''
+        if epoch is not None:
+            orthonormal_basis, var_allDim = self.func_compute_epoch_decoder([self.PSTH_r_train_correct, 
+                                                                            self.PSTH_l_train_correct], epoch)
+        else:
+            
+            orthonormal_basis, var_allDim = self.func_compute_epoch_decoder([self.PSTH_r_train_correct, 
+                                                                            self.PSTH_l_train_correct], range(self.delay+12, self.response))
+        activityRL_train= np.concatenate((self.PSTH_r_train_correct, 
+                                        self.PSTH_l_train_correct), axis=1)
+
+        activityRL_test= np.concatenate((self.PSTH_r_test_correct, 
+                                        self.PSTH_l_test_correct), axis=1)
+        
+
+       
+        x = np.arange(-6.97,4,self.fs)[:self.time_cutoff]
+
+        # orthonormal_basis = orthonormal_basis.reshape(-1,1)
+        i_pc = 0
+        
+        r_corr = np.where(self.R_correct)[0]
+        l_corr = np.where(self.L_correct)[0]
+        
+        r_trials = [i for i in r_corr if i in self.i_good_non_stim_trials and not self.early_lick[i]]
+        l_trials = [i for i in l_corr if i in self.i_good_non_stim_trials and not self.early_lick[i]]
+        
+        projright, projleft = [],[]
+
+        # Project for every control trial, before stim
+        for t in self.r_test_idx:
+            activity = self.dff[0, r_trials[t]][self.good_neurons] 
+            activity = activity - np.tile(np.mean(activityRL_train, axis=1)[:, None], (1, activity.shape[1]))
+            proj_allDim = np.dot(activity.T, orthonormal_basis)
+            projright += [proj_allDim[self.delay-3:self.delay, i_pc]]
+
+            # plt.plot(x, proj_allDim[:len(self.T_cue_aligned_sel), i_pc], 'b', alpha = 0.5,  linewidth = 0.5)
+            
+        for t in self.l_test_idx:
+            activity = self.dff[0, l_trials[t]][self.good_neurons]
+            activity = activity - np.tile(np.mean(activityRL_train, axis=1)[:, None], (1, activity.shape[1]))
+            proj_allDim = np.dot(activity.T, orthonormal_basis)
+            projleft += [proj_allDim[self.delay-3:self.delay, i_pc]]
+
+            # plt.plot(x, proj_allDim[:len(self.T_cue_aligned_sel), i_pc], 'r', alpha = 0.5, linewidth = 0.5)
+            
+        r_median = np.median(projright)
+        l_median = np.median(projleft)
+        print(r_median, l_median)
+        db = ((np.mean(projright) / np.var(projright)) + (np.mean(projleft) / np.var(projleft))) / (((1/ np.var(projright))) + (1/ np.var(projleft)))
+
+        # if normalize:
+        #     # Get mean and STD
+            
+        #     proj_allDim = np.dot(activityRL_train.T, orthonormal_basis)
+        #     meantrain, meanstd = np.mean(proj_allDim), np.std(proj_allDim)
+
+        # Correct trials: re-project based on low or high selectivity
+        
+        # Project for every control trial, before stim
+        r_proj_allDim_strong = []
+        r_proj_allDim_weak = []
+        for t in self.r_test_idx:
+            activity = self.dff[0, r_trials[t]][self.good_neurons] 
+            activity = activity - np.tile(np.mean(activityRL_train, axis=1)[:, None], (1, activity.shape[1]))
+            proj_allDim = np.dot(activity.T, orthonormal_basis)
+            
+            proj_point = np.mean(proj_allDim[self.delay-3:self.delay, i_pc])
+            if proj_point < r_median and proj_point < db:
+                r_proj_allDim_weak += [[proj_allDim[:self.time_cutoff, i_pc]]]
+            elif proj_point > r_median and proj_point < db:
+                r_proj_allDim_strong += [[proj_allDim[:self.time_cutoff, i_pc]]]
+
+
+            # plt.plot(x, proj_allDim[:len(self.T_cue_aligned_sel), i_pc], 'b', alpha = 0.5,  linewidth = 0.5)
+        
+        l_proj_allDim_strong = []
+        l_proj_allDim_weak = []
+        for t in self.l_test_idx:
+            activity = self.dff[0, l_trials[t]][self.good_neurons]
+            activity = activity - np.tile(np.mean(activityRL_train, axis=1)[:, None], (1, activity.shape[1]))
+            proj_allDim = np.dot(activity.T, orthonormal_basis)
+            
+            proj_point = np.mean(proj_allDim[self.delay-3:self.delay, i_pc])
+            # print(proj_allDim.shape)
+            if proj_point < l_median and proj_point > db:
+                l_proj_allDim_weak += [proj_allDim[:self.time_cutoff, i_pc]]
+            elif proj_point > l_median and proj_point > db:
+                l_proj_allDim_strong += [proj_allDim[:self.time_cutoff, i_pc]]
+            else:
+                print('Error')
+                print(proj_point, l_median, db)
+        # if normalize:
+
+        #     proj_allDim = (proj_allDim - meantrain) / meanstd
+        
+        # control_traces = proj_allDim[:len(self.T_cue_aligned_sel), i_pc], proj_allDim[len(self.T_cue_aligned_sel):, i_pc]
+        
+        if not return_traces:
+            f, ax = plt.subplots(1,2, sharey='row')
+            # Plot average control traces as dotted lines
+            ax[0].plot(x, np.mean(r_proj_allDim_weak, axis=0)[0], 'b', ls = '--', linewidth = 1)
+            ax[0].plot(x, np.mean(l_proj_allDim_weak, axis=0), 'r', ls = '--', linewidth = 1)
+            ax[0].set_title("Weak selectivity")
+            ax[0].axvline(-4.3, color = 'grey', alpha=0.5, ls = '--')
+            ax[0].axvline(-3, color = 'grey', alpha=0.5, ls = '--')
+            ax[0].axvline(0, color = 'grey', alpha=0.5, ls = '--')
+            ax[0].set_ylabel('CD_delay projection (a.u.)')
+
+            ax[1].plot(x, np.mean(r_proj_allDim_strong, axis=0)[0], 'b', ls = '--', linewidth = 1)
+            ax[1].plot(x, np.mean(l_proj_allDim_strong, axis=0), 'r', ls = '--', linewidth = 1)
+            ax[1].set_title("Strong selectivity")
+            ax[1].axvline(-4.3, color = 'grey', alpha=0.5, ls = '--')
+            ax[1].axvline(-3, color = 'grey', alpha=0.5, ls = '--')
+            ax[1].axvline(0, color = 'grey', alpha=0.5, ls = '--')
+            ax[1].set_ylabel('CD_delay projection (a.u.)')     
+            
+            
+            
+            
+            # ax[0].fill_between(x, np.mean(l_proj_allDim_weak, axis=0)[0] - stats.sem(l_proj_allDim_weak, axis=0), 
+            #          np.mean(l_proj_allDim_weak, axis=0)[0] +  stats.sem(l_proj_allDim_weak, axis=0),
+            #          color=['#ffaeb1'])
+            # ax[0].fill_between(x, np.mean(r_proj_allDim_weak, axis=0)[0] - stats.sem(r_proj_allDim_weak, axis=0), 
+            #          np.mean(r_proj_allDim_weak, axis=0)[0] + stats.sem(r_proj_allDim_weak, axis=0),
+            #          color=['#b4b2dc'])
+            
+            
+            # ax[1].fill_between(x, np.mean(r_proj_allDim_strong, axis=0)[0] - stats.sem(r_proj_allDim_strong, axis=0), 
+            #          np.mean(r_proj_allDim_strong, axis=0)[0] +  stats.sem(r_proj_allDim_strong, axis=0),
+            #          color=['#b4b2dc'])
+            # ax[1].fill_between(x,  np.mean(l_proj_allDim_strong, axis=0) - stats.sem(l_proj_allDim_strong, axis=0), 
+            #         np.mean(l_proj_allDim_strong, axis=0) + stats.sem(l_proj_allDim_strong, axis=0),
+            #          color=['#ffaeb1'])
+            # plt.show()
+            # return l_proj_allDim_strong
+        
+        
+        r_opto, l_opto = self.get_trace_matrix_multiple(self.good_neurons, opto=True)
+
+        activityRL_opto= np.concatenate((r_opto, l_opto), axis=1)
+        
+        r_corr = np.where(self.R_correct + self.L_wrong)[0]
+        l_corr = np.where(self.L_correct + self.R_wrong)[0]
+        # Project for every opto trial
+        r_trials = [i for i in r_corr if self.stim_ON[i] and not self.early_lick[i]]
+        l_trials = [i for i in l_corr if self.stim_ON[i] and not self.early_lick[i]]
+        print(len(r_trials), len(l_trials))
+        shuffle(r_trials), shuffle(l_trials)
+        
+        r_proj_allDim_strong = []
+        r_proj_allDim_weak = []
+        for r in r_trials:
+            activity = self.dff[0, r][self.good_neurons] 
+            activity = activity - np.tile(np.mean(activityRL_train, axis=1)[:, None], (1, activity.shape[1]))
+            proj_allDim = np.dot(activity.T, orthonormal_basis)
+
+            # plt.plot(x, proj_allDim[:len(self.T_cue_aligned_sel), i_pc], 'b', alpha = 0.5,  linewidth = 0.5)
+            proj_point = np.mean(proj_allDim[self.delay-3:self.delay, i_pc])
+            if proj_point < r_median and proj_point < db:
+                r_proj_allDim_weak += [[proj_allDim[:self.time_cutoff, i_pc]]]
+                if len(r_proj_allDim_weak) > 3:
+                    continue
+                ax[0].plot(x, proj_allDim[:self.time_cutoff, i_pc], 'b', linewidth = 1)
+
+            elif proj_point > r_median and proj_point < db:
+                r_proj_allDim_strong += [[proj_allDim[:self.time_cutoff, i_pc]]]
+                if len(r_proj_allDim_strong) > 3:
+                    continue
+                ax[1].plot(x, proj_allDim[:self.time_cutoff, i_pc], 'b', linewidth = 1)
+
+                
+        l_proj_allDim_strong = []
+        l_proj_allDim_weak = []
+        for l in l_trials:
+            activity = self.dff[0, l][self.good_neurons]
+            activity = activity - np.tile(np.mean(activityRL_train, axis=1)[:, None], (1, activity.shape[1]))
+            proj_allDim = np.dot(activity.T, orthonormal_basis)
+
+            # plt.plot(x, proj_allDim[:len(self.T_cue_aligned_sel), i_pc], 'r', alpha = 0.5, linewidth = 0.5)
+            proj_point = np.mean(proj_allDim[self.delay-3:self.delay, i_pc])
+            # print(proj_allDim.shape)
+            if proj_point < l_median and proj_point > db:
+                l_proj_allDim_weak += [proj_allDim[:self.time_cutoff, i_pc]]
+                if len(l_proj_allDim_weak) > 3:
+                    continue
+                ax[0].plot(x, proj_allDim[:self.time_cutoff, i_pc], 'r', linewidth = 1)
+
+            elif proj_point > l_median and proj_point > db:
+                l_proj_allDim_strong += [proj_allDim[:self.time_cutoff, i_pc]]
+                if len(l_proj_allDim_strong) > 3:
+                    continue
+                ax[1].plot(x, proj_allDim[:self.time_cutoff, i_pc], 'r', linewidth = 1)
+
+            else:
+                print('Error')
+                print(proj_point, l_median, db)
+                
+                
+        
+        # if not return_traces:
+        #     ax[0].plot(x, np.mean(r_proj_allDim_weak, axis=0)[0], 'b', linewidth = 1)
+        #     ax[0].plot(x, np.mean(l_proj_allDim_weak, axis=0), 'r', linewidth = 1)
+
+
+        #     ax[1].plot(x, np.mean(r_proj_allDim_strong, axis=0)[0], 'b', linewidth = 1)
+        #     ax[1].plot(x, np.mean(l_proj_allDim_strong, axis=0), 'r', linewidth = 1)
+   
+
+
+
+
+
+        # Opto trials
+        # activityRL_opto = activityRL_opto - np.tile(np.mean(activityRL_train, axis=1)[:, None], (1, activityRL_opto.shape[1]))  # remove mean
+        # proj_allDim = np.dot(activityRL_opto.T, orthonormal_basis)
+        # if normalize:
+
+        #     proj_allDim = (proj_allDim - meantrain) / meanstd
+            
+        # if return_traces:
+            
+        #     opto_traces =  proj_allDim[:len(self.T_cue_aligned_sel), i_pc], proj_allDim[len(self.T_cue_aligned_sel):, i_pc]
+        #     error_bars = stats.sem(r_proj, axis=0), stats.sem(l_proj, axis=0)
+        #     return control_traces, opto_traces, error_bars
+        
+        # plt.plot(x, proj_allDim[:len(self.T_cue_aligned_sel), i_pc], 'b', linewidth = 2)
+        # plt.plot(x, proj_allDim[len(self.T_cue_aligned_sel):, i_pc], 'r', linewidth = 2)
+        
+        # plt.fill_between(x, proj_allDim[len(self.T_cue_aligned_sel):, i_pc] - stats.sem(l_proj, axis=0), 
+        #          proj_allDim[len(self.T_cue_aligned_sel):, i_pc] +  stats.sem(l_proj, axis=0),
+        #          color=['#ffaeb1'])
+        # plt.fill_between(x, proj_allDim[:len(self.T_cue_aligned_sel), i_pc] - stats.sem(r_proj, axis=0), 
+        #          proj_allDim[:len(self.T_cue_aligned_sel), i_pc] + stats.sem(r_proj, axis=0),
+        #          color=['#b4b2dc'])
+        
+        ax[0].hlines(y=max(proj_allDim[:, i_pc]) + 0.5, xmin=-3, xmax=-2, linewidth=10, color='red')
+        ax[1].hlines(y=max(proj_allDim[:, i_pc]) + 0.5, xmin=-3, xmax=-2, linewidth=10, color='red')
+
+        if save is not None:
+            plt.savefig(save)
+            
+        plt.show()
 
 ### ACROSS SESSION CODING ###
         
@@ -1927,3 +2181,35 @@ class Mode(Session):
         
         # return orthonormal_basis, np.mean(activityRL_train, axis=1)[:, None]
         return decoderchoice
+    
+### INPUT VECTOR
+    def input_vector(self):
+        """
+        Get the input vector by subtracting the optogenetic stimulation CD projection
+        from the control trial projection
+
+        Returns
+        -------
+        orthonormal basis of the input vector
+
+        """
+        activityRL_train= np.concatenate((self.PSTH_r_train_correct, 
+                                        self.PSTH_l_train_correct), axis=1)
+        
+        orthonormal_basis, mean = self.plot_CD(mode_input='choice', plot=False)
+        
+        activityRL_test= np.concatenate((self.PSTH_r_test_correct, 
+                                        self.PSTH_l_test_correct), axis=1)
+        
+        proj_allDim = np.dot(activityRL_test.T, orthonormal_basis)
+        
+        r_opto, l_opto = self.get_trace_matrix_multiple(self.good_neurons, opto=True)
+
+        activityRL_opto= np.concatenate((r_opto, l_opto), axis=1)
+        activityRL_opto = activityRL_opto - np.tile(np.mean(activityRL_train, axis=1)[:, None], (1, activityRL_opto.shape[1]))  # remove mean
+        proj_allDim_opto = np.dot(activityRL_opto.T, orthonormal_basis)
+
+
+        input_vector = proj_allDim - proj_allDim_opto
+        
+        

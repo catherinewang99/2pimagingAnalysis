@@ -323,7 +323,6 @@ for paths in all_paths:
         temp = l1.modularity_proportion(p=0.01)
 
         if temp > 0 and temp < 1: # Exclude values based on Chen et al method guidelines
-            modularity += [temp]
 
             stim_trials = np.where(l1.stim_ON)[0]
             control_trials = np.where(~l1.stim_ON)[0]
@@ -331,8 +330,13 @@ for paths in all_paths:
             _, _, perf_all = l1.performance_in_trials(stim_trials)
             _, _, perf_all_c = l1.performance_in_trials(control_trials)
             
-            # deltas += [perf_all / perf_all_c]
-            deltas += [perf_all_c - perf_all]
+            if perf_all_c < 0.5: #Skip low performance sessions
+                continue
+            
+            modularity += [temp]
+
+            deltas += [perf_all / perf_all_c]
+            # deltas += [perf_all_c - perf_all]
 
     all_deltas += [deltas]
     all_mod += [modularity]
@@ -346,8 +350,8 @@ for i in range(3):
     plt.scatter(all_mod[i], all_deltas[i], label = ls[i])
 
 plt.xlabel('Modularity, unperturbed hemisphere')
-# plt.ylabel('Behvioral recovery, (frac. correct, photoinhib./control)')
-plt.ylabel('Behvioral recovery, (delta correct, control-photoinhib.)')
+plt.ylabel('Behvioral recovery, (frac. correct, photoinhib./control)')
+# plt.ylabel('Behvioral recovery, (delta correct, control-photoinhib.)')
 plt.legend()
 plt.title('Pearsons correlation: {}, p-val: {}'.format(stats.pearsonr(cat(all_mod), cat(all_deltas))[0], 
                                                        stats.pearsonr(cat(all_mod), cat(all_deltas))[1]))
@@ -368,11 +372,11 @@ paths = [    r'F:\data\BAYLORCW032\python\2023_10_05',
             r'F:\data\BAYLORCW035\python\2023_10_26',
             r'F:\data\BAYLORCW037\python\2023_11_21',]
 
-# paths = [r'F:\data\BAYLORCW032\python\2023_10_19',
-#             # r'F:\data\BAYLORCW034\python\2023_10_22',
-#             r'F:\data\BAYLORCW036\python\2023_10_19',
-#             r'F:\data\BAYLORCW035\python\2023_12_07',
-#             r'F:\data\BAYLORCW037\python\2023_12_08',]
+paths = [r'F:\data\BAYLORCW032\python\2023_10_19',
+            # r'F:\data\BAYLORCW034\python\2023_10_22',
+            r'F:\data\BAYLORCW036\python\2023_10_19',
+            r'F:\data\BAYLORCW035\python\2023_12_07',
+            r'F:\data\BAYLORCW037\python\2023_12_08',]
 
 
 # paths = [r'F:\data\BAYLORCW032\python\2023_10_24',
@@ -434,6 +438,14 @@ plt.fill_between(x,  np.mean(opto_l[1:], axis=0) - np.mean(error_l[1:], axis=0),
          color=['#ffaeb1'])
 
 plt.hlines(y=1.5, xmin=-3, xmax=-2, linewidth=10, color='red')
-plt.savefig(r'F:\data\Fig 3\CD_recovery_naive.pdf')
+# plt.savefig(r'F:\data\Fig 3\CD_recovery_learningv1.pdf')
 
 plt.show()
+#%% Sort by selectivity pre-perturbation:
+    
+# Recreate Fig 5F
+
+
+
+
+

@@ -25,7 +25,7 @@ paths = [
         # r'F:\data\BAYLORCW034\python\2023_10_12',
         r'F:\data\BAYLORCW036\python\2023_10_09',
         r'F:\data\BAYLORCW035\python\2023_10_26',
-        r'F:\data\BAYLORCW037\python\2023_11_21',
+        # r'F:\data\BAYLORCW037\python\2023_11_21',
         ]
 
 stimnonpref, stimpref = [], []
@@ -33,7 +33,7 @@ choicenonpref, choicepref = [], []
 outcomenonpref, outcomepref = [], []
 for path in paths:
     l1 = session.Session(path, use_reg=True, triple=True)
-    _, _, _, stim_sel, choice_sel, outcome_sel = l1.stim_choice_outcome_selectivity()
+    _, _, numoutcome, stim_sel, choice_sel, outcome_sel = l1.stim_choice_outcome_selectivity()
 
     snp, sp = stim_sel
     stimnonpref += snp
@@ -47,6 +47,7 @@ for path in paths:
     outcomenonpref += snp
     outcomepref += sp
      
+    print(len(numoutcome))
 
 
 f, axarr = plt.subplots(3,1, figsize=(5,15))
@@ -102,9 +103,10 @@ for i in range(3):
     axarr[i].axvline(-3, color = 'grey', alpha=0.5, ls = '--')        
     axarr[i].axhline(0, color = 'grey', alpha=0.5, ls = '--')
 
-plt.savefig(r'F:\data\Fig 2\naive_stim_choice_outcome_selectivity.pdf')
+plt.savefig(r'F:\data\Fig 2\naive_stim_choice_outcome_selectivitynocw32.pdf')
 plt.show()
 
+#%%
 # LEARNING
 
 paths = [
@@ -189,12 +191,12 @@ for i in range(3):
     axarr[i].axvline(-3, color = 'grey', alpha=0.5, ls = '--')        
     axarr[i].axhline(0, color = 'grey', alpha=0.5, ls = '--')
 
-plt.savefig(r'F:\data\Fig 2\learning_stim_choice_outcome_selectivity.pdf')
+plt.savefig(r'F:\data\Fig 2\learning_stim_choice_outcome_selectivitynocw32.pdf')
 plt.show()
 
 #EXPERT
 paths = [
-        r'F:\data\BAYLORCW032\python\2023_10_25',
+        # r'F:\data\BAYLORCW032\python\2023_10_25',
         # r'F:\data\BAYLORCW034\python\2023_10_27',
         r'F:\data\BAYLORCW036\python\2023_10_30',
         r'F:\data\BAYLORCW035\python\2023_12_15',
@@ -220,8 +222,6 @@ for path in paths:
     outcomenonpref += snp
     outcomepref += sp
      
-
-
 f, axarr = plt.subplots(3,1, figsize=(5,15))
 plt.setp(axarr, ylim=(-0.1,1.0))
 
@@ -275,7 +275,7 @@ for i in range(3):
     axarr[i].axvline(-3, color = 'grey', alpha=0.5, ls = '--')        
     axarr[i].axhline(0, color = 'grey', alpha=0.5, ls = '--')
 
-plt.savefig(r'F:\data\Fig 2\trained_stim_choice_outcome_selectivity.pdf')
+plt.savefig(r'F:\data\Fig 2\trained_stim_choice_outcome_selectivitynocw32.pdf')
 plt.show()
 
 #%% Action mode selectivity trace:
@@ -285,7 +285,7 @@ allpaths = [ [
         r'F:\data\BAYLORCW034\python\2023_10_12',
         r'F:\data\BAYLORCW036\python\2023_10_09',
         r'F:\data\BAYLORCW035\python\2023_10_26',
-        r'F:\data\BAYLORCW037\python\2023_11_21',
+        # r'F:\data\BAYLORCW037\python\2023_11_21',
         ],
     
     
@@ -294,7 +294,7 @@ allpaths = [ [
         r'F:\data\BAYLORCW034\python\2023_10_22',
         r'F:\data\BAYLORCW036\python\2023_10_19',
         r'F:\data\BAYLORCW035\python\2023_12_07',
-        r'F:\data\BAYLORCW037\python\2023_12_08',
+        # r'F:\data\BAYLORCW037\python\2023_12_08',
         ],
     
     
@@ -303,7 +303,7 @@ allpaths = [ [
         r'F:\data\BAYLORCW034\python\2023_10_27',
         r'F:\data\BAYLORCW036\python\2023_10_30',
         r'F:\data\BAYLORCW035\python\2023_12_15',
-        r'F:\data\BAYLORCW037\python\2023_12_15',
+        # r'F:\data\BAYLORCW037\python\2023_12_15',
         ]
     ]
 f, axarr = plt.subplots(1,3, figsize=(15,5))
@@ -342,5 +342,5 @@ for i in range(3):
     axarr[i].axvline(-3, color = 'grey', alpha=0.5, ls = '--')        
     axarr[i].axhline(0, color = 'grey', alpha=0.5, ls = '--')
     
-# plt.savefig(r'F:\data\Fig 2\action_NLE_selectivity.pdf')
+plt.savefig(r'F:\data\Fig 2\action_NLE_selectivity_minuscw3237.pdf')
 plt.show()

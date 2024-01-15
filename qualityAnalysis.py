@@ -31,7 +31,7 @@ path = r'F:\data\BAYLORCW037\python\2023_11_22'
 
 path = r'F:\data\BAYLORCW034\python\2023_10_24'
 
-
+path = 'F:\\data\\BAYLORCW037\\python\\2023_11_21'
 l1 = quality.QC(path)
 # l1.plot_pearsons_correlation()
 # var = l1.plot_variance_spread()

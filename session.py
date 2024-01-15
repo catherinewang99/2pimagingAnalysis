@@ -1439,10 +1439,10 @@ class Session:
                         ipsi_LR['l'] += [[L[i] for i in test_l]]
                         ipsi_LR['r'] += [[R[i] for i in test_r]]
                         if return_sel:
+                            pref += [np.mean([L[i] for i in test_l], axis=0)]
+                            nonpref += [np.mean([R[i] for i in test_r], axis=0)]
                             # pref += [np.mean([L[i] for i in test_l], axis=0)]
-                            # nonpref += [np.mean([R[i] for i in test_r], axis=0)]
-                            pref += [L[i] for i in test_l]
-                            nonpref += [R[i] for i in test_r]                   
+                            # nonpref += np.mean([R[i] for i in test_r], axis=0)                   
                     else:
                         # print("Contra preferring: {}".format(neuron_num))
                         contra_neurons += [neuron_num] 
@@ -1450,14 +1450,14 @@ class Session:
                         contra_LR['r'] += [[R[i] for i in test_r]]
                         
                         if return_sel:
-                            # nonpref += [np.mean([L[i] for i in test_l], axis=0)]
-                            # pref += [np.mean([R[i] for i in test_r], axis=0)]
+                            nonpref += [np.mean([L[i] for i in test_l], axis=0)]
+                            pref += [np.mean([R[i] for i in test_r], axis=0)]
                             
-                            nonpref += [L[i] for i in test_l]
-                            pref += [R[i] for i in test_r]         
+                            # nonpref += np.mean([L[i] for i in test_l], axis=0)
+                            # pref += np.mean([R[i] for i in test_r], axis=0)
                             
                 elif self.recording_loc == 'r':
-
+                    raise
                     if not pref:
                         ipsi_neurons += [neuron_num]
                         ipsi_LR['l'] += [L[i] for i in test_l]
