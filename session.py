@@ -205,6 +205,7 @@ class Session:
                 self.normalize_z_score()    
 
         self.i_good_non_stim_trials = [t for t in self.i_good_trials if not self.stim_ON[t]]
+        self.i_good_stim_trials = [t for t in self.i_good_trials if self.stim_ON[t]]
 
         if not sess_reg and not use_reg:
             print("Using Pearsons corr to filter neurons.")

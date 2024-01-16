@@ -38,7 +38,7 @@ def angle_between(v1, v2):
     return np.arccos(np.clip(np.dot(v1_u, v2_u), -1.0, 1.0))
 
 
-# Angle between input and CD
+#%% Angle between input and CD
 all_paths = [[    r'F:\data\BAYLORCW032\python\2023_10_05',
             # r'F:\data\BAYLORCW034\python\2023_10_12',
             r'F:\data\BAYLORCW036\python\2023_10_09',
@@ -79,11 +79,52 @@ plt.scatter(np.ones(len(all_recovery[2]))+1, all_recovery[2])
 
 plt.xticks(range(3), ['Naive', 'Learning', 'Expert'])
 plt.ylabel('Angle (rad)')
+plt.ylim(bottom=1.3)
 # plt.savefig(r'F:\data\Fig 3\modularity_bargraph.pdf')
 
 plt.show()
+stats.ttest_ind(all_recovery[1], all_recovery[2])
+stats.ttest_ind(all_recovery[0], all_recovery[2])
+stats.ttest_ind(all_recovery[0], all_recovery[1])
+#%% Look at variance of input vectors:
+    
+opto_proj = l1.input_vector(return_opto=True)
+
+np.mean(np.var(opto_proj, axis=0))
+
+
+all_recovery = []
+for paths in all_paths: # For each stage of training
+    recovery = []
+    for path in paths: # For each mouse
+        l1 = Mode(path, use_reg = True, triple=True)
+        
+        opto_proj = l1.input_vector(return_opto=True)
+        
+        recovery += [np.mean(np.var(opto_proj, axis=0))]
+
+    all_recovery += [recovery]
+    
+plt.bar(range(3), [np.mean(a) for a in all_recovery])
+plt.scatter(np.zeros(len(all_recovery[0])), all_recovery[0])
+plt.scatter(np.ones(len(all_recovery[1])), all_recovery[1])
+plt.scatter(np.ones(len(all_recovery[2]))+1, all_recovery[2])
+
+plt.xticks(range(3), ['Naive', 'Learning', 'Expert'])
+plt.ylabel('Variance of input vec')
+# plt.ylim(bottom=1.3)
+# plt.savefig(r'F:\data\Fig 3\modularity_bargraph.pdf')
+
+plt.show()
+stats.ttest_ind(all_recovery[1], all_recovery[2])
+stats.ttest_ind(all_recovery[0], all_recovery[2])
+stats.ttest_ind(all_recovery[0], all_recovery[1])
+
+
+
 #%% Project test trials on input vectors:
 
+input_vector = l1.input_vector(plot=True)
 
 
     
@@ -134,10 +175,94 @@ plt.scatter(np.ones(len(all_recovery[2]))+1, all_recovery[2])
 
 plt.xticks(range(3), ['Naive', 'Learning', 'Expert'])
 plt.ylabel('Angle (rad)')
+plt.ylim(bottom=1.3)
 # plt.savefig(r'F:\data\Fig 3\modularity_bargraph.pdf')
 
 plt.show()
 
 #%% Project test trials on recovery vectors:
+l1 = Mode(path, use_reg = True, triple=True)
+
+recovery_vector = l1.recovery_vector(plot=True)
+
+#%% Look at variance of recovery vectors:
+    
+opto_proj = l1.input_vector(return_opto=True)
+
+np.mean(np.var(opto_proj, axis=0))
 
 
+all_recovery = []
+for paths in all_paths: # For each stage of training
+    recovery = []
+    for path in paths: # For each mouse
+        l1 = Mode(path, use_reg = True, triple=True)
+        
+        opto_proj = l1.recovery_vector(return_opto=True)
+        print(opto_proj.shape)
+        recovery += [np.mean(np.var(opto_proj, axis=0))]
+
+    all_recovery += [recovery]
+    
+plt.bar(range(3), [np.mean(a) for a in all_recovery])
+plt.scatter(np.zeros(len(all_recovery[0])), all_recovery[0])
+plt.scatter(np.ones(len(all_recovery[1])), all_recovery[1])
+plt.scatter(np.ones(len(all_recovery[2]))+1, all_recovery[2])
+
+plt.xticks(range(3), ['Naive', 'Learning', 'Expert'])
+plt.ylabel('Variance of recovery vec')
+# plt.ylim(bottom=1.3)
+# plt.savefig(r'F:\data\Fig 3\modularity_bargraph.pdf')
+
+plt.show()
+# stats.ttest_ind(all_recovery[1], all_recovery[2])
+# stats.ttest_ind(all_recovery[0], all_recovery[2])
+# stats.ttest_ind(all_recovery[0], all_recovery[1])
+
+#%%
+all_paths = [[    r'F:\data\BAYLORCW032\python\2023_10_05',
+            # r'F:\data\BAYLORCW034\python\2023_10_12',
+            r'F:\data\BAYLORCW036\python\2023_10_09',
+            r'F:\data\BAYLORCW035\python\2023_10_26',
+            r'F:\data\BAYLORCW037\python\2023_11_21',],
+
+        [r'F:\data\BAYLORCW032\python\2023_10_19',
+            # r'F:\data\BAYLORCW034\python\2023_10_22',
+            r'F:\data\BAYLORCW036\python\2023_10_19',
+            r'F:\data\BAYLORCW035\python\2023_12_07',
+            r'F:\data\BAYLORCW037\python\2023_12_08',],
+
+
+        [r'F:\data\BAYLORCW032\python\2023_10_24',
+            # r'F:\data\BAYLORCW034\python\2023_10_27',
+            r'F:\data\BAYLORCW036\python\2023_10_30',
+            r'F:\data\BAYLORCW035\python\2023_12_15',
+            r'F:\data\BAYLORCW037\python\2023_12_15',]]
+
+all_recovery = []
+for paths in all_paths: # For each stage of training
+    recovery = []
+    for path in paths: # For each mouse
+        l1 = Mode(path, use_reg = True, triple=True)
+        
+        recovery_vector = l1.recovery_vector()
+        input_vector = l1.input_vector()
+
+        orthonormal_basis, mean = l1.plot_CD(mode_input='choice', plot=False)
+        
+        
+        recovery += [angle_between(input_vector + recovery_vector,orthonormal_basis)]
+
+    all_recovery += [recovery]
+    
+plt.bar(range(3), [np.mean(a) for a in all_recovery])
+plt.scatter(np.zeros(len(all_recovery[0])), all_recovery[0])
+plt.scatter(np.ones(len(all_recovery[1])), all_recovery[1])
+plt.scatter(np.ones(len(all_recovery[2]))+1, all_recovery[2])
+
+plt.xticks(range(3), ['Naive', 'Learning', 'Expert'])
+plt.ylabel('Angle (rad)')
+plt.ylim(bottom=1.3)
+# plt.savefig(r'F:\data\Fig 3\modularity_bargraph.pdf')
+
+plt.show()
