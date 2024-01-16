@@ -705,8 +705,8 @@ s1list, d1, r1, ns1 = np.zeros(4),np.zeros(4),np.zeros(4),np.zeros(4)
 for paths in agg_mice_paths: # For each mouse
     stod = []
     s1 = session.Session(paths[0][0], use_reg=True, triple=True) # Naive
-    sample_epoch = range(s1.sample, s1.delay)
-    delay_epoch = range(s1.delay, s1.response)
+    sample_epoch = range(s1.sample+2, s1.delay+2)
+    delay_epoch = range(s1.delay+9, s1.response)
     response_epoch = range(s1.response, s1.response + 12)
     
     naive_sample_sel = s1.get_epoch_selective(sample_epoch, p=p)
@@ -723,9 +723,6 @@ for paths in agg_mice_paths: # For each mouse
 
     # s2 = session.Session(paths[0][1], use_reg=True, triple=True) # Learning
     s2 = session.Session(paths[0][2], use_reg=True, triple=True) # Expert
-
-    # learning = sum([s2.is_selective(s2.good_neurons[np.where(s1.good_neurons ==n)[0][0]], epoch) for n in naive_sel])
-    # expert = sum([s3.is_selective(s3.good_neurons[np.where(s1.good_neurons ==n)[0][0]], epoch) for n in naive_sel])
     
     for n in naive_sample_sel:
         if s2.is_selective(s2.good_neurons[np.where(s1.good_neurons ==n)[0][0]], sample_epoch, p=p):
@@ -740,7 +737,6 @@ for paths in agg_mice_paths: # For each mouse
     for n in naive_delay_sel:
         if s2.is_selective(s2.good_neurons[np.where(s1.good_neurons ==n)[0][0]], sample_epoch, p=p):
             d1[0] += 1
-            stod += [(n, s2.good_neurons[np.where(s1.good_neurons ==n)[0][0]])]  #save delay to sample cells
         elif s2.is_selective(s2.good_neurons[np.where(s1.good_neurons ==n)[0][0]], delay_epoch, p=p):
             d1[1] += 1
         elif s2.is_selective(s2.good_neurons[np.where(s1.good_neurons ==n)[0][0]], response_epoch, p=p):
@@ -752,8 +748,11 @@ for paths in agg_mice_paths: # For each mouse
     for n in naive_response_sel:
         if s2.is_selective(s2.good_neurons[np.where(s1.good_neurons ==n)[0][0]], sample_epoch, p=p):
             r1[0] += 1
+
         elif s2.is_selective(s2.good_neurons[np.where(s1.good_neurons ==n)[0][0]], delay_epoch, p=p):
             r1[1] += 1
+            stod += [(n, s2.good_neurons[np.where(s1.good_neurons ==n)[0][0]])]  #save delay to sample cells
+
         elif s2.is_selective(s2.good_neurons[np.where(s1.good_neurons ==n)[0][0]], response_epoch, p=p):
             r1[2] += 1
         else:
@@ -772,7 +771,24 @@ for paths in agg_mice_paths: # For each mouse
     allstod += [[stod]]
     
 og_SDR = np.sum(og_SDR, axis=0)
-    
+
+#%% Calculate SDR signifiances
+allnums = np.vstack((s1list, d1, r1, ns1))
+exptotals = np.sum(allnums, axis=0)
+# Calculate significance
+
+# Forward probabilities
+for i in range(4):
+    res = chisquare(f_obs=allnums[i], f_exp=exptotals / sum(exptotals) * sum(allnums[i]))
+    print(res.pvalue)
+
+allnums = allnums.T
+exptotals = np.sum(allnums, axis=0)
+# Backwards probabilities
+for i in range(4):
+    res = chisquare(f_obs=allnums[i], f_exp=exptotals / sum(exptotals) * sum(allnums[i]))
+    print(res.pvalue)
+
 #RESULTS
     
 # // Enter Flows between Nodes, like this:
@@ -831,7 +847,8 @@ c1, i1, ns1 = np.zeros(3),np.zeros(3),np.zeros(3)
 for paths in agg_mice_paths: # For each mouse
 
     s1 = session.Session(paths[0][1], use_reg=True, triple=True) # Naive
-    epoch = range(s1.response, s1.time_cutoff)
+    # epoch = range(s1.response, s1.time_cutoff) # response selective
+    epoch = range(s1.delay + 9, s1.response) # delay selective
     
     contra_neurons, ipsi_neurons, _, _ = s1.contra_ipsi_pop(epoch, p=p)
     naive_nonsel = [n for n in s1.good_neurons if n not in ipsi_neurons and n not in contra_neurons]
