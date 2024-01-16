@@ -162,18 +162,18 @@ paths = [    r'F:\data\BAYLORCW032\python\2023_10_05',
             r'F:\data\BAYLORCW035\python\2023_10_26',
             r'F:\data\BAYLORCW037\python\2023_11_21',]
 
-paths = [r'F:\data\BAYLORCW032\python\2023_10_19',
-            # r'F:\data\BAYLORCW034\python\2023_10_22',
-            r'F:\data\BAYLORCW036\python\2023_10_19',
-            r'F:\data\BAYLORCW035\python\2023_12_07',
-            r'F:\data\BAYLORCW037\python\2023_12_08',]
+# paths = [r'F:\data\BAYLORCW032\python\2023_10_19',
+#             # r'F:\data\BAYLORCW034\python\2023_10_22',
+#             r'F:\data\BAYLORCW036\python\2023_10_19',
+#             r'F:\data\BAYLORCW035\python\2023_12_07',
+#             r'F:\data\BAYLORCW037\python\2023_12_08',]
 
 
-paths = [r'F:\data\BAYLORCW032\python\2023_10_24',
-            # r'F:\data\BAYLORCW034\python\2023_10_27',
-            r'F:\data\BAYLORCW036\python\2023_10_30',
-            r'F:\data\BAYLORCW035\python\2023_12_15',
-            r'F:\data\BAYLORCW037\python\2023_12_15',]
+# paths = [r'F:\data\BAYLORCW032\python\2023_10_24',
+#             # r'F:\data\BAYLORCW034\python\2023_10_27',
+#             r'F:\data\BAYLORCW036\python\2023_10_30',
+#             r'F:\data\BAYLORCW035\python\2023_12_15',
+#             r'F:\data\BAYLORCW037\python\2023_12_15',]
 
 
 

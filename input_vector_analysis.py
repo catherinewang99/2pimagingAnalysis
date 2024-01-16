@@ -17,7 +17,9 @@ from scipy.stats import chisquare
 import pandas as pd
 from activityMode import Mode
 from scipy import stats
-
+from sklearn.metrics.pairwise import cosine_similarity
+from numpy import dot
+from numpy.linalg import norm
 
 def unit_vector(vector):
     """ Returns the unit vector of the vector.  """
@@ -37,6 +39,8 @@ def angle_between(v1, v2):
     v2_u = unit_vector(v2)
     return np.arccos(np.clip(np.dot(v1_u, v2_u), -1.0, 1.0))
 
+def cos_sim(a,b):
+    return np.dot(a, b)/(norm(a)*norm(b))
 
 #%% Angle between input and CD
 all_paths = [[    r'F:\data\BAYLORCW032\python\2023_10_05',
@@ -68,18 +72,18 @@ for paths in all_paths: # For each stage of training
         orthonormal_basis, mean = l1.plot_CD(mode_input='choice', plot=False)
         
         
-        recovery += [angle_between(input_vector,orthonormal_basis)]
+        recovery += [cos_sim(input_vector,orthonormal_basis)]
 
     all_recovery += [recovery]
     
-plt.bar(range(3), [np.mean(a) for a in all_recovery])
+plt.plot(range(3), [np.mean(a) for a in all_recovery], marker='x')
 plt.scatter(np.zeros(len(all_recovery[0])), all_recovery[0])
 plt.scatter(np.ones(len(all_recovery[1])), all_recovery[1])
 plt.scatter(np.ones(len(all_recovery[2]))+1, all_recovery[2])
 
 plt.xticks(range(3), ['Naive', 'Learning', 'Expert'])
-plt.ylabel('Angle (rad)')
-plt.ylim(bottom=1.3)
+plt.ylabel('Cosine similarity')
+plt.axhline(0, color='grey', ls='--')
 # plt.savefig(r'F:\data\Fig 3\modularity_bargraph.pdf')
 
 plt.show()
@@ -129,10 +133,7 @@ input_vector = l1.input_vector(plot=True)
 
     
 
-#%% Recovery mode
-# Angle between recovery and CD
-
-
+#%% Recovery mode, Angle between recovery and CD
 
 
 all_paths = [[    r'F:\data\BAYLORCW032\python\2023_10_05',
@@ -164,21 +165,21 @@ for paths in all_paths: # For each stage of training
         orthonormal_basis, mean = l1.plot_CD(mode_input='choice', plot=False)
         
         
-        recovery += [angle_between(recovery_vector,orthonormal_basis)]
+        recovery += [cos_sim(recovery_vector,orthonormal_basis)]
 
     all_recovery += [recovery]
     
-plt.bar(range(3), [np.mean(a) for a in all_recovery])
+plt.plot(range(3), [np.mean(a) for a in all_recovery], marker='x')
 plt.scatter(np.zeros(len(all_recovery[0])), all_recovery[0])
 plt.scatter(np.ones(len(all_recovery[1])), all_recovery[1])
 plt.scatter(np.ones(len(all_recovery[2]))+1, all_recovery[2])
 
 plt.xticks(range(3), ['Naive', 'Learning', 'Expert'])
-plt.ylabel('Angle (rad)')
-plt.ylim(bottom=1.3)
-# plt.savefig(r'F:\data\Fig 3\modularity_bargraph.pdf')
+plt.ylabel('Cosine similarity')
+plt.axhline(0, color='grey', ls='--')
 
 plt.show()
+
 
 #%% Project test trials on recovery vectors:
 l1 = Mode(path, use_reg = True, triple=True)
@@ -199,7 +200,7 @@ for paths in all_paths: # For each stage of training
         l1 = Mode(path, use_reg = True, triple=True)
         
         opto_proj = l1.recovery_vector(return_opto=True)
-        print(opto_proj.shape)
+
         recovery += [np.mean(np.var(opto_proj, axis=0))]
 
     all_recovery += [recovery]
@@ -219,7 +220,7 @@ plt.show()
 # stats.ttest_ind(all_recovery[0], all_recovery[2])
 # stats.ttest_ind(all_recovery[0], all_recovery[1])
 
-#%%
+#%% input+recovery angle with cd
 all_paths = [[    r'F:\data\BAYLORCW032\python\2023_10_05',
             # r'F:\data\BAYLORCW034\python\2023_10_12',
             r'F:\data\BAYLORCW036\python\2023_10_09',
@@ -251,18 +252,17 @@ for paths in all_paths: # For each stage of training
         orthonormal_basis, mean = l1.plot_CD(mode_input='choice', plot=False)
         
         
-        recovery += [angle_between(input_vector + recovery_vector,orthonormal_basis)]
+        recovery += [cos_sim(input_vector + recovery_vector,orthonormal_basis)]
 
     all_recovery += [recovery]
-    
-plt.bar(range(3), [np.mean(a) for a in all_recovery])
+
+plt.plot(range(3), [np.mean(a) for a in all_recovery], marker='x')
 plt.scatter(np.zeros(len(all_recovery[0])), all_recovery[0])
 plt.scatter(np.ones(len(all_recovery[1])), all_recovery[1])
 plt.scatter(np.ones(len(all_recovery[2]))+1, all_recovery[2])
 
 plt.xticks(range(3), ['Naive', 'Learning', 'Expert'])
-plt.ylabel('Angle (rad)')
-plt.ylim(bottom=1.3)
-# plt.savefig(r'F:\data\Fig 3\modularity_bargraph.pdf')
+plt.ylabel('Cosine similarity')
+plt.axhline(0, color='grey', ls='--')
 
 plt.show()

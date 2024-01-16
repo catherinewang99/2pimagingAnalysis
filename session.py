@@ -632,9 +632,9 @@ class Session:
         ## Returns list of indices of actual lick left/right trials
         
         if direction == 'l':
-            idx = np.where((self.L_correct + self.L_wrong) == 1)[0]
+            idx = np.where((self.L_correct + self.R_wrong) == 1)[0]
         elif direction == 'r':
-            idx = np.where((self.R_correct + self.R_wrong) == 1)[0]
+            idx = np.where((self.R_correct + self.L_wrong) == 1)[0]
         else:
             raise Exception("Sorry, only 'r' or 'l' input accepted!")
             
@@ -734,8 +734,8 @@ class Session:
             left_trials = self.lick_incorrect_direction('l')
         
         if both:
-            right_trials = cat((R, self.lick_incorrect_direction('r')))
-            left_trials = cat((L, self.lick_incorrect_direction('l')))
+            right_trials = cat((R, self.lick_incorrect_direction('l')))
+            left_trials = cat((L, self.lick_incorrect_direction('r')))
         
         if len(bias_trials) != 0:
             right_trials = [b for b in bias_trials if self.instructed_side[b] == 0]
@@ -2569,20 +2569,20 @@ class Session:
             
             
             nonpref, pref = cat(ipsi_trace['r']), cat(ipsi_trace['l'])
-            optonp, optop = self.get_trace_matrix_multiple(ipsi_neurons, opto=True, both=False)
+            optonp, optop = self.get_trace_matrix_multiple(ipsi_neurons, opto=True, both=False, lickdir=True)
             # errnp, errpref = self.get_trace_matrix_multiple(ipsi_neurons, opto=True, error=True)
             
         elif len(ipsi_neurons) == 0:
             
             nonpref, pref = cat(contra_trace['l']), cat(contra_trace['r'])
-            optop, optonp = self.get_trace_matrix_multiple(contra_neurons, opto=True, both=False)
+            optop, optonp = self.get_trace_matrix_multiple(contra_neurons, opto=True, both=False, lickdir=True)
             # errpref, errnp = self.get_trace_matrix_multiple(contra_neurons, opto=True, error=True)
 
         else:
             
             nonpref, pref = cat((cat(ipsi_trace['r']), cat(contra_trace['l']))), cat((cat(ipsi_trace['l']), cat(contra_trace['r'])))
-            optonp, optop = self.get_trace_matrix_multiple(ipsi_neurons, opto=True, both=False)
-            optop1, optonp1 = self.get_trace_matrix_multiple(contra_neurons, opto = True, both=False)
+            optonp, optop = self.get_trace_matrix_multiple(ipsi_neurons, opto=True, both=False, lickdir=True)
+            optop1, optonp1 = self.get_trace_matrix_multiple(contra_neurons, opto = True, both=False, lickdir=True)
             optonp, optop = cat((optonp, optonp1)), cat((optop, optop1))
             
             # errnp, errpref = self.get_trace_matrix_multiple(ipsi_neurons, opto=True, error=True)

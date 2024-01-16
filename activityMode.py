@@ -23,7 +23,7 @@ class Mode(Session):
     def __init__(self, path, lickdir=True, use_reg=False, triple=False, layer_num='all'):
         # Inherit all parameters and functions of session.py
         super().__init__(path, layer_num=layer_num, use_reg=use_reg, triple=triple) 
-        
+        self.lickdir = lickdir
         
         # Construct train and test sets for control and opto trials
         # built this section so we can split trials into train/test and track at the same time 
@@ -31,8 +31,8 @@ class Mode(Session):
         
         #control trials
         numr, numl = sum([self.R_correct[i] for i in self.i_good_non_stim_trials if not self.early_lick[i]]), sum([self.L_correct[i] for i in self.i_good_non_stim_trials if not self.early_lick[i]])
-        r_trials = np.random.permutation(sum([self.R_correct[i] for i in self.i_good_non_stim_trials if not self.early_lick[i]]))
-        l_trials = np.random.permutation(sum([self.L_correct[i] for i in self.i_good_non_stim_trials if not self.early_lick[i]]))
+        r_trials = np.random.permutation(numr)
+        l_trials = np.random.permutation(numl)
         
         self.r_train_idx, self.l_train_idx = r_trials[:int(numr/2)], l_trials[:int(numl/2)]
         self.r_test_idx, self.l_test_idx = r_trials[int(numr/2):], l_trials[int(numl/2):]
@@ -41,17 +41,20 @@ class Mode(Session):
         # Sort by trial type
         if not lickdir:
             numr, numl = sum([self.R_correct[i] + self.R_wrong[i] for i in self.i_good_trials if self.stim_ON[i] and not self.early_lick[i]]), sum([self.L_correct[i] + self.L_wrong[i] for i in self.i_good_trials if self.stim_ON[i] and not self.early_lick[i]])
-            r_trials = np.random.permutation(sum([self.R_correct[i] + self.R_wrong[i] for i in self.i_good_trials if self.stim_ON[i] and not self.early_lick[i]]))
-            l_trials = np.random.permutation(sum([self.L_correct[i] + self.L_wrong[i] for i in self.i_good_trials if self.stim_ON[i] and not self.early_lick[i]]))
-        
+            r_trials = np.random.permutation(numr)
+            l_trials = np.random.permutation(numl)
+            
         # Sort by lick dir
         else:
             print('Sort by lick dir')
             # numr, numl = sum([self.R_correct[i] + self.L_wrong[i] for i in self.i_good_trials if self.stim_ON[i] and not self.early_lick[i]]), sum([self.L_correct[i] + self.R_wrong[i] for i in self.i_good_trials if self.stim_ON[i] and not self.early_lick[i]])
             # r_trials = np.random.permutation(sum([self.R_correct[i] + self.L_wrong[i] for i in self.i_good_trials if self.stim_ON[i] and not self.early_lick[i]]))
             # l_trials = np.random.permutation(sum([self.L_correct[i] + self.R_wrong[i] for i in self.i_good_trials if self.stim_ON[i] and not self.early_lick[i]]))
-            r_opto, l_opto = self.get_trace_matrix(0, opto=True, lickdir=lickdir)
-            numr, numl = np.array(r_opto).shape[0], np.array(l_opto).shape[0]
+            # r_opto, l_opto = self.get_trace_matrix(0, opto=True, lickdir=lickdir)
+            # numr, numl = np.array(r_opto).shape[0], np.array(l_opto).shape[0]
+            
+            numr, numl = sum([self.R_correct[i] + self.L_wrong[i] for i in self.i_good_trials if self.stim_ON[i] and not self.early_lick[i]]), sum([self.L_correct[i] + self.R_wrong[i] for i in self.i_good_trials if self.stim_ON[i] and not self.early_lick[i]])
+
             r_trials = np.random.permutation(numr)
             l_trials = np.random.permutation(numl)
             
@@ -2217,10 +2220,15 @@ class Mode(Session):
         orthonormal basis of the input vector
 
         """
-
+        # Trial type
         r_corr = cat((np.where(self.R_correct)[0], np.where(self.R_wrong)[0]))
         l_corr = cat((np.where(self.L_correct)[0], np.where(self.L_wrong)[0]))
         
+        # Lick dir
+        if self.lickdir:
+            r_corr = cat((np.where(self.R_correct)[0], np.where(self.L_wrong)[0]))
+            l_corr = cat((np.where(self.L_correct)[0], np.where(self.R_wrong)[0]))
+            
         r_trials_opto = [i for i in r_corr if i in self.i_good_stim_trials and not self.early_lick[i]]
         l_trials_opto = [i for i in l_corr if i in self.i_good_stim_trials and not self.early_lick[i]]
 
@@ -2360,8 +2368,9 @@ class Mode(Session):
         l_corr = cat((np.where(self.L_correct)[0], np.where(self.L_wrong)[0]))
         
         # Lick dir
-        r_corr = cat((np.where(self.R_correct)[0], np.where(self.L_wrong)[0]))
-        l_corr = cat((np.where(self.L_correct)[0], np.where(self.R_wrong)[0]))
+        if self.lickdir:
+            r_corr = cat((np.where(self.R_correct)[0], np.where(self.L_wrong)[0]))
+            l_corr = cat((np.where(self.L_correct)[0], np.where(self.R_wrong)[0]))
 
         r_trials_opto = [i for i in r_corr if i in self.i_good_stim_trials and not self.early_lick[i]]
         l_trials_opto = [i for i in l_corr if i in self.i_good_stim_trials and not self.early_lick[i]]
