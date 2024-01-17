@@ -192,7 +192,7 @@ for path in paths:
     l1 = session.Session(path, use_reg=True, triple=True)
     # l1 = session.Session(path)
     
-    pref_, nonpref_, optop_, optonp_ = l1.selectivity_optogenetics(p=0.01, return_traces=True)
+    pref_, nonpref_, optop_, optonp_ = l1.selectivity_optogenetics(p=0.01, lickdir=True, return_traces=True)
     
     pref = np.vstack((pref, pref_))
     nonpref = np.vstack((nonpref, nonpref_))
@@ -202,7 +202,6 @@ for path in paths:
     num_neurons += len(l1.selective_neurons)
     
 pref, nonpref, optop, optonp = pref[1:], nonpref[1:], optop[1:], optonp[1:]
-f, axarr = plt.subplots(1,1, sharex='col', figsize=(5,5))
 
 sel = np.mean(pref, axis = 0) - np.mean(nonpref, axis = 0)
 err = np.std(pref, axis=0) / np.sqrt(len(pref)) 
@@ -210,7 +209,9 @@ err += np.std(nonpref, axis=0) / np.sqrt(len(nonpref))
 
 selo = np.mean(optop, axis = 0) - np.mean(optonp, axis = 0)
 erro = np.std(optop, axis=0) / np.sqrt(len(optop)) 
-erro += np.std(optonp, axis=0) / np.sqrt(len(optonp))    
+erro += np.std(optonp, axis=0) / np.sqrt(len(optonp))  
+
+f, axarr = plt.subplots(1,1, sharex='col', figsize=(5,5))  
 x = np.arange(-6.97,4,l1.fs)[:l1.time_cutoff]
 axarr.plot(x, sel, 'black')
         
@@ -232,8 +233,10 @@ axarr.hlines(y=max(cat((selo, sel))), xmin=-3, xmax=-2, linewidth=10, color='red
 axarr.set_title('Optogenetic effect on selectivity (n = {} neurons)'.format(num_neurons))                  
 axarr.set_xlabel('Time from Go cue (s)')
 axarr.set_ylabel('Selectivity')
-plt.savefig(r'F:\data\Fig 3\naive_sel_recovery.pdf')
+axarr.set_ylim((-0.2, 0.7))
 
+# plt.savefig(r'F:\data\Fig 3\exp_sel_recovery.pdf')
+plt.show()
 
 #%% Plot selectivity recovery as a bar graph
 
@@ -372,38 +375,38 @@ paths = [    r'F:\data\BAYLORCW032\python\2023_10_05',
             r'F:\data\BAYLORCW035\python\2023_10_26',
             r'F:\data\BAYLORCW037\python\2023_11_21',]
 
-# paths = [r'F:\data\BAYLORCW032\python\2023_10_19',
-#             # r'F:\data\BAYLORCW034\python\2023_10_22',
-#             r'F:\data\BAYLORCW036\python\2023_10_19',
-#             r'F:\data\BAYLORCW035\python\2023_12_07',
-#             r'F:\data\BAYLORCW037\python\2023_12_08',]
+paths = [r'F:\data\BAYLORCW032\python\2023_10_19',
+            # r'F:\data\BAYLORCW034\python\2023_10_22',
+            r'F:\data\BAYLORCW036\python\2023_10_19',
+            r'F:\data\BAYLORCW035\python\2023_12_07',
+            r'F:\data\BAYLORCW037\python\2023_12_08',]
 
 
-paths = [r'F:\data\BAYLORCW032\python\2023_10_24',
-            # r'F:\data\BAYLORCW034\python\2023_10_27',
-            r'F:\data\BAYLORCW036\python\2023_10_30',
-            r'F:\data\BAYLORCW035\python\2023_12_15',
-            r'F:\data\BAYLORCW037\python\2023_12_15',]
+# paths = [r'F:\data\BAYLORCW032\python\2023_10_24',
+#             # r'F:\data\BAYLORCW034\python\2023_10_27',
+#             r'F:\data\BAYLORCW036\python\2023_10_30',
+#             r'F:\data\BAYLORCW035\python\2023_12_15',
+#             r'F:\data\BAYLORCW037\python\2023_12_15',]
 
 
 control_r, control_l = np.zeros(61), np.zeros(61)
 opto_r, opto_l = np.zeros(61), np.zeros(61)
 error_r, error_l = np.zeros(61), np.zeros(61)
 
-allsets = []
+# allsets = []
 counter = 0
 for path in paths:
     l1 = Mode(path, use_reg = True, triple=True)
 
     # Expert stage only
-    control_traces, opto_traces, error_bars, orthonormal_basis, mean, meantrain, meanstd = l1.plot_CD_opto(return_traces=True, return_applied=True)
-    sett = orthonormal_basis, mean, meantrain, meanstd
-    allsets += [sett]
+    # control_traces, opto_traces, error_bars, orthonormal_basis, mean, meantrain, meanstd = l1.plot_CD_opto(return_traces=True, return_applied=True)
+    # sett = orthonormal_basis, mean, meantrain, meanstd
+    # allsets += [sett]
 
     # Learning and naive stages
-    # orthonormal_basis, mean, meantrain, meanstd = allsets[counter]
-    # counter += 1
-    # control_traces, opto_traces, error_bars = l1.plot_CD_opto_applied(orthonormal_basis, mean, meantrain, meanstd, return_traces=True)
+    orthonormal_basis, mean, meantrain, meanstd = allsets[counter]
+    counter += 1
+    control_traces, opto_traces, error_bars = l1.plot_CD_opto_applied(orthonormal_basis, mean, meantrain, meanstd, return_traces=True)
     
     control_r = np.vstack((control_r, control_traces[0]))
     control_l = np.vstack((control_l, control_traces[1]))

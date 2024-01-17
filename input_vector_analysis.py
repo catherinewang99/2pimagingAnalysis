@@ -69,10 +69,11 @@ for paths in all_paths: # For each stage of training
         l1 = Mode(path, use_reg = True, triple=True)
         
         input_vector = l1.input_vector()
+        indices = l1.get_stim_responsive_neurons()
+        
         orthonormal_basis, mean = l1.plot_CD(mode_input='choice', plot=False)
         
-        
-        recovery += [cos_sim(input_vector,orthonormal_basis)]
+        recovery += [cos_sim(input_vector,orthonormal_basis[indices])]
 
     all_recovery += [recovery]
     

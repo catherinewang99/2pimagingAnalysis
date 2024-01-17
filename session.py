@@ -749,6 +749,7 @@ class Session:
             left_trials = self.lick_incorrect_direction('l')
         
         if both:
+            print("why are you using both setting?!")
             right_trials = cat((R, self.lick_incorrect_direction('l')))
             left_trials = cat((L, self.lick_incorrect_direction('r')))
         
@@ -2560,7 +2561,7 @@ class Session:
         plt.show()
 
 
-    def selectivity_optogenetics(self, save=False, p = 0.0001, return_traces = False, fix_axis = []):
+    def selectivity_optogenetics(self, save=False, p = 0.0001, lickdir = False, return_traces = False, fix_axis = []):
         """Plots overall selectivity trace across opto vs control trials
         
         Uses late delay epoch to calculate selectivity
@@ -2594,20 +2595,20 @@ class Session:
             
             
             nonpref, pref = cat(ipsi_trace['r']), cat(ipsi_trace['l'])
-            optonp, optop = self.get_trace_matrix_multiple(ipsi_neurons, opto=True, both=False, lickdir=True)
+            optonp, optop = self.get_trace_matrix_multiple(ipsi_neurons, opto=True, both=False, lickdir=lickdir)
             # errnp, errpref = self.get_trace_matrix_multiple(ipsi_neurons, opto=True, error=True)
             
         elif len(ipsi_neurons) == 0:
             
             nonpref, pref = cat(contra_trace['l']), cat(contra_trace['r'])
-            optop, optonp = self.get_trace_matrix_multiple(contra_neurons, opto=True, both=False, lickdir=True)
+            optop, optonp = self.get_trace_matrix_multiple(contra_neurons, opto=True, both=False, lickdir=lickdir)
             # errpref, errnp = self.get_trace_matrix_multiple(contra_neurons, opto=True, error=True)
 
         else:
             
             nonpref, pref = cat((cat(ipsi_trace['r']), cat(contra_trace['l']))), cat((cat(ipsi_trace['l']), cat(contra_trace['r'])))
-            optonp, optop = self.get_trace_matrix_multiple(ipsi_neurons, opto=True, both=False, lickdir=True)
-            optop1, optonp1 = self.get_trace_matrix_multiple(contra_neurons, opto = True, both=False, lickdir=True)
+            optonp, optop = self.get_trace_matrix_multiple(ipsi_neurons, opto=True, both=False, lickdir=lickdir)
+            optop1, optonp1 = self.get_trace_matrix_multiple(contra_neurons, opto = True, both=False, lickdir=lickdir)
             optonp, optop = cat((optonp, optonp1)), cat((optop, optop1))
             
             # errnp, errpref = self.get_trace_matrix_multiple(ipsi_neurons, opto=True, error=True)

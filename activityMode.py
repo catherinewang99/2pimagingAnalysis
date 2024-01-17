@@ -24,7 +24,7 @@ class Mode(Session):
         # Inherit all parameters and functions of session.py
         super().__init__(path, layer_num=layer_num, use_reg=use_reg, triple=triple) 
         self.lickdir = lickdir
-        
+        _ = self.get_stim_responsive_neurons()
         # Construct train and test sets for control and opto trials
         # built this section so we can split trials into train/test and track at the same time 
         # for error bar creation in some subsequent graphs
@@ -734,7 +734,7 @@ class Mode(Session):
         
         return orthonormal_basis, np.mean(activityRL_train, axis=1)[:, None]
     
-    def plot_CD(self, mode_input='choice', epoch=None, save=None, plot=True):
+    def plot_CD(self, mode_input='choice', epoch=None, save=None, plot=True, neurons = []):
         "This method orthogonalizes the various modes"
         # if epoch is not None:
         #     orthonormal_basis, var_allDim = self.func_compute_epoch_decoder([self.PSTH_r_train_correct, 
@@ -743,6 +743,8 @@ class Mode(Session):
             
         #     orthonormal_basis, var_allDim = self.func_compute_epoch_decoder([self.PSTH_r_train_correct, 
         #                                                                     self.PSTH_l_train_correct], range(self.delay+9, self.response))
+        
+        
         
         idx_map = {'choice': 1, 'action':5, 'stimulus':0}
         idx = idx_map[mode_input]
@@ -2334,9 +2336,35 @@ class Mode(Session):
     
 ### STIM RELAETD VECTORS
 
+    def get_stim_responsive_neurons(self):
+        
+        """
+        Drops neurons that aren't responsive to opto stim in order to calculate
+        the input vector
+        
+        Returns all neurons are responsive to stim
+        
+        """
+        
+        responsive_neurons, indices = [], []
+        stimepoch = range(self.delay, self.delay+6)
+        alltrain = np.where(~self.stim_ON)[0]
+        alloptotrain = np.where(self.stim_ON)[0]
+        counter = 0
+        for n in self.good_neurons:
+            control_activity = np.mean([trial[n, stimepoch] for trial in self.dff[0, alltrain]], axis=0)
+            opto_activity = np.mean([trial[n, stimepoch] for trial in self.dff[0, alloptotrain]], axis=0)
+            
+            res = stats.ttest_ind(control_activity, opto_activity)
+            if res.pvalue < 0.01:
+                responsive_neurons += [n]
+                indices += [counter]
+            counter += 1
+        self.responsive_neurons = responsive_neurons
+        
+        return indices
     
-    
-    def input_vector(self, orthog=True, plot=False, return_opto=False):
+    def input_vector(self, orthog=True, plot=False, return_opto=False, remove_unresponsive=True):
         """
         Get the input vector by subtracting the optogenetic stimulation CD projection
         from the control trial projection
@@ -2346,6 +2374,11 @@ class Mode(Session):
         orthonormal basis of the input vector
 
         """
+        if remove_unresponsive:
+            good_neurons = self.responsive_neurons
+        else:
+            good_neurons = self.good_neurons
+        
         # Trial type
         r_corr = cat((np.where(self.R_correct)[0], np.where(self.R_wrong)[0]))
         l_corr = cat((np.where(self.L_correct)[0], np.where(self.L_wrong)[0]))
@@ -2376,8 +2409,8 @@ class Mode(Session):
         for t in range(self.delay+3, self.delay+6):
 
             
-            control_activity = np.mean([trial[self.good_neurons, t] for trial in self.dff[0, alltrain]], axis=0)
-            opto_activity = np.mean([trial[self.good_neurons, t] for trial in self.dff[0, alloptotrain]], axis=0)
+            control_activity = np.mean([trial[good_neurons, t] for trial in self.dff[0, alltrain]], axis=0)
+            opto_activity = np.mean([trial[good_neurons, t] for trial in self.dff[0, alloptotrain]], axis=0)
             # print(control_activity.shape)
             CD_all += [(control_activity - opto_activity) / 2]
             
@@ -2389,7 +2422,7 @@ class Mode(Session):
         
             allcontroloptotrain = cat((alloptotrain, alltrain))
             activityRL = []
-            for n in self.good_neurons:
+            for n in good_neurons:
                 
                 activityRL += [np.mean([trial[n, range(self.delay+3, self.delay+6)] for trial in self.dff[0, allcontroloptotrain]], axis=0)]
                 
@@ -2420,7 +2453,7 @@ class Mode(Session):
                 activity_optotest = []
                 
                 for t in alloptotest:
-                    activity = self.dff[0, t][self.good_neurons] 
+                    activity = self.dff[0, t][good_neurons] 
                     activity = activity - np.tile(np.mean(activityRL, axis=1)[:, None], (1, activity.shape[1]))
                     proj_allDim = np.dot(activity.T, orthonormal_basis)
                     activity_optotest += [proj_allDim[range(self.delay, self.delay+6)]]
@@ -2431,12 +2464,12 @@ class Mode(Session):
             if plot:
                 
                 activityRL_testR = []
-                for n in self.good_neurons:
+                for n in good_neurons:
                     
                     activityRL_testR += [np.mean([trial[n, :self.time_cutoff] for trial in self.dff[0, [r_trials[t] for t in self.r_test_idx]]], axis=0)]
                     
                 activityRL_testL = []
-                for n in self.good_neurons:
+                for n in good_neurons:
                     
                     activityRL_testL += [np.mean([trial[n, :self.time_cutoff] for trial in self.dff[0, [l_trials[t] for t in self.l_test_idx]]], axis=0)]
                     
@@ -2446,13 +2479,13 @@ class Mode(Session):
 
                 # Project for every trial
                 for t in self.r_test_idx:
-                    activity = self.dff[0, r_trials[t]][self.good_neurons] 
+                    activity = self.dff[0, r_trials[t]][good_neurons] 
                     activity = activity - np.tile(np.mean(activityRL, axis=1)[:, None], (1, activity.shape[1]))
                     proj_allDim = np.dot(activity.T, orthonormal_basis)
                     plt.plot(x, proj_allDim[:len(self.T_cue_aligned_sel)], 'b', alpha = 0.1,  linewidth = 0.5)
                     
                 for t in self.l_test_idx:
-                    activity = self.dff[0, l_trials[t]][self.good_neurons]
+                    activity = self.dff[0, l_trials[t]][good_neurons]
                     activity = activity - np.tile(np.mean(activityRL, axis=1)[:, None], (1, activity.shape[1]))
                     proj_allDim = np.dot(activity.T, orthonormal_basis)
                     plt.plot(x, proj_allDim[:len(self.T_cue_aligned_sel)], 'r', alpha = 0.1, linewidth = 0.5)
@@ -2461,9 +2494,9 @@ class Mode(Session):
                 activityRL_test = cat((activityRL_testR, activityRL_testL), axis=1)
                 activityRL_test = activityRL_test - np.tile(np.mean(activityRL, axis=1)[:, None], (1, activityRL_test.shape[1]))  # remove mean
                 proj_allDim = np.dot(activityRL_test.T, orthonormal_basis)
-                print(activityRL_test.shape)
+                # print(activityRL_test.shape)
 
-                print(proj_allDim.shape)
+                # print(proj_allDim.shape)
                 
                 plt.plot(x, proj_allDim[:len(self.T_cue_aligned_sel)], 'b', linewidth = 2)
                 plt.plot(x, proj_allDim[len(self.T_cue_aligned_sel):], 'r', linewidth = 2)

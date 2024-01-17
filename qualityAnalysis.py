@@ -148,7 +148,14 @@ paths = [r'F:\data\BAYLORCW032\python\2023_10_23',
          r'F:\data\BAYLORCW037\python\2023_11_22'
          ]
 
-allstack, allstimstack = np.zeros(61), np.zeros(61)
+paths = [r'F:\data\BAYLORCW032\python\2023_10_24',
+            # r'F:\data\BAYLORCW034\python\2023_10_27',
+            r'F:\data\BAYLORCW036\python\2023_10_30',
+            r'F:\data\BAYLORCW035\python\2023_12_15',
+            r'F:\data\BAYLORCW037\python\2023_12_15',]
+# allstack, allstimstack = np.zeros(61), np.zeros(61)
+allstack, allcontrastimstack = np.zeros(61), np.zeros(61)
+
 for path in paths:
     
     l1 = quality.QC(path)
@@ -156,22 +163,34 @@ for path in paths:
     stack, stimstack = l1.all_neurons_heatmap(return_traces=True)
 
     allstack = np.vstack((allstack, stack))
-    allstimstack = np.vstack((allstimstack, stimstack))
+    # allstimstack = np.vstack((allstimstack, stimstack))
+    allcontrastimstack = np.vstack((allcontrastimstack, stimstack))
     
 allstack = allstack[1:,12:38]
-allstimstack = allstimstack[1:,12:38]
+# allstimstack = allstimstack[1:,12:38]
+allcontrastimstack = allcontrastimstack[1:,12:38]
 # allstack = normalize(allstack[1:,12:38])
 # allstimstack = normalize(allstimstack[1:,12:38])
-
-f, axarr = plt.subplots(2,2)#, sharex='col')
-x = np.arange(-4.97,4,l1.fs)[:26]
+#%%
+x = np.arange(-7.97,4,l1.fs)[12:38]
 # x = np.arange(-6.97,4,self.fs)[:self.time_cutoff]
+# allstack = normalize(allstack)
+# allstimstack = normalize(allstimstack)
+plt.figure(figsize=(8,5))
+plt.matshow(allstimstack, cmap='gray', fignum=1, aspect='auto')
+plt.xticks(range(0,38-12, 6), [int(d) for d in x[::6]])
+plt.axvline(x=l1.delay-10, c='b', linewidth = 0.5)
+plt.savefig(r'F:\data\Fig 3\contra_opto_effect.pdf')
 
- 
+#%%
+f, axarr = plt.subplots(2,2)#, sharex='col')
+
 axarr[0,0].matshow(allstimstack, cmap='gray', interpolation='nearest', aspect='auto')
-axarr[0,0].axis('off')
+# axarr[0,0].axis('off')
+axarr[0,0].set_xticks(range(0,38-12, 6), [int(d) for d in x[::6]])
+# 
 axarr[0,0].set_title('Opto')
-axarr[0,0].axvline(x=l1.delay-12, c='b', linewidth = 0.5)
+axarr[0,0].axvline(x=l1.delay-10, c='b', linewidth = 0.5)
 # axarr[0,0].axvline(x=-3, c='b', linewidth = 0.5)
 
 axarr[1,0].plot(x, np.mean(allstimstack, axis = 0))
@@ -184,7 +203,9 @@ axarr[1,0].axvline(x=-3, c='b', linewidth = 0.5)
 # axarr[1,0].set_xticks(range(0,allstack.shape[1], 10), [int(d) for d in x[::10]])
 
 axarr[0,1].matshow(allstack, cmap='gray', interpolation='nearest', aspect='auto')
-axarr[0,1].axis('off')
+# axarr[0,1].axis('off')
+axarr[0,1].set_xticks(range(0,38-12, 6), [int(d) for d in x[::6]])
+
 axarr[0,1].set_title('Control')
 
 axarr[1,1].plot(x, np.mean(allstack, axis = 0))
@@ -199,27 +220,28 @@ axarr[1,0].set_xlabel('Time from Go cue (s)')
 
 plt.suptitle('n=3431 neurons')
 
-# plt.savefig(r'F:\data\Fig 3\opto_effect.pdf')
+plt.savefig(r'F:\data\Fig 3\ipsi_opto_effect.pdf')
 plt.show()
 
 #%% Overlay plots
+x = np.arange(-6.97,4,l1.fs)[12:38]
 
-plt.plot(x, np.mean(allstimstack, axis = 0), color = 'red', label='Optogenetic stimulation trials')
-plt.fill_between(x, np.mean(allstimstack, axis = 0) - stats.sem(allstimstack, axis=0), 
-          np.mean(allstimstack, axis = 0) + stats.sem(allstimstack, axis=0),
+plt.plot(x, np.mean(allcontrastimstack, axis = 0), color = 'red', label='Optogenetic stimulation trials')
+plt.fill_between(x, np.mean(allcontrastimstack, axis = 0) - stats.sem(allcontrastimstack, axis=0), 
+          np.mean(allcontrastimstack, axis = 0) + stats.sem(allcontrastimstack, axis=0),
           color='lightcoral')   
-plt.plot(x, np.mean(allstack, axis = 0) + 0.02, color = 'grey', label='Control trials')
+plt.plot(x, np.mean(allstack, axis = 0), color = 'grey', label='Control trials')
 plt.axvline(x=-3, c='b', linewidth = 0.5)
 
-plt.fill_between(x, np.mean(allstack, axis = 0) + 0.02 - stats.sem(allstack, axis=0), 
-          np.mean(allstack, axis = 0) + 0.02 + stats.sem(allstack, axis=0),
+plt.fill_between(x, np.mean(allstack, axis = 0) - stats.sem(allstack, axis=0), 
+          np.mean(allstack, axis = 0) + stats.sem(allstack, axis=0),
           color='silver')   
 # axarr[1,1].set_ylim(top=0.2)
 plt.ylabel('dF/F0')
 # axarr[1,1].set_xticks(range(0,allstack.shape[1], 10), [int(d) for d in x[::10]])
 plt.xlabel('Time from Go cue (s)')
 plt.legend()
-plt.savefig(r'F:\data\Fig 3\opto_effect_overlay.pdf')
+plt.savefig(r'F:\data\Fig 3\contra_opto_effect_overlay.pdf')
 
 plt.show()
 
