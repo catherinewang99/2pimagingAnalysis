@@ -2060,7 +2060,7 @@ class Session:
         else:
             return False
         
-    def plot_raster_and_PSTH(self, neuron_num, opto=False, bias=False, fixaxis = False, save=[]):
+    def plot_raster_and_PSTH(self, neuron_num, opto=False, bias=False, lickdir=False, fixaxis = False, save=[]):
         """Plot heatmap then averaged L/R trace for a single neuron
                                 
         Parameters
@@ -2071,11 +2071,15 @@ class Session:
             Whether to plot optogenetic trials or not (default False)
         bias: bool, optional
             Whether to plot bias trials (default False)
+        lickdir: bool, optional
+            Sort by lick direction instead of correct only
+        fixaxis: tuple
+            Fix top and bottom of yaxis scale
             
         """
         if not opto:
-            R, L = self.get_trace_matrix(neuron_num)
-            r, l = self.get_trace_matrix(neuron_num)
+            R, L = self.get_trace_matrix(neuron_num, lickdir = lickdir)
+            r, l = self.get_trace_matrix(neuron_num, lickdir = lickdir)
             title = "Neuron {}: Raster and PSTH".format(neuron_num)
         elif bias:
             

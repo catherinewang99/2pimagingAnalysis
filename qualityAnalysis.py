@@ -10,7 +10,7 @@ sys.path.append("C:\scripts\Imaging analysis")
 import numpy as np
 import scipy.io as scio
 import matplotlib.pyplot as plt
-import session
+from session import Session
 from matplotlib.pyplot import figure
 from numpy import concatenate as cat
 from sklearn.preprocessing import normalize
@@ -222,5 +222,47 @@ plt.legend()
 plt.savefig(r'F:\data\Fig 3\opto_effect_overlay.pdf')
 
 plt.show()
+
+#%% Count number of neurons for summarizing:
+
+agg_mice_paths = [
+    
+        [r'F:\data\BAYLORCW032\python\2023_10_08',
+          r'F:\data\BAYLORCW032\python\2023_10_16',
+          r'F:\data\BAYLORCW032\python\2023_10_25',],
+
+        [ r'F:\data\BAYLORCW034\python\2023_10_12',
+              r'F:\data\BAYLORCW034\python\2023_10_22',
+              r'F:\data\BAYLORCW034\python\2023_10_27'],
+         
+        [r'F:\data\BAYLORCW036\python\2023_10_09',
+            r'F:\data\BAYLORCW036\python\2023_10_19',
+            r'F:\data\BAYLORCW036\python\2023_10_30'],
+    
+        [r'F:\data\BAYLORCW035\python\2023_10_26',
+            r'F:\data\BAYLORCW035\python\2023_12_07',
+            r'F:\data\BAYLORCW035\python\2023_12_15',],
+     
+        [r'F:\data\BAYLORCW037\python\2023_11_21',
+             r'F:\data\BAYLORCW037\python\2023_12_08',
+             r'F:\data\BAYLORCW037\python\2023_12_15',]
+
+        ]
+
+for paths in agg_mice_paths:
+    for path in paths:
+        print(path)
+        
+        # all neurons
+        l1 = Session(path)
+        print(len(l1.good_neurons))
+
+        # all matched 
+        l1 = Session(path, use_reg=True, triple=True, filter_reg = False)
+        print(len(l1.good_neurons))
+
+        # all matched filtered
+        l1 = Session(path, use_reg=True, triple=True)
+        print(len(l1.good_neurons))
 
 
