@@ -25,60 +25,58 @@ paths = [r'F:\data\BAYLORCW032\python\2023_10_05',
            r'F:\data\BAYLORCW032\python\2023_10_19',
           r'F:\data\BAYLORCW032\python\2023_10_24',]
 
-for path in paths:
-    total_neurons = 0
 
+agg_mice_paths = [[r'F:\data\BAYLORCW032\python\2023_10_08',
+          r'F:\data\BAYLORCW032\python\2023_10_16',
+          r'F:\data\BAYLORCW032\python\2023_10_25',],
+
+         
+        [ r'F:\data\BAYLORCW034\python\2023_10_12',
+              r'F:\data\BAYLORCW034\python\2023_10_22',
+              r'F:\data\BAYLORCW034\python\2023_10_27'],
+         
+        [r'F:\data\BAYLORCW036\python\2023_10_09',
+            r'F:\data\BAYLORCW036\python\2023_10_19',
+            r'F:\data\BAYLORCW036\python\2023_10_30'],
+    
+        [r'F:\data\BAYLORCW035\python\2023_10_26',
+            r'F:\data\BAYLORCW035\python\2023_12_07',
+            r'F:\data\BAYLORCW035\python\2023_12_15',],
+     
+        [r'F:\data\BAYLORCW037\python\2023_11_21',
+             r'F:\data\BAYLORCW037\python\2023_12_08',
+             r'F:\data\BAYLORCW037\python\2023_12_15',]
+
+        ]
+
+
+for paths in agg_mice_paths:
+    allkeep_ids = []
     for layer_num in range(1,6):
+        keep_ids = []
+    
+        for path in paths:
+            total_neurons = 0   
+            l1 = Session(path, layer_num = layer_num, use_reg=True, triple=True, filter_reg = False)
+            reg = np.load(path + r'\layer{}_triple_registered_neurons.npy'.format(layer_num-1))
+            neurons, _ = l1.get_pearsonscorr_neuron(cutoff=0.5, postreg = True)
+            idx = [np.where(l1.good_neurons == n)[0][0] for n in neurons]
+            keep_ids += [i for i in idx if i not in keep_ids] # Keep best neurons from each session using OR logic
+            
+            
+            print("Proportion: ", len(neurons)/l1.num_neurons)
+            print("Num neurons: ", len(neurons))
+            
+        allkeep_ids += [keep_ids]
+        print("TOTAL NEURONS ", len(keep_ids))
         
-        # path = r'F:\data\BAYLORCW032\python\2023_10_19'
-        
-        l1 = Session(path, layer_num = layer_num, use_reg=True, triple=True)
-        reg = np.load(path + r'\layer{}_triple_registered_neurons.npy'.format(layer_num-1))
-        neurons, _ = l1.get_pearsonscorr_neuron(cutoff=0.5)
-        
-        print("Proportion: ", len(neurons)/l1.num_neurons)
-        print("Num neurons: ", len(neurons))
-        
-        total_neurons += len(neurons)
     
-    print("TOTAL NEURONS ", total_neurons)
+    for layer_num in range(1,6):
+        for path in paths:
+            l1 = Session(path, layer_num = layer_num, use_reg=True, triple=True, filter_reg = False)
+            reg = np.load(path + r'\layer{}_triple_registered_neurons.npy'.format(layer_num-1))
     
-    
-#%%
-
-total_neurons = 0
-earliercorr = []
-for layer_num in range(1,6):
-    
-    path = r'F:\data\BAYLORCW032\python\2023_10_05'
-    
-    l1 = Session(path, layer_num = layer_num, use_reg=True, triple=True)
-    reg = np.load(path + r'\layer{}_triple_registered_neurons.npy'.format(layer_num-1))
-    _, corr = l1.get_pearsonscorr_neuron(cutoff=0.5, postreg = True)
-
-    earliercorr += corr
-
-plt.hist(earliercorr)    
-#%%
-total_neurons = 0
-latercorr = []
-for layer_num in range(1,6):
-    
-    path = r'F:\data\BAYLORCW032\python\2023_10_24'
-    
-    l1 = Session(path, layer_num = layer_num, use_reg=True, triple=True)
-    reg = np.load(path + r'\layer{}_triple_registered_neurons.npy'.format(layer_num-1))
-    _, corr = l1.get_pearsonscorr_neuron(cutoff=0.5, postreg = True)
-
-    latercorr += corr
-
-plt.hist(latercorr)    
-
-#%%
-plt.scatter(earliercorr, latercorr)
-plt.xlabel('Early')
-plt.ylabel('Late')
-plt.axhline(0.5, ls = '--', color = 'grey')
-plt.axvline(0.5, ls = '--', color = 'grey')
-plt.axhline(0, ls = '--', color = 'grey')
-plt.axvline(0, ls = '--', color = 'grey')
+            new_reg = reg[allkeep_ids[layer_num-1]]
+            np.save(path + r'\layer{}_triple_registered_filtered_neurons.npy'.format(layer_num-1), new_reg)
+            
+            

@@ -43,7 +43,9 @@ class Session:
     """
     
     
-    def __init__(self, path, layer_num='all', use_reg = False, triple = False, sess_reg = False, guang=False, passive=False, quality=False):
+    def __init__(self, path, layer_num='all', use_reg = False, triple = False,
+                 filter_reg = True,
+                 sess_reg = False, guang=False, passive=False, quality=False):
         
         """
         Parameters
@@ -54,6 +56,8 @@ class Session:
             Layer number to analyze (default is all the layers)
         use_reg : bool, optional
             Contains neurons that are matched only, for all layers
+        filter_reg : bool, optional
+            Uses the pearson filtered versions of the matched neurons, should be true
         sess_reg : bool, optional
             Reads in .npy file containing the registered neurons only. 
             Usually, this means only one layer. TBC. (default False)
@@ -73,7 +77,10 @@ class Session:
             self.fs = 1/6
             if use_reg:
                 if triple:
-                    self.good_neurons = np.load(path + r'\layer{}_triple_registered_neurons.npy'.format(layer_num-1))
+                    if filter_reg:
+                        self.good_neurons = np.load(path + r'\layer{}_triple_registered_filtered_neurons.npy'.format(layer_num-1))
+                    else:
+                        self.good_neurons = np.load(path + r'\layer{}_triple_registered_neurons.npy'.format(layer_num-1))
                 else:
                     self.good_neurons = np.load(path + r'\layer{}_registered_neurons.npy'.format(layer_num-1))
 
@@ -93,7 +100,11 @@ class Session:
                         
                         if use_reg:
                             if triple:
-                                self.good_neurons = np.load(path + r'\layer{}_triple_registered_neurons.npy'.format(counter))
+                                if filter_reg:
+                                    self.good_neurons = np.load(path + r'\layer{}_triple_registered_filtered_neurons.npy'.format(counter))
+
+                                else:
+                                    self.good_neurons = np.load(path + r'\layer{}_triple_registered_neurons.npy'.format(counter))
 
                             else:
                                 self.good_neurons = np.load(path + r'\layer{}_registered_neurons.npy'.format(counter))
@@ -106,8 +117,12 @@ class Session:
                         if use_reg:
                             # raise NotImplementedError("Multi plane reg not implemented!")
                             if triple:
-                                neurons = np.load(path + r'\layer{}_triple_registered_neurons.npy'.format(counter))
-                                self.good_neurons = np.append(self.good_neurons, neurons + self.dff[0,0].shape[0])
+                                if filter_reg:
+                                    neurons = np.load(path + r'\layer{}_triple_registered_filtered_neurons.npy'.format(counter))
+                                    self.good_neurons = np.append(self.good_neurons, neurons + self.dff[0,0].shape[0])
+                                else:
+                                    neurons = np.load(path + r'\layer{}_triple_registered_neurons.npy'.format(counter))
+                                    self.good_neurons = np.append(self.good_neurons, neurons + self.dff[0,0].shape[0])
                             else:
                                 neurons = np.load(path + r'\layer{}_registered_neurons.npy'.format(counter))
                                 self.good_neurons = np.append(self.good_neurons, neurons + self.dff[0,0].shape[0])
@@ -373,7 +388,7 @@ class Session:
         
         first, last = self.i_good_trials[:100], self.i_good_trials[-100:]
         
-        neuronlist = range(self.num_neurons) if not postreg else self.good_neurons
+        neuronlist = range(self.num_neurons) if not postreg else self.good_neurons # When postreg, filters good_neurons
         
         for neuron_num in neuronlist:
             R_av_dff = []

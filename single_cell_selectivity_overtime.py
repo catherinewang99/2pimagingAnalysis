@@ -51,10 +51,10 @@ agg_mice_paths = [[[r'F:\data\BAYLORCW032\python\2023_10_08',
           r'F:\data\BAYLORCW032\python\cellreg\layer{}\1008_1016_1025pairs_proc.npy'],],
 
          
-        # [[ r'F:\data\BAYLORCW034\python\2023_10_12',
-        #       r'F:\data\BAYLORCW034\python\2023_10_22',
-        #       r'F:\data\BAYLORCW034\python\2023_10_27',
-        #       r'F:\data\BAYLORCW034\python\cellreg\layer{}\1012_1022_1027pairs_proc.npy'],],
+        [[ r'F:\data\BAYLORCW034\python\2023_10_12',
+              r'F:\data\BAYLORCW034\python\2023_10_22',
+              r'F:\data\BAYLORCW034\python\2023_10_27',
+              r'F:\data\BAYLORCW034\python\cellreg\layer{}\1012_1022_1027pairs_proc.npy'],],
          
     [[r'F:\data\BAYLORCW036\python\2023_10_09',
             r'F:\data\BAYLORCW036\python\2023_10_19',
