@@ -391,10 +391,12 @@ opto_r, opto_l = np.zeros(61), np.zeros(61)
 error_r, error_l = np.zeros(61), np.zeros(61)
 for path in paths:
     l1 = Mode(path, use_reg = True, triple=True)
-    # l1.plot_CD_opto()
+
+    # Expert stage only
+    control_traces, opto_traces, error_bars, orthonormal_basis, mean, meantrain, meanstd = l1.plot_CD_opto(return_traces=True, return_applied=True)
     
-    # l1 = Mode(path)
-    control_traces, opto_traces, error_bars = l1.plot_CD_opto(return_traces=True)
+    # Learning and naive stages
+    control_traces, opto_traces, error_bars = l1.plot_CD_opto_applied(orthonormal_basis, mean, meantrain, meanstd, return_traces=True)
     
     control_r = np.vstack((control_r, control_traces[0]))
     control_l = np.vstack((control_l, control_traces[1]))
@@ -404,15 +406,7 @@ for path in paths:
     
     error_r = np.vstack((error_r, error_bars[0]))
     error_l = np.vstack((error_l, error_bars[1]))
-    
-    # control_r = np.vstack((control_r, (control_traces[0] - np.mean(control_traces[0])) / np.std(control_traces[0])))
-    # control_l = np.vstack((control_l, (control_traces[1] - np.mean(control_traces[1])) / np.std(control_traces[1])))
-    
-    # opto_r = np.vstack((opto_r, (opto_traces[0] - np.mean(opto_traces[0])) / np.std(opto_traces[0])))
-    # opto_l = np.vstack((opto_l, (opto_traces[1] - np.mean(opto_traces[1])) / np.std(opto_traces[1])))
-    
-    # error_r = np.vstack((error_r, (error_bars[0] - np.mean(error_bars[0])) / np.std(error_bars[0])))
-    # error_l = np.vstack((error_l, (error_bars[1] - np.mean(error_bars[1])) / np.std(error_bars[1])))
+
     
 # Plotting    
 # Control trace:
