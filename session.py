@@ -2560,7 +2560,7 @@ class Session:
         plt.show()
 
 
-    def selectivity_optogenetics(self, save=False, p = 0.0001, return_traces = False):
+    def selectivity_optogenetics(self, save=False, p = 0.0001, return_traces = False, fix_axis = []):
         """Plots overall selectivity trace across opto vs control trials
         
         Uses late delay epoch to calculate selectivity
@@ -2571,10 +2571,16 @@ class Session:
             Whether to save fig to file (default False)
         p : int, optional
             P-value to use in the selectivity calculations
+        fix_axis : tuple, optional
+            Provide top and bottom limits for yaxis
+            
         """
         
         f, axarr = plt.subplots(1,1, sharex='col', figsize=(5,5))
         
+        if len(fix_axis) != 0:
+            plt.setp(axarr, ylim=fix_axis)
+
         x = np.arange(-5.97,4,self.fs)[:self.time_cutoff] if 'CW03' not in self.path else np.arange(-6.97,4,self.fs)[:self.time_cutoff]
 
         # Get late delay selective neurons

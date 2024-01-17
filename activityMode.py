@@ -1542,11 +1542,11 @@ class Mode(Session):
 
             proj_allDim = (proj_allDim - meantrain) / meanstd
         
-        control_traces = proj_allDim[:len(self.T_cue_aligned_sel), i_pc], proj_allDim[len(self.T_cue_aligned_sel):, i_pc]
+        control_traces = proj_allDim[:len(self.T_cue_aligned_sel)], proj_allDim[len(self.T_cue_aligned_sel):]
         if not return_traces:
             # Plot average control traces as dotted lines
-            plt.plot(x, proj_allDim[:len(self.T_cue_aligned_sel), i_pc], 'b', ls = '--', linewidth = 0.5)
-            plt.plot(x, proj_allDim[len(self.T_cue_aligned_sel):, i_pc], 'r', ls = '--', linewidth = 0.5)
+            plt.plot(x, proj_allDim[:len(self.T_cue_aligned_sel)], 'b', ls = '--', linewidth = 0.5)
+            plt.plot(x, proj_allDim[len(self.T_cue_aligned_sel):], 'r', ls = '--', linewidth = 0.5)
             plt.title("Choice decoder projections with opto")
             plt.axvline(-4.3, color = 'grey', alpha=0.5, ls = '--')
             plt.axvline(-3, color = 'grey', alpha=0.5, ls = '--')
@@ -1571,14 +1571,14 @@ class Mode(Session):
             activity = self.dff[0, r][self.good_neurons] 
             activity = activity - np.tile(np.mean(activityRL_train, axis=1)[:, None], (1, activity.shape[1]))
             proj_allDim = np.dot(activity.T, orthonormal_basis)
-            r_proj += [proj_allDim[:len(self.T_cue_aligned_sel), i_pc]]
+            r_proj += [proj_allDim[:len(self.T_cue_aligned_sel)]]
             # plt.plot(x, proj_allDim[:len(self.T_cue_aligned_sel), i_pc], 'b', alpha = 0.5,  linewidth = 0.5)
             
         for l in l_trials:
             activity = self.dff[0, l][self.good_neurons]
             activity = activity - np.tile(np.mean(activityRL_train, axis=1)[:, None], (1, activity.shape[1]))
             proj_allDim = np.dot(activity.T, orthonormal_basis)
-            l_proj += [proj_allDim[:len(self.T_cue_aligned_sel), i_pc]]
+            l_proj += [proj_allDim[:len(self.T_cue_aligned_sel)]]
             # plt.plot(x, proj_allDim[:len(self.T_cue_aligned_sel), i_pc], 'r', alpha = 0.5, linewidth = 0.5)
             
             
@@ -1590,7 +1590,7 @@ class Mode(Session):
             proj_allDim = (proj_allDim - meantrain) / meanstd
             
         if return_traces:
-            opto_traces = proj_allDim[:len(self.T_cue_aligned_sel), i_pc], proj_allDim[len(self.T_cue_aligned_sel):, i_pc]
+            opto_traces = proj_allDim[:len(self.T_cue_aligned_sel)], proj_allDim[len(self.T_cue_aligned_sel):]
             error_bars = stats.sem(r_proj, axis=0), stats.sem(l_proj, axis=0)
             if return_applied:
                 return control_traces, opto_traces, error_bars, orthonormal_basis, np.mean(activityRL_train, axis=1)[:, None], meantrain, meanstd
@@ -1598,17 +1598,17 @@ class Mode(Session):
 
                 return control_traces, opto_traces, error_bars
         
-        plt.plot(x, proj_allDim[:len(self.T_cue_aligned_sel), i_pc], 'b', linewidth = 2)
-        plt.plot(x, proj_allDim[len(self.T_cue_aligned_sel):, i_pc], 'r', linewidth = 2)
+        plt.plot(x, proj_allDim[:len(self.T_cue_aligned_sel)], 'b', linewidth = 2)
+        plt.plot(x, proj_allDim[len(self.T_cue_aligned_sel):], 'r', linewidth = 2)
         
-        plt.fill_between(x, proj_allDim[len(self.T_cue_aligned_sel):, i_pc] - stats.sem(l_proj, axis=0), 
-                 proj_allDim[len(self.T_cue_aligned_sel):, i_pc] +  stats.sem(l_proj, axis=0),
+        plt.fill_between(x, proj_allDim[len(self.T_cue_aligned_sel):] - stats.sem(l_proj, axis=0), 
+                 proj_allDim[len(self.T_cue_aligned_sel):] +  stats.sem(l_proj, axis=0),
                  color=['#ffaeb1'])
-        plt.fill_between(x, proj_allDim[:len(self.T_cue_aligned_sel), i_pc] - stats.sem(r_proj, axis=0), 
-                 proj_allDim[:len(self.T_cue_aligned_sel), i_pc] + stats.sem(r_proj, axis=0),
+        plt.fill_between(x, proj_allDim[:len(self.T_cue_aligned_sel)] - stats.sem(r_proj, axis=0), 
+                 proj_allDim[:len(self.T_cue_aligned_sel)] + stats.sem(r_proj, axis=0),
                  color=['#b4b2dc'])
         
-        plt.hlines(y=max(proj_allDim[:, i_pc]) + 0.5, xmin=-3, xmax=-2, linewidth=10, color='red')
+        plt.hlines(y=max(proj_allDim[:]) + 0.5, xmin=-3, xmax=-2, linewidth=10, color='red')
 
         if save is not None:
             plt.savefig(save)
@@ -1669,11 +1669,11 @@ class Mode(Session):
 
             proj_allDim = (proj_allDim - meantrain) / meanstd
         
-        control_traces = proj_allDim[:len(self.T_cue_aligned_sel), i_pc], proj_allDim[len(self.T_cue_aligned_sel):, i_pc]
+        control_traces = proj_allDim[:len(self.T_cue_aligned_sel)], proj_allDim[len(self.T_cue_aligned_sel):]
         if not return_traces:
             # Plot average control traces as dotted lines
-            plt.plot(x, proj_allDim[:len(self.T_cue_aligned_sel), i_pc], 'b', ls = '--', linewidth = 0.5)
-            plt.plot(x, proj_allDim[len(self.T_cue_aligned_sel):, i_pc], 'r', ls = '--', linewidth = 0.5)
+            plt.plot(x, proj_allDim[:len(self.T_cue_aligned_sel)], 'b', ls = '--', linewidth = 0.5)
+            plt.plot(x, proj_allDim[len(self.T_cue_aligned_sel):], 'r', ls = '--', linewidth = 0.5)
             plt.title("Choice decoder projections with opto")
             plt.axvline(-4.3, color = 'grey', alpha=0.5, ls = '--')
             plt.axvline(-3, color = 'grey', alpha=0.5, ls = '--')
@@ -1698,14 +1698,14 @@ class Mode(Session):
             activity = self.dff[0, r][self.good_neurons] 
             activity = activity - np.tile(mean, (1, activity.shape[1]))
             proj_allDim = np.dot(activity.T, orthonormal_basis)
-            r_proj += [proj_allDim[:len(self.T_cue_aligned_sel), i_pc]]
+            r_proj += [proj_allDim[:len(self.T_cue_aligned_sel)]]
             # plt.plot(x, proj_allDim[:len(self.T_cue_aligned_sel), i_pc], 'b', alpha = 0.5,  linewidth = 0.5)
             
         for l in l_trials:
             activity = self.dff[0, l][self.good_neurons]
             activity = activity - np.tile(mean, (1, activity.shape[1]))
             proj_allDim = np.dot(activity.T, orthonormal_basis)
-            l_proj += [proj_allDim[:len(self.T_cue_aligned_sel), i_pc]]
+            l_proj += [proj_allDim[:len(self.T_cue_aligned_sel)]]
             # plt.plot(x, proj_allDim[:len(self.T_cue_aligned_sel), i_pc], 'r', alpha = 0.5, linewidth = 0.5)
             
             
@@ -1718,21 +1718,21 @@ class Mode(Session):
             
         if return_traces:
             
-            opto_traces =  proj_allDim[:len(self.T_cue_aligned_sel), i_pc], proj_allDim[len(self.T_cue_aligned_sel):, i_pc]
+            opto_traces =  proj_allDim[:len(self.T_cue_aligned_sel)], proj_allDim[len(self.T_cue_aligned_sel):]
             error_bars = stats.sem(r_proj, axis=0), stats.sem(l_proj, axis=0)
             return control_traces, opto_traces, error_bars
         
-        plt.plot(x, proj_allDim[:len(self.T_cue_aligned_sel), i_pc], 'b', linewidth = 2)
-        plt.plot(x, proj_allDim[len(self.T_cue_aligned_sel):, i_pc], 'r', linewidth = 2)
+        plt.plot(x, proj_allDim[:len(self.T_cue_aligned_sel)], 'b', linewidth = 2)
+        plt.plot(x, proj_allDim[len(self.T_cue_aligned_sel):], 'r', linewidth = 2)
         
-        plt.fill_between(x, proj_allDim[len(self.T_cue_aligned_sel):, i_pc] - stats.sem(l_proj, axis=0), 
-                 proj_allDim[len(self.T_cue_aligned_sel):, i_pc] +  stats.sem(l_proj, axis=0),
+        plt.fill_between(x, proj_allDim[len(self.T_cue_aligned_sel):] - stats.sem(l_proj, axis=0), 
+                 proj_allDim[len(self.T_cue_aligned_sel):] +  stats.sem(l_proj, axis=0),
                  color=['#ffaeb1'])
-        plt.fill_between(x, proj_allDim[:len(self.T_cue_aligned_sel), i_pc] - stats.sem(r_proj, axis=0), 
-                 proj_allDim[:len(self.T_cue_aligned_sel), i_pc] + stats.sem(r_proj, axis=0),
+        plt.fill_between(x, proj_allDim[:len(self.T_cue_aligned_sel)] - stats.sem(r_proj, axis=0), 
+                 proj_allDim[:len(self.T_cue_aligned_sel)] + stats.sem(r_proj, axis=0),
                  color=['#b4b2dc'])
         
-        plt.hlines(y=max(proj_allDim[:, i_pc]) + 0.5, xmin=-3, xmax=-2, linewidth=10, color='red')
+        plt.hlines(y=max(proj_allDim[:]) + 0.5, xmin=-3, xmax=-2, linewidth=10, color='red')
 
         if save is not None:
             plt.savefig(save)
