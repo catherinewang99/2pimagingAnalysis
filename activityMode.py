@@ -20,11 +20,16 @@ plt.rcParams['pdf.fonttype'] = 42
 
 class Mode(Session):
     
-    def __init__(self, path, lickdir=True, use_reg=False, triple=False, layer_num='all'):
+    def __init__(self, path, lickdir=True, use_reg=False, triple=False, layer_num='all', responsive_neurons = []):
         # Inherit all parameters and functions of session.py
         super().__init__(path, layer_num=layer_num, use_reg=use_reg, triple=triple) 
         self.lickdir = lickdir
-        _ = self.get_stim_responsive_neurons()
+        if len(responsive_neurons) == 0:
+            _ = self.get_stim_responsive_neurons()
+        else:
+            self.responsive_neurons = responsive_neurons
+            self.good_neurons = self.good_neurons[responsive_neurons]
+            
         # Construct train and test sets for control and opto trials
         # built this section so we can split trials into train/test and track at the same time 
         # for error bar creation in some subsequent graphs

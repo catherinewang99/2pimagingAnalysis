@@ -91,6 +91,64 @@ plt.show()
 stats.ttest_ind(all_recovery[1], all_recovery[2])
 stats.ttest_ind(all_recovery[0], all_recovery[2])
 stats.ttest_ind(all_recovery[0], all_recovery[1])
+
+#%% Angle between input vectors across training
+allpaths = [[r'F:\data\BAYLORCW032\python\2023_10_08',
+          r'F:\data\BAYLORCW032\python\2023_10_16',
+          r'F:\data\BAYLORCW032\python\2023_10_25',
+          r'F:\data\BAYLORCW032\python\cellreg\layer{}\1008_1016_1025pairs_proc.npy'],
+         
+           # [ r'F:\data\BAYLORCW034\python\2023_10_12',
+           #    r'F:\data\BAYLORCW034\python\2023_10_22',
+           #    r'F:\data\BAYLORCW034\python\2023_10_27',
+           #    r'F:\data\BAYLORCW034\python\cellreg\layer{}\1012_1022_1027pairs_proc.npy'],
+         
+         [r'F:\data\BAYLORCW036\python\2023_10_09',
+            r'F:\data\BAYLORCW036\python\2023_10_19',
+            r'F:\data\BAYLORCW036\python\2023_10_30',
+            r'F:\data\BAYLORCW036\python\cellreg\layer{}\1009_1019_1030pairs_proc.npy'],
+         
+         [r'F:\data\BAYLORCW037\python\2023_11_21',
+                     r'F:\data\BAYLORCW037\python\2023_12_08',
+                     r'F:\data\BAYLORCW037\python\2023_12_15',],
+         
+         [r'F:\data\BAYLORCW035\python\2023_10_26',
+                     r'F:\data\BAYLORCW035\python\2023_12_07',
+                     r'F:\data\BAYLORCW035\python\2023_12_15',]
+        ]
+
+all_recovery = []
+for paths in all_paths: # For each stage of training
+    recovery = []
+    l1 = Mode(paths[2], use_reg = True, triple=True) # expert
+    
+    expinput_vector = l1.input_vector()
+    indices = l1.get_stim_responsive_neurons()
+    
+    # orthonormal_basis, mean = l1.plot_CD(mode_input='choice', plot=False)
+    l1 = Mode(paths[1], use_reg = True, triple=True) # learning
+    leainput_vector = l1.input_vector()
+
+    l1 = Mode(paths[0], use_reg = True, triple=True) # naive
+    naiinput_vector = l1.input_vector()
+
+    all_recovery += [[cos_sim(naiinput_vector,expinput_vector),
+                      cos_sim(leainput_vector,expinput_vector)]]
+
+#%%
+
+plt.plot(range(2), np.mean(all_recovery, axis=0), marker='x')
+plt.scatter(np.zeros(len(all_recovery)), np.array(all_recovery).T[0])
+plt.scatter(np.ones(len(all_recovery)), np.array(all_recovery).T[1])
+
+plt.xticks(range(2), ['Naive:Expert', 'Learning:Expert'])
+plt.ylabel('Cosine similarity')
+plt.axhline(0, color='grey', ls='--')
+# plt.savefig(r'F:\data\Fig 3\modularity_bargraph.pdf')
+
+plt.show()
+
+
 #%% Look at variance of input vectors:
     
 opto_proj = l1.input_vector(return_opto=True)
