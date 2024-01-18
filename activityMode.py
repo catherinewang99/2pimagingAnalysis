@@ -27,7 +27,7 @@ class Mode(Session):
         if len(responsive_neurons) == 0:
             _ = self.get_stim_responsive_neurons()
         else:
-            self.responsive_neurons = responsive_neurons
+            self.responsive_neurons = self.good_neurons[responsive_neurons]
             self.good_neurons = self.good_neurons[responsive_neurons]
             
         # Construct train and test sets for control and opto trials
@@ -739,7 +739,7 @@ class Mode(Session):
         
         return orthonormal_basis, np.mean(activityRL_train, axis=1)[:, None]
     
-    def plot_CD(self, mode_input='choice', epoch=None, save=None, plot=True, neurons = []):
+    def plot_CD(self, mode_input='choice', epoch=None, save=None, plot=True, remove_top = False):
         "This method orthogonalizes the various modes"
         # if epoch is not None:
         #     orthonormal_basis, var_allDim = self.func_compute_epoch_decoder([self.PSTH_r_train_correct, 
@@ -751,17 +751,36 @@ class Mode(Session):
         
         
         
+        
         idx_map = {'choice': 1, 'action':5, 'stimulus':0}
         idx = idx_map[mode_input]
 
         orthonormal_basis, mean = self.plot_behaviorally_relevant_modes(plot=False) # one method
         orthonormal_basis = orthonormal_basis[:, idx]
+        
+        if remove_top:
+            bottom_idx = np.argsort(orthonormal_basis)[:-10]
+            # top_2_values = [orthonormal_basis[i] for i in top_2_idx]
+            
+            good_neurons = self.good_neurons[bottom_idx]
+            orthonormal_basis = orthonormal_basis[bottom_idx]
+            
+            activityRL_train= np.concatenate((self.PSTH_r_train_correct[bottom_idx], 
+                                            self.PSTH_l_train_correct[bottom_idx]), axis=1)
+    
+            activityRL_test= np.concatenate((self.PSTH_r_test_correct[bottom_idx], 
+                                            self.PSTH_l_test_correct[bottom_idx]), axis=1)
+        
+        
+        else:
+            good_neurons = self.good_neurons
+            
 
-        activityRL_train= np.concatenate((self.PSTH_r_train_correct, 
-                                        self.PSTH_l_train_correct), axis=1)
-
-        activityRL_test= np.concatenate((self.PSTH_r_test_correct, 
-                                        self.PSTH_l_test_correct), axis=1)
+            activityRL_train= np.concatenate((self.PSTH_r_train_correct, 
+                                            self.PSTH_l_train_correct), axis=1)
+    
+            activityRL_test= np.concatenate((self.PSTH_r_test_correct, 
+                                            self.PSTH_l_test_correct), axis=1)
         
         r_corr = np.where(self.R_correct)[0]
         l_corr = np.where(self.L_correct)[0]
@@ -776,14 +795,14 @@ class Mode(Session):
 
         # Project for every trial
         for t in self.r_test_idx:
-            activity = self.dff[0, r_trials[t]][self.good_neurons] 
+            activity = self.dff[0, r_trials[t]][good_neurons] 
             activity = activity - np.tile(np.mean(activityRL_train, axis=1)[:, None], (1, activity.shape[1]))
             proj_allDim = np.dot(activity.T, orthonormal_basis)
             if plot:
                 plt.plot(x, proj_allDim[:len(self.T_cue_aligned_sel)], 'b', alpha = 0.5,  linewidth = 0.5)
             
         for t in self.l_test_idx:
-            activity = self.dff[0, l_trials[t]][self.good_neurons]
+            activity = self.dff[0, l_trials[t]][good_neurons]
             activity = activity - np.tile(np.mean(activityRL_train, axis=1)[:, None], (1, activity.shape[1]))
             proj_allDim = np.dot(activity.T, orthonormal_basis)
             if plot:

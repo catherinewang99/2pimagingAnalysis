@@ -118,30 +118,39 @@ allpaths = [[r'F:\data\BAYLORCW032\python\2023_10_08',
         ]
 
 all_recovery = []
-for paths in all_paths: # For each stage of training
-    recovery = []
+for paths in allpaths: # For each mouse
+
     l1 = Mode(paths[2], use_reg = True, triple=True) # expert
     
     expinput_vector = l1.input_vector()
     indices = l1.get_stim_responsive_neurons()
     
-    # orthonormal_basis, mean = l1.plot_CD(mode_input='choice', plot=False)
-    l1 = Mode(paths[1], use_reg = True, triple=True) # learning
+    l1 = Mode(paths[2], use_reg = True, triple=True, responsive_neurons=indices) # expert
+    orthonormal_basis, mean = l1.plot_CD(mode_input='choice', plot=False)
+    
+    l1 = Mode(paths[1], use_reg = True, triple=True, responsive_neurons=indices) # learning
     leainput_vector = l1.input_vector()
 
-    l1 = Mode(paths[0], use_reg = True, triple=True) # naive
+    l1 = Mode(paths[0], use_reg = True, triple=True, responsive_neurons=indices) # naive
     naiinput_vector = l1.input_vector()
 
-    all_recovery += [[cos_sim(naiinput_vector,expinput_vector),
-                      cos_sim(leainput_vector,expinput_vector)]]
+    # all_recovery += [[cos_sim(naiinput_vector,expinput_vector),
+    #                   cos_sim(naiinput_vector,leainput_vector),
+    #                   cos_sim(leainput_vector,expinput_vector)]]
+    
+    all_recovery += [[cos_sim(orthonormal_basis,naiinput_vector),
+                      cos_sim(orthonormal_basis,leainput_vector),
+                      cos_sim(orthonormal_basis,expinput_vector)]]
 
 #%%
 
-plt.plot(range(2), np.mean(all_recovery, axis=0), marker='x')
+plt.plot(range(3), np.mean(all_recovery, axis=0), marker='x')
 plt.scatter(np.zeros(len(all_recovery)), np.array(all_recovery).T[0])
 plt.scatter(np.ones(len(all_recovery)), np.array(all_recovery).T[1])
+plt.scatter(np.ones(len(all_recovery)) + 1, np.array(all_recovery).T[2])
 
-plt.xticks(range(2), ['Naive:Expert', 'Learning:Expert'])
+# plt.xticks(range(3), ['Naive:Expert', 'Naive:Learning', 'Learning:Expert'])
+plt.xticks(range(3), ['Naive', 'Learning', 'Expert'])
 plt.ylabel('Cosine similarity')
 plt.axhline(0, color='grey', ls='--')
 # plt.savefig(r'F:\data\Fig 3\modularity_bargraph.pdf')

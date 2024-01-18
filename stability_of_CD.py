@@ -153,3 +153,11 @@ path = naivepath
 l1 = Mode(path, use_reg = True, triple=True)
 l1.plot_behaviorally_relevant_modes_appliedCD(orthonormal_basis, mean)
 
+#%% Remove top contributing neurons
+path = r'F:\data\BAYLORCW035\python\2023_12_15'
+
+l1 = Mode(path, use_reg = True, triple=True)
+inds = l1.plot_CD(mode_input='stimulus', remove_top=True)
+
+
+
