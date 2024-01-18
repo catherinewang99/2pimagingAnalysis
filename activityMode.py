@@ -24,6 +24,8 @@ class Mode(Session):
         # Inherit all parameters and functions of session.py
         super().__init__(path, layer_num=layer_num, use_reg=use_reg, triple=triple) 
         self.lickdir = lickdir
+        self.z_score_baseline()
+        
         if len(responsive_neurons) == 0:
             _ = self.get_stim_responsive_neurons()
         else:
@@ -129,6 +131,27 @@ class Mode(Session):
         time_epochs = [self.sample, self.delay, self.response]
         self.time_epochs = time_epochs
 
+    def z_score_baseline(self):
+        """
+        Z-score dff matrix neuron by neuron, by dividing dF/F0 by the standard
+        deviation of the baseline of said neuron
+
+        Returns
+        -------
+        None.
+
+        """
+        
+        for i in range(self.num_neurons):
+
+            std = np.std([self.dff[0, t][i, self.sample-9:self.sample] for t in range(self.num_trials)]).copy()
+            # nmean = np.mean([self.dff[0, t][i, self.sample-3:self.sample] for t in self.i_good_trials]).copy()
+            
+            for j in range(self.num_trials):
+            # for j in self.i_good_trials:
+                
+                # nmean = np.mean(self.dff[0, j][i, :7])
+                self.dff[0, j][i] = (self.dff[0, j][i]) / std
     
     def basis_col(self, A):
         # Bases
@@ -759,8 +782,7 @@ class Mode(Session):
         orthonormal_basis = orthonormal_basis[:, idx]
         
         if remove_top:
-            bottom_idx = np.argsort(orthonormal_basis)[:-10]
-            # top_2_values = [orthonormal_basis[i] for i in top_2_idx]
+            bottom_idx = np.argsort(orthonormal_basis)[:-10] # Remove top 10 contributors
             
             good_neurons = self.good_neurons[bottom_idx]
             orthonormal_basis = orthonormal_basis[bottom_idx]
