@@ -18,6 +18,7 @@ import session
 from activityMode import Mode
 from matplotlib.pyplot import figure
 import numpy as np
+import pandas as pd
 from sklearn.decomposition import PCA
 plt.rcParams['pdf.fonttype'] = '42' 
 
@@ -59,9 +60,9 @@ naivepath, learningpath, expertpath =[r'F:\data\BAYLORCW035\python\2023_10_26',
             r'F:\data\BAYLORCW035\python\2023_12_15',]
 
     
-# naivepath, learningpath, expertpath =[r'F:\data\BAYLORCW037\python\2023_11_21',
-#             r'F:\data\BAYLORCW037\python\2023_12_08',
-#             r'F:\data\BAYLORCW037\python\2023_12_15',]
+naivepath, learningpath, expertpath =[r'F:\data\BAYLORCW037\python\2023_11_21',
+            r'F:\data\BAYLORCW037\python\2023_12_08',
+            r'F:\data\BAYLORCW037\python\2023_12_15',]
 #%% Choice dimension unmatched
 
 path = expertpath
@@ -159,5 +160,29 @@ path = r'F:\data\BAYLORCW035\python\2023_12_15'
 l1 = Mode(path, use_reg = True, triple=True)
 inds = l1.plot_CD(mode_input='stimulus', remove_top=True)
 
+#%% CD autocorrelogram
+path = expertpath
+l1 = Mode(path, use_reg = True, triple=True)
+# orthonormal_basis, mean = l1.plot_CD(plot=False)
+projR, projL = l1.plot_CD(plot=False, auto_corr_return=True)
+
+allproj = np.vstack((projR, projL))
+df = pd.DataFrame(allproj,
+                  columns=range(61))
+
+corrs = df.corr()
+plt.imshow(corrs)
+plt.axhline(l1.sample, color = 'white', ls='--', linewidth = 0.5)
+plt.axvline(l1.sample, color = 'white', ls='--', linewidth = 0.5)
+
+plt.axhline(l1.delay, color = 'white', ls='--', linewidth = 0.5)
+plt.axvline(l1.delay, color = 'white', ls='--', linewidth = 0.5)
+
+plt.axhline(l1.response, color = 'white', ls='--', linewidth = 0.5)
+plt.axvline(l1.response, color = 'white', ls='--', linewidth = 0.5)
+
+plt.xticks([l1.sample, l1.delay, l1.response], [-4.3, -3, 0])    
+plt.yticks([l1.sample, l1.delay, l1.response], [-4.3, -3, 0])    
+    
 
 

@@ -24,7 +24,7 @@ class Mode(Session):
         # Inherit all parameters and functions of session.py
         super().__init__(path, layer_num=layer_num, use_reg=use_reg, triple=triple) 
         self.lickdir = lickdir
-        self.z_score_baseline()
+        # self.z_score_baseline()
         
         if len(responsive_neurons) == 0:
             _ = self.get_stim_responsive_neurons()
@@ -144,7 +144,7 @@ class Mode(Session):
         
         for i in range(self.num_neurons):
 
-            std = np.std([self.dff[0, t][i, self.sample-9:self.sample] for t in range(self.num_trials)]).copy()
+            std = np.mean(np.std([self.dff[0, t][i, self.sample-9:self.sample] for t in range(self.num_trials)],axis=0)).copy()
             # nmean = np.mean([self.dff[0, t][i, self.sample-3:self.sample] for t in self.i_good_trials]).copy()
             
             for j in range(self.num_trials):
@@ -762,7 +762,7 @@ class Mode(Session):
         
         return orthonormal_basis, np.mean(activityRL_train, axis=1)[:, None]
     
-    def plot_CD(self, mode_input='choice', epoch=None, save=None, plot=True, remove_top = False):
+    def plot_CD(self, mode_input='choice', epoch=None, save=None, plot=True, remove_top = False, auto_corr_return=False):
         "This method orthogonalizes the various modes"
         # if epoch is not None:
         #     orthonormal_basis, var_allDim = self.func_compute_epoch_decoder([self.PSTH_r_train_correct, 
@@ -814,21 +814,30 @@ class Mode(Session):
         x = np.arange(-6.97,4,self.fs)[:self.time_cutoff]
 
         # orthonormal_basis = orthonormal_basis.reshape(-1,1)
-
+        proj_allDimR = []
         # Project for every trial
         for t in self.r_test_idx:
             activity = self.dff[0, r_trials[t]][good_neurons] 
             activity = activity - np.tile(np.mean(activityRL_train, axis=1)[:, None], (1, activity.shape[1]))
             proj_allDim = np.dot(activity.T, orthonormal_basis)
+            proj_allDimR += [proj_allDim[:len(self.T_cue_aligned_sel)]]
+
             if plot:
                 plt.plot(x, proj_allDim[:len(self.T_cue_aligned_sel)], 'b', alpha = 0.5,  linewidth = 0.5)
-            
+        
+        proj_allDimL = []
         for t in self.l_test_idx:
             activity = self.dff[0, l_trials[t]][good_neurons]
             activity = activity - np.tile(np.mean(activityRL_train, axis=1)[:, None], (1, activity.shape[1]))
             proj_allDim = np.dot(activity.T, orthonormal_basis)
+            proj_allDimL += [proj_allDim[:len(self.T_cue_aligned_sel)]]
+
             if plot:
                 plt.plot(x, proj_allDim[:len(self.T_cue_aligned_sel)], 'r', alpha = 0.5, linewidth = 0.5)
+                
+        if auto_corr_return:
+            
+            return proj_allDimR, proj_allDimL
             
         # Correct trials
         activityRL_test = activityRL_test - np.tile(np.mean(activityRL_train, axis=1)[:, None], (1, activityRL_test.shape[1]))  # remove mean

@@ -300,7 +300,7 @@ class Session:
         """Finds and crop low F trials that correspond to water leaks
         
         Calls crop_trials if there are water leak trials
-        
+        s
         Parameters
         ----------
         cutoff : int, optional
