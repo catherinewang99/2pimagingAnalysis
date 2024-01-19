@@ -382,31 +382,31 @@ paths = [r'F:\data\BAYLORCW032\python\2023_10_19',
             r'F:\data\BAYLORCW037\python\2023_12_08',]
 
 
-# paths = [r'F:\data\BAYLORCW032\python\2023_10_24',
-#             # r'F:\data\BAYLORCW034\python\2023_10_27',
-#             r'F:\data\BAYLORCW036\python\2023_10_30',
-#             r'F:\data\BAYLORCW035\python\2023_12_15',
-#             r'F:\data\BAYLORCW037\python\2023_12_15',]
+paths = [r'F:\data\BAYLORCW032\python\2023_10_24',
+            # r'F:\data\BAYLORCW034\python\2023_10_27',
+            r'F:\data\BAYLORCW036\python\2023_10_30',
+            r'F:\data\BAYLORCW035\python\2023_12_15',
+            r'F:\data\BAYLORCW037\python\2023_12_15',]
 
 
 control_r, control_l = np.zeros(61), np.zeros(61)
 opto_r, opto_l = np.zeros(61), np.zeros(61)
 error_r, error_l = np.zeros(61), np.zeros(61)
 
-# allsets = []
+allsets = []
 counter = 0
 for path in paths:
     l1 = Mode(path, use_reg = True, triple=True)
 
     # Expert stage only
-    # control_traces, opto_traces, error_bars, orthonormal_basis, mean, meantrain, meanstd = l1.plot_CD_opto(return_traces=True, return_applied=True)
-    # sett = orthonormal_basis, mean, meantrain, meanstd
-    # allsets += [sett]
+    control_traces, opto_traces, error_bars, orthonormal_basis, mean, meantrain, meanstd = l1.plot_CD_opto(return_traces=True, return_applied=True)
+    sett = orthonormal_basis, mean, meantrain, meanstd
+    allsets += [sett]
 
     # Learning and naive stages
-    orthonormal_basis, mean, meantrain, meanstd = allsets[counter]
-    counter += 1
-    control_traces, opto_traces, error_bars = l1.plot_CD_opto_applied(orthonormal_basis, mean, meantrain, meanstd, return_traces=True)
+    # orthonormal_basis, mean, meantrain, meanstd = allsets[counter]
+    # counter += 1
+    # control_traces, opto_traces, error_bars = l1.plot_CD_opto_applied(orthonormal_basis, mean, meantrain, meanstd, return_traces=True)
     
     control_r = np.vstack((control_r, control_traces[0]))
     control_l = np.vstack((control_l, control_traces[1]))
@@ -442,7 +442,7 @@ plt.fill_between(x,  np.mean(opto_l[1:], axis=0) - np.mean(error_l[1:], axis=0),
          color=['#ffaeb1'])
 
 plt.hlines(y=1.5, xmin=-3, xmax=-2, linewidth=10, color='red')
-plt.savefig(r'F:\data\Fig 3\CD_recovery_learningv1.pdf')
+# plt.savefig(r'F:\data\Fig 3\CD_recovery_learningv1.pdf')
 
 plt.show()
 #%% Sort by selectivity pre-perturbation:

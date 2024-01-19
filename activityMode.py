@@ -24,7 +24,7 @@ class Mode(Session):
         # Inherit all parameters and functions of session.py
         super().__init__(path, layer_num=layer_num, use_reg=use_reg, triple=triple) 
         self.lickdir = lickdir
-        # self.z_score_baseline()
+        self.z_score_baseline()
         
         if len(responsive_neurons) == 0:
             _ = self.get_stim_responsive_neurons()

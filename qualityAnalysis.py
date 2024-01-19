@@ -220,7 +220,7 @@ axarr[1,0].set_xlabel('Time from Go cue (s)')
 
 plt.suptitle('n=3431 neurons')
 
-plt.savefig(r'F:\data\Fig 3\ipsi_opto_effect.pdf')
+# plt.savefig(r'F:\data\Fig 3\ipsi_opto_effect.pdf')
 plt.show()
 
 #%% Overlay plots
@@ -241,7 +241,7 @@ plt.ylabel('dF/F0')
 # axarr[1,1].set_xticks(range(0,allstack.shape[1], 10), [int(d) for d in x[::10]])
 plt.xlabel('Time from Go cue (s)')
 plt.legend()
-plt.savefig(r'F:\data\Fig 3\contra_opto_effect_overlay.pdf')
+# plt.savefig(r'F:\data\Fig 3\contra_opto_effect_overlay.pdf')
 
 plt.show()
 
@@ -286,5 +286,7 @@ for paths in agg_mice_paths:
         # all matched filtered
         l1 = Session(path, use_reg=True, triple=True)
         print(len(l1.good_neurons))
+        
+#%% Compare the background extracted fluorescence
 
 

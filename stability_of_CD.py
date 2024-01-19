@@ -183,6 +183,6 @@ plt.axvline(l1.response, color = 'white', ls='--', linewidth = 0.5)
 
 plt.xticks([l1.sample, l1.delay, l1.response], [-4.3, -3, 0])    
 plt.yticks([l1.sample, l1.delay, l1.response], [-4.3, -3, 0])    
-    
+plt.colorbar()
 
 
