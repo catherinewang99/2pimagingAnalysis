@@ -44,7 +44,7 @@ class Session:
     
     
     def __init__(self, path, layer_num='all', use_reg = False, triple = False,
-                 filter_reg = True,
+                 filter_reg = True, background=False,
                  sess_reg = False, guang=False, passive=False, quality=False):
         
         """
@@ -90,6 +90,7 @@ class Session:
             # Load all layers
 
             self.dff = None
+            self.background = None
             counter = 0
             for layer_pth in os.listdir(path):
                 if 'layer' in layer_pth and '.mat' in layer_pth:
@@ -111,6 +112,8 @@ class Session:
 
                             # self.good_neurons = layer['dff'][:, :][neurons]
                         self.dff = layer['dff']
+                        if background:
+                            self.background = layer['background']
                         self.num_trials = layer['dff'].shape[1] 
                         
                     else:
@@ -131,6 +134,10 @@ class Session:
 
                             add = layer['dff'][0, t]
                             self.dff[0, t] = np.vstack((self.dff[0, t], add))
+                            
+                            if background:
+                                add = layer['background'][0, t]
+                                self.background[0, t] = np.vstack((self.background[0, t], add))
                     
                     counter += 1
             self.fs = 1/(30/counter)

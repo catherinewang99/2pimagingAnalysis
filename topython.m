@@ -17,8 +17,9 @@ for j = 1:length(lst)
             center = obj.roi_plane{1, i}.center;
             dff = obj.roi_plane{1, i}.F;
             skew = obj.roi_plane{1, i}.skew;
+            background = obj.roi_plane{1, i}.Fbackground;
 
-            save([path, 'python\' strjoin(namesplit(2:4), '_') '\modlayer_', int2str(i), '.mat'], 'center', 'dff', 'skew')
+            save([path, 'python\' strjoin(namesplit(2:4), '_') '\modlayer_', int2str(i), '.mat'], 'center', 'dff', 'skew', 'background')
         end 
 
         % Get behavioral data

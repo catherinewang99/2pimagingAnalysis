@@ -334,3 +334,12 @@ for path in paths:
     # plt.savefig(r'F:\data\Fig 3\contra_opto_effect_overlay.pdf')
     
     plt.show()
+    
+#%% Plot the background fluorescence
+
+path = r'F:\data\BAYLORCW032\python\2023_10_24to'
+
+l1 = quality.QC(path)
+l1.plot_background()
+    
+    

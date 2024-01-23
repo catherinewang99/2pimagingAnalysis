@@ -363,5 +363,38 @@ class QC(Session):
         plt.hist(corrs)
         plt.show()
         
+    def plot_background(self):
+        
+        """
+        Plot the five background traces (one for each layer) average over trials
+        separated by control vs opto trials, with the stim period highlighted
+        
+        """
+        f, axarr = plt.subplots(5,1, sharex='col', figsize=(10, 10))
+        x = np.arange(-6.97,4,self.fs)[:self.time_cutoff]
+        window = range(12,38)
+        for plane in range(5):
+            plane_av_control = []
+            for t in np.where(~self.stim_ON)[0]:
+                plane_av_control += [self.background[0, t][plane, window]]
+            
+            plane_av_opto = []
+            for t in np.where(self.stim_ON)[0]:
+                plane_av_opto += [self.background[0, t][plane, window]]
+                # axarr[plane].plot(self.background[0, t][plane, window], color='red', alpha = 0.3)
+
+                
+            axarr[plane].plot(np.mean(plane_av_control, axis=0), color='darkgrey', label='Control')
+            axarr[plane].plot(np.mean(plane_av_opto, axis=0), color='red', label='Opto')
+            axarr[plane].axvline(self.sample-12, ls = '--', color = 'grey')
+            axarr[plane].axvline(self.delay-12, ls = '--', color = 'red')
+            axarr[plane].axvline(self.delay-12+6, ls = '--', color = 'red')
+            # axarr[plane].axvline(self.response-12, ls = '--', color = 'grey')
+            axarr[plane].set_title('F_background (plane {})'.format(plane+1))
+            
+        plt.legend()
+        plt.show()
+        
+        # return plane_av_control, plane_av_opto
             
         
