@@ -290,3 +290,47 @@ for paths in agg_mice_paths:
 #%% Compare the background extracted fluorescence
 
 
+paths = [r'F:\data\BAYLORCW032\python\2023_10_24',
+         r'F:\data\BAYLORCW032\python\2023_10_24to',]
+             # r'F:\data\BAYLORCW034\python\2023_10_27',
+            # r'F:\data\BAYLORCW036\python\2023_10_30',
+            #   r'F:\data\BAYLORCW035\python\2023_12_15',
+            # r'F:\data\BAYLORCW037\python\2023_12_15',]
+# allstack, allstimstack = np.zeros(61), np.zeros(61)
+
+for path in paths:
+    allstack, allcontrastimstack = np.zeros(61), np.zeros(61)
+
+    
+    l1 = quality.QC(path)
+
+    stack, stimstack = l1.all_neurons_heatmap(return_traces=True)
+
+    allstack = np.vstack((allstack, stack))
+    # allstimstack = np.vstack((allstimstack, stimstack))
+    allcontrastimstack = np.vstack((allcontrastimstack, stimstack))
+    
+    allstack = allstack[1:,12:38]
+    # allstimstack = allstimstack[1:,12:38]
+    allcontrastimstack = allcontrastimstack[1:,12:38]
+    
+    x = np.arange(-6.97,4,l1.fs)[12:38]
+    
+    plt.plot(x, np.mean(allcontrastimstack, axis = 0), color = 'red', label='Optogenetic stimulation trials')
+    plt.fill_between(x, np.mean(allcontrastimstack, axis = 0) - stats.sem(allcontrastimstack, axis=0), 
+              np.mean(allcontrastimstack, axis = 0) + stats.sem(allcontrastimstack, axis=0),
+              color='lightcoral')   
+    plt.plot(x, np.mean(allstack, axis = 0), color = 'grey', label='Control trials')
+    plt.axvline(x=-3, c='b', linewidth = 0.5)
+    
+    plt.fill_between(x, np.mean(allstack, axis = 0) - stats.sem(allstack, axis=0), 
+              np.mean(allstack, axis = 0) + stats.sem(allstack, axis=0),
+              color='silver')   
+    # axarr[1,1].set_ylim(top=0.2)
+    plt.ylabel('dF/F0')
+    # axarr[1,1].set_xticks(range(0,allstack.shape[1], 10), [int(d) for d in x[::10]])
+    plt.xlabel('Time from Go cue (s)')
+    plt.legend()
+    # plt.savefig(r'F:\data\Fig 3\contra_opto_effect_overlay.pdf')
+    
+    plt.show()

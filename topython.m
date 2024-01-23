@@ -1,5 +1,5 @@
 addpath('F:\data')
-path = 'F:\data\BAYLORCW035\';
+path = 'F:\data\BAYLORCW032\';
 
 mkdir([path 'python'])
 
@@ -18,7 +18,7 @@ for j = 1:length(lst)
             dff = obj.roi_plane{1, i}.F;
             skew = obj.roi_plane{1, i}.skew;
 
-            save([path, 'python\' strjoin(namesplit(2:4), '_') '\layer_', int2str(i), '.mat'], 'center', 'dff', 'skew')
+            save([path, 'python\' strjoin(namesplit(2:4), '_') '\modlayer_', int2str(i), '.mat'], 'center', 'dff', 'skew')
         end 
 
         % Get behavioral data
