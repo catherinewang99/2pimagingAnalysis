@@ -346,11 +346,11 @@ f, axarr = plt.subplots(5,1, sharex='col', figsize=(10, 10))
 for layer in range(5):
     path = r'F:\data\BAYLORCW032\python\2023_10_24to'
     l1 = quality.QC(path, layer_num=layer+1)
-    background, _, _ = l1.plot_background_and_traces(single_layer = True, return_traces=True)
+    background, npil, _ = l1.plot_background_and_traces(single_layer = True, return_traces=True)
     
     path = r'F:\data\BAYLORCW032\python\2023_10_24'
     l1 = quality.QC(path, layer_num=layer+1)
-    _, npil, f = l1.plot_background_and_traces(single_layer = True, return_traces=True)
+    _, _, f = l1.plot_background_and_traces(single_layer = True, return_traces=True, only_f=True)
     
     axarr[layer].plot(background, label = 'F_background')
     axarr[layer].plot(npil, label = 'F_npil')
@@ -361,7 +361,7 @@ for layer in range(5):
     axarr[layer].axvline(l1.delay-12+6, ls = '--', color='red')
     
     axarr[layer].set_title("Layer {}".format(layer+1))
-
+plt.suptitle("Traces on opto stim trials")
 plt.legend()
 plt.show()
     

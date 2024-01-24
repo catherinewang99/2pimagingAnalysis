@@ -396,7 +396,7 @@ class QC(Session):
         plt.show()
         
         # return plane_av_control, plane_av_opto
-    def plot_background_and_traces(self, return_traces=False,  single_layer=False, no_background=False):
+    def plot_background_and_traces(self, return_traces=False,  single_layer=False, only_f=False):
         """
         Plots traces with ROI and neuropil and background
 
@@ -405,7 +405,7 @@ class QC(Session):
         None.
 
         """
-        if not no_background:
+        if not only_f:
             overall_background = []
             if single_layer:
                 for t in np.where(self.stim_ON)[0]:
@@ -415,15 +415,18 @@ class QC(Session):
                     for t in np.where(self.stim_ON)[0]:
                         overall_background += [self.background[0, t][plane, :self.time_cutoff]]
             overall_background = np.mean(overall_background, axis=0)
+
+        
+            overall_npil = []
+            for n in self.good_neurons:
+                for t in np.where(self.stim_ON)[0]:
+                    overall_npil += [self.npil[0, t][n, :self.time_cutoff]]
+            overall_npil = np.mean(overall_npil, axis=0)
         else:
             overall_background = np.zeros(61)
-        
-        overall_npil = []
-        for n in self.good_neurons:
-            for t in np.where(self.stim_ON)[0]:
-                overall_npil += [self.npil[0, t][n, :self.time_cutoff]]
-        overall_npil = np.mean(overall_npil, axis=0)
-        
+            overall_npil = np.zeros(61)
+            
+            
         overall_F = []
         for n in self.good_neurons:
             for t in np.where(self.stim_ON)[0]:

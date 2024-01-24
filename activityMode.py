@@ -383,7 +383,7 @@ class Mode(Session):
         
         return r_train, l_train, r_test, l_test
     
-    def func_compute_activity_modes_DRT(self, input_, ctl=True):
+    def func_compute_activity_modes_DRT(self, input_, ctl=True, lickdir=False):
     
         # Inputs: Left Right Correct Error traces of ALL neurons that are selective
         #           time stamps for analysis?
@@ -458,7 +458,42 @@ class Mode(Session):
             i_t2 = np.where((T_cue_aligned_sel > t_response) & (T_cue_aligned_sel < (t_response+2)))[0]
             GoDirection_mode = np.mean(wt[:, i_t2], axis=1) - np.mean(wt[:, i_t1], axis=1)
             
-        elif not ctl:
+        elif lickdir:
+            
+            wt = (PSTH_yes_correct + PSTH_no_error) / 2 - (PSTH_no_correct + PSTH_yes_error) / 2
+            i_t = np.where((T_cue_aligned_sel > t_sample + int(round(0.4*(1/self.fs))) ) & (T_cue_aligned_sel < t_delay + int(round(0.4*(1/self.fs))) ))[0]
+            CD_stim_mode = np.mean(wt[:, i_t], axis=1)
+            
+            wt = (PSTH_yes_correct + PSTH_no_error) / 2 - (PSTH_no_correct + PSTH_yes_error) / 2
+            i_t = np.where((T_cue_aligned_sel > t_delay + int(round(0.4*(1/self.fs))) ) & (T_cue_aligned_sel < t_response + int(round(0.4*(1/self.fs))) ))[0]
+            CD_choice_mode = np.mean(wt[:, i_t], axis=1)
+            
+            wt = (PSTH_yes_correct + PSTH_no_correct) / 2 - (PSTH_yes_error + PSTH_no_error) / 2
+            i_t = np.where((T_cue_aligned_sel > t_response + int(round(0.4*(1/self.fs))) ) & (T_cue_aligned_sel < (t_response + int(round(1.7*(1/self.fs))))))[0]
+            CD_outcome_mode = np.mean(wt[:, i_t], axis=1)
+            
+            
+            wt = PSTH_yes_correct - PSTH_no_correct
+            i_t = np.where((T_cue_aligned_sel > (t_sample + int(round(0.4*(1/self.fs))) )) & (T_cue_aligned_sel < (t_sample + int(round(0.8*(1/self.fs))) )))[0]
+            CD_sample_mode = np.mean(wt[:, i_t], axis=1)
+            
+            i_t = np.where((T_cue_aligned_sel > (t_response - int(round(0.4*(1/self.fs))) )) & (T_cue_aligned_sel < (t_response + int(round(0.1*(1/self.fs))) )))[0]
+            CD_delay_mode = np.mean(wt[:, i_t], axis=1)
+            
+            i_t = np.where((T_cue_aligned_sel > (t_response + int(round(0.4*(1/self.fs))) )) & (T_cue_aligned_sel < (t_response + int(round(0.8*(1/self.fs))) )))[0]
+            CD_go_mode = np.mean(wt[:, i_t], axis=1)
+            
+            wt = (PSTH_yes_correct + PSTH_no_correct)/2
+            i_t1 = np.where((T_cue_aligned_sel > (t_sample-3)) & (T_cue_aligned_sel < (t_sample-1)))[0]
+            i_t2 = np.where((T_cue_aligned_sel > (t_response-3)) & (T_cue_aligned_sel < (t_response-1)))[0]
+            Ramping_mode = np.mean(wt[:, i_t2], axis=1) - np.mean(wt[:, i_t1], axis=1)
+            
+            i_t1 = np.where((T_cue_aligned_sel > (t_response-2)) & (T_cue_aligned_sel < t_response))[0]
+            i_t2 = np.where((T_cue_aligned_sel > t_response) & (T_cue_aligned_sel < (t_response+2)))[0]
+            GoDirection_mode = np.mean(wt[:, i_t2], axis=1) - np.mean(wt[:, i_t1], axis=1)
+            
+        else: # Lickdir except for stim mode
+            
             
             wt = (PSTH_yes_correct + PSTH_yes_error) / 2 - (PSTH_no_correct + PSTH_no_error) / 2
             i_t = np.where((T_cue_aligned_sel > t_sample + int(round(0.4*(1/self.fs))) ) & (T_cue_aligned_sel < t_delay + int(round(0.4*(1/self.fs))) ))[0]
@@ -677,7 +712,7 @@ class Mode(Session):
         return orthonormal_basis, var_allDim
     
     
-    def plot_CDalt(self, epoch=None, save=None, plot=True):
+    def plot_CDalt(self, epoch=None, lickdir=False, save=None, plot=True):
         """
         This method doesn't orthogonalize against the other modes
 
@@ -762,7 +797,7 @@ class Mode(Session):
         
         return orthonormal_basis, np.mean(activityRL_train, axis=1)[:, None]
     
-    def plot_CD(self, mode_input='choice', epoch=None, save=None, plot=True, remove_top = False, auto_corr_return=False):
+    def plot_CD(self, mode_input='choice', epoch=None, lickdir=False, save=None, plot=True, remove_top = False, auto_corr_return=False):
         "This method orthogonalizes the various modes"
         # if epoch is not None:
         #     orthonormal_basis, var_allDim = self.func_compute_epoch_decoder([self.PSTH_r_train_correct, 
@@ -778,7 +813,7 @@ class Mode(Session):
         idx_map = {'choice': 1, 'action':5, 'stimulus':0}
         idx = idx_map[mode_input]
 
-        orthonormal_basis, mean = self.plot_behaviorally_relevant_modes(plot=False) # one method
+        orthonormal_basis, mean = self.plot_behaviorally_relevant_modes(plot=False, lickdir=lickdir) # one method
         orthonormal_basis = orthonormal_basis[:, idx]
         
         if remove_top:
@@ -996,7 +1031,7 @@ class Mode(Session):
 
     
         
-    def plot_behaviorally_relevant_modes(self, plot=True):
+    def plot_behaviorally_relevant_modes(self, plot=True, lickdir=False):
         # plot behaviorally relevant activity modes only
         # separates trials into train vs test sets
         mode_ID = np.array([1, 2, 6, 3, 7, 8, 9])
@@ -1005,7 +1040,8 @@ class Mode(Session):
         orthonormal_basis, var_allDim = self.func_compute_activity_modes_DRT([self.PSTH_r_train_correct, 
                                                                             self.PSTH_l_train_correct, 
                                                                             self.PSTH_r_train_error, 
-                                                                            self.PSTH_l_train_error], ctl=False)
+                                                                            self.PSTH_l_train_error], ctl=False, 
+                                                                            lickdir=lickdir)
         
         activityRL_train= np.concatenate((self.PSTH_r_train_correct, 
                                         self.PSTH_l_train_correct, 
