@@ -15,11 +15,12 @@ for j = 1:length(lst)
         lyrs = size(obj.roi_plane,2);
         for i = 1:lyrs
             center = obj.roi_plane{1, i}.center;
+            neuropil = obj.roi_plane{1, i}.Fneu;
             dff = obj.roi_plane{1, i}.F;
             skew = obj.roi_plane{1, i}.skew;
             background = obj.roi_plane{1, i}.Fbackground;
 
-            save([path, 'python\' strjoin(namesplit(2:4), '_') '\modlayer_', int2str(i), '.mat'], 'center', 'dff', 'skew', 'background')
+            save([path, 'python\' strjoin(namesplit(2:4), '_') '\modlayer_', int2str(i), '.mat'], 'center', 'dff', 'skew', 'background', 'neuropil')
         end 
 
         % Get behavioral data

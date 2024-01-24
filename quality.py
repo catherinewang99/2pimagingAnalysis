@@ -396,5 +396,53 @@ class QC(Session):
         plt.show()
         
         # return plane_av_control, plane_av_opto
+    def plot_background_and_traces(self, return_traces=False,  single_layer=False, no_background=False):
+        """
+        Plots traces with ROI and neuropil and background
+
+        Returns
+        -------
+        None.
+
+        """
+        if not no_background:
+            overall_background = []
+            if single_layer:
+                for t in np.where(self.stim_ON)[0]:
+                    overall_background += [self.background[0, t][0, :self.time_cutoff]]
+            else:
+                for plane in range(5):
+                    for t in np.where(self.stim_ON)[0]:
+                        overall_background += [self.background[0, t][plane, :self.time_cutoff]]
+            overall_background = np.mean(overall_background, axis=0)
+        else:
+            overall_background = np.zeros(61)
+        
+        overall_npil = []
+        for n in self.good_neurons:
+            for t in np.where(self.stim_ON)[0]:
+                overall_npil += [self.npil[0, t][n, :self.time_cutoff]]
+        overall_npil = np.mean(overall_npil, axis=0)
+        
+        overall_F = []
+        for n in self.good_neurons:
+            for t in np.where(self.stim_ON)[0]:
+                overall_F += [self.dff[0, t][n, :self.time_cutoff]]
+        overall_F = np.mean(overall_F, axis=0)
+        
+        if return_traces:
+            return ((overall_background[12:38] - np.mean(overall_background[12:38])) / np.std(overall_background[12:38]),
+                    (overall_npil[12:38] - np.mean(overall_npil[12:38])) / np.std(overall_npil[12:38]),
+                    (overall_F[12:38] - np.mean(overall_F[12:38])) / np.std(overall_F[12:38])
+                    )
             
+        plt.plot((overall_background[12:38] - np.mean(overall_background[12:38]))/np.std(overall_background[12:38]))
+        plt.plot((overall_npil[12:38] - np.mean(overall_npil[12:38]))/np.std(overall_npil[12:38]))
+        # plt.plot(overall_F[12:38])
+        # plt.plot(overall_F)
+        # plt.plot(overall_npil[12:38])
+
+        plt.show()
+        
+
         

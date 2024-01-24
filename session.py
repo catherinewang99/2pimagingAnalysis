@@ -44,7 +44,7 @@ class Session:
     
     
     def __init__(self, path, layer_num='all', use_reg = False, triple = False,
-                 filter_reg = True, background=False,
+                 filter_reg = True, 
                  sess_reg = False, guang=False, passive=False, quality=False):
         
         """
@@ -71,9 +71,14 @@ class Session:
         
         if layer_num != 'all':
             
-            layer_og = scio.loadmat(r'{}\layer_{}.mat'.format(path, layer_num))
+            filename = [n for n in os.listdir(path) if 'layer_{}'.format(layer_num) in n]
+            layer_og = scio.loadmat(r'{}\{}'.format(path, filename[0]))
             layer = copy.deepcopy(layer_og)
             self.dff = layer['dff']
+            if 'background' in layer_og.keys():
+                self.background = layer['background']
+            if 'neuropil' in layer_og.keys():
+                self.npil = layer['neuropil']
             self.fs = 1/6
             if use_reg:
                 if triple:
@@ -91,6 +96,7 @@ class Session:
 
             self.dff = None
             self.background = None
+            self.npil = None
             counter = 0
             for layer_pth in os.listdir(path):
                 if 'layer' in layer_pth and '.mat' in layer_pth:
@@ -112,8 +118,10 @@ class Session:
 
                             # self.good_neurons = layer['dff'][:, :][neurons]
                         self.dff = layer['dff']
-                        if background:
+                        if 'background' in layer_og.keys():
                             self.background = layer['background']
+                        if 'neuropil' in layer_og.keys():
+                            self.npil = layer['neuropil']
                         self.num_trials = layer['dff'].shape[1] 
                         
                     else:
@@ -135,10 +143,14 @@ class Session:
                             add = layer['dff'][0, t]
                             self.dff[0, t] = np.vstack((self.dff[0, t], add))
                             
-                            if background:
+                            if 'background' in layer_og.keys():
                                 add = layer['background'][0, t]
                                 self.background[0, t] = np.vstack((self.background[0, t], add))
-                    
+                                
+                            if 'neuropil' in layer_og.keys():
+                                add = layer['neuropil'][0, t]
+                                self.npil[0, t] = np.vstack((self.npil[0, t], add))
+                                
                     counter += 1
             self.fs = 1/(30/counter)
 
@@ -210,8 +222,8 @@ class Session:
         # Measure that automatically crops out water leak trials before norming
         if not self.find_low_mean_F():
 
-            if quality:
-                self.plot_mean_F()
+            # if quality:
+            #     self.plot_mean_F()
             print("No water leak!")
             if guang:
                 # Guang's data
@@ -303,7 +315,7 @@ class Session:
         
         return cutoff
     
-    def find_low_mean_F(self, cutoff = 50):
+    def find_low_mean_F(self, cutoff = 25):
         """Finds and crop low F trials that correspond to water leaks
         
         Calls crop_trials if there are water leak trials

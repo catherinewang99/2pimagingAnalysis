@@ -180,7 +180,7 @@ plt.figure(figsize=(8,5))
 plt.matshow(allstimstack, cmap='gray', fignum=1, aspect='auto')
 plt.xticks(range(0,38-12, 6), [int(d) for d in x[::6]])
 plt.axvline(x=l1.delay-10, c='b', linewidth = 0.5)
-plt.savefig(r'F:\data\Fig 3\contra_opto_effect.pdf')
+# plt.savefig(r'F:\data\Fig 3\contra_opto_effect.pdf')
 
 #%%
 f, axarr = plt.subplots(2,2)#, sharex='col')
@@ -335,11 +335,38 @@ for path in paths:
     
     plt.show()
     
-#%% Plot the background fluorescence
-
+#%% Plot the background fluorescence 
 path = r'F:\data\BAYLORCW032\python\2023_10_24to'
 
-l1 = quality.QC(path)
-l1.plot_background()
+# l1 = quality.QC(path)
+# l1.plot_background()
+
+f, axarr = plt.subplots(5,1, sharex='col', figsize=(10, 10))
+# Plot with neuropil and dFF trace
+for layer in range(5):
+    path = r'F:\data\BAYLORCW032\python\2023_10_24to'
+    l1 = quality.QC(path, layer_num=layer+1)
+    background, _, _ = l1.plot_background_and_traces(single_layer = True, return_traces=True)
+    
+    path = r'F:\data\BAYLORCW032\python\2023_10_24'
+    l1 = quality.QC(path, layer_num=layer+1)
+    _, npil, f = l1.plot_background_and_traces(single_layer = True, return_traces=True)
+    
+    axarr[layer].plot(background, label = 'F_background')
+    axarr[layer].plot(npil, label = 'F_npil')
+    axarr[layer].plot(f, label = 'F')
+    
+    axarr[layer].axvline(l1.sample-12, ls = '--', color='grey')
+    axarr[layer].axvline(l1.delay-12, ls = '--', color='red')
+    axarr[layer].axvline(l1.delay-12+6, ls = '--', color='red')
+    
+    axarr[layer].set_title("Layer {}".format(layer+1))
+
+plt.legend()
+plt.show()
     
     
+    
+    
+    
+
