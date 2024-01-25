@@ -373,6 +373,7 @@ class QC(Session):
         f, axarr = plt.subplots(5,1, sharex='col', figsize=(10, 10))
         x = np.arange(-6.97,4,self.fs)[:self.time_cutoff]
         window = range(12,38)
+        window = range(self.time_cutoff)
         for plane in range(5):
             plane_av_control = []
             for t in np.where(~self.stim_ON)[0]:
@@ -386,10 +387,13 @@ class QC(Session):
                 
             axarr[plane].plot(np.mean(plane_av_control, axis=0), color='darkgrey', label='Control')
             axarr[plane].plot(np.mean(plane_av_opto, axis=0), color='red', label='Opto')
-            axarr[plane].axvline(self.sample-12, ls = '--', color = 'grey')
-            axarr[plane].axvline(self.delay-12, ls = '--', color = 'red')
-            axarr[plane].axvline(self.delay-12+6, ls = '--', color = 'red')
-            # axarr[plane].axvline(self.response-12, ls = '--', color = 'grey')
+            # axarr[plane].axvline(self.sample-12, ls = '--', color = 'grey')
+            # axarr[plane].axvline(self.delay-12, ls = '--', color = 'red')
+            # axarr[plane].axvline(self.delay-12+6, ls = '--', color = 'red')
+            axarr[plane].axvline(self.sample, ls = '--', color = 'grey')
+            axarr[plane].axvline(self.delay, ls = '--', color = 'red')
+            axarr[plane].axvline(self.delay+6, ls = '--', color = 'red')
+            axarr[plane].axvline(self.response, ls = '--', color = 'grey')
             axarr[plane].set_title('F_background (plane {})'.format(plane+1))
             
         plt.legend()

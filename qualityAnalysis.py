@@ -338,8 +338,8 @@ for path in paths:
 #%% Plot the background fluorescence 
 path = r'F:\data\BAYLORCW032\python\2023_10_24to'
 
-# l1 = quality.QC(path)
-# l1.plot_background()
+l1 = quality.QC(path)
+l1.plot_background()
 
 f, axarr = plt.subplots(5,1, sharex='col', figsize=(10, 10))
 # Plot with neuropil and dFF trace
