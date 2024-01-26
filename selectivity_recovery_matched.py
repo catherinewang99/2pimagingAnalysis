@@ -249,6 +249,7 @@ paths = [    r'F:\data\BAYLORCW032\python\2023_10_05',
             
             r'F:\data\BAYLORCW036\python\2023_10_16',
             r'F:\data\BAYLORCW035\python\2023_10_12',
+        r'F:\data\BAYLORCW035\python\2023_11_02',
 
             ]
 
@@ -260,7 +261,6 @@ paths = [r'F:\data\BAYLORCW032\python\2023_10_19',
 
         r'F:\data\BAYLORCW032\python\2023_10_18',
         r'F:\data\BAYLORCW035\python\2023_10_25',
-        r'F:\data\BAYLORCW035\python\2023_11_02',
             r'F:\data\BAYLORCW035\python\2023_11_27',
             r'F:\data\BAYLORCW035\python\2023_11_29',
             r'F:\data\BAYLORCW037\python\2023_11_28',
@@ -299,7 +299,7 @@ for path in paths:
     l1 = session.Session(path)
     # l1 = session.Session(path)
     
-    pref_, nonpref_, optop_, optonp_ = l1.selectivity_optogenetics(p=0.01, return_traces=True)
+    pref_, nonpref_, optop_, optonp_ = l1.selectivity_optogenetics(p=0.01, lickdir=True, return_traces=True)
     
     pref = np.vstack((pref, pref_))
     nonpref = np.vstack((nonpref, nonpref_))
@@ -342,7 +342,7 @@ axarr.set_xlabel('Time from Go cue (s)')
 axarr.set_ylabel('Selectivity')
 axarr.set_ylim((-0.2, 0.7))
 
-# plt.savefig(r'F:\data\Fig 3\exp_sel_recovery.pdf')
+# plt.savefig(r'F:\data\Fig 3\lea_sel_recovery_ALL.pdf')
 plt.show()
 
 #%% Plot selectivity recovery as a bar graph only matched
@@ -412,6 +412,7 @@ all_paths = [[    r'F:\data\BAYLORCW032\python\2023_10_05',
             
             r'F:\data\BAYLORCW036\python\2023_10_16',
             r'F:\data\BAYLORCW035\python\2023_10_12',
+            r'F:\data\BAYLORCW035\python\2023_11_02',
 
             ],
              [r'F:\data\BAYLORCW032\python\2023_10_19',
@@ -422,7 +423,6 @@ all_paths = [[    r'F:\data\BAYLORCW032\python\2023_10_05',
 
         r'F:\data\BAYLORCW032\python\2023_10_18',
         r'F:\data\BAYLORCW035\python\2023_10_25',
-        r'F:\data\BAYLORCW035\python\2023_11_02',
             r'F:\data\BAYLORCW035\python\2023_11_27',
             r'F:\data\BAYLORCW035\python\2023_11_29',
             r'F:\data\BAYLORCW037\python\2023_11_28',
@@ -448,7 +448,7 @@ for paths in all_paths: # For each stage of training
     recovery = []
     for path in paths: # For each mouse
         
-        l1 = session.Session(path, use_reg=True, triple=True)
+        l1 = session.Session(path)
         # l1 = session.Session(path)
         temp = l1.modularity_proportion(p=0.01)
         if temp > 0 and temp < 1: # Exclude values based on Chen et al method guideliens
@@ -463,8 +463,8 @@ plt.scatter(np.ones(len(all_recovery[1])), all_recovery[1])
 plt.scatter(np.ones(len(all_recovery[2]))+1, all_recovery[2])
 
 plt.xticks(range(3), ['Naive', 'Learning', 'Expert'])
-plt.ylabel('Modularity')
-# plt.savefig(r'F:\data\Fig 3\modularity_bargraph.pdf')
+plt.ylabel('Modularity, unperturbed hemisphere')
+# plt.savefig(r'F:\data\Fig 3\modularity_bargraph_ALL.pdf')
 
 plt.show()
 
@@ -555,6 +555,7 @@ all_paths = [[    r'F:\data\BAYLORCW032\python\2023_10_05',
             
             r'F:\data\BAYLORCW036\python\2023_10_16',
             r'F:\data\BAYLORCW035\python\2023_10_12',
+        r'F:\data\BAYLORCW035\python\2023_11_02',
 
             ],
              [r'F:\data\BAYLORCW032\python\2023_10_19',
@@ -565,7 +566,6 @@ all_paths = [[    r'F:\data\BAYLORCW032\python\2023_10_05',
 
         r'F:\data\BAYLORCW032\python\2023_10_18',
         r'F:\data\BAYLORCW035\python\2023_10_25',
-        r'F:\data\BAYLORCW035\python\2023_11_02',
             r'F:\data\BAYLORCW035\python\2023_11_27',
             r'F:\data\BAYLORCW035\python\2023_11_29',
             r'F:\data\BAYLORCW037\python\2023_11_28',
@@ -595,7 +595,7 @@ for paths in all_paths:
 
     for path in paths:
 
-        l1 = session.Session(path, use_reg=True, triple=True)
+        l1 = session.Session(path)
         temp = l1.modularity_proportion(p=0.01)
 
         if temp > 0 and temp < 1: # Exclude values based on Chen et al method guidelines
@@ -632,7 +632,7 @@ plt.legend()
 plt.title('Pearsons correlation: {}, p-val: {}'.format(stats.pearsonr(cat(all_mod), cat(all_deltas))[0], 
                                                        stats.pearsonr(cat(all_mod), cat(all_deltas))[1]))
 
-# plt.savefig(r'F:\data\Fig 3\corr_behaviordiff_modularity_matched.pdf')
+plt.savefig(r'F:\data\Fig 3\corr_behaviordiff_modularity_ALL.pdf')
 plt.show()
 
 #%% CD recovery

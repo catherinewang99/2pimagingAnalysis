@@ -20,7 +20,7 @@ for j = 1:length(lst)
             skew = obj.roi_plane{1, i}.skew;
 %             background = obj.roi_plane{1, i}.Fbackground;
 
-%             save([path, 'python\' strjoin(namesplit(2:4), '_') '\modlayer_', int2str(i), '.mat'], 'center', 'dff', 'skew', 'background', 'neuropil')
+%             save([path, 'python\' strjoin(namesplit(2:4), '_') '\layer_', int2str(i), '.mat'], 'center', 'dff', 'skew', 'background', 'neuropil')
             save([path, 'python\' strjoin(namesplit(2:4), '_') '\modlayer_', int2str(i), '.mat'], 'center', 'dff', 'skew')
         end 
 

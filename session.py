@@ -2766,8 +2766,9 @@ class Session:
         erro += np.std(optonp, axis=0) / np.sqrt(len(optonp))
         
         # Add 0.4ms for the time lag factor
-        period = range( int(self.delay + 0.4*(1/self.fs)), int(self.delay + 1.4*(1/self.fs)))
-        
+        # period = range( int(self.delay + 0.4*(1/self.fs)), int(self.delay + 1.4*(1/self.fs)))
+        period = range(self.response-9, self.response) # Use last second of delay
+
         recovery = np.mean(selo[period] / sel[period])
         
         return recovery
