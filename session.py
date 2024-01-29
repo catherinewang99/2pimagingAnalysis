@@ -74,9 +74,9 @@ class Session:
         
         if layer_num != 'all':
             if use_background_sub:
-                filename = [n for n in os.listdir(path) if 'modlayer_{}'.format(layer_num) in n]
+                filename = [n for n in os.listdir(path) if 'mod_layer_{}'.format(layer_num) in n]
             else:
-                filename = [n for n in os.listdir(path) if 'layer_{}'.format(layer_num) in n]
+                filename = [n for n in os.listdir(path) if 'layer_{}'.format(layer_num) in n and len(n) < 12]
 
                 
             layer_og = scio.loadmat(r'{}\{}'.format(path, filename[0]))
@@ -106,7 +106,8 @@ class Session:
             self.npil = None
             counter = 0
             for layer_pth in os.listdir(path):
-                condition = 'modlayer' in layer_pth and '.mat' in layer_pth if use_background_sub else 'layer' in layer_pth and '.mat' in layer_pth
+                condition = 'mod_layer' in layer_pth and '.mat' in layer_pth if use_background_sub else 'layer' in layer_pth and '.mat' in layer_pth and len(layer_pth) < 12
+                
                 if condition:
                         
                     layer_og = scio.loadmat(r'{}\{}'.format(path, layer_pth))
