@@ -44,7 +44,7 @@ class Session:
     
     
     def __init__(self, path, layer_num='all', use_reg = False, triple = False,
-                 filter_reg = True, 
+                 filter_reg = True, use_background_sub = False,
                  sess_reg = False, guang=False, passive=False, quality=False):
         
         """
@@ -58,6 +58,9 @@ class Session:
             Contains neurons that are matched only, for all layers
         filter_reg : bool, optional
             Uses the pearson filtered versions of the matched neurons, should be true
+        use_background_sub: bool, optional
+            Whether to use the F_background version for dF/F0 calculations, use
+            for stim condition analysis so usually False
         sess_reg : bool, optional
             Reads in .npy file containing the registered neurons only. 
             Usually, this means only one layer. TBC. (default False)
@@ -70,8 +73,12 @@ class Session:
         """        
         
         if layer_num != 'all':
-            
-            filename = [n for n in os.listdir(path) if 'layer_{}'.format(layer_num) in n]
+            if use_background_sub:
+                filename = [n for n in os.listdir(path) if 'modlayer_{}'.format(layer_num) in n]
+            else:
+                filename = [n for n in os.listdir(path) if 'layer_{}'.format(layer_num) in n]
+
+                
             layer_og = scio.loadmat(r'{}\{}'.format(path, filename[0]))
             layer = copy.deepcopy(layer_og)
             self.dff = layer['dff']
@@ -99,7 +106,9 @@ class Session:
             self.npil = None
             counter = 0
             for layer_pth in os.listdir(path):
-                if 'layer' in layer_pth and '.mat' in layer_pth:
+                condition = 'modlayer' in layer_pth and '.mat' in layer_pth if use_background_sub else 'layer' in layer_pth and '.mat' in layer_pth
+                if condition:
+                        
                     layer_og = scio.loadmat(r'{}\{}'.format(path, layer_pth))
                     layer = copy.deepcopy(layer_og)
                     
