@@ -70,7 +70,14 @@ class Session:
             If dataset is from passive experiment (default False)
         quality : bool, optional
             If parent class is quality
-        """        
+        """       
+        
+        if use_background_sub:
+            if 'mod_layer' not in os.listdir(path):
+                # raise NotImplementedError("No mod layer, altering to no subtracted background")
+                print("No mod layer, altering to no subtracted background")
+                use_background_sub = False
+                
         
         if layer_num != 'all':
             if use_background_sub:
@@ -230,10 +237,11 @@ class Session:
         self.old_i_good_trials = copy.copy(self.i_good_trials)
 
         # Measure that automatically crops out water leak trials before norming
-        if not self.find_low_mean_F():
+        crop_cutoff = 25 if not use_background_sub else 5
+        if not self.find_low_mean_F(cutoff=crop_cutoff):
 
-            # if quality:
-            #     self.plot_mean_F()
+            if quality:
+                self.plot_mean_F()
             print("No water leak!")
             if guang:
                 # Guang's data
@@ -559,7 +567,7 @@ class Session:
 
             # self.plot_mean_F()
 
-        # self.plot_mean_F()
+        self.plot_mean_F()
 
         # self.normalize_all_by_baseline()
         self.normalize_all_by_neural_baseline()

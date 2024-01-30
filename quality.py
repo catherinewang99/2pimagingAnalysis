@@ -25,9 +25,9 @@ from session import Session
 
 class QC(Session):
 
-    def __init__(self, path, layer_num='all', guang=False, passive=False, quality=True):
+    def __init__(self, path, layer_num='all', guang=False, passive=False, quality=True, use_background_sub = False):
         
-        super().__init__(path, layer_num, guang, passive, quality=quality)
+        super().__init__(path, layer_num, guang, passive, quality=quality, use_background_sub=use_background_sub)
             
         
     ### Quality analysis section ###
@@ -363,11 +363,20 @@ class QC(Session):
         plt.hist(corrs)
         plt.show()
         
-    def plot_background(self):
+    def plot_background(self, return_traces=False):
         
         """
         Plot the five background traces (one for each layer) average over trials
         separated by control vs opto trials, with the stim period highlighted
+        
+        Parameters
+        ----------
+        return_traces : bool, optional
+            Return traces to be plotted later.
+
+        Returns
+        -------
+        Five backgrounds ROIs returned trial by trial
         
         """
         f, axarr = plt.subplots(5,1, sharex='col', figsize=(10, 10))
@@ -384,20 +393,21 @@ class QC(Session):
                 plane_av_opto += [self.background[0, t][plane, window]]
                 # axarr[plane].plot(self.background[0, t][plane, window], color='red', alpha = 0.3)
 
-                
-            axarr[plane].plot(np.mean(plane_av_control, axis=0), color='darkgrey', label='Control')
-            axarr[plane].plot(np.mean(plane_av_opto, axis=0), color='red', label='Opto')
-            # axarr[plane].axvline(self.sample-12, ls = '--', color = 'grey')
-            # axarr[plane].axvline(self.delay-12, ls = '--', color = 'red')
-            # axarr[plane].axvline(self.delay-12+6, ls = '--', color = 'red')
-            axarr[plane].axvline(self.sample, ls = '--', color = 'grey')
-            axarr[plane].axvline(self.delay, ls = '--', color = 'red')
-            axarr[plane].axvline(self.delay+6, ls = '--', color = 'red')
-            axarr[plane].axvline(self.response, ls = '--', color = 'grey')
-            axarr[plane].set_title('F_background (plane {})'.format(plane+1))
-            
-        plt.legend()
-        plt.show()
+            if not return_traces:
+                axarr[plane].plot(np.mean(plane_av_control, axis=0), color='darkgrey', label='Control')
+                axarr[plane].plot(np.mean(plane_av_opto, axis=0), color='red', label='Opto')
+                # axarr[plane].axvline(self.sample-12, ls = '--', color = 'grey')
+                # axarr[plane].axvline(self.delay-12, ls = '--', color = 'red')
+                # axarr[plane].axvline(self.delay-12+6, ls = '--', color = 'red')
+                axarr[plane].axvline(self.sample, ls = '--', color = 'grey')
+                axarr[plane].axvline(self.delay, ls = '--', color = 'red')
+                axarr[plane].axvline(self.delay+6, ls = '--', color = 'red')
+                axarr[plane].axvline(self.response, ls = '--', color = 'grey')
+                axarr[plane].set_title('F_background (plane {})'.format(plane+1))
+         
+        if not return_traces:
+            plt.legend()
+            plt.show()
         
         # return plane_av_control, plane_av_opto
     def plot_background_and_traces(self, return_traces=False,  single_layer=False, only_f=False):

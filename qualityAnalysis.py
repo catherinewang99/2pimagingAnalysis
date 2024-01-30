@@ -158,29 +158,32 @@ allstack, allcontrastimstack = np.zeros(61), np.zeros(61)
 
 for path in paths:
     
-    l1 = quality.QC(path)
+    l1 = quality.QC(path, use_background_sub=True)
 
     stack, stimstack = l1.all_neurons_heatmap(return_traces=True)
 
-    allstack = np.vstack((allstack, stack))
+    allstack = np.vstack((allstack, normalize(stack)))
+
     # allstimstack = np.vstack((allstimstack, stimstack))
-    allcontrastimstack = np.vstack((allcontrastimstack, stimstack))
+    allcontrastimstack = np.vstack((allcontrastimstack, normalize(stimstack)))
     
 allstack = allstack[1:,12:38]
 # allstimstack = allstimstack[1:,12:38]
 allcontrastimstack = allcontrastimstack[1:,12:38]
 # allstack = normalize(allstack[1:,12:38])
 # allstimstack = normalize(allstimstack[1:,12:38])
-#%%
+# allcontrastimstack = normalize(allcontrastimstack[1:,12:38])
+#%% Plot all opto trials as heatmap 
+
 x = np.arange(-7.97,4,l1.fs)[12:38]
 # x = np.arange(-6.97,4,self.fs)[:self.time_cutoff]
 # allstack = normalize(allstack)
 # allstimstack = normalize(allstimstack)
 plt.figure(figsize=(8,5))
-plt.matshow(allstimstack, cmap='gray', fignum=1, aspect='auto')
+plt.matshow(allcontrastimstack, cmap='gray', fignum=1, aspect='auto')
 plt.xticks(range(0,38-12, 6), [int(d) for d in x[::6]])
 plt.axvline(x=l1.delay-10, c='b', linewidth = 0.5)
-# plt.savefig(r'F:\data\Fig 3\contra_opto_effect.pdf')
+plt.savefig(r'F:\data\Fig 3\contra_opto_effect_backgroundsubtract.pdf')
 
 #%%
 f, axarr = plt.subplots(2,2)#, sharex='col')
@@ -241,7 +244,7 @@ plt.ylabel('dF/F0')
 # axarr[1,1].set_xticks(range(0,allstack.shape[1], 10), [int(d) for d in x[::10]])
 plt.xlabel('Time from Go cue (s)')
 plt.legend()
-# plt.savefig(r'F:\data\Fig 3\contra_opto_effect_overlay.pdf')
+plt.savefig(r'F:\data\Fig 3\contra_opto_effect_overlay_subtractbackground.pdf')
 
 plt.show()
 
@@ -365,7 +368,91 @@ plt.suptitle("Traces on opto stim trials")
 plt.legend()
 plt.show()
     
+
+#%% Plot background trace on a trial by trial basis per layer 
+path = r'F:\data\BAYLORCW032\python\2023_10_24'
+l1 = Session(path, use_background_sub=True)
+
+# F background
+for layer in range(5):
     
+    window = range(12, 42)
+    # window = range(l1.time_cutoff)
+    x = np.arange(-6.97,4,l1.fs)[window]
+
+    stim_trials = np.where(l1.stim_ON)[0]
+    f, ax = plt.subplots(len(stim_trials), figsize=(7,14))
+    
+    
+    for i in range(len(stim_trials)):
+        ax[i].plot(x, l1.background[0,stim_trials[i]][layer, window])
+        ax[i].axis('off')
+        ax[i].axvline(x=-3, c='red', ls = '--', linewidth = 0.5)
+        ax[i].axvline(x=-2, c='red', ls = '--', linewidth = 0.5)
+        # ax[i].axvline(x=-1, c='red', ls = '--', linewidth = 0.5)
+        # ax[i].axvline(x=-0, c='red', ls = '--', linewidth = 0.5)
+    ax[0].set_title("Layer {} background".format(layer+1))
+    plt.show()
+
+    
+#%% Plot background trace on a trial by trial basis averaged over layers
+path = r'F:\data\BAYLORCW032\python\2023_10_24'
+l1 = Session(path, use_background_sub=True)
+
+window = range(12, 42)
+# window = range(l1.time_cutoff)
+x = np.arange(-6.97,4,l1.fs)[window]
+
+stim_trials = np.where(l1.stim_ON)[0]
+f, ax = plt.subplots(len(stim_trials), figsize=(7,20))
+
+
+for i in range(len(stim_trials)):
+    ax[i].plot(x, np.mean([l1.background[0,stim_trials[i]][layer, window] for layer in range(5)], axis=0))
+    ax[i].axis('off')
+    ax[i].axvline(x=-3, c='red', ls = '--', linewidth = 0.5)
+    ax[i].axvline(x=-2, c='red', ls = '--', linewidth = 0.5)
+    # ax[i].axvline(x=-1, c='red', ls = '--', linewidth = 0.5)
+    # ax[i].axvline(x=-0, c='red', ls = '--', linewidth = 0.5)
+ax[0].set_title("F background (av.)")
+plt.show()
+
+#%%
+path = r'F:\\data\\BAYLORCW035\\python\\2023_12_15'
+path = r'F:\data\BAYLORCW032\python\2023_10_24'
+l1 = Session(path, use_background_sub=False)
+
+window = range(23, 32)
+# window = range(l1.time_cutoff)
+x = np.arange(-6.97,4,l1.fs)[window]
+neuron = 8
+
+
+control_trials = np.where(~l1.stim_ON)[0]
+
+for i in range(len(control_trials)):
+    plt.plot(x, l1.dff[0,control_trials[i]][neuron, window], color='grey', linewidth = 0.5, alpha=0.5)
+
+stim_trials = np.where(l1.stim_ON)[0]
+
+for i in range(len(stim_trials)):
+    plt.plot(x, l1.dff[0,stim_trials[i]][neuron, window], color='red', linewidth = 0.5, alpha=0.5)
+    
+    
+plt.plot(x, np.mean([l1.dff[0,control_trials[i]][neuron, window] for i in range(len(control_trials))], axis=0), color='black')
+  
+plt.plot(x, np.mean([l1.dff[0,stim_trials[i]][neuron, window] for i in range(len(stim_trials))], axis=0), color='red')
+
+plt.axvline(x=-3, c='red', ls = '--', linewidth = 0.5)
+plt.axvline(x=-2, c='red', ls = '--', linewidth = 0.5)
+# plt.ylim((-2, 2))
+# ax[i].axvline(x=-1, c='red', ls = '--', linewidth = 0.5)
+# ax[i].axvline(x=-0, c='red', ls = '--', linewidth = 0.5)
+    
+plt.title("F background (av.)")
+plt.show()
+
+
     
     
     
