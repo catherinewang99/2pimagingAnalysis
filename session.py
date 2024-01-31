@@ -73,7 +73,8 @@ class Session:
         """       
         
         if use_background_sub:
-            if 'mod_layer' not in os.listdir(path):
+            print('Using subtracted background dataset')
+            if 'mod_layer_1.mat' not in os.listdir(path):
                 # raise NotImplementedError("No mod layer, altering to no subtracted background")
                 print("No mod layer, altering to no subtracted background")
                 use_background_sub = False

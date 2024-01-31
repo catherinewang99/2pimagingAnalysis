@@ -16,6 +16,8 @@ from numpy import concatenate as cat
 from sklearn.preprocessing import normalize
 import quality
 from scipy import stats
+from scipy.stats import zscore
+
 plt.rcParams['pdf.fonttype'] = '42' 
 
 
@@ -148,11 +150,13 @@ paths = [r'F:\data\BAYLORCW032\python\2023_10_23',
          r'F:\data\BAYLORCW037\python\2023_11_22'
          ]
 
-paths = [r'F:\data\BAYLORCW032\python\2023_10_24',
+paths = [
+            r'F:\data\BAYLORCW032\python\2023_10_24',
             # r'F:\data\BAYLORCW034\python\2023_10_27',
-            r'F:\data\BAYLORCW036\python\2023_10_30',
-            r'F:\data\BAYLORCW035\python\2023_12_15',
-            r'F:\data\BAYLORCW037\python\2023_12_15',]
+            # r'F:\data\BAYLORCW036\python\2023_10_30',
+            # r'F:\data\BAYLORCW035\python\2023_12_15',
+            # r'F:\data\BAYLORCW037\python\2023_12_15',
+            ]
 # allstack, allstimstack = np.zeros(61), np.zeros(61)
 allstack, allcontrastimstack = np.zeros(61), np.zeros(61)
 
@@ -162,10 +166,14 @@ for path in paths:
 
     stack, stimstack = l1.all_neurons_heatmap(return_traces=True)
 
+    # allstack = np.vstack((allstack, stack))
+    # allcontrastimstack = np.vstack((allcontrastimstack, stimstack))
+    
     allstack = np.vstack((allstack, normalize(stack)))
-
-    # allstimstack = np.vstack((allstimstack, stimstack))
     allcontrastimstack = np.vstack((allcontrastimstack, normalize(stimstack)))
+    
+    # allstack = np.vstack((allstack, zscore(stack ,axis=0)))
+    # allcontrastimstack = np.vstack((allcontrastimstack, zscore(stimstack, axis=0)))
     
 allstack = allstack[1:,12:38]
 # allstimstack = allstimstack[1:,12:38]
@@ -183,7 +191,7 @@ plt.figure(figsize=(8,5))
 plt.matshow(allcontrastimstack, cmap='gray', fignum=1, aspect='auto')
 plt.xticks(range(0,38-12, 6), [int(d) for d in x[::6]])
 plt.axvline(x=l1.delay-10, c='b', linewidth = 0.5)
-plt.savefig(r'F:\data\Fig 3\contra_opto_effect_backgroundsubtract.pdf')
+# plt.savefig(r'F:\data\Fig 3\contra_opto_effect_backgroundsubtract.pdf')
 
 #%%
 f, axarr = plt.subplots(2,2)#, sharex='col')
@@ -233,9 +241,9 @@ plt.plot(x, np.mean(allcontrastimstack, axis = 0), color = 'red', label='Optogen
 plt.fill_between(x, np.mean(allcontrastimstack, axis = 0) - stats.sem(allcontrastimstack, axis=0), 
           np.mean(allcontrastimstack, axis = 0) + stats.sem(allcontrastimstack, axis=0),
           color='lightcoral')   
+
 plt.plot(x, np.mean(allstack, axis = 0), color = 'grey', label='Control trials')
 plt.axvline(x=-3, c='b', linewidth = 0.5)
-
 plt.fill_between(x, np.mean(allstack, axis = 0) - stats.sem(allstack, axis=0), 
           np.mean(allstack, axis = 0) + stats.sem(allstack, axis=0),
           color='silver')   
@@ -244,7 +252,7 @@ plt.ylabel('dF/F0')
 # axarr[1,1].set_xticks(range(0,allstack.shape[1], 10), [int(d) for d in x[::10]])
 plt.xlabel('Time from Go cue (s)')
 plt.legend()
-plt.savefig(r'F:\data\Fig 3\contra_opto_effect_overlay_subtractbackground.pdf')
+# plt.savefig(r'F:\data\Fig 3\contra_opto_effect_overlay_subtractbackground.pdf')
 
 plt.show()
 
@@ -404,7 +412,7 @@ window = range(12, 42)
 x = np.arange(-6.97,4,l1.fs)[window]
 
 stim_trials = np.where(l1.stim_ON)[0]
-f, ax = plt.subplots(len(stim_trials), figsize=(7,20))
+f, ax = plt.subplots(len(stim_trials), figsize=(7,15))
 
 
 for i in range(len(stim_trials)):
@@ -420,7 +428,7 @@ plt.show()
 #%%
 path = r'F:\\data\\BAYLORCW035\\python\\2023_12_15'
 path = r'F:\data\BAYLORCW032\python\2023_10_24'
-l1 = Session(path, use_background_sub=False)
+l1 = Session(path, use_background_sub=True)
 
 window = range(23, 32)
 # window = range(l1.time_cutoff)
@@ -445,7 +453,7 @@ plt.plot(x, np.mean([l1.dff[0,stim_trials[i]][neuron, window] for i in range(len
 
 plt.axvline(x=-3, c='red', ls = '--', linewidth = 0.5)
 plt.axvline(x=-2, c='red', ls = '--', linewidth = 0.5)
-# plt.ylim((-2, 2))
+plt.ylim((-2, 2))
 # ax[i].axvline(x=-1, c='red', ls = '--', linewidth = 0.5)
 # ax[i].axvline(x=-0, c='red', ls = '--', linewidth = 0.5)
     
