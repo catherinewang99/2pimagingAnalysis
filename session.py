@@ -71,7 +71,7 @@ class Session:
         quality : bool, optional
             If parent class is quality
         """       
-        
+        self.use_background_sub = use_background_sub
         if use_background_sub:
             print('Using subtracted background dataset')
             if 'mod_layer_1.mat' not in os.listdir(path):
@@ -1036,6 +1036,19 @@ class Session:
                 
                 # nmean = np.mean(self.dff[0, j][i, :7])
                 self.dff[0, j][i] = (self.dff[0, j][i] - nmean) / nmean
+            
+        if self.use_background_sub: # convert background trace
+        
+            for i in range(5):
+
+                nmean = np.mean([self.background[0, t][i, self.sample-3:self.sample] for t in range(self.num_trials)]).copy()
+                
+                for j in range(self.num_trials):
+                # for j in self.i_good_trials:
+                    
+                    # nmean = np.mean(self.dff[0, j][i, :7])
+                    self.background[0, j][i] = (self.background[0, j][i] - nmean) / nmean
+            
         
     
     def normalize_all_by_baseline(self):
@@ -1115,6 +1128,18 @@ class Session:
         for i in self.i_good_trials:
             for j in range(self.num_neurons):
                 self.dff[0, i][j] = (self.dff[0, i][j] - overall_mean) / std
+                
+                
+        if self.use_background_sub:
+            
+            overall_mean = np.mean(cat([cat(self.background[0, i]) for i in self.i_good_trials])).copy()
+            std = np.std(cat([cat(self.background[0, i]) for i in self.i_good_trials])).copy()
+            
+            # for i in range(self.num_trials):
+            for i in self.i_good_trials:
+                for j in range(5):
+                    self.background[0, i][j] = (self.background[0, i][j] - overall_mean) / std
+                    
                 
     def is_selective(self, neuron, epoch, p = 0.0001, bias=False, lickdir = False):
         right, left = self.get_trace_matrix(neuron)

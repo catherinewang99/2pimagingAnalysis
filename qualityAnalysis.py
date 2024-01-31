@@ -158,7 +158,8 @@ paths = [
             # r'F:\data\BAYLORCW037\python\2023_12_15',
             ]
 # allstack, allstimstack = np.zeros(61), np.zeros(61)
-allstack, allcontrastimstack = np.zeros(61), np.zeros(61)
+# allstack, allcontrastimstack = np.zeros(61), np.zeros(61)
+allstack, allcontrastimstack = np.zeros(26), np.zeros(26)
 
 for path in paths:
     
@@ -169,15 +170,17 @@ for path in paths:
     # allstack = np.vstack((allstack, stack))
     # allcontrastimstack = np.vstack((allcontrastimstack, stimstack))
     
-    allstack = np.vstack((allstack, normalize(stack)))
-    allcontrastimstack = np.vstack((allcontrastimstack, normalize(stimstack)))
+    allstack = np.vstack((allstack, normalize(stack[:, 12:38])))
+    allcontrastimstack = np.vstack((allcontrastimstack, normalize(stimstack[:, 12:38])))
     
     # allstack = np.vstack((allstack, zscore(stack ,axis=0)))
     # allcontrastimstack = np.vstack((allcontrastimstack, zscore(stimstack, axis=0)))
     
-allstack = allstack[1:,12:38]
-# allstimstack = allstimstack[1:,12:38]
-allcontrastimstack = allcontrastimstack[1:,12:38]
+# allstack = allstack[1:,12:38]
+# allcontrastimstack = allcontrastimstack[1:,12:38]
+allstack = allstack[1:]
+allcontrastimstack = allcontrastimstack[1:]
+
 # allstack = normalize(allstack[1:,12:38])
 # allstimstack = normalize(allstimstack[1:,12:38])
 # allcontrastimstack = normalize(allcontrastimstack[1:,12:38])
@@ -439,21 +442,29 @@ neuron = 8
 control_trials = np.where(~l1.stim_ON)[0]
 
 for i in range(len(control_trials)):
-    plt.plot(x, l1.dff[0,control_trials[i]][neuron, window], color='grey', linewidth = 0.5, alpha=0.5)
+    # plt.plot(x, l1.dff[0,control_trials[i]][neuron, window], color='grey', linewidth = 0.5, alpha=0.5)
+    plt.plot(x, l1.background[0,control_trials[i]][0, window], color='grey', linewidth = 0.5, alpha=0.5)
 
 stim_trials = np.where(l1.stim_ON)[0]
 
 for i in range(len(stim_trials)):
-    plt.plot(x, l1.dff[0,stim_trials[i]][neuron, window], color='red', linewidth = 0.5, alpha=0.5)
+    # plt.plot(x, l1.dff[0,stim_trials[i]][neuron, window], color='red', linewidth = 0.5, alpha=0.5)
+    plt.plot(x, l1.background[0,stim_trials[i]][0, window], color='red', linewidth = 0.5, alpha=0.5)
     
     
-plt.plot(x, np.mean([l1.dff[0,control_trials[i]][neuron, window] for i in range(len(control_trials))], axis=0), color='black')
+# plt.plot(x, np.mean([l1.dff[0,control_trials[i]][neuron, window] for i in range(len(control_trials))], axis=0), color='black')
   
-plt.plot(x, np.mean([l1.dff[0,stim_trials[i]][neuron, window] for i in range(len(stim_trials))], axis=0), color='red')
+# plt.plot(x, np.mean([l1.dff[0,stim_trials[i]][neuron, window] for i in range(len(stim_trials))], axis=0), color='red')
+
+
+plt.plot(x, np.mean([l1.background[0,control_trials[i]][0, window] for i in range(len(control_trials))], axis=0), color='black')
+  
+plt.plot(x, np.mean([l1.background[0,stim_trials[i]][0, window] for i in range(len(stim_trials))], axis=0), color='red')
+
 
 plt.axvline(x=-3, c='red', ls = '--', linewidth = 0.5)
 plt.axvline(x=-2, c='red', ls = '--', linewidth = 0.5)
-plt.ylim((-2, 2))
+# plt.ylim((-2, 2))
 # ax[i].axvline(x=-1, c='red', ls = '--', linewidth = 0.5)
 # ax[i].axvline(x=-0, c='red', ls = '--', linewidth = 0.5)
     
