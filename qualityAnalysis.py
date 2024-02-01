@@ -19,7 +19,7 @@ from scipy import stats
 from scipy.stats import zscore
 
 plt.rcParams['pdf.fonttype'] = '42' 
-
+#%%
 
 path = r'F:\data\BAYLORCW021\python\2023_05_03'
 
@@ -442,37 +442,77 @@ neuron = 8
 control_trials = np.where(~l1.stim_ON)[0]
 
 for i in range(len(control_trials)):
-    # plt.plot(x, l1.dff[0,control_trials[i]][neuron, window], color='grey', linewidth = 0.5, alpha=0.5)
-    plt.plot(x, l1.background[0,control_trials[i]][0, window], color='grey', linewidth = 0.5, alpha=0.5)
+    plt.plot(x, l1.dff[0,control_trials[i]][neuron, window], color='grey', linewidth = 0.5, alpha=0.5)
+    # plt.plot(x, l1.background[0,control_trials[i]][0, window], color='grey', linewidth = 0.5, alpha=0.5)
 
 stim_trials = np.where(l1.stim_ON)[0]
 
 for i in range(len(stim_trials)):
-    # plt.plot(x, l1.dff[0,stim_trials[i]][neuron, window], color='red', linewidth = 0.5, alpha=0.5)
-    plt.plot(x, l1.background[0,stim_trials[i]][0, window], color='red', linewidth = 0.5, alpha=0.5)
+    plt.plot(x, l1.dff[0,stim_trials[i]][neuron, window], color='red', linewidth = 0.5, alpha=0.5)
+    # plt.plot(x, l1.background[0,stim_trials[i]][0, window], color='red', linewidth = 0.5, alpha=0.5)
     
     
-# plt.plot(x, np.mean([l1.dff[0,control_trials[i]][neuron, window] for i in range(len(control_trials))], axis=0), color='black')
+plt.plot(x, np.mean([l1.dff[0,control_trials[i]][neuron, window] for i in range(len(control_trials))], axis=0), color='black')
   
-# plt.plot(x, np.mean([l1.dff[0,stim_trials[i]][neuron, window] for i in range(len(stim_trials))], axis=0), color='red')
+plt.plot(x, np.mean([l1.dff[0,stim_trials[i]][neuron, window] for i in range(len(stim_trials))], axis=0), color='red')
 
 
-plt.plot(x, np.mean([l1.background[0,control_trials[i]][0, window] for i in range(len(control_trials))], axis=0), color='black')
+# plt.plot(x, np.mean([l1.background[0,control_trials[i]][0, window] for i in range(len(control_trials))], axis=0), color='black')
   
-plt.plot(x, np.mean([l1.background[0,stim_trials[i]][0, window] for i in range(len(stim_trials))], axis=0), color='red')
+# plt.plot(x, np.mean([l1.background[0,stim_trials[i]][0, window] for i in range(len(stim_trials))], axis=0), color='red')
 
 
 plt.axvline(x=-3, c='red', ls = '--', linewidth = 0.5)
 plt.axvline(x=-2, c='red', ls = '--', linewidth = 0.5)
-# plt.ylim((-2, 2))
+plt.ylim((-2, 2))
 # ax[i].axvline(x=-1, c='red', ls = '--', linewidth = 0.5)
 # ax[i].axvline(x=-0, c='red', ls = '--', linewidth = 0.5)
     
 plt.title("F background (av.)")
 plt.show()
+#%% Plot overlay traces of f-background:
+    
+path = r'F:\data\BAYLORCW032\python\2023_10_24'
+l1 = Session(path, use_background_sub=True)
+
+allcontrastimstack, allstack = np.zeros(26), np.zeros(26)
+window = range(12, 38)
+
+control_trials = np.where(~l1.stim_ON)[0]
+
+for i in range(len(control_trials)):
+    stack = l1.background[0,control_trials[i]][:, window]
+    allstack = np.vstack((allstack, stack))
 
 
+stim_trials = np.where(l1.stim_ON)[0]
+
+for i in range(len(stim_trials)):
+    stack = l1.background[0,stim_trials[i]][:, window]
+    allcontrastimstack = np.vstack((allcontrastimstack, stack))
+
     
-    
-    
+allstack = normalize(allstack[1:])
+allcontrastimstack = normalize(allcontrastimstack[1:])
+
+x = np.arange(-6.97,4,l1.fs)[12:38]
+
+plt.plot(x, np.mean(allcontrastimstack, axis = 0), color = 'red', label='Optogenetic stimulation trials')
+plt.fill_between(x, np.mean(allcontrastimstack, axis = 0) - stats.sem(allcontrastimstack, axis=0), 
+          np.mean(allcontrastimstack, axis = 0) + stats.sem(allcontrastimstack, axis=0),
+          color='lightcoral')   
+
+plt.plot(x, np.mean(allstack, axis = 0), color = 'grey', label='Control trials')
+plt.axvline(x=-3, c='b', linewidth = 0.5)
+plt.fill_between(x, np.mean(allstack, axis = 0) - stats.sem(allstack, axis=0), 
+          np.mean(allstack, axis = 0) + stats.sem(allstack, axis=0),
+          color='silver')   
+# axarr[1,1].set_ylim(top=0.2)
+plt.ylabel('dF/F0')
+# axarr[1,1].set_xticks(range(0,allstack.shape[1], 10), [int(d) for d in x[::10]])
+plt.xlabel('Time from Go cue (s)')
+plt.legend()
+# plt.savefig(r'F:\data\Fig 3\contra_opto_effect_overlay_subtractbackground.pdf')
+
+plt.show()
 
