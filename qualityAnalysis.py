@@ -151,10 +151,10 @@ paths = [r'F:\data\BAYLORCW032\python\2023_10_23',
          ]
 
 paths = [
-            r'F:\data\BAYLORCW032\python\2023_10_24',
+            # r'F:\data\BAYLORCW032\python\2023_10_24',
             # r'F:\data\BAYLORCW034\python\2023_10_27',
             # r'F:\data\BAYLORCW036\python\2023_10_30',
-            # r'F:\data\BAYLORCW035\python\2023_12_15',
+            r'F:\data\BAYLORCW035\python\2023_12_15',
             # r'F:\data\BAYLORCW037\python\2023_12_15',
             ]
 # allstack, allstimstack = np.zeros(61), np.zeros(61)
@@ -163,7 +163,7 @@ allstack, allcontrastimstack = np.zeros(26), np.zeros(26)
 
 for path in paths:
     
-    l1 = quality.QC(path, use_background_sub=True)
+    l1 = quality.QC(path, use_background_sub=False)
 
     stack, stimstack = l1.all_neurons_heatmap(return_traces=True)
 
@@ -184,6 +184,10 @@ allcontrastimstack = allcontrastimstack[1:]
 # allstack = normalize(allstack[1:,12:38])
 # allstimstack = normalize(allstimstack[1:,12:38])
 # allcontrastimstack = normalize(allcontrastimstack[1:,12:38])
+
+
+
+
 #%% Plot all opto trials as heatmap 
 
 x = np.arange(-7.97,4,l1.fs)[12:38]
@@ -382,6 +386,8 @@ plt.show()
 
 #%% Plot background trace on a trial by trial basis per layer 
 path = r'F:\data\BAYLORCW032\python\2023_10_24'
+path = r'F:\data\BAYLORCW035\python\2023_12_15'
+
 l1 = Session(path, use_background_sub=True)
 
 # F background
@@ -408,6 +414,7 @@ for layer in range(5):
     
 #%% Plot background trace on a trial by trial basis averaged over layers
 path = r'F:\data\BAYLORCW032\python\2023_10_24'
+path = r'F:\data\BAYLORCW035\python\2023_12_15'
 l1 = Session(path, use_background_sub=True)
 
 window = range(12, 42)
@@ -428,15 +435,15 @@ for i in range(len(stim_trials)):
 ax[0].set_title("F background (av.)")
 plt.show()
 
-#%%
+# %%
 path = r'F:\\data\\BAYLORCW035\\python\\2023_12_15'
-path = r'F:\data\BAYLORCW032\python\2023_10_24'
+# # path = r'F:\data\BAYLORCW032\python\2023_10_24'
 l1 = Session(path, use_background_sub=True)
 
 window = range(23, 32)
 # window = range(l1.time_cutoff)
 x = np.arange(-6.97,4,l1.fs)[window]
-neuron = 8
+neuron = 11
 
 
 control_trials = np.where(~l1.stim_ON)[0]
@@ -464,7 +471,8 @@ plt.plot(x, np.mean([l1.dff[0,stim_trials[i]][neuron, window] for i in range(len
 
 plt.axvline(x=-3, c='red', ls = '--', linewidth = 0.5)
 plt.axvline(x=-2, c='red', ls = '--', linewidth = 0.5)
-plt.ylim((-2, 2))
+# plt.ylim((-1, 1))
+plt.ylim((-0.02, 0.02))
 # ax[i].axvline(x=-1, c='red', ls = '--', linewidth = 0.5)
 # ax[i].axvline(x=-0, c='red', ls = '--', linewidth = 0.5)
     
@@ -473,23 +481,31 @@ plt.show()
 #%% Plot overlay traces of f-background:
     
 path = r'F:\data\BAYLORCW032\python\2023_10_24'
-l1 = Session(path, use_background_sub=True)
-
+paths = [
+            # r'F:\data\BAYLORCW032\python\2023_10_24',
+            # r'F:\data\BAYLORCW034\python\2023_10_27',
+            # r'F:\data\BAYLORCW036\python\2023_10_30',
+            r'F:\data\BAYLORCW035\python\2023_12_15',
+            # r'F:\data\BAYLORCW037\python\2023_12_15',
+            ]
 allcontrastimstack, allstack = np.zeros(26), np.zeros(26)
 window = range(12, 38)
 
-control_trials = np.where(~l1.stim_ON)[0]
-
-for i in range(len(control_trials)):
-    stack = l1.background[0,control_trials[i]][:, window]
-    allstack = np.vstack((allstack, stack))
-
-
-stim_trials = np.where(l1.stim_ON)[0]
-
-for i in range(len(stim_trials)):
-    stack = l1.background[0,stim_trials[i]][:, window]
-    allcontrastimstack = np.vstack((allcontrastimstack, stack))
+for path in paths:
+    l1 = Session(path, use_background_sub=True)
+    
+    control_trials = np.where(~l1.stim_ON)[0]
+    
+    for i in range(len(control_trials)):
+        stack = l1.background[0,control_trials[i]][:, window]
+        allstack = np.vstack((allstack, stack))
+    
+    
+    stim_trials = np.where(l1.stim_ON)[0]
+    
+    for i in range(len(stim_trials)):
+        stack = l1.background[0,stim_trials[i]][:, window]
+        allcontrastimstack = np.vstack((allcontrastimstack, stack))
 
     
 allstack = normalize(allstack[1:])
@@ -512,7 +528,7 @@ plt.ylabel('dF/F0')
 # axarr[1,1].set_xticks(range(0,allstack.shape[1], 10), [int(d) for d in x[::10]])
 plt.xlabel('Time from Go cue (s)')
 plt.legend()
-# plt.savefig(r'F:\data\Fig 3\contra_opto_effect_overlay_subtractbackground.pdf')
+# plt.savefig(r'F:\data\Fig 3\background_effect_overlay.pdf')
 
 plt.show()
 
