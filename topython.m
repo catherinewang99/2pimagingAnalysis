@@ -1,5 +1,5 @@
 addpath('F:\data')
-path = 'F:\data\BAYLORCW034\';
+path = 'H:\data\BAYLORCW038\';
 
 mkdir([path 'python'])
 
@@ -18,10 +18,10 @@ for j = 1:length(lst)
             neuropil = obj.roi_plane{1, i}.Fneu;
             dff = obj.roi_plane{1, i}.F;
             skew = obj.roi_plane{1, i}.skew;
-            background = obj.roi_plane{1, i}.Fbackground;
+%             background = obj.roi_plane{1, i}.Fbackground;
 
-            save([path, 'python\' strjoin(namesplit(2:4), '_') '\mod_layer_', int2str(i), '.mat'], 'center', 'dff', 'skew', 'background', 'neuropil')
-%             save([path, 'python\' strjoin(namesplit(2:4), '_') '\layer_', int2str(i), '.mat'], 'center', 'dff', 'skew')
+%             save([path, 'python\' strjoin(namesplit(2:4), '_') '\mod_layer_', int2str(i), '.mat'], 'center', 'dff', 'skew', 'background', 'neuropil')
+            save([path, 'python\' strjoin(namesplit(2:4), '_') '\layer_', int2str(i), '.mat'], 'center', 'dff', 'skew')
         end 
 
         % Get behavioral data

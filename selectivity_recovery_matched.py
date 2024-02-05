@@ -136,10 +136,13 @@ paths = [r'F:\data\BAYLORCW035\python\2023_10_12',
             r'F:\data\BAYLORCW035\python\2023_10_26',
            r'F:\data\BAYLORCW035\python\2023_11_29',
            r'F:\data\BAYLORCW035\python\2023_12_07',]
+
+paths = [r'F:\data\BAYLORCW035\python\2023_12_16']
 for path in paths:
     
     l1 = session.Session(path)
-    
+    l1.i_good_trials = l1.i_good_trials[80:]
+    # l1.i_good_trials = l1.i_good_trials[:80]
     l1.selectivity_optogenetics(p=0.01)
     
 #%% CW37 unmatched

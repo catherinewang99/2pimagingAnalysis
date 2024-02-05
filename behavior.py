@@ -544,10 +544,15 @@ class Behavior():
           
         return earlylicksarr, correctarr, cat(([0], num_trials))
         
-    def correct_error(self):
+    def correct_error(self, i_good=False):
         """
         Return array of correct and error behavior (0: error 1: correct) for 
         given single session
+        
+        Inputs
+        -------
+        i_good : bool
+            If use i_good_trials ONLY
 
         Returns
         -------
@@ -555,9 +560,14 @@ class Behavior():
             array of 0 and 1s corresponding to error and correct decisions
 
         """
+        if i_good:
+            
+            return self.L_correct[0][self.i_good_trials[0]] + self.R_correct[0][self.i_good_trials[0]]
         
-        return self.L_correct[0] + self.R_correct[0]
-        
+        else:
+            
+            return self.L_correct[0] + self.R_correct[0]
+
         
 
 
