@@ -1,5 +1,6 @@
 addpath('F:\data')
-path = 'F:\data\Behavior data\BAYLORCW037';
+% path = 'F:\data\Behavior data\BAYLORCW037';
+path = 'H:\data\Behavior data\BAYLORCW038';
 
 mkdir([path '\python_behavior'])
 
@@ -53,7 +54,8 @@ for j = 1:length(lst)
         % Delay length  
         total_trials = obj.trials.trialNums;
         for i_solo_trial = 1:total_trials
-            if ~contains(obj.sessionType{i_solo_trial}, 'sound')
+%             if ~contains(obj.sessionType{i_solo_trial}, 'sound')
+            if isfield(obj.eventsHistory{i_solo_trial, 1}.States, 'EarlyLickSample')
 %                 delay_duration{i_solo_trial} = 0;
 
                 if ~isnan(obj.eventsHistory{i_solo_trial, 1}.States.EarlyLickSample)

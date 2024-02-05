@@ -171,9 +171,9 @@ plt.show()
 # b = behavior.Behavior('F:\data\Behavior data\BAYLORCW028\python_behavior', behavior_only=True)
 # b.learning_progression(imaging=True)
 
-b = behavior.Behavior('F:\data\Behavior data\BAYLORCW035\python_behavior', behavior_only=True)
-# b.learning_progression(imaging=True)
-b.learning_progression(window=150)#, save =r'F:\data\Fig 1\CW32.pdf')
+# b = behavior.Behavior('F:\data\Behavior data\BAYLORCW035\python_behavior', behavior_only=True)
+# # b.learning_progression(imaging=True)
+# b.learning_progression(window=150)#, save =r'F:\data\Fig 1\CW32.pdf')
 
 # b = behavior.Behavior('F:\data\Behavior data\BAYLORCW037\python_behavior', behavior_only=True)
 # # b.learning_progression(imaging=True)
@@ -187,8 +187,8 @@ b.learning_progression(window=150)#, save =r'F:\data\Fig 1\CW32.pdf')
 # b.learning_progression(window = 100)
 # b.learning_progression(window = 100, imaging=True)
 
-# b = behavior.Behavior('F:\data\Behavior data\BAYLORCW027\python_behavior', behavior_only=True)
-# b.learning_progression(window = 50)
+b = behavior.Behavior(r'H:\data\Behavior data\BAYLORCW038\python_behavior', behavior_only=True)
+b.learning_progression(window = 100)
 
 #%% Compare learning curves ####
 

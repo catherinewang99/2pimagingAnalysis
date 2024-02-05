@@ -35,7 +35,7 @@ path = r'F:\data\BAYLORCW034\python\2023_10_24'
 
 path = 'F:\\data\\BAYLORCW037\\python\\2023_11_21'
 path = 'H:\\data\\BAYLORCW038\\python\\2024_02_02'
-l1 = quality.QC(path)
+l1 = quality.QC(path, use_background_sub=True)
 # l1.plot_pearsons_correlation()
 # var = l1.plot_variance_spread()
 ### TOTAL NUMBER OF NEURONS: ###
@@ -152,27 +152,28 @@ paths = [r'F:\data\BAYLORCW032\python\2023_10_23',
          ]
 
 paths = [
-            # r'F:\data\BAYLORCW032\python\2023_10_24',
+            r'F:\data\BAYLORCW032\python\2023_10_24',
             # r'F:\data\BAYLORCW034\python\2023_10_27',
-            # r'F:\data\BAYLORCW036\python\2023_10_30',
+            r'F:\data\BAYLORCW036\python\2023_10_30',
             r'F:\data\BAYLORCW035\python\2023_12_15',
-            # r'F:\data\BAYLORCW037\python\2023_12_15',
+            r'F:\data\BAYLORCW037\python\2023_12_15',
             ]
 # allstack, allstimstack = np.zeros(61), np.zeros(61)
 # allstack, allcontrastimstack = np.zeros(61), np.zeros(61)
-allstack, allcontrastimstack = np.zeros(26), np.zeros(26)
+# allstack, allcontrastimstack = np.zeros(26), np.zeros(26)
+allstack, allcontrastimstack = np.zeros(20), np.zeros(20)
 
 for path in paths:
     
-    l1 = quality.QC(path, use_background_sub=False)
+    l1 = quality.QC(path, use_background_sub=True)
 
     stack, stimstack = l1.all_neurons_heatmap(return_traces=True)
 
-    # allstack = np.vstack((allstack, stack))
-    # allcontrastimstack = np.vstack((allcontrastimstack, stimstack))
+    # allstack = np.vstack((allstack, stack[:, 18:38]))
+    # allcontrastimstack = np.vstack((allcontrastimstack, stimstack[:, 18:38]))
     
-    allstack = np.vstack((allstack, normalize(stack[:, 12:38])))
-    allcontrastimstack = np.vstack((allcontrastimstack, normalize(stimstack[:, 12:38])))
+    allstack = np.vstack((allstack, normalize(stack[:, 18:38])))
+    allcontrastimstack = np.vstack((allcontrastimstack, normalize(stimstack[:, 18:38])))
     
     # allstack = np.vstack((allstack, zscore(stack ,axis=0)))
     # allcontrastimstack = np.vstack((allcontrastimstack, zscore(stimstack, axis=0)))
@@ -243,7 +244,7 @@ plt.suptitle('n=3431 neurons')
 plt.show()
 
 #%% Overlay plots
-x = np.arange(-6.97,4,l1.fs)[12:38]
+x = np.arange(-6.97,4,l1.fs)[18:38]
 
 plt.plot(x, np.mean(allcontrastimstack, axis = 0), color = 'red', label='Optogenetic stimulation trials')
 plt.fill_between(x, np.mean(allcontrastimstack, axis = 0) - stats.sem(allcontrastimstack, axis=0), 
@@ -255,12 +256,22 @@ plt.axvline(x=-3, c='b', linewidth = 0.5)
 plt.fill_between(x, np.mean(allstack, axis = 0) - stats.sem(allstack, axis=0), 
           np.mean(allstack, axis = 0) + stats.sem(allstack, axis=0),
           color='silver')   
+
+# plt.plot(x, np.mean(allstack, axis = 0)+0.04, color = 'grey', label='Control trials')
+# plt.axvline(x=-3, c='b', linewidth = 0.5)
+# plt.fill_between(x, np.mean(allstack, axis = 0)+0.04 - stats.sem(allstack, axis=0), 
+#           np.mean(allstack, axis = 0) +0.04+ stats.sem(allstack, axis=0),
+#           color='silver')   
+
+
 # axarr[1,1].set_ylim(top=0.2)
 plt.ylabel('dF/F0')
 # axarr[1,1].set_xticks(range(0,allstack.shape[1], 10), [int(d) for d in x[::10]])
 plt.xlabel('Time from Go cue (s)')
+plt.ylim(-0.17,0.02) # for comparison to ipsi
+# plt.ylim(-0.13, -0.04) # for compariosn to subtract background
 plt.legend()
-# plt.savefig(r'F:\data\Fig 3\contra_opto_effect_overlay_subtractbackground.pdf')
+plt.savefig(r'F:\data\Fig 3\contra_opto_effect_overlay_subtractbackground.pdf')
 
 plt.show()
 
@@ -483,14 +494,14 @@ plt.show()
     
 path = r'F:\data\BAYLORCW032\python\2023_10_24'
 paths = [
-            # r'F:\data\BAYLORCW032\python\2023_10_24',
+            r'F:\data\BAYLORCW032\python\2023_10_24',
             # r'F:\data\BAYLORCW034\python\2023_10_27',
-            # r'F:\data\BAYLORCW036\python\2023_10_30',
+            r'F:\data\BAYLORCW036\python\2023_10_30',
             r'F:\data\BAYLORCW035\python\2023_12_15',
-            # r'F:\data\BAYLORCW037\python\2023_12_15',
+            r'F:\data\BAYLORCW037\python\2023_12_15',
             ]
-allcontrastimstack, allstack = np.zeros(26), np.zeros(26)
-window = range(12, 38)
+allcontrastimstack, allstack = np.zeros(20), np.zeros(20)
+window = range(18, 38)
 
 for path in paths:
     l1 = Session(path, use_background_sub=True)
@@ -512,7 +523,7 @@ for path in paths:
 allstack = normalize(allstack[1:])
 allcontrastimstack = normalize(allcontrastimstack[1:])
 
-x = np.arange(-6.97,4,l1.fs)[12:38]
+x = np.arange(-6.97,4,l1.fs)[18:38]
 
 plt.plot(x, np.mean(allcontrastimstack, axis = 0), color = 'red', label='Optogenetic stimulation trials')
 plt.fill_between(x, np.mean(allcontrastimstack, axis = 0) - stats.sem(allcontrastimstack, axis=0), 
@@ -529,7 +540,7 @@ plt.ylabel('dF/F0')
 # axarr[1,1].set_xticks(range(0,allstack.shape[1], 10), [int(d) for d in x[::10]])
 plt.xlabel('Time from Go cue (s)')
 plt.legend()
-# plt.savefig(r'F:\data\Fig 3\background_effect_overlay.pdf')
+plt.savefig(r'F:\data\Fig 3\background_effect_overlay.pdf')
 
 plt.show()
 
