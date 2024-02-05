@@ -558,15 +558,16 @@ class Behavior():
         -------
         array
             array of 0 and 1s corresponding to error and correct decisions
+            \
 
         """
         if i_good:
             
-            return self.L_correct[0][self.i_good_trials[0]] + self.R_correct[0][self.i_good_trials[0]]
+            return (self.L_correct[0][self.i_good_trials[0]] + self.R_correct[0][self.i_good_trials[0]]).astype(int)
         
         else:
             
-            return self.L_correct[0] + self.R_correct[0]
+            return (self.L_correct[0] + self.R_correct[0]).astype(int) 
 
         
 

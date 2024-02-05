@@ -117,7 +117,7 @@ class Session:
                 condition = 'mod_layer' in layer_pth and '.mat' in layer_pth if use_background_sub else 'layer' in layer_pth and '.mat' in layer_pth and len(layer_pth) < 12
                 
                 if condition:
-                        
+
                     layer_og = scio.loadmat(r'{}\{}'.format(path, layer_pth))
                     layer = copy.deepcopy(layer_og)
                     
@@ -168,8 +168,11 @@ class Session:
                             if 'neuropil' in layer_og.keys():
                                 add = layer['neuropil'][0, t]
                                 self.npil[0, t] = np.vstack((self.npil[0, t], add))
-                                
-                    counter += 1
+                        counter += 1
+            
+            
+            
+            
             self.fs = 1/(30/counter)
 
                             
@@ -1392,8 +1395,8 @@ class Session:
         
         # Skip neuron if less than 15
         if len(l_trials) < 15 or len(r_trials) < 15:
-            raise Exception("Neuron {} has fewer than 15 trials in R or L lick trials".format(neuron_num))
-            return 0
+            raise Exception("There are fewer than 15 trials R/L: {} R trials and {} L trials".format(len(l_trials), len(r_trials)))
+            # samplesize = 5
         
         pref = 0
         for _ in range(30): # Perform 30 times

@@ -535,12 +535,12 @@ plt.axvline(x=-3, c='b', linewidth = 0.5)
 plt.fill_between(x, np.mean(allstack, axis = 0) - stats.sem(allstack, axis=0), 
           np.mean(allstack, axis = 0) + stats.sem(allstack, axis=0),
           color='silver')   
-# axarr[1,1].set_ylim(top=0.2)
+plt.ylim(bottom=-0.125)
 plt.ylabel('dF/F0')
 # axarr[1,1].set_xticks(range(0,allstack.shape[1], 10), [int(d) for d in x[::10]])
 plt.xlabel('Time from Go cue (s)')
 plt.legend()
-plt.savefig(r'F:\data\Fig 3\background_effect_overlay.pdf')
+# plt.savefig(r'F:\data\Fig 3\background_effect_overlay.pdf')
 
 plt.show()
 
