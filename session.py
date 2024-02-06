@@ -168,7 +168,7 @@ class Session:
                             if 'neuropil' in layer_og.keys():
                                 add = layer['neuropil'][0, t]
                                 self.npil[0, t] = np.vstack((self.npil[0, t], add))
-                        counter += 1
+                    counter += 1
             
             
             
