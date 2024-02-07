@@ -1828,12 +1828,14 @@ class Session:
         axarr[0].set_xlabel('Time from Go cue (s)')
         axarr[0].set_ylabel('Population trace')
 
-    def plot_pref_overstates(self, e=False, opto=False, lickdir=True):
+    def plot_pref_overstates(self, e=False, opto=False, lickdir=True, load_states=None):
         
         """Plots preferred and nonpreferred traces for all selective neurons across 3 behavioral states and control
         
         Non states defined as trials not above a certain probability for any of 3 states
-                        
+        
+        Define selective neurons using all trials
+        
         Parameters
         ----------
         e : list or bool, optional
@@ -1843,13 +1845,18 @@ class Session:
             Whether to plot opto trials (default False)
         lickdir : bool, optional
             Whether to use actual lick direction or correct trials only
-
+        load : array
+            Enter states in manually
         """
         
         x = np.arange(-5.97,4,self.fs)[2:self.time_cutoff] if 'CW03' not in self.path else np.arange(-6.97,6,self.fs)[2:self.time_cutoff]
         titles = ['Non state selectivity', 'State 1 selectivity', 'State 2 selectivity', 'State 3 selectivity', 'State 4 selectivity']
-        epoch = e if e != False else range(self.delay, self.response)
-        states = np.load(r'{}\states.npy'.format(self.path))
+        epoch = e if e != False else range(self.response - 9, self.response)
+        if load_states == None:
+            states = np.load(r'{}\states.npy'.format(self.path))
+        else: 
+            states = load_states
+            
         num_state = states.shape[1]
         
         f, axarr = plt.subplots(1,num_state + 1, sharex=True, sharey=True, figsize=(20,5))
