@@ -1879,13 +1879,20 @@ class Session:
                 # overall_L = np.array([np.mean(overall_L[l], axis=0) for l in range(len(overall_L))])
                 
                 if i:
-                    overall_R, overall_L = self.get_trace_matrix_multiple(ipsi_neurons, bias_trials=self.find_bias_trials(state = i-1), opto=opto, lickdir=lickdir)
-                
+                    if load_states == None:
+                        overall_R, overall_L = self.get_trace_matrix_multiple(ipsi_neurons, bias_trials=self.find_bias_trials(state = i-1), opto=opto, lickdir=lickdir)
+                    
                 else:
                     _ = self.find_bias_trials()
                     overall_R, overall_L = self.get_trace_matrix_multiple(ipsi_neurons, bias_trials=self.nonstate_trials, opto=opto, lickdir=lickdir)
                 
-                pref, nonpref = np.vstack((pref, overall_L)), np.vstack((nonpref, overall_R))
+                
+                if len(overall_L.shape) == 1:
+                    nonpref = np.vstack((nonpref, overall_R))
+                elif len(overall_R.shape) == 1:
+                    pref = np.vstack((pref, overall_L))
+                else:
+                    pref, nonpref = np.vstack((pref, overall_L)), np.vstack((nonpref, overall_R))
 
                 # pref, nonpref = overall_L, overall_R
                 
@@ -1904,9 +1911,16 @@ class Session:
                     _ = self.find_bias_trials()
                     overall_R, overall_L = self.get_trace_matrix_multiple(contra_neurons, bias_trials=self.nonstate_trials, opto=opto, lickdir=lickdir)
                 
-                pref, nonpref = np.vstack((pref, overall_R)), np.vstack((nonpref, overall_L))
+                # pref, nonpref = np.vstack((pref, overall_R)), np.vstack((nonpref, overall_L))
     
-                            
+                                 
+                if len(overall_L.shape) == 1:
+                    pref = np.vstack((nonpref, overall_R))
+                elif len(overall_R.shape) == 1:
+                    nonpref = np.vstack((pref, overall_L))
+                else:
+                    pref, nonpref = np.vstack((pref, overall_R)), np.vstack((nonpref, overall_L))
+                    
     
             else:
                 print('No contra selective neurons')
@@ -1995,7 +2009,13 @@ class Session:
                     _ = self.find_bias_trials()
                     overall_R, overall_L = self.get_trace_matrix_multiple(ipsi_neurons, bias_trials=self.nonstate_trials, opto=opto, lickdir=lickdir)
                     
-                pref, nonpref = np.vstack((pref, overall_L)), np.vstack((nonpref, overall_R))
+                if len(overall_L.shape) == 1:
+                    nonpref = np.vstack((nonpref, overall_R))
+                elif len(overall_R.shape) == 1:
+                    pref = np.vstack((pref, overall_L))
+                else:
+                    pref, nonpref = np.vstack((pref, overall_L)), np.vstack((nonpref, overall_R))
+                # pref, nonpref = np.vstack((pref, overall_L)), np.vstack((nonpref, overall_R))
 
                 # pref, nonpref = overall_L, overall_R
                 
@@ -2017,8 +2037,13 @@ class Session:
                 # print(i)
                 # print(pref, nonpref)
                 # print()
-                pref, nonpref = np.vstack((pref, overall_R)), np.vstack((nonpref, overall_L))
-    
+                # pref, nonpref = np.vstack((pref, overall_R)), np.vstack((nonpref, overall_L))
+                if len(overall_L.shape) == 1:
+                    pref = np.vstack((nonpref, overall_R))
+                elif len(overall_R.shape) == 1:
+                    nonpref = np.vstack((pref, overall_L))
+                else:
+                    pref, nonpref = np.vstack((pref, overall_R)), np.vstack((nonpref, overall_L))
                             
     
             else:
