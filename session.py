@@ -2791,7 +2791,7 @@ class Session:
             return pref, nonpref, optop, optonp
             
 
-    def modularity_proportion(self, p = 0.0001):
+    def modularity_proportion(self, p = 0.0001, trials=None):
         """Returns the modularity as a proportion of control trial activity
         
         Uses method from Chen et al 2021 to calculate recovery during the 
@@ -2802,6 +2802,9 @@ class Session:
 
         p : int, optional
             P-value to use in the selectivity calculations
+            
+        trials : array, optional
+            Trials used to calculate recovery for behavior state analysis
         """
         
         # Get late delay selective neurons
