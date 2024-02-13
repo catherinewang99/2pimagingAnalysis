@@ -395,6 +395,7 @@ class Behavior():
         axarr[2].plot(earlylicksarr, 'b')        
         axarr[2].set_ylabel('% Early licks')
         axarr[2].set_xlabel('Trials')
+        axarr[2].set_ylim(0, 0.4)
         
         
         # Denote separate sessions
