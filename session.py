@@ -3386,139 +3386,88 @@ class Session:
         num_state = states.shape[1]
         
 
-        # contra_neurons, ipsi_neurons, contra_trace, ipsi_trace = self.contra_ipsi_pop(epoch)
         
+        all_recovery = []
 
+        
         for i in range(num_state): # Should be two
-            
-            if len(ipsi_neurons) == 0 and len(contra_neurons) == 0:
-                print("No selective neurons in state {}".format('nonstate' if i == 0 else i + 1))
-                continue
-                
-            pref, nonpref = np.zeros(self.time_cutoff), np.zeros(self.time_cutoff)
-            
-            if len(ipsi_neurons) != 0:
-            
-                # overall_R, overall_L = ipsi_trace['r'], ipsi_trace['l']
-                # overall_R = np.array([np.mean(overall_R[r], axis=0) for r in range(len(overall_R))])
-                # overall_L = np.array([np.mean(overall_L[l], axis=0) for l in range(len(overall_L))])
-                
-                    
-                nonpref, pref = cat(ipsi_trace['r']), cat(ipsi_trace['l'])
-                optonp, optop = self.get_trace_matrix_multiple(ipsi_neurons, bias_trials=self.find_bias_trials(state = i-1), opto=True, both=False)
-                
-                
-                # if len(overall_L.shape) == 1 and len(overall_R.shape) == 1:
-                #     print("No trials in L and R for condition")
-                #     continue
-                # if len(overall_L.shape) == 1 and len(overall_R.shape) != 1:
-                #     nonpref = np.vstack((nonpref, overall_R))
-                # elif len(overall_R.shape) == 1 and len(overall_L.shape) != 1:
-                #     pref = np.vstack((pref, overall_L))
-                # else:
-                #     pref, nonpref = np.vstack((pref, overall_L)), np.vstack((nonpref, overall_R))
 
-                # pref, nonpref = overall_L, overall_R
+
+            if len(contra_neurons) == 0 and len(ipsi_neurons) == 0:
                 
-            else:
-                print('No ipsi selective neurons')
-        
-            if len(contra_neurons) != 0:
+                raise Exception("No selective neurons :^(") 
+                
+            elif len(contra_neurons) == 0:
+                
+                
+                nonpref, pref = cat(ipsi_trace['r']), cat(ipsi_trace['l'])
+                # optonp, optop = self.get_trace_matrix_multiple(ipsi_neurons, opto=True, both=False)
+                optonp, optop = self.get_trace_matrix_multiple(ipsi_neurons, bias_trials=self.find_bias_trials(state = i), opto=True, both=False)
     
-                # overall_R, overall_L = contra_trace['r'], contra_trace['l']
-                # overall_R = np.array([np.mean(overall_R[r], axis=0) for r in range(len(overall_R))])
-                # overall_L = np.array([np.mean(overall_L[l], axis=0) for l in range(len(overall_L))])
+                # errnp, errpref = self.get_trace_matrix_multiple(ipsi_neurons, opto=True, error=True)
+                if len(optonp.shape) == 1 and len(optop.shape) == 1:
+                    print("No trials in L and R for condition")
+                    
+            elif len(ipsi_neurons) == 0:
                 
-                if i:
-                    overall_R, overall_L = self.get_trace_matrix_multiple(contra_neurons, bias_trials=self.find_bias_trials(state = i-1), opto=opto, lickdir=lickdir)
-                else:
-                    _ = self.find_bias_trials()
-                    overall_R, overall_L = self.get_trace_matrix_multiple(contra_neurons, bias_trials=self.nonstate_trials, opto=opto, lickdir=lickdir)
-                
-                # pref, nonpref = np.vstack((pref, overall_R)), np.vstack((nonpref, overall_L))
-                if len(overall_L.shape) == 1 and len(overall_R.shape) == 1:
+                nonpref, pref = cat(contra_trace['l']), cat(contra_trace['r'])
+                # optop, optonp = self.get_trace_matrix_multiple(contra_neurons, opto=True, both=False)
+                optonp, optop = self.get_trace_matrix_multiple(contra_neurons, bias_trials=self.find_bias_trials(state = i), opto=True, both=False)
+    
+                # errpref, errnp = self.get_trace_matrix_multiple(contra_neurons, opto=True, error=True)
+                if len(optonp.shape) == 1 and len(optop.shape) == 1:
                     print("No trials in L and R for condition")
                                  
-                if len(overall_L.shape) == 1:
-                    pref = np.vstack((nonpref, overall_R))
-                elif len(overall_R.shape) == 1:
-                    nonpref = np.vstack((pref, overall_L))
-                else:
-                    pref, nonpref = np.vstack((pref, overall_R)), np.vstack((nonpref, overall_L))
-                    
     
             else:
-                print('No contra selective neurons')
-            
-            
-            pref, nonpref = pref[1:], nonpref[1:]
-            
-            nonpreferr = np.std(nonpref, axis=0) / np.sqrt(len(nonpref)) 
-            preferr = np.std(pref, axis=0) / np.sqrt(len(pref))
+                
+                nonpref, pref = cat((cat(ipsi_trace['r']), cat(contra_trace['l']))), cat((cat(ipsi_trace['l']), cat(contra_trace['r'])))
+                # optonp, optop = self.get_trace_matrix_multiple(ipsi_neurons, opto=True, both=False)
+                # optop1, optonp1 = self.get_trace_matrix_multiple(contra_neurons, opto = True, both=False)
+                optonp, optop = self.get_trace_matrix_multiple(ipsi_neurons, bias_trials=self.find_bias_trials(state = i), opto=True, both=False)
+                optop1, optonp1 = self.get_trace_matrix_multiple(contra_neurons, bias_trials=self.find_bias_trials(state = i), opto = True, both=False)
+                
+                if len(optonp.shape) == 1 and len(optop.shape) == 1:
+                    print("No trials in L and R for condition")
                         
-            pref, nonpref = np.mean(pref, axis = 0), np.mean(nonpref, axis = 0)
+                elif len(optonp.shape) == 1:
+                    if len(optop1.shape) != 1:
+                        optop = cat((optop, optop1))
+
+                elif len(optop.shape) == 1:
+                    if len(optonp1.shape) != 1:
+                        optonp = cat((optonp, optonp1))
+
+                else:
+                    
+                    optonp, optop = cat((optonp, optonp1)), cat((optop, optop1))
+                
+                # errnp, errpref = self.get_trace_matrix_multiple(ipsi_neurons, opto=True, error=True)
+                # errpref1, errnp1 = self.get_trace_matrix_multiple(contra_neurons, opto=True, error=True)
+                # errpref, errnp = cat((errpref, errpref1)), cat((errnp, errnp1))
     
-            pref, nonpref, nonpreferr, preferr = pref[2:], nonpref[2:], nonpreferr[2:], preferr[2:]
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        if len(contra_neurons) == 0 and len(ipsi_neurons) == 0:
+                
+            sel = np.mean(pref, axis = 0) - np.mean(nonpref, axis = 0)
+            err = np.std(pref, axis=0) / np.sqrt(len(pref)) 
+            err += np.std(nonpref, axis=0) / np.sqrt(len(nonpref))
             
-            raise Exception("No selective neurons :^(") 
+            selo = np.mean(optop, axis = 0) - np.mean(optonp, axis = 0)
+            erro = np.std(optop, axis=0) / np.sqrt(len(optop)) 
+            erro += np.std(optonp, axis=0) / np.sqrt(len(optonp))
             
-        elif len(contra_neurons) == 0:
+            # Add 0.4ms for the time lag factor
+            # period = range( int(self.delay + 0.4*(1/self.fs)), int(self.delay + 1.4*(1/self.fs)))
+            period = range(self.response-9, self.response) # Use last second of delay
             
+            print("State {}, {}".format(i, type(selo)))
+            if type(selo) == np.float64:
+                recovery = None
+            else:
+                recovery = np.mean(selo[period] / sel[period])
             
-            nonpref, pref = cat(ipsi_trace['r']), cat(ipsi_trace['l'])
-            optonp, optop = self.get_trace_matrix_multiple(ipsi_neurons, opto=True, both=False)
-            # errnp, errpref = self.get_trace_matrix_multiple(ipsi_neurons, opto=True, error=True)
+            all_recovery += [recovery]
             
-        elif len(ipsi_neurons) == 0:
-            
-            nonpref, pref = cat(contra_trace['l']), cat(contra_trace['r'])
-            optop, optonp = self.get_trace_matrix_multiple(contra_neurons, opto=True, both=False)
-            # errpref, errnp = self.get_trace_matrix_multiple(contra_neurons, opto=True, error=True)
-
-        else:
-            
-            nonpref, pref = cat((cat(ipsi_trace['r']), cat(contra_trace['l']))), cat((cat(ipsi_trace['l']), cat(contra_trace['r'])))
-            optonp, optop = self.get_trace_matrix_multiple(ipsi_neurons, opto=True, both=False)
-            optop1, optonp1 = self.get_trace_matrix_multiple(contra_neurons, opto = True, both=False)
-            optonp, optop = cat((optonp, optonp1)), cat((optop, optop1))
-            
-            # errnp, errpref = self.get_trace_matrix_multiple(ipsi_neurons, opto=True, error=True)
-            # errpref1, errnp1 = self.get_trace_matrix_multiple(contra_neurons, opto=True, error=True)
-            # errpref, errnp = cat((errpref, errpref1)), cat((errnp, errnp1))
-
-            
-        sel = np.mean(pref, axis = 0) - np.mean(nonpref, axis = 0)
-        err = np.std(pref, axis=0) / np.sqrt(len(pref)) 
-        err += np.std(nonpref, axis=0) / np.sqrt(len(nonpref))
-        
-        selo = np.mean(optop, axis = 0) - np.mean(optonp, axis = 0)
-        erro = np.std(optop, axis=0) / np.sqrt(len(optop)) 
-        erro += np.std(optonp, axis=0) / np.sqrt(len(optonp))
-        
-        # Add 0.4ms for the time lag factor
-        # period = range( int(self.delay + 0.4*(1/self.fs)), int(self.delay + 1.4*(1/self.fs)))
-        period = range(self.response-9, self.response) # Use last second of delay
-
-        recovery = np.mean(selo[period] / sel[period])
-        
-        return recovery
+        return all_recovery
 
 
 
