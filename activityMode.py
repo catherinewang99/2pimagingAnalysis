@@ -2774,5 +2774,167 @@ class Mode(Session):
         
         
         return CD_recovery_mode
+    
+    
+    def modularity_proportion_by_stateCD(self, mode_input = 'choice', trials=None):
+        """Returns the modularity as a proportion of control CD
+        
+        Define CD using all trials
+        
+        Return modularity as a delta from CD at end of delay for left and right
+        traces independently
+        
+        Assume there are only two states
+                                
+        Parameters
+        ----------
+            
+        trials : array, optional
+            Trials used to calculate recovery for behavior state analysis
+            
+        Returns
+        -------
+        Array of length corresponding to the number of states in states.npy object
+        
+        """
+        
+        idx_map = {'choice': 1, 'action':5, 'stimulus':0}
+        idx = idx_map[mode_input]
+
+        orthonormal_basis, mean = self.plot_behaviorally_relevant_modes(plot=False) # one method
+        orthonormal_basis = orthonormal_basis[:, idx]
+            
+        activityRL_train= np.concatenate((self.PSTH_r_train_correct, 
+                                        self.PSTH_l_train_correct), axis=1)
+
+        activityRL_test= np.concatenate((self.PSTH_r_test_correct, 
+                                        self.PSTH_l_test_correct), axis=1)
+        
+       
+        x = np.arange(-6.97,4,self.fs)[:self.time_cutoff]
+
+        # orthonormal_basis = orthonormal_basis.reshape(-1,1)
+        i_pc = 0
+
+        # Project for every control trial
+        # for t in self.r_test_idx:
+        #     activity = self.dff[0, r_trials[t]][self.good_neurons] 
+        #     activity = activity - np.tile(np.mean(activityRL_train, axis=1)[:, None], (1, activity.shape[1]))
+        #     proj_allDim = np.dot(activity.T, orthonormal_basis)
+        #     # plt.plot(x, proj_allDim[:len(self.T_cue_aligned_sel), i_pc], 'b', alpha = 0.5,  linewidth = 0.5)
+            
+        # for t in self.l_test_idx:
+        #     activity = self.dff[0, l_trials[t]][self.good_neurons]
+        #     activity = activity - np.tile(np.mean(activityRL_train, axis=1)[:, None], (1, activity.shape[1]))
+        #     proj_allDim = np.dot(activity.T, orthonormal_basis)
+        #     # plt.plot(x, proj_allDim[:len(self.T_cue_aligned_sel), i_pc], 'r', alpha = 0.5, linewidth = 0.5)
+        if normalize:
+            # Get mean and STD
+            
+            proj_allDim = np.dot(activityRL_train.T, orthonormal_basis)
+            meantrain, meanstd = np.mean(proj_allDim), np.std(proj_allDim)
+
+        # Correct trials
+        activityRL_test = activityRL_test - np.tile(np.mean(activityRL_train, axis=1)[:, None], (1, activityRL_test.shape[1]))  # remove mean
+        proj_allDim = np.dot(activityRL_test.T, orthonormal_basis)
+        if normalize:
+
+            proj_allDim = (proj_allDim - meantrain) / meanstd
+        
+        # control_traces = proj_allDim[:len(self.T_cue_aligned_sel)], proj_allDim[len(self.T_cue_aligned_sel):]
+        # if not return_traces:
+        #     # Plot average control traces as dotted lines
+        #     plt.plot(x, proj_allDim[:len(self.T_cue_aligned_sel)], 'b', ls = '--', linewidth = 0.5)
+        #     plt.plot(x, proj_allDim[len(self.T_cue_aligned_sel):], 'r', ls = '--', linewidth = 0.5)
+        #     plt.title("Choice decoder projections with opto")
+        #     plt.axvline(-4.3, color = 'grey', alpha=0.5, ls = '--')
+        #     plt.axvline(-3, color = 'grey', alpha=0.5, ls = '--')
+        #     plt.axvline(0, color = 'grey', alpha=0.5, ls = '--')
+        #     plt.ylabel('CD_delay projection (a.u.)')
+        left_control_traces = proj_allDim[len(self.T_cue_aligned_sel):]
+        right_control_traces = proj_allDim[:len(self.T_cue_aligned_sel)]
+        
+        states = np.load(r'{}\states.npy'.format(self.path))
+            
+        num_state = states.shape[1]
+        
+        
+        all_recovery = []
+
+        
+        for i in range(num_state):
+        
+            r_opto, l_opto = self.get_trace_matrix_multiple(self.good_neurons, opto=True)
+    
+            # activityRL_opto= np.concatenate((r_opto, l_opto), axis=1)
+            
+            trials = self.find_bias_trials(state = i)
+            
+            r_corr = np.where(self.R_correct + self.L_wrong)[0]
+            l_corr = np.where(self.L_correct + self.R_wrong)[0]
+            r_corr = [i for i in r_corr if i in trials]
+            l_corr = [i for i in l_corr if i in trials]
+            
+            # Project for every opto trial
+            r_trials = [i for i in r_corr if self.stim_ON[i] and not self.early_lick[i]]
+            l_trials = [i for i in l_corr if self.stim_ON[i] and not self.early_lick[i]]
+            
+            r_proj_delta = []
+            l_proj_delta = []
+            for r in r_trials:
+                activity = self.dff[0, r][self.good_neurons] 
+                activity = activity - np.tile(np.mean(activityRL_train, axis=1)[:, None], (1, activity.shape[1]))
+                proj_allDim = np.dot(activity.T, orthonormal_basis)
+                proj_allDim = (proj_allDim - meantrain) / meanstd
+                r_proj_delta += [right_control_traces[self.response-6:self.response] - proj_allDim[self.response-6:self.response]]
+                # plt.plot(x, proj_allDim[:len(self.T_cue_aligned_sel), i_pc], 'b', alpha = 0.5,  linewidth = 0.5)
+                
+            for l in l_trials:
+                activity = self.dff[0, l][self.good_neurons]
+                activity = activity - np.tile(np.mean(activityRL_train, axis=1)[:, None], (1, activity.shape[1]))
+                proj_allDim = np.dot(activity.T, orthonormal_basis)
+                proj_allDim = (proj_allDim - meantrain) / meanstd
+                l_proj_delta += [left_control_traces[self.response-6:self.response] - proj_allDim[self.response-6:self.response]]
+                # plt.plot(x, proj_allDim[:len(self.T_cue_aligned_sel), i_pc], 'r', alpha = 0.5, linewidth = 0.5)
+                
+                
+            # # Opto trials
+            # activityRL_opto = activityRL_opto - np.tile(np.mean(activityRL_train, axis=1)[:, None], (1, activityRL_opto.shape[1]))  # remove mean
+            # proj_allDim = np.dot(activityRL_opto.T, orthonormal_basis)
+            # if normalize:
+    
+            #     proj_allDim = (proj_allDim - meantrain) / meanstd
+                
+            # if return_traces:
+            #     opto_traces = proj_allDim[:len(self.T_cue_aligned_sel)], proj_allDim[len(self.T_cue_aligned_sel):]
+            #     error_bars = stats.sem(r_proj, axis=0), stats.sem(l_proj, axis=0)
+            #     if return_applied:
+            #         return control_traces, opto_traces, error_bars, orthonormal_basis, np.mean(activityRL_train, axis=1)[:, None], meantrain, meanstd
+            #     else:
+    
+            #         return control_traces, opto_traces, error_bars
+            
+            # plt.plot(x, proj_allDim[:len(self.T_cue_aligned_sel)], 'b', linewidth = 2)
+            # plt.plot(x, proj_allDim[len(self.T_cue_aligned_sel):], 'r', linewidth = 2)
+            
+            # plt.fill_between(x, proj_allDim[len(self.T_cue_aligned_sel):] - stats.sem(l_proj, axis=0), 
+            #          proj_allDim[len(self.T_cue_aligned_sel):] +  stats.sem(l_proj, axis=0),
+            #          color=['#ffaeb1'])
+            # plt.fill_between(x, proj_allDim[:len(self.T_cue_aligned_sel)] - stats.sem(r_proj, axis=0), 
+            #          proj_allDim[:len(self.T_cue_aligned_sel)] + stats.sem(r_proj, axis=0),
+            #          color=['#b4b2dc'])
+            
+            # plt.hlines(y=max(proj_allDim[:]) + 0.5, xmin=-3, xmax=-2, linewidth=10, color='red')
+            
+            recovery = 0
+            
+            if len(r_proj_delta) != 0:
+                recovery += np.abs(np.mean(r_proj_delta)) 
+            if len(l_proj_delta) != 0:
+                recovery += np.abs(np.mean(l_proj_delta))
+
+            all_recovery += [recovery]
+
+        return all_recovery
 
   

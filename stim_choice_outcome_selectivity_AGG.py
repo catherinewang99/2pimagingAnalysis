@@ -103,7 +103,7 @@ for i in range(3):
     axarr[i].axvline(-3, color = 'grey', alpha=0.5, ls = '--')        
     axarr[i].axhline(0, color = 'grey', alpha=0.5, ls = '--')
 
-plt.savefig(r'F:\data\Fig 2\naive_stim_choice_outcome_selectivitynocw32.pdf')
+# plt.savefig(r'F:\data\Fig 2\naive_stim_choice_outcome_selectivitynocw32.pdf')
 plt.show()
 
 #%%
