@@ -212,7 +212,14 @@ class Session:
         
         self.L_ignore = cat(behavior['L_ignore_tmp'])
         self.R_ignore = cat(behavior['R_ignore_tmp'])
-                
+    
+                        
+        self.lick_L_trials = np.sort(cat((np.where(self.L_correct)[0], 
+                                     np.where(self.R_wrong)[0])))
+        
+        self.lick_R_trials = np.sort(cat((np.where(self.R_correct)[0], 
+                                     np.where(self.L_wrong)[0]))) 
+    
         self.L_trials = np.sort(cat((np.where(self.L_correct)[0], 
                                      np.where(self.L_wrong)[0],
                                      np.where(self.L_ignore)[0])))
@@ -1362,7 +1369,7 @@ class Session:
         
      
     
-    def screen_preference(self, neuron_num, epoch, samplesize = 10):
+    def screen_preference(self, neuron_num, epoch, samplesize = 10, lickdir=False):
         """Determine if a neuron is left or right preferring
                 
         Iterate 30 times over different test batches to get a high confidence
@@ -1389,7 +1396,7 @@ class Session:
         
         # All trials where the mouse licked left or right AND non stim
         
-        R, L = self.get_trace_matrix(neuron_num)
+        R, L = self.get_trace_matrix(neuron_num, lickdir=lickdir)
         l_trials = range(len(L))  
         r_trials = range(len(R))
         
@@ -1461,7 +1468,7 @@ class Session:
         
         return sel
     
-    def contra_ipsi_pop(self, epoch, return_sel = False, selective_n = [], p=0.0001):
+    def contra_ipsi_pop(self, epoch, return_sel = False, selective_n = [], p=0.0001, trials = None):
         
         """Finds neurons that are left and right preferring 
         
@@ -1477,6 +1484,8 @@ class Session:
             List of pre-selected selective neurons (default empty list)
         p : int, optional
             p-value to use to evaluate selectivity (default 0.0001)
+        trials : list, optional
+            List of trials to return traces over for behavior state analysis 
             
         Returns
         -------
@@ -1513,7 +1522,16 @@ class Session:
                 R, L = self.get_trace_matrix(neuron_num)
 
                 pref_choice, test_l, test_r = self.screen_preference(neuron_num, epoch) 
-        
+                
+                if trials is not None: # Filter out non behavior state trials
+                
+                    R, L = self.get_trace_matrix(neuron_num, lickdir=True)
+
+                    pref_choice, test_l, test_r = self.screen_preference(neuron_num, epoch, lickdir=True) 
+                    
+                    test_l = [t for t in test_l if self.lick_L_trials[t] in trials]
+                    test_r = [t for t in test_r if self.lick_R_trials[t] in trials]
+                            
                 if self.recording_loc == 'l':
 
                     if pref_choice:
@@ -3105,8 +3123,8 @@ class Session:
             return stim_neurons, choice_neurons, action_neurons, outcome_neurons
 
 
-    def stim_choice_outcome_selectivity(self, save=False, y_axis = 0, action=False):
-        """Plots selectivity traces of stim/lick/reward/mixed cells using Susu's method
+    def stim_choice_outcome_selectivity(self, save=False, y_axis = 0, action=False, states = None):
+        """Plots selectivity traces of stim/lick/reward/action cells using Susu's method
         
         Susu method called from single_neuron_sel method
         
@@ -3119,6 +3137,8 @@ class Session:
         action : bool, optional
             if True, only return action selectivity trace
         
+        states : int, optional
+            if given, plot only using trials from the given state
 
         """
         stim_neurons, choice_neurons, action_neurons, outcome_neurons = self.single_neuron_sel('Susu method', plot=False)
@@ -3132,7 +3152,12 @@ class Session:
         
         
             
-        nonpref, pref = self.contra_ipsi_pop(epochs[0], return_sel=True, selective_n = stim_neurons)
+        nonpref, pref = self.contra_ipsi_pop(epochs[0], return_sel=True, selective_n = stim_neurons, trials=states)
+        if any(isinstance(x, np.float64) for x in nonpref):
+            nonpref = pd.DataFrame(np.array(nonpref)).dropna().to_numpy()[:, 0]
+        if any(isinstance(x, np.float64) for x in pref):
+            pref = pd.DataFrame(np.array(pref)).dropna().to_numpy()[:, 0]
+        
         
         err = np.std(pref, axis=0) / np.sqrt(len(pref)) 
         err += np.std(nonpref, axis=0) / np.sqrt(len(nonpref))
@@ -3141,7 +3166,7 @@ class Session:
         
         ################## ACTION #####################
         if action:
-            nonpref, pref = self.contra_ipsi_pop(range(self.response, self.response+6), return_sel=True, selective_n = action_neurons)
+            nonpref, pref = self.contra_ipsi_pop(range(self.response, self.response+6), return_sel=True, selective_n = action_neurons, trials=states)
             err = np.std(pref, axis=0) / np.sqrt(len(pref)) 
             err += np.std(nonpref, axis=0) / np.sqrt(len(nonpref))
             sel = np.mean(pref, axis=0) - np.mean(nonpref, axis=0)
@@ -3152,7 +3177,7 @@ class Session:
                 
             return action_sel
         #######################################
-        f, axarr = plt.subplots(1,3, sharey='row', figsize=(15,5))
+        f, axarr = plt.subplots(1,4, sharey='row', figsize=(15,5))
 
 
         if type(sel) != np.ndarray:
@@ -3170,7 +3195,12 @@ class Session:
         #######################################
         
 
-        nonpref, pref = self.contra_ipsi_pop(epochs[1], return_sel=True, selective_n = choice_neurons)
+        nonpref, pref = self.contra_ipsi_pop(epochs[1], return_sel=True, selective_n = choice_neurons, trials=states)
+        if any(isinstance(x, np.float64) for x in nonpref):
+            nonpref = pd.DataFrame(np.array(nonpref)).dropna().to_numpy()[:, 0]
+        if any(isinstance(x, np.float64) for x in pref):
+            pref = pd.DataFrame(np.array(pref)).dropna().to_numpy()[:, 0]
+        
         err = np.std(pref, axis=0) / np.sqrt(len(pref)) 
         err += np.std(nonpref, axis=0) / np.sqrt(len(nonpref))
         sel = np.mean(pref, axis=0) - np.mean(nonpref, axis=0)
@@ -3190,7 +3220,12 @@ class Session:
         
         #######################################
 
-        nonpref, pref = self.contra_ipsi_pop(epochs[2], return_sel=True, selective_n = outcome_neurons)
+        nonpref, pref = self.contra_ipsi_pop(epochs[2], return_sel=True, selective_n = outcome_neurons, trials=states)
+        if any(isinstance(x, np.float64) for x in nonpref):
+            nonpref = pd.DataFrame(np.array(nonpref)).dropna().to_numpy()[:, 0]
+        if any(isinstance(x, np.float64) for x in pref):
+            pref = pd.DataFrame(np.array(pref)).dropna().to_numpy()[:, 0]
+        
         err = np.std(pref, axis=0) / np.sqrt(len(pref)) 
         err += np.std(nonpref, axis=0) / np.sqrt(len(nonpref))
         sel = np.mean(pref, axis=0) - np.mean(nonpref, axis=0)
@@ -3204,12 +3239,38 @@ class Session:
 
         axarr[2].set_title(titles[2])
         
+        ################## ACTION #####################
+        nonpref, pref = self.contra_ipsi_pop(range(self.response, self.response+6), return_sel=True, selective_n = action_neurons, trials=states)
+        if any(isinstance(x, np.float64) for x in nonpref):
+            nonpref = pd.DataFrame(np.array(nonpref)).dropna().to_numpy()[:, 0]
+        if any(isinstance(x, np.float64) for x in pref):
+            pref = pd.DataFrame(np.array(pref)).dropna().to_numpy()[:, 0]
+        
+        err = np.std(pref, axis=0) / np.sqrt(len(pref)) 
+        err += np.std(nonpref, axis=0) / np.sqrt(len(nonpref))
+        sel = np.mean(pref, axis=0) - np.mean(nonpref, axis=0)
+        action_sel = nonpref, pref
+        
+        if type(sel) != np.ndarray:
+            print("Empty selectivity vec: {}".format(sel))
+        else:
+            axarr[3].plot(x, sel, color='goldenrod')
+                    
+            axarr[3].fill_between(x, sel - err, 
+                      sel + err,
+                      color='wheat')
+
+            axarr[3].set_title('Action selective')
+                
         ###########################################
+        
+        # if states is not None:
+        #     f.suptitle('Traces for state {}'.format(states))
         
         axarr[0].set_ylabel('Selectivity')
         axarr[1].set_xlabel('Time from Go cue (s)')
         
-        for i in range(3):
+        for i in range(4):
             
             axarr[i].axvline(0, color = 'grey', alpha=0.5, ls = '--')
             axarr[i].axvline(-4.3, color = 'grey', alpha=0.5, ls = '--')
@@ -3285,18 +3346,19 @@ class Session:
                 for i in range(states.shape[0]):
         
                     top_state = np.argmax(states[i])
-                    conf = (1/num_state) + 0.2
+                    conf = (1/num_state) + 0.1
                     if states[i][top_state] > conf:
                         st += [top_state]
                     else:
                         non += [i] # Trials where top state is less than 60% confidence
             else:
-                for i in range(states.shape[0]):
+                for i in range(states.shape[0]): # for each trial
                     st += [np.random.choice([0, 1, 2], p=states[i])] # sample according to probability
             
-            inds = np.where(np.array(st) == state)[0] # Grab specific state (0,1,2)
+            inds = np.where(np.array(st) == state)[0] # Grab specific state (0,1,2, etc.)
             bias_trials = self.old_i_good_trials[inds]
             bias_trials = [b for b in bias_trials if b in self.i_good_trials] #Filter out water leak trials
+            # bias_trials = inds
             self.bias_trials = bias_trials
             self.nonstate_trials = non
             if len(bias_trials) == 0:

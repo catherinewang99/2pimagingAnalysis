@@ -626,7 +626,7 @@ fig = plt.figure(figsize=(7,6))
 ls = ['Naive', 'Learning', 'Expert']
 
 for i in range(3):
-    plt.scatter(all_mod[i], all_deltas[i], label = ls[i])
+    plt.scatter(all_mod[i], all_deltas[i], label = ls[i], s=150, alpha = 0.7)
 
 plt.xlabel('Modularity, unperturbed hemisphere')
 plt.ylabel('Behvioral recovery, (frac. correct, photoinhib./control)')
