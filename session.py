@@ -3123,7 +3123,7 @@ class Session:
             return stim_neurons, choice_neurons, action_neurons, outcome_neurons
 
 
-    def stim_choice_outcome_selectivity(self, save=False, y_axis = 0, action=False, states = None):
+    def stim_choice_outcome_selectivity(self, save=False, y_axis = 0, action=False, states = None, plot=True):
         """Plots selectivity traces of stim/lick/reward/action cells using Susu's method
         
         Susu method called from single_neuron_sel method
@@ -3177,12 +3177,13 @@ class Session:
                 
             return action_sel
         #######################################
-        f, axarr = plt.subplots(1,4, sharey='row', figsize=(15,5))
+        if plot:
+            f, axarr = plt.subplots(1,4, sharey='row', figsize=(15,5))
 
 
         if type(sel) != np.ndarray:
             print("Empty selectivity vec: {}".format(sel))
-        else:
+        elif plot:
             axarr[0].plot(x, sel, color='green')
                     
             axarr[0].fill_between(x, sel - err, 
@@ -3208,7 +3209,7 @@ class Session:
         
         if type(sel) != np.ndarray:
             print("Empty selectivity vec: {}".format(sel))
-        else:
+        elif plot:
 
             
             axarr[1].plot(x, sel, color='purple')
@@ -3231,14 +3232,15 @@ class Session:
         sel = np.mean(pref, axis=0) - np.mean(nonpref, axis=0)
         outcome_sel = nonpref, pref
         
-        axarr[2].plot(x, sel, color='dodgerblue')
-                
-        axarr[2].fill_between(x, sel - err, 
-                  sel + err,
-                  color='lightskyblue')
-
-        axarr[2].set_title(titles[2])
-        
+        if plot:
+            axarr[2].plot(x, sel, color='dodgerblue')
+                    
+            axarr[2].fill_between(x, sel - err, 
+                      sel + err,
+                      color='lightskyblue')
+    
+            axarr[2].set_title(titles[2])
+            
         ################## ACTION #####################
         nonpref, pref = self.contra_ipsi_pop(range(self.response, self.response+6), return_sel=True, selective_n = action_neurons, trials=states)
         if any(isinstance(x, np.float64) for x in nonpref):
@@ -3253,7 +3255,7 @@ class Session:
         
         if type(sel) != np.ndarray:
             print("Empty selectivity vec: {}".format(sel))
-        else:
+        elif plot:
             axarr[3].plot(x, sel, color='goldenrod')
                     
             axarr[3].fill_between(x, sel - err, 
@@ -3266,23 +3268,23 @@ class Session:
         
         # if states is not None:
         #     f.suptitle('Traces for state {}'.format(states))
-        
-        axarr[0].set_ylabel('Selectivity')
-        axarr[1].set_xlabel('Time from Go cue (s)')
-        
-        for i in range(4):
+        if plot:
+            axarr[0].set_ylabel('Selectivity')
+            axarr[1].set_xlabel('Time from Go cue (s)')
             
-            axarr[i].axvline(0, color = 'grey', alpha=0.5, ls = '--')
-            axarr[i].axvline(-4.3, color = 'grey', alpha=0.5, ls = '--')
-            axarr[i].axvline(-3, color = 'grey', alpha=0.5, ls = '--')        
-            axarr[i].axhline(0, color = 'grey', alpha=0.5, ls = '--')
-            if y_axis != 0:
-                axarr[i].set_ylim(top=y_axis)
-        if save:
-            plt.savefig(self.path + r'stim_choice_outcome_selectivity.pdf')
-            
-        plt.show()
-        return stim_neurons, choice_neurons, outcome_neurons, stim_sel, choice_sel, outcome_sel
+            for i in range(4):
+                
+                axarr[i].axvline(0, color = 'grey', alpha=0.5, ls = '--')
+                axarr[i].axvline(-4.3, color = 'grey', alpha=0.5, ls = '--')
+                axarr[i].axvline(-3, color = 'grey', alpha=0.5, ls = '--')        
+                axarr[i].axhline(0, color = 'grey', alpha=0.5, ls = '--')
+                if y_axis != 0:
+                    axarr[i].set_ylim(top=y_axis)
+            if save:
+                plt.savefig(self.path + r'stim_choice_outcome_selectivity.pdf')
+                
+            plt.show()
+        return stim_neurons, choice_neurons, outcome_neurons, action_neurons, stim_sel, choice_sel, outcome_sel, action_sel
 
 ######### BEHAVIOR STATE FUNCTIONS #################
 
