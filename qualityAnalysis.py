@@ -35,6 +35,7 @@ path = r'F:\data\BAYLORCW034\python\2023_10_24'
 
 path = 'F:\\data\\BAYLORCW037\\python\\2023_11_21'
 path = 'H:\\data\\BAYLORCW038\\python\\2024_02_19'
+path = 'H:\\data\\BAYLORCW039\\python\\2024_03_08'
 l1 = quality.QC(path, use_background_sub=False)
 # l1.plot_pearsons_correlation()
 # var = l1.plot_variance_spread()
