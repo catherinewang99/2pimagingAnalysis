@@ -21,7 +21,7 @@ from statsmodels.formula.api import ols
 import pandas as pd
 from scipy.stats import mannwhitneyu
 from scipy.stats import mstats
-from LinRegpval import LinearRegression
+from .LinRegpval import LinearRegression
 plt.rcParams['pdf.fonttype'] = 42 
 import time 
 import random
@@ -118,10 +118,10 @@ class Session:
                 
                 if condition:
 
-                    layer_og = scio.loadmat(r'{}\{}'.format(path, layer_pth))
+                    layer_og = scio.loadmat(os.path.join(path, layer_pth))
                     layer = copy.deepcopy(layer_og)
                     
-                    if self.dff == None:
+                    if self.dff is None:
                         
                         if use_reg:
                             if triple:
@@ -179,7 +179,7 @@ class Session:
 
                                         
         
-        behavior = scio.loadmat(r'{}\behavior.mat'.format(path))
+        behavior = scio.loadmat(os.path.join(path,"behavior.mat"))
         self.path = path
         self.layer_num = layer_num
         self.passive = passive
