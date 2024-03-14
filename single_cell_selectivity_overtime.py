@@ -693,19 +693,21 @@ for paths in agg_mice_paths:
     
 #%% Get number to make SANKEY diagram SDR
 
-naivepath, learningpath, expertpath =[r'F:\data\BAYLORCW037\python\2023_11_21',
-            r'F:\data\BAYLORCW037\python\2023_12_08',
-            r'F:\data\BAYLORCW037\python\2023_12_15',]
+# naivepath, learningpath, expertpath =[r'F:\data\BAYLORCW037\python\2023_11_21',
+#             r'F:\data\BAYLORCW037\python\2023_12_08',
+#             r'F:\data\BAYLORCW037\python\2023_12_15',]
 
-p=0.001
+p=0.0005
+# p=0.001
 
 og_SDR = []
 allstod = []
 s1list, d1, r1, ns1 = np.zeros(4),np.zeros(4),np.zeros(4),np.zeros(4)
 for paths in agg_mice_paths: # For each mouse
     stod = []
-    s1 = session.Session(paths[0][0], use_reg=True, triple=True) # Naive
-    sample_epoch = range(s1.sample+2, s1.delay+2)
+    s1 = session.Session(paths[0][0], use_reg=True, triple=True, use_background_sub=False) # Naive
+    # sample_epoch = range(s1.sample+2, s1.delay+2)
+    sample_epoch = range(s1.sample, s1.delay+2)
     delay_epoch = range(s1.delay+9, s1.response)
     response_epoch = range(s1.response, s1.response + 12)
     

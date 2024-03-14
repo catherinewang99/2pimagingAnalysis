@@ -341,7 +341,7 @@ class Behavior():
         
         # Figures showing learning over protocol
         
-        f, axarr = plt.subplots(3, 1, sharex='col', figsize=(16,12))
+        f, axarr = plt.subplots(3, 1, sharex='col', figsize=(16,10))
         
         # Concatenate all sessions
         delay_duration = np.array([])
@@ -388,7 +388,7 @@ class Behavior():
         axarr[1].set_ylabel('% correct')
         axarr[1].axhline(y=0.7, alpha = 0.5, color='orange')
         axarr[1].axhline(y=0.5, alpha = 0.5, color='red', ls = '--')
-        axarr[1].set_ylim(0, 1)
+        axarr[1].set_ylim(0.4, 1)
         
         # Early licking
         
