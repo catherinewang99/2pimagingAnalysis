@@ -37,7 +37,7 @@ path = r'F:\data\BAYLORCW034\python\2023_10_24'
 path = 'F:\\data\\BAYLORCW037\\python\\2023_11_21'
 # path = 'H:\\data\\BAYLORCW038\\python\\2024_02_19'
 # path = 'H:\\data\\BAYLORCW039\\python\\2024_03_11'
-l1 = quality.QC(path, use_background_sub=False)
+l1 = quality.QC(path, use_background_sub=True)
 
 
 # l1.plot_pearsons_correlation()
@@ -159,29 +159,29 @@ paths = [r'F:\data\BAYLORCW032\python\2023_10_23',
          r'F:\data\BAYLORCW037\python\2023_11_22'
          ]
 
-paths = [
-            r'F:\data\BAYLORCW032\python\2023_10_24',
-            # r'F:\data\BAYLORCW034\python\2023_10_27',
-            r'F:\data\BAYLORCW036\python\2023_10_30',
-            r'F:\data\BAYLORCW035\python\2023_12_15',
-            r'F:\data\BAYLORCW037\python\2023_12_15',
-            ]
+# paths = [
+#             r'F:\data\BAYLORCW032\python\2023_10_24',
+#             # r'F:\data\BAYLORCW034\python\2023_10_27',
+#             r'F:\data\BAYLORCW036\python\2023_10_30',
+#             r'F:\data\BAYLORCW035\python\2023_12_15',
+#             r'F:\data\BAYLORCW037\python\2023_12_15',
+#             ]
 # allstack, allstimstack = np.zeros(61), np.zeros(61)
 # allstack, allcontrastimstack = np.zeros(61), np.zeros(61)
-# allstack, allcontrastimstack = np.zeros(26), np.zeros(26)
-allstack, allcontrastimstack = np.zeros(20), np.zeros(20)
+allstack, allcontrastimstack = np.zeros(26), np.zeros(26)
+# allstack, allcontrastimstack = np.zeros(20), np.zeros(20)
 
 for path in paths:
     
-    l1 = quality.QC(path, use_background_sub=True)
+    l1 = quality.QC(path, use_background_sub=False)
 
     stack, stimstack = l1.all_neurons_heatmap(return_traces=True)
 
     # allstack = np.vstack((allstack, stack[:, 18:38]))
     # allcontrastimstack = np.vstack((allcontrastimstack, stimstack[:, 18:38]))
     
-    allstack = np.vstack((allstack, normalize(stack[:, 18:38])))
-    allcontrastimstack = np.vstack((allcontrastimstack, normalize(stimstack[:, 18:38])))
+    allstack = np.vstack((allstack, normalize(stack[:, 12:38])))
+    allcontrastimstack = np.vstack((allcontrastimstack, normalize(stimstack[:, 12:38])))
     
     # allstack = np.vstack((allstack, zscore(stack ,axis=0)))
     # allcontrastimstack = np.vstack((allcontrastimstack, zscore(stimstack, axis=0)))
@@ -194,8 +194,17 @@ allcontrastimstack = allcontrastimstack[1:]
 # allstack = normalize(allstack[1:,12:38])
 # allstimstack = normalize(allstimstack[1:,12:38])
 # allcontrastimstack = normalize(allcontrastimstack[1:,12:38])
+#%% Order neurons by response to stim 
+# Determine by diff between two time steps before stim and two time steps after
+diffs = []
 
+for neuron in range(allcontrastimstack.shape[0]):
+    
 
+    postdelay = np.mean(allcontrastimstack[neuron, l1.delay-10:l1.delay-8])
+    predelay = np.mean(allcontrastimstack[neuron, l1.delay-12:l1.delay-10])
+    
+    diffs += [predelay - postdelay]
 
 
 #%% Plot all opto trials as heatmap 
@@ -205,10 +214,11 @@ x = np.arange(-7.97,4,l1.fs)[12:38]
 # allstack = normalize(allstack)
 # allstimstack = normalize(allstimstack)
 plt.figure(figsize=(8,5))
-plt.matshow(allcontrastimstack, cmap='gray', fignum=1, aspect='auto')
+# plt.matshow(allcontrastimstack, cmap='gray', fignum=1, aspect='auto')
+plt.matshow(allcontrastimstack_sorted, cmap='gray', fignum=1, aspect='auto')
 plt.xticks(range(0,38-12, 6), [int(d) for d in x[::6]])
 plt.axvline(x=l1.delay-10, c='b', linewidth = 0.5)
-# plt.savefig(r'F:\data\Fig 3\contra_opto_effect_backgroundsubtract.pdf')
+plt.savefig(r'F:\data\Fig 3\ispi_opto_effect_ordered.pdf')
 
 #%%
 f, axarr = plt.subplots(2,2)#, sharex='col')

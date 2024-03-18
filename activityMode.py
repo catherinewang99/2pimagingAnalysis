@@ -836,7 +836,9 @@ class Mode(Session):
         
         return orthonormal_basis, np.mean(activityRL_train, axis=1)[:, None]
     
-    def plot_CD(self, mode_input='choice', epoch=None, ctl=False, lickdir=False, save=None, plot=True, remove_top = False, auto_corr_return=False):
+    def plot_CD(self, mode_input='choice', epoch=None, ctl=False, lickdir=False, 
+                save=None, plot=True, remove_top = False, auto_corr_return=False,
+                fix_axis=None):
         "This method orthogonalizes the various modes"
         # if epoch is not None:
         #     orthonormal_basis, var_allDim = self.func_compute_epoch_decoder([self.PSTH_r_train_correct, 
@@ -926,6 +928,8 @@ class Mode(Session):
             plt.axvline(-3, color = 'grey', alpha=0.5, ls = '--')
             plt.axvline(0, color = 'grey', alpha=0.5, ls = '--')
             plt.ylabel('CD_{} projection (a.u.)'.format(mode_input))
+            if fix_axis is not None:
+                plt.ylim(fix_axis)
         
         if save is not None:
             plt.savefig(save)
@@ -2331,7 +2335,7 @@ class Mode(Session):
         plt.show()
         
         
-    def plot_appliedCD(self, orthonormal_basis, mean, save=None):
+    def plot_appliedCD(self, orthonormal_basis, mean, save=None, fix_axis=None):
         
         x = np.arange(-6.97,4,self.fs)[:self.time_cutoff]
 
@@ -2376,6 +2380,8 @@ class Mode(Session):
         plt.axvline(-3, color = 'grey', alpha=0.5, ls = '--')
         plt.axvline(0, color = 'grey', alpha=0.5, ls = '--')
         plt.ylabel('Applied projection (a.u.)')
+        if fix_axis is not None:
+            plt.ylim(fix_axis)
         if save is not None:
             plt.savefig(save)
             

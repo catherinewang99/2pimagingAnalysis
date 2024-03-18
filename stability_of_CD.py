@@ -47,22 +47,22 @@ naivepath, learningpath, expertpath = [ r'F:\data\BAYLORCW034\python\2023_10_12'
     r'F:\data\BAYLORCW034\python\2023_10_22',
     r'F:\data\BAYLORCW034\python\2023_10_27',]
 
-# naivepath, learningpath, expertpath =[r'F:\data\BAYLORCW036\python\2023_10_09',
-#             r'F:\data\BAYLORCW036\python\2023_10_19',
-#             r'F:\data\BAYLORCW036\python\2023_10_30',]
+naivepath, learningpath, expertpath =[r'F:\data\BAYLORCW036\python\2023_10_09',
+            r'F:\data\BAYLORCW036\python\2023_10_19',
+            r'F:\data\BAYLORCW036\python\2023_10_30',]
 
 # naivepath, learningpath, expertpath =[r'F:\data\BAYLORCW035\python\2023_10_12',
 #             r'F:\data\BAYLORCW035\python\2023_10_26',
 #             r'F:\data\BAYLORCW035\python\2023_12_12',]
 
-naivepath, learningpath, expertpath =[r'F:\data\BAYLORCW035\python\2023_10_26',
-            r'F:\data\BAYLORCW035\python\2023_12_07',
-            r'F:\data\BAYLORCW035\python\2023_12_15',]
+# naivepath, learningpath, expertpath =[r'F:\data\BAYLORCW035\python\2023_10_26',
+#             r'F:\data\BAYLORCW035\python\2023_12_07',
+#             r'F:\data\BAYLORCW035\python\2023_12_15',]
 
     
-naivepath, learningpath, expertpath =[r'F:\data\BAYLORCW037\python\2023_11_21',
-            r'F:\data\BAYLORCW037\python\2023_12_08',
-            r'F:\data\BAYLORCW037\python\2023_12_15',]
+# naivepath, learningpath, expertpath =[r'F:\data\BAYLORCW037\python\2023_11_21',
+#             r'F:\data\BAYLORCW037\python\2023_12_08',
+#             r'F:\data\BAYLORCW037\python\2023_12_15',]
 #%% Choice dimension unmatched
 
 path = expertpath
@@ -95,15 +95,15 @@ l1.plot_appliedCD(orthonormal_basis, mean,save = r'F:\data\Fig 2\CDact_exp_nctl_
 
 path = expertpath
 l1 = Mode(path, use_reg = True, triple=True)
-orthonormal_basis, mean = l1.plot_CD()#save = r'F:\data\Fig 2\CDchoice_expert_CW37.pdf')
+orthonormal_basis, mean = l1.plot_CD(fix_axis = (-15, 17), save = r'F:\data\Fig 2\CDchoice_expert_CW37.pdf')
 
 path =learningpath
 l1 = Mode(path, use_reg = True, triple=True)
-l1.plot_appliedCD(orthonormal_basis, mean)#, save = r'F:\data\Fig 2\CDchoice_learning_CW37.pdf')
+l1.plot_appliedCD(orthonormal_basis, mean, fix_axis = (-15, 17), save = r'F:\data\Fig 2\CDchoice_learning_CW37.pdf')
 
 path = naivepath
 l1 = Mode(path, use_reg = True, triple=True)
-l1.plot_appliedCD(orthonormal_basis, mean)#, save = r'F:\data\Fig 2\CDchoice_naive_CW37.pdf')
+l1.plot_appliedCD(orthonormal_basis, mean, fix_axis = (-15, 17), save = r'F:\data\Fig 2\CDchoice_naive_CW37.pdf')
 
 #%% Stim dimension
 
@@ -124,15 +124,15 @@ l1.plot_appliedCD(orthonormal_basis, mean)#,  save = r'F:\data\Fig 2\CDstim_naiv
 
 path = expertpath
 l1 = Mode(path, use_reg = True, triple=True)
-orthonormal_basis, mean = l1.plot_CD(mode_input='action')#,save = r'F:\data\Fig 2\CDchoice_expert_CW36.pdf')
+orthonormal_basis, mean = l1.plot_CD(mode_input='action',fix_axis = (-12, 27), save = r'F:\data\Fig 2\CDaction_expert_CW36.pdf')
 
 path = learningpath
 l1 = Mode(path, use_reg = True, triple=True)
-l1.plot_appliedCD(orthonormal_basis, mean)#, save = r'F:\data\Fig 2\CDchoice_learning_CW36.pdf')
+l1.plot_appliedCD(orthonormal_basis, mean,fix_axis = (-12, 27), save = r'F:\data\Fig 2\CDaction_learning_CW36.pdf')
 
 path = naivepath
 l1 = Mode(path, use_reg = True, triple=True)
-l1.plot_appliedCD(orthonormal_basis, mean)#, save = r'F:\data\Fig 2\CDchoice_naive_CW36.pdf')
+l1.plot_appliedCD(orthonormal_basis, mean,fix_axis = (-12, 27), save = r'F:\data\Fig 2\CDaction_naive_CW36.pdf')
 
 #%% Use Full method
 
