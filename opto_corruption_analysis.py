@@ -43,12 +43,13 @@ intialpath, finalpath = ['H:\\data\\BAYLORCW038\\python\\2024_02_05',
     
 l1 = Mode(intialpath, use_reg=True)
 orthonormal_basis, mean = l1.plot_CD()
-
+l1.plot_CD_opto()
 
 path = finalpath
 l1 = Mode(path, use_reg = True)
 l1.plot_appliedCD(orthonormal_basis, mean)
-                  
+l1.plot_CD_opto()
+
                   
 #%% Behavioral progress
 

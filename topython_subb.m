@@ -1,5 +1,6 @@
 addpath('F:\data')
-path = 'F:\data\BAYLORCW037\';
+% path = 'F:\data\BAYLORCW037\';
+path = 'F:\data\BAYLORCW032\';
 
 mkdir([path 'python'])
 
