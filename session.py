@@ -121,7 +121,7 @@ class Session:
                     layer_og = scio.loadmat(r'{}\{}'.format(path, layer_pth))
                     layer = copy.deepcopy(layer_og)
                     
-                    if self.dff == None:
+                    if self.dff is None:
                         
                         if use_reg:
                             if triple:
@@ -2826,6 +2826,12 @@ class Session:
             
         trials : array, optional
             Trials used to calculate recovery for behavior state analysis
+            
+        Returns
+        --------
+        recovery : int
+        error : int
+            
         """
         
         # Get late delay selective neurons
@@ -2873,8 +2879,9 @@ class Session:
         period = range(self.response-9, self.response) # Use last second of delay
 
         recovery = np.mean(selo[period] / sel[period])
+        error = np.mean(erro[period])
         
-        return recovery
+        return recovery, error
 
         
        
