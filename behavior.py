@@ -252,8 +252,8 @@ class Behavior():
         plt.plot(cat((Rreg, Ropto)), 'b-', marker='o', label='Right')
         # plt.plot(Ropto, 'b--')
         
-        plt.title('Late delay optogenetic effect on unilateral ALM')
-        plt.xticks([0, 1], ['Control', 'Late Delay Epoch'])
+        plt.title('Unilateral ALM optogenetic effect')
+        plt.xticks([0, 1], ['Control', 'Opto'])
         plt.ylim(0, 1)
         plt.xlabel('Proportion correct')
         plt.legend()
