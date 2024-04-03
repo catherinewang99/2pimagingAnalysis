@@ -23,6 +23,87 @@ import behavior
 
 plt.rcParams['pdf.fonttype'] = '42' 
 
+#%% Changes at single cell level - sankey SDR
+agg_mice_paths = [[['H:\\data\\BAYLORCW038\\python\\2024_02_05', 
+                    'H:\\data\\BAYLORCW038\\python\\2024_03_15'],
+                   ]]
+# p=0.0005
+p=0.001
+
+og_SDR = []
+allstod = []
+s1list, d1, r1, ns1 = np.zeros(4),np.zeros(4),np.zeros(4),np.zeros(4)
+for paths in agg_mice_paths: # For each mouse
+    stod = []
+    s1 = Session(paths[0][0], use_reg=True, use_background_sub=False) # Naive
+    # sample_epoch = range(s1.sample+2, s1.delay+2)
+    sample_epoch = range(s1.sample, s1.delay+2)
+    delay_epoch = range(s1.delay+9, s1.response)
+    response_epoch = range(s1.response, s1.response + 12)
+    
+    naive_sample_sel = s1.get_epoch_selective(sample_epoch, p=p)
+    
+    naive_delay_sel = s1.get_epoch_selective(delay_epoch, p=p)
+    naive_delay_sel = [n for n in naive_delay_sel if n not in naive_sample_sel]
+    
+    naive_response_sel = s1.get_epoch_selective(response_epoch, p=p)
+    naive_response_sel = [n for n in naive_response_sel if n not in naive_sample_sel and n not in naive_delay_sel]
+
+    naive_nonsel = [n for n in s1.good_neurons if n not in naive_sample_sel and n not in naive_delay_sel and n not in naive_response_sel]
+
+    og_SDR += [[len(naive_sample_sel), len(naive_delay_sel), len(naive_response_sel), len(naive_nonsel)]]
+
+    # s2 = session.Session(paths[0][1], use_reg=True, triple=True) # Learning
+    s2 = Session(paths[0][1], use_reg=True) # Expert
+    
+    for n in naive_sample_sel:
+        if s2.is_selective(s2.good_neurons[np.where(s1.good_neurons ==n)[0][0]], sample_epoch, p=p):
+            s1list[0] += 1
+        elif s2.is_selective(s2.good_neurons[np.where(s1.good_neurons ==n)[0][0]], delay_epoch, p=p):
+            s1list[1] += 1
+        elif s2.is_selective(s2.good_neurons[np.where(s1.good_neurons ==n)[0][0]], response_epoch, p=p):
+            s1list[2] += 1
+        else:
+            s1list[3] += 1
+    
+    for n in naive_delay_sel:
+        if s2.is_selective(s2.good_neurons[np.where(s1.good_neurons ==n)[0][0]], sample_epoch, p=p):
+            d1[0] += 1
+        elif s2.is_selective(s2.good_neurons[np.where(s1.good_neurons ==n)[0][0]], delay_epoch, p=p):
+            d1[1] += 1
+        elif s2.is_selective(s2.good_neurons[np.where(s1.good_neurons ==n)[0][0]], response_epoch, p=p):
+            d1[2] += 1
+        else:
+            d1[3] += 1
+    
+    
+    for n in naive_response_sel:
+        if s2.is_selective(s2.good_neurons[np.where(s1.good_neurons ==n)[0][0]], sample_epoch, p=p):
+            r1[0] += 1
+
+        elif s2.is_selective(s2.good_neurons[np.where(s1.good_neurons ==n)[0][0]], delay_epoch, p=p):
+            r1[1] += 1
+            stod += [(n, s2.good_neurons[np.where(s1.good_neurons ==n)[0][0]])]  #save delay to sample cells
+
+        elif s2.is_selective(s2.good_neurons[np.where(s1.good_neurons ==n)[0][0]], response_epoch, p=p):
+            r1[2] += 1
+        else:
+            r1[3] += 1
+    
+    
+    for n in naive_nonsel:
+        if s2.is_selective(s2.good_neurons[np.where(s1.good_neurons ==n)[0][0]], sample_epoch, p=p):
+            ns1[0] += 1
+        elif s2.is_selective(s2.good_neurons[np.where(s1.good_neurons ==n)[0][0]], delay_epoch, p=p):
+            ns1[1] += 1
+        elif s2.is_selective(s2.good_neurons[np.where(s1.good_neurons ==n)[0][0]], response_epoch, p=p):
+            ns1[2] += 1
+        else:
+            ns1[3] += 1
+    allstod += [[stod]]
+    
+og_SDR = np.sum(og_SDR, axis=0)
+
 
 #%% Selectivity recovery
 
@@ -37,19 +118,24 @@ for path in paths:
 #%% CD recovery
 
 
-intialpath, finalpath = ['H:\\data\\BAYLORCW038\\python\\2024_02_05', 
-        'H:\\data\\BAYLORCW038\\python\\2024_03_15']
+intialpath, middlepath, finalpath = ['H:\\data\\BAYLORCW038\\python\\2024_02_05', 
+                         r'H:\data\BAYLORCW038\python\2024_02_15',
+                         'H:\\data\\BAYLORCW038\\python\\2024_03_15']
 
     
 l1 = Mode(intialpath, use_reg=True)
 orthonormal_basis, mean = l1.plot_CD()
+# l1.plot_CD_opto()
+control_traces, opto_traces, error_bars, orthonormal_basis, mean, meantrain, meanstd = l1.plot_CD_opto(return_traces=True, return_applied=True)
+
+l1 = Mode(middlepath)
 l1.plot_CD_opto()
 
 path = finalpath
 l1 = Mode(path, use_reg = True)
 l1.plot_appliedCD(orthonormal_basis, mean)
-l1.plot_CD_opto()
-
+# l1.plot_CD_opto()
+l1.plot_CD_opto_applied(orthonormal_basis, mean, meantrain, meanstd)
                   
 #%% Behavioral progress
 

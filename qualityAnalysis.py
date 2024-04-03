@@ -36,8 +36,9 @@ path = r'F:\data\BAYLORCW034\python\2023_10_24'
 
 # path = 'F:\\data\\BAYLORCW037\\python\\2023_11_21'
 # path = 'H:\\data\\BAYLORCW038\\python\\2024_02_05'
-# path = 'H:\\data\\BAYLORCW039\\python\\2024_03_11'
-path = 'H:\\data\\BAYLORCW038\\python\\2024_03_29'
+path = 'H:\\data\\BAYLORCW039\\python\\2024_03_11'
+path = 'H:\\data\\BAYLORCW039\\python\\2024_03_28'
+# path = 'H:\\data\\BAYLORCW038\\python\\2024_03_29'
 l1 = quality.QC(path, use_background_sub=False)
 
 
@@ -174,15 +175,19 @@ allstack, allcontrastimstack = np.zeros(26), np.zeros(26)
 
 for path in paths:
     
-    l1 = quality.QC(path, use_background_sub=False)
+    l1 = quality.QC(path, use_background_sub=True)
 
     stack, stimstack = l1.all_neurons_heatmap(return_traces=True)
-
-    # allstack = np.vstack((allstack, stack[:, 18:38]))
-    # allcontrastimstack = np.vstack((allcontrastimstack, stimstack[:, 18:38]))
     
-    allstack = np.vstack((allstack, normalize(stack[:, 12:38])))
-    allcontrastimstack = np.vstack((allcontrastimstack, normalize(stimstack[:, 12:38])))
+    normstack = normalize(np.hstack((stimstack,stack)))
+    stimstack = normstack[:, :61]
+    stack = normstack[:, 61:]
+    
+    allstack = np.vstack((allstack, stack[:, 12:38]))
+    allcontrastimstack = np.vstack((allcontrastimstack, stimstack[:, 12:38]))
+    
+    # allstack = np.vstack((allstack, normalize(stack)[:, 12:38]))
+    # allcontrastimstack = np.vstack((allcontrastimstack, normalize(stimstack)[:, 12:38]))
     
     # allstack = np.vstack((allstack, zscore(stack ,axis=0)))
     # allcontrastimstack = np.vstack((allcontrastimstack, zscore(stimstack, axis=0)))
@@ -207,6 +212,8 @@ for neuron in range(allcontrastimstack.shape[0]):
     
     diffs += [predelay - postdelay]
 
+ordering = np.argsort(diffs)
+allcontrastimstack_sorted = np.take(allcontrastimstack, ordering, axis=0)
 
 #%% Plot all opto trials as heatmap 
 
@@ -219,7 +226,7 @@ plt.figure(figsize=(8,5))
 plt.matshow(allcontrastimstack_sorted, cmap='gray', fignum=1, aspect='auto')
 plt.xticks(range(0,38-12, 6), [int(d) for d in x[::6]])
 plt.axvline(x=l1.delay-10, c='b', linewidth = 0.5)
-plt.savefig(r'F:\data\Fig 3\ispi_opto_effect_ordered.pdf')
+# plt.savefig(r'F:\data\Fig 3\ispi_opto_effect_ordered.pdf')
 
 #%%
 f, axarr = plt.subplots(2,2)#, sharex='col')
@@ -263,7 +270,7 @@ plt.suptitle('n=3431 neurons')
 plt.show()
 
 #%% Overlay plots
-x = np.arange(-6.97,4,l1.fs)[18:38]
+x = np.arange(-6.97,4,l1.fs)[12:38]
 
 plt.plot(x, np.mean(allcontrastimstack, axis = 0), color = 'red', label='Optogenetic stimulation trials')
 plt.fill_between(x, np.mean(allcontrastimstack, axis = 0) - stats.sem(allcontrastimstack, axis=0), 
@@ -287,10 +294,10 @@ plt.fill_between(x, np.mean(allstack, axis = 0) - stats.sem(allstack, axis=0),
 plt.ylabel('dF/F0')
 # axarr[1,1].set_xticks(range(0,allstack.shape[1], 10), [int(d) for d in x[::10]])
 plt.xlabel('Time from Go cue (s)')
-plt.ylim(-0.17,0.02) # for comparison to ipsi
+plt.ylim(-0.04,0.01) # for comparison to ipsi
 # plt.ylim(-0.13, -0.04) # for compariosn to subtract background
 plt.legend()
-plt.savefig(r'F:\data\Fig 3\contra_opto_effect_overlay_subtractbackground.pdf')
+# plt.savefig(r'F:\data\Fig 3\contra_opto_effect_overlay_subtractbackground.pdf')
 
 plt.show()
 

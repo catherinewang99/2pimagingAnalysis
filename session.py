@@ -102,7 +102,11 @@ class Session:
                     else:
                         self.good_neurons = np.load(path + r'\layer{}_triple_registered_neurons.npy'.format(layer_num-1))
                 else:
-                    self.good_neurons = np.load(path + r'\layer{}_registered_neurons.npy'.format(layer_num-1))
+                    if filter_reg:
+                        self.good_neurons = np.load(path + r'\layer{}_registered_filtered_neurons.npy'.format(layer_num-1))
+                    else:
+                        self.good_neurons = np.load(path + r'\layer{}_registered_neurons.npy'.format(layer_num-1))
+
 
 
             
@@ -132,7 +136,12 @@ class Session:
                                     self.good_neurons = np.load(path + r'\layer{}_triple_registered_neurons.npy'.format(counter))
 
                             else:
-                                self.good_neurons = np.load(path + r'\layer{}_registered_neurons.npy'.format(counter))
+                                if filter_reg:
+                                    self.good_neurons = np.load(path + r'\layer{}_registered_filtered_neurons.npy'.format(counter))
+                                else:
+                                    self.good_neurons = np.load(path + r'\layer{}_registered_neurons.npy'.format(counter))
+
+
 
                             # self.good_neurons = layer['dff'][:, :][neurons]
                         self.dff = layer['dff']
@@ -153,8 +162,12 @@ class Session:
                                     neurons = np.load(path + r'\layer{}_triple_registered_neurons.npy'.format(counter))
                                     self.good_neurons = np.append(self.good_neurons, neurons + self.dff[0,0].shape[0])
                             else:
-                                neurons = np.load(path + r'\layer{}_registered_neurons.npy'.format(counter))
-                                self.good_neurons = np.append(self.good_neurons, neurons + self.dff[0,0].shape[0])
+                                if filter_reg:
+                                    neurons = np.load(path + r'\layer{}_registered_filtered_neurons.npy'.format(counter))
+                                    self.good_neurons = np.append(self.good_neurons, neurons + self.dff[0,0].shape[0])                           
+                                else:
+                                    neurons = np.load(path + r'\layer{}_registered_neurons.npy'.format(counter))
+                                    self.good_neurons = np.append(self.good_neurons, neurons + self.dff[0,0].shape[0])
                             
                         for t in range(self.num_trials):
 
