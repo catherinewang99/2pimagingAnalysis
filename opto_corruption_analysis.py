@@ -19,9 +19,31 @@ from scipy import stats
 from scipy.stats import zscore
 from activityMode import Mode
 import behavior
+from numpy.linalg import norm
 
 
 plt.rcParams['pdf.fonttype'] = '42' 
+
+def unit_vector(vector):
+    """ Returns the unit vector of the vector.  """
+    return vector / np.linalg.norm(vector)
+
+def angle_between(v1, v2):
+    """ Returns the angle in radians between vectors 'v1' and 'v2'::
+
+            >>> angle_between((1, 0, 0), (0, 1, 0))
+            1.5707963267948966
+            >>> angle_between((1, 0, 0), (1, 0, 0))
+            0.0
+            >>> angle_between((1, 0, 0), (-1, 0, 0))
+            3.141592653589793
+    """
+    v1_u = unit_vector(v1)
+    v2_u = unit_vector(v2)
+    return np.arccos(np.clip(np.dot(v1_u, v2_u), -1.0, 1.0))
+
+def cos_sim(a,b):
+    return np.dot(a, b)/(norm(a)*norm(b))
 
 #%% Changes at single cell level - sankey SDR
 agg_mice_paths = [[['H:\\data\\BAYLORCW038\\python\\2024_02_05', 
@@ -31,10 +53,12 @@ agg_mice_paths = [[['H:\\data\\BAYLORCW038\\python\\2024_02_05',
 p=0.001
 
 og_SDR = []
-allstod = []
+allstos = []
+allnstos = []
 s1list, d1, r1, ns1 = np.zeros(4),np.zeros(4),np.zeros(4),np.zeros(4)
 for paths in agg_mice_paths: # For each mouse
-    stod = []
+    stos = []
+    nstos = []
     s1 = Session(paths[0][0], use_reg=True, use_background_sub=False) # Naive
     # sample_epoch = range(s1.sample+2, s1.delay+2)
     sample_epoch = range(s1.sample, s1.delay+2)
@@ -59,6 +83,8 @@ for paths in agg_mice_paths: # For each mouse
     for n in naive_sample_sel:
         if s2.is_selective(s2.good_neurons[np.where(s1.good_neurons ==n)[0][0]], sample_epoch, p=p):
             s1list[0] += 1
+            stos += [(n, s2.good_neurons[np.where(s1.good_neurons ==n)[0][0]])]  #save delay to sample cells
+
         elif s2.is_selective(s2.good_neurons[np.where(s1.good_neurons ==n)[0][0]], delay_epoch, p=p):
             s1list[1] += 1
         elif s2.is_selective(s2.good_neurons[np.where(s1.good_neurons ==n)[0][0]], response_epoch, p=p):
@@ -83,7 +109,6 @@ for paths in agg_mice_paths: # For each mouse
 
         elif s2.is_selective(s2.good_neurons[np.where(s1.good_neurons ==n)[0][0]], delay_epoch, p=p):
             r1[1] += 1
-            stod += [(n, s2.good_neurons[np.where(s1.good_neurons ==n)[0][0]])]  #save delay to sample cells
 
         elif s2.is_selective(s2.good_neurons[np.where(s1.good_neurons ==n)[0][0]], response_epoch, p=p):
             r1[2] += 1
@@ -94,16 +119,74 @@ for paths in agg_mice_paths: # For each mouse
     for n in naive_nonsel:
         if s2.is_selective(s2.good_neurons[np.where(s1.good_neurons ==n)[0][0]], sample_epoch, p=p):
             ns1[0] += 1
+            nstos += [(n, s2.good_neurons[np.where(s1.good_neurons ==n)[0][0]])]  #save delay to sample cells
+
         elif s2.is_selective(s2.good_neurons[np.where(s1.good_neurons ==n)[0][0]], delay_epoch, p=p):
             ns1[1] += 1
         elif s2.is_selective(s2.good_neurons[np.where(s1.good_neurons ==n)[0][0]], response_epoch, p=p):
             ns1[2] += 1
         else:
             ns1[3] += 1
-    allstod += [[stod]]
-    
+    allstos += [[stos]]
+    allnstos += [[nstos]]
+
 og_SDR = np.sum(og_SDR, axis=0)
 
+#%% Plot the selectivity of recruited sample neurons vs stable sample neurons
+stos = np.array(stos)
+nstos = np.array(nstos)
+
+intialpath, middlepath, finalpath = ['H:\\data\\BAYLORCW038\\python\\2024_02_05', 
+                         r'H:\data\BAYLORCW038\python\2024_02_15',
+                         'H:\\data\\BAYLORCW038\\python\\2024_03_15']
+
+s1 = Session(intialpath, use_reg=True, use_background_sub=False) # pre
+s2 = Session(finalpath, use_reg=True) # post
+
+
+for i in range(stos.shape[0]):
+    
+    if i == 0:
+        pre_sel = s1.plot_selectivity(stos[i,0], plot=False)
+        post_sel = s2.plot_selectivity(stos[i,1], plot=False)
+    else:
+        print(i)
+        pre_sel = np.vstack((pre_sel, s1.plot_selectivity(stos[i,0], plot=False)))
+        post_sel = np.vstack((post_sel, s2.plot_selectivity(stos[i,1], plot=False)))
+    
+
+
+#%% Contributions of neurons to CD before and after
+intialpath, middlepath, finalpath = ['H:\\data\\BAYLORCW038\\python\\2024_02_05', 
+                         r'H:\data\BAYLORCW038\python\2024_02_15',
+                         'H:\\data\\BAYLORCW038\\python\\2024_03_15']
+
+# sample CD
+
+l1 = Mode(intialpath, use_reg=True)
+orthonormal_basis_initial, mean = l1.plot_CD(mode_input = 'stimulus')
+orthonormal_basis_initial_choice, mean = l1.plot_CD(mode_input = 'choice')
+
+l1 = Mode(finalpath, use_reg = True)
+orthonormal_basis, mean = l1.plot_CD(mode_input = 'stimulus')
+orthonormal_basis_choice, mean = l1.plot_CD(mode_input = 'choice')
+
+plt.scatter(orthonormal_basis_initial, orthonormal_basis)
+plt.title('Pearsons correlation: {}, p-val: {}'.format(stats.pearsonr(orthonormal_basis_initial, orthonormal_basis)[0], 
+                                                       stats.pearsonr(orthonormal_basis_initial, orthonormal_basis)[1]))
+plt.xlabel('Initial sample CD values')
+plt.ylabel('Final sample CD values')
+plt.show()
+
+# delay CD
+
+
+plt.scatter(orthonormal_basis_initial_choice, orthonormal_basis_choice)
+plt.title('Pearsons correlation: {}, p-val: {}'.format(stats.pearsonr(orthonormal_basis_initial_choice, orthonormal_basis_choice)[0], 
+                                                       stats.pearsonr(orthonormal_basis_initial_choice, orthonormal_basis_choice)[1]))
+plt.xlabel('Initial delay CD values')
+plt.ylabel('Final delay CD values')
+plt.show()
 
 #%% Selectivity recovery
 
@@ -131,12 +214,31 @@ control_traces, opto_traces, error_bars, orthonormal_basis, mean, meantrain, mea
 l1 = Mode(middlepath)
 l1.plot_CD_opto()
 
-path = finalpath
-l1 = Mode(path, use_reg = True)
+l1 = Mode(finalpath, use_reg = True)
 l1.plot_appliedCD(orthonormal_basis, mean)
 # l1.plot_CD_opto()
 l1.plot_CD_opto_applied(orthonormal_basis, mean, meantrain, meanstd)
-                  
+                
+#%% CD rotation
+
+intialpath, finalpath = ['H:\\data\\BAYLORCW038\\python\\2024_02_05', 
+        'H:\\data\\BAYLORCW038\\python\\2024_03_15']
+
+# Bootstrap
+angles = []
+for _ in range(50):
+
+    l1 = Mode(intialpath, use_reg=True)
+    orthonormal_basis_initial, mean = l1.plot_CD(plot=False)
+    
+    l1 = Mode(finalpath, use_reg = True)
+    orthonormal_basis_final, mean = l1.plot_CD(plot=False)
+
+    angles += [cos_sim(orthonormal_basis_initial, orthonormal_basis_final)]
+
+## Benchmark -- across expert sessions
+
+
 #%% Behavioral progress
 
 b = behavior.Behavior(r'H:\data\Behavior data\BAYLORCW038\python_behavior', behavior_only=True)
