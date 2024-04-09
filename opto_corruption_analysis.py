@@ -83,7 +83,7 @@ for paths in agg_mice_paths: # For each mouse
     for n in naive_sample_sel:
         if s2.is_selective(s2.good_neurons[np.where(s1.good_neurons ==n)[0][0]], sample_epoch, p=p):
             s1list[0] += 1
-            stos += [(n, s2.good_neurons[np.where(s1.good_neurons ==n)[0][0]])]  #save delay to sample cells
+            # stos += [(n, s2.good_neurons[np.where(s1.good_neurons ==n)[0][0]])]  #save sample to sample cells
 
         elif s2.is_selective(s2.good_neurons[np.where(s1.good_neurons ==n)[0][0]], delay_epoch, p=p):
             s1list[1] += 1
@@ -97,6 +97,8 @@ for paths in agg_mice_paths: # For each mouse
             d1[0] += 1
         elif s2.is_selective(s2.good_neurons[np.where(s1.good_neurons ==n)[0][0]], delay_epoch, p=p):
             d1[1] += 1
+            stos += [(n, s2.good_neurons[np.where(s1.good_neurons ==n)[0][0]])]  #save sample to sample cells
+
         elif s2.is_selective(s2.good_neurons[np.where(s1.good_neurons ==n)[0][0]], response_epoch, p=p):
             d1[2] += 1
         else:
@@ -119,10 +121,12 @@ for paths in agg_mice_paths: # For each mouse
     for n in naive_nonsel:
         if s2.is_selective(s2.good_neurons[np.where(s1.good_neurons ==n)[0][0]], sample_epoch, p=p):
             ns1[0] += 1
-            nstos += [(n, s2.good_neurons[np.where(s1.good_neurons ==n)[0][0]])]  #save delay to sample cells
+            # nstos += [(n, s2.good_neurons[np.where(s1.good_neurons ==n)[0][0]])]  #save ns to sample cells
 
         elif s2.is_selective(s2.good_neurons[np.where(s1.good_neurons ==n)[0][0]], delay_epoch, p=p):
             ns1[1] += 1
+            nstos += [(n, s2.good_neurons[np.where(s1.good_neurons ==n)[0][0]])]  #save ns to sample cells
+
         elif s2.is_selective(s2.good_neurons[np.where(s1.good_neurons ==n)[0][0]], response_epoch, p=p):
             ns1[2] += 1
         else:
@@ -133,8 +137,11 @@ for paths in agg_mice_paths: # For each mouse
 og_SDR = np.sum(og_SDR, axis=0)
 
 #%% Plot the selectivity of recruited sample neurons vs stable sample neurons
+# look at the accompanying recovery to stim
+
 stos = np.array(stos)
-nstos = np.array(nstos)
+stos_old = stos
+stos = np.array(nstos)
 
 intialpath, middlepath, finalpath = ['H:\\data\\BAYLORCW038\\python\\2024_02_05', 
                          r'H:\data\BAYLORCW038\python\2024_02_15',
@@ -149,12 +156,56 @@ for i in range(stos.shape[0]):
     if i == 0:
         pre_sel = s1.plot_selectivity(stos[i,0], plot=False)
         post_sel = s2.plot_selectivity(stos[i,1], plot=False)
+
+        pre_sel_opto = s1.plot_selectivity(stos[i,0], plot=False, opto=True)
+        post_sel_opto = s2.plot_selectivity(stos[i,1], plot=False, opto=True)
     else:
-        print(i)
         pre_sel = np.vstack((pre_sel, s1.plot_selectivity(stos[i,0], plot=False)))
         post_sel = np.vstack((post_sel, s2.plot_selectivity(stos[i,1], plot=False)))
-    
+        
+        pre_sel_opto = np.vstack((pre_sel_opto, s1.plot_selectivity(stos[i,0], plot=False, opto=True)))
+        post_sel_opto = np.vstack((post_sel_opto, s2.plot_selectivity(stos[i,1], plot=False, opto=True)))
 
+f, ax = plt.subplots(1,2, sharey='row', figsize=(10,5))
+sel = np.mean(pre_sel, axis=0)
+err = np.std(pre_sel, axis=0) / np.sqrt(len(pre_sel)) 
+selo = np.mean(pre_sel_opto, axis=0)
+erro = np.std(pre_sel_opto, axis=0) / np.sqrt(len(pre_sel_opto)) 
+
+x = np.arange(-5.97,5,s1.fs)[:s1.time_cutoff]
+ax[0].plot(x, sel, 'black')
+        
+ax[0].fill_between(x, sel - err, 
+          sel + err,
+          color=['darkgray'])
+
+ax[0].plot(x, selo, 'r-')
+        
+ax[0].fill_between(x, selo - erro, 
+          selo + erro,
+          color=['#ffaeb1']) 
+
+sel = np.mean(post_sel, axis=0)
+err = np.std(post_sel, axis=0) / np.sqrt(len(post_sel)) 
+selo = np.mean(post_sel_opto, axis=0)
+erro = np.std(post_sel_opto, axis=0) / np.sqrt(len(post_sel_opto)) 
+
+x = np.arange(-5.97,5,s1.fs)[:s1.time_cutoff]
+ax[1].plot(x, sel, 'black')
+        
+ax[1].fill_between(x, sel - err, 
+          sel + err,
+          color=['darkgray'])
+
+ax[1].plot(x, selo, 'r-')
+        
+ax[1].fill_between(x, selo - erro, 
+          selo + erro,
+          color=['#ffaeb1']) 
+
+
+
+ax[0].set_xlabel('Time from Go cue (s)')
 
 #%% Contributions of neurons to CD before and after
 intialpath, middlepath, finalpath = ['H:\\data\\BAYLORCW038\\python\\2024_02_05', 
@@ -226,17 +277,29 @@ intialpath, finalpath = ['H:\\data\\BAYLORCW038\\python\\2024_02_05',
 
 # Bootstrap
 angles = []
+angles_stim = []
 for _ in range(50):
 
     l1 = Mode(intialpath, use_reg=True)
     orthonormal_basis_initial, mean = l1.plot_CD(plot=False)
+    orthonormal_basis_initial_sample, mean = l1.plot_CD(mode_input = 'stimulus', plot=False)
     
     l1 = Mode(finalpath, use_reg = True)
     orthonormal_basis_final, mean = l1.plot_CD(plot=False)
+    orthonormal_basis_final_sample, mean = l1.plot_CD(mode_input = 'stimulus', plot=False)
 
     angles += [cos_sim(orthonormal_basis_initial, orthonormal_basis_final)]
+    angles_stim += [cos_sim(orthonormal_basis_initial_sample, orthonormal_basis_final_sample)]
 
-## Benchmark -- across expert sessions
+## Benchmark -- look at rotation of stim mode
+plt.bar([0,1], [np.mean(angles), np.mean(angles_stim)], 0.4, fill=False)
+
+plt.scatter(np.zeros(50), angles)
+plt.scatter(np.ones(50), angles_stim)
+
+plt.xticks(range(3), ["Delay", "Stimulus"])
+plt.xlabel('Choice decoder mode')
+plt.ylabel('Rotation over corruption')
 
 
 #%% Behavioral progress

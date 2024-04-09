@@ -1439,7 +1439,7 @@ class Session:
         # return avg_l > avg_r, test_l, test_r
         return choice, l_trials, r_trials
 
-    def plot_selectivity(self, neuron_num, plot=True, epoch=[]):
+    def plot_selectivity(self, neuron_num, plot=True, epoch=[], opto=False):
         
         """Plots a single line representing selectivity of given neuron over all trials
         
@@ -1469,9 +1469,17 @@ class Session:
 
         if pref: # prefers left
             sel = np.mean(left_trace, axis = 0) - np.mean(right_trace, axis=0)
+            
+            if opto: 
+                right_trace, left_trace = self.get_trace_matrix(neuron_num, opto=True)
+                sel = np.mean(left_trace, axis = 0) - np.mean(right_trace, axis=0)
         else:
             sel = np.mean(right_trace, axis = 0) - np.mean(left_trace, axis=0)
-        
+            
+            if opto: 
+                right_trace, left_trace = self.get_trace_matrix(neuron_num, opto=True)
+                sel = np.mean(right_trace, axis = 0) - np.mean(left_trace, axis=0)
+                
         if plot:
             direction = 'Left' if pref else 'Right'
             plt.plot(range(self.time_cutoff), sel, 'b-')
@@ -2693,7 +2701,7 @@ class Session:
         plt.show()
 
 
-    def selectivity_optogenetics(self, save=False, p = 0.0001, lickdir = False, return_traces = False, fix_axis = []):
+    def selectivity_optogenetics(self, save=False, p = 0.0001, lickdir = False, return_traces = False, fix_axis = [], selective_neurons = []):
         """Plots overall selectivity trace across opto vs control trials
         
         Uses late delay epoch to calculate selectivity
@@ -2706,7 +2714,9 @@ class Session:
             P-value to use in the selectivity calculations
         fix_axis : tuple, optional
             Provide top and bottom limits for yaxis
-            
+
+        selective_neurons : list, optional        
+            List of selective neurons to plot from
         """
         
         f, axarr = plt.subplots(1,1, sharex='col', figsize=(5,5))
@@ -2717,7 +2727,7 @@ class Session:
         x = np.arange(-5.97,4,self.fs)[:self.time_cutoff] if 'CW03' not in self.path else np.arange(-6.97,4,self.fs)[:self.time_cutoff]
 
         # Get late delay selective neurons
-        contra_neurons, ipsi_neurons, contra_trace, ipsi_trace = self.contra_ipsi_pop(range(self.response-9,self.response), p=p) 
+        contra_neurons, ipsi_neurons, contra_trace, ipsi_trace = self.contra_ipsi_pop(range(self.response-9,self.response), p=p, selective_n=selective_neurons) 
         
         if len(contra_neurons) == 0 and len(ipsi_neurons) == 0:
             
@@ -2781,7 +2791,10 @@ class Session:
         axarr.axvline(0, color = 'grey', alpha=0.5, ls = '--')
         axarr.hlines(y=max(cat((selo, sel))), xmin=-3, xmax=-2, linewidth=10, color='red')
 
-        axarr.set_title('Optogenetic effect on selectivity (n = {} neurons)'.format(len(self.selective_neurons)))                  
+        axarr.set_title('Optogenetic effect on selectivity (n = {} neurons)'.format(len(self.selective_neurons)))  
+        if len(selective_neurons) != 0:
+            axarr.set_title('Optogenetic effect on selectivity (n = {} neurons)'.format(len(selective_neurons)))  
+
         axarr.set_xlabel('Time from Go cue (s)')
         axarr.set_ylabel('Selectivity')
         # axarr[0].plot(x, sel, 'black')

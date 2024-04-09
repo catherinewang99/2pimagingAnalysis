@@ -337,8 +337,30 @@ class Behavior():
         # JH Plot
         return None
 
-    def learning_progression(self, window = 50, save=False, imaging=False, return_results=False):
-        
+    def learning_progression(self, window = 50, save=False, imaging=False, return_results=False, color_background = []):
+        """
+        Plot the learning progression with three panels indicating delay duration, performance,
+        and early lick rate over sessions
+
+        Parameters
+        ----------
+        window : int, optional
+            Window to average over. The default is 50.
+        save : bool, optional
+            Whether to save fig somewhere. The default is False.
+        imaging : bool, optional
+            Only show imaging days. The default is False.
+        return_results : bool, optional
+            Return values. The default is False.
+        color_background : list, optional
+            Which sessions to provide a colored background for, zero-indexed.
+
+        Returns
+        -------
+        Three lists
+            Returns each of the panels as lists.
+
+        """
         # Figures showing learning over protocol
         
         f, axarr = plt.subplots(3, 1, sharex='col', figsize=(16,10))
@@ -347,12 +369,13 @@ class Behavior():
         delay_duration = np.array([])
         correctarr = np.array([])
         earlylicksarr = np.array([])
-        num_trials = []
+        num_trials = [0]
         window = int(window/2)
+        background_trials = []
         
         for sess in range(self.total_sessions):
             
-
+            
             # delay = np.convolve(self.delay_duration[sess], np.ones(window)/window, mode = 'same')
             delay = self.delay_duration[sess]
             
@@ -373,13 +396,21 @@ class Behavior():
             earlylicks = np.convolve(self.early_lick[sess], np.ones(window*2)/(window*2), mode = 'same')
             earlylicksarr = np.append(earlylicksarr, earlylicks[window:-window])
             
+            if sess in color_background:
+                background_trials += [sum(num_trials)]
+                
             num_trials += [len(self.L_correct[sess])-(window*2)]
+            
+            if sess in color_background:
+                background_trials += [sum(num_trials)]
+                
         num_trials = np.cumsum(num_trials)
         
         # Protocol
         
         axarr[0].plot(delay_duration, 'r')
         axarr[0].set_ylabel('Delay duration (s)')
+        axarr[0].set_ylim(-0.1, 4)
 
         
         # Performance
@@ -397,7 +428,15 @@ class Behavior():
         axarr[2].set_xlabel('Trials')
         axarr[2].set_ylim(0, 0.4)
         
+        # Color background (optional)
         
+        if len(color_background) != 0:
+            for i in range(len(color_background)):            
+                axarr[0].axvspan(background_trials[2*i], background_trials[(2*i)+1], ymin = -0.1, ymax = 4, color = 'red', alpha=0.5)
+                axarr[1].axvspan(background_trials[2*i], background_trials[(2*i)+1], ymin = 0.4, ymax = 1, color = 'red', alpha=0.5)
+                axarr[2].axvspan(background_trials[2*i], background_trials[(2*i)+1], ymin = 0, ymax = 0.4, color = 'red', alpha=0.5)
+
+                
         # Denote separate sessions
         
         for num in num_trials:
@@ -414,7 +453,7 @@ class Behavior():
         
         if return_results:
             
-            return delay_duration, correctarr, cat(([0], num_trials))
+            return delay_duration, correctarr, num_trials
         
     def learning_progression_no_EL(self, window = 50, save=False, imaging=False, return_results=False):
         
