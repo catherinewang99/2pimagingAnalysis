@@ -215,12 +215,12 @@ intialpath, middlepath, finalpath = ['H:\\data\\BAYLORCW038\\python\\2024_02_05'
 # sample CD
 
 l1 = Mode(intialpath, use_reg=True)
-orthonormal_basis_initial, mean = l1.plot_CD(mode_input = 'stimulus')
-orthonormal_basis_initial_choice, mean = l1.plot_CD(mode_input = 'choice')
+orthonormal_basis_initial, mean = l1.plot_CD(mode_input = 'stimulus',ctl=True)
+orthonormal_basis_initial_choice, mean = l1.plot_CD(mode_input = 'choice',ctl=True)
 
 l1 = Mode(finalpath, use_reg = True)
-orthonormal_basis, mean = l1.plot_CD(mode_input = 'stimulus')
-orthonormal_basis_choice, mean = l1.plot_CD(mode_input = 'choice')
+orthonormal_basis, mean = l1.plot_CD(mode_input = 'stimulus',ctl=True)
+orthonormal_basis_choice, mean = l1.plot_CD(mode_input = 'choice',ctl=True)
 
 plt.scatter(orthonormal_basis_initial, orthonormal_basis)
 plt.title('Pearsons correlation: {}, p-val: {}'.format(stats.pearsonr(orthonormal_basis_initial, orthonormal_basis)[0], 
@@ -258,19 +258,20 @@ intialpath, middlepath, finalpath = ['H:\\data\\BAYLORCW038\\python\\2024_02_05'
 
     
 l1 = Mode(intialpath, use_reg=True)
-orthonormal_basis, mean = l1.plot_CD()
-# l1.plot_CD_opto()
-control_traces, opto_traces, error_bars, orthonormal_basis, mean, meantrain, meanstd = l1.plot_CD_opto(return_traces=True, return_applied=True)
+# orthonormal_basis, mean = l1.plot_CD(ctl=True)
+l1.plot_CD_opto(ctl=True)
+control_traces, opto_traces, error_bars, orthonormal_basis, mean, meantrain, meanstd = l1.plot_CD_opto(return_traces=True, return_applied=True,ctl=True)
 
-l1 = Mode(middlepath)
-l1.plot_CD_opto()
+# l1 = Mode(middlepath)
+# l1.plot_CD_opto()
 
 l1 = Mode(finalpath, use_reg = True)
-l1.plot_appliedCD(orthonormal_basis, mean)
+# l1.plot_appliedCD(orthonormal_basis, mean)
 # l1.plot_CD_opto()
 l1.plot_CD_opto_applied(orthonormal_basis, mean, meantrain, meanstd)
                 
 #%% CD rotation
+# TAKES A LONG TIME TO RUN!
 
 intialpath, finalpath = ['H:\\data\\BAYLORCW038\\python\\2024_02_05', 
         'H:\\data\\BAYLORCW038\\python\\2024_03_15']
@@ -296,11 +297,22 @@ plt.bar([0,1], [np.mean(angles), np.mean(angles_stim)], 0.4, fill=False)
 
 plt.scatter(np.zeros(50), angles)
 plt.scatter(np.ones(50), angles_stim)
+plt.axhline(0, ls = '--')
 
-plt.xticks(range(3), ["Delay", "Stimulus"])
+plt.ylim(-0.3, 1)
+plt.xticks(range(2), ["Delay", "Stimulus"])
 plt.xlabel('Choice decoder mode')
 plt.ylabel('Rotation over corruption')
 
+plt.show()
+
+plt.scatter(angles, angles_stim)
+plt.axhline(0, ls = '--')
+plt.axvline(0, ls = '--')
+plt.ylim(0, 1)
+plt.xlim(-1, 1)
+plt.xlabel('Choice decoder angles')
+plt.ylabel('Stimulus decoder angles')
 
 #%% Behavioral progress
 

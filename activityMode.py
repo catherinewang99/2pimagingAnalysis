@@ -1630,7 +1630,7 @@ class Mode(Session):
 
 ## Modes with optogenetic inhibition
     
-    def plot_CD_opto(self, mode_input = 'choice', save=None, return_traces = False, return_applied = False, normalize=True):
+    def plot_CD_opto(self, mode_input = 'choice', save=None, return_traces = False, return_applied = False, normalize=True, ctl=False):
         '''
         Plots similar figure as Li et al 2016 Fig 3c to view the effect of
         photoinhibition on L/R CD traces
@@ -1643,7 +1643,7 @@ class Mode(Session):
         idx_map = {'choice': 1, 'action':5, 'stimulus':0}
         idx = idx_map[mode_input]
 
-        orthonormal_basis, mean = self.plot_behaviorally_relevant_modes(plot=False) # one method
+        orthonormal_basis, mean = self.plot_behaviorally_relevant_modes(plot=False, ctl=ctl) # one method
         orthonormal_basis = orthonormal_basis[:, idx]
             
         activityRL_train= np.concatenate((self.PSTH_r_train_correct, 

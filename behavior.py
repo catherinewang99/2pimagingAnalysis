@@ -432,9 +432,9 @@ class Behavior():
         
         if len(color_background) != 0:
             for i in range(len(color_background)):            
-                axarr[0].axvspan(background_trials[2*i], background_trials[(2*i)+1], ymin = -0.1, ymax = 4, color = 'red', alpha=0.5)
-                axarr[1].axvspan(background_trials[2*i], background_trials[(2*i)+1], ymin = 0.4, ymax = 1, color = 'red', alpha=0.5)
-                axarr[2].axvspan(background_trials[2*i], background_trials[(2*i)+1], ymin = 0, ymax = 0.4, color = 'red', alpha=0.5)
+                axarr[0].axvspan(background_trials[2*i], background_trials[(2*i)+1], ymin = -0.1, ymax = 4, color = 'red', alpha=0.3)
+                axarr[1].axvspan(background_trials[2*i], background_trials[(2*i)+1], ymin = 0, ymax = 1, color = 'red', alpha=0.3)
+                axarr[2].axvspan(background_trials[2*i], background_trials[(2*i)+1], ymin = 0, ymax = 1, color = 'red', alpha=0.3)
 
                 
         # Denote separate sessions
