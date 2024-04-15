@@ -150,7 +150,7 @@ l1.all_neurons_heatmap()
 # Check CDs
 
 l1 = Mode(path)
-orthonormal_basis, mean = l1.plot_behaviorally_relevant_modes()
+orthonormal_basis, mean = l1.plot_behaviorally_relevant_modes(ctl=True)
 
 #%% Heatmap AGG over 5 mice
 
