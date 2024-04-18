@@ -402,10 +402,13 @@ class Mode(Session):
         
         if ctl:
             PSTH_yes_correct, PSTH_no_correct = input_
+            activityRL = np.concatenate((PSTH_yes_correct, PSTH_no_correct), axis=1)
+
         else:
             PSTH_yes_correct, PSTH_no_correct, PSTH_yes_error, PSTH_no_error = input_
+            activityRL = np.concatenate((PSTH_yes_correct, PSTH_no_correct, PSTH_yes_error, PSTH_no_error), axis=1)
+
     
-        activityRL = np.concatenate((PSTH_yes_correct, PSTH_no_correct), axis=1)
         activityRL = activityRL - np.mean(activityRL, axis=1, keepdims=True) # remove?
         u, s, v = np.linalg.svd(activityRL.T)
         proj_allDim = activityRL.T @ v

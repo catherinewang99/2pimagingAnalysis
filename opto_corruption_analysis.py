@@ -91,19 +91,21 @@ for paths in agg_mice_paths: # For each mouse
             s1list[2] += 1
         else:
             s1list[3] += 1
+            stos += [(n, s2.good_neurons[np.where(s1.good_neurons ==n)[0][0]])]  #save sample to ns cells
+
     
     for n in naive_delay_sel:
         if s2.is_selective(s2.good_neurons[np.where(s1.good_neurons ==n)[0][0]], sample_epoch, p=p):
             d1[0] += 1
         elif s2.is_selective(s2.good_neurons[np.where(s1.good_neurons ==n)[0][0]], delay_epoch, p=p):
             d1[1] += 1
-            stos += [(n, s2.good_neurons[np.where(s1.good_neurons ==n)[0][0]])]  #save sample to sample cells
 
         elif s2.is_selective(s2.good_neurons[np.where(s1.good_neurons ==n)[0][0]], response_epoch, p=p):
             d1[2] += 1
         else:
             d1[3] += 1
-    
+            nstos += [(n, s2.good_neurons[np.where(s1.good_neurons ==n)[0][0]])]  #save delay to ns cells
+
     
     for n in naive_response_sel:
         if s2.is_selective(s2.good_neurons[np.where(s1.good_neurons ==n)[0][0]], sample_epoch, p=p):
@@ -125,7 +127,6 @@ for paths in agg_mice_paths: # For each mouse
 
         elif s2.is_selective(s2.good_neurons[np.where(s1.good_neurons ==n)[0][0]], delay_epoch, p=p):
             ns1[1] += 1
-            nstos += [(n, s2.good_neurons[np.where(s1.good_neurons ==n)[0][0]])]  #save ns to sample cells
 
         elif s2.is_selective(s2.good_neurons[np.where(s1.good_neurons ==n)[0][0]], response_epoch, p=p):
             ns1[2] += 1
@@ -139,8 +140,8 @@ og_SDR = np.sum(og_SDR, axis=0)
 #%% Plot the selectivity of recruited sample neurons vs stable sample neurons
 # look at the accompanying recovery to stim
 
-stos = np.array(stos)
-stos_old = stos
+# stos = np.array(stos)
+# stos_old = stos
 stos = np.array(nstos)
 
 intialpath, middlepath, finalpath = ['H:\\data\\BAYLORCW038\\python\\2024_02_05', 
@@ -269,7 +270,21 @@ l1 = Mode(finalpath, use_reg = True)
 # l1.plot_appliedCD(orthonormal_basis, mean)
 # l1.plot_CD_opto()
 l1.plot_CD_opto_applied(orthonormal_basis, mean, meantrain, meanstd)
-                
+
+#%% Applying post CD to pre CD:
+    
+intialpath, middlepath, finalpath = ['H:\\data\\BAYLORCW038\\python\\2024_02_05', 
+                         r'H:\data\BAYLORCW038\python\2024_02_15',
+                         'H:\\data\\BAYLORCW038\\python\\2024_03_15']
+l1 = Mode(finalpath, use_reg = True)
+# orthonormal_basis, mean = l1.plot_CD(ctl=True)
+l1.plot_CD_opto(ctl=False)
+control_traces, opto_traces, error_bars, orthonormal_basis, mean, meantrain, meanstd = l1.plot_CD_opto(return_traces=True, return_applied=True,ctl=False)
+
+l1 = Mode(intialpath, use_reg=True)
+# l1.plot_appliedCD(orthonormal_basis, mean)
+l1.plot_CD_opto_applied(orthonormal_basis, mean, meantrain, meanstd)
+
 #%% CD rotation
 # TAKES A LONG TIME TO RUN!
 
