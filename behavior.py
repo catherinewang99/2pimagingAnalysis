@@ -337,7 +337,7 @@ class Behavior():
         # JH Plot
         return None
 
-    def learning_progression(self, window = 50, save=False, imaging=False, return_results=False, color_background = []):
+    def learning_progression(self, window = 50, save=False, imaging=False, return_results=False, include_delay = True, color_background = []):
         """
         Plot the learning progression with three panels indicating delay duration, performance,
         and early lick rate over sessions
@@ -362,9 +362,11 @@ class Behavior():
 
         """
         # Figures showing learning over protocol
-        
-        f, axarr = plt.subplots(3, 1, sharex='col', figsize=(16,10))
-        
+        if include_delay:
+            f, axarr = plt.subplots(3, 1, sharex='col', figsize=(16,10))
+        else:
+            f, axarr = plt.subplots(2, 1, sharex='col', figsize=(16,10))
+
         # Concatenate all sessions
         delay_duration = np.array([])
         correctarr = np.array([])
@@ -406,43 +408,66 @@ class Behavior():
                 
         num_trials = np.cumsum(num_trials)
         
-        # Protocol
+        if include_delay:
+            # Protocol
+            
+            axarr[0].plot(delay_duration, 'r')
+            axarr[0].set_ylabel('Delay duration (s)')
+            axarr[0].set_ylim(-0.1, 4)
+    
+            
+            # Performance
+            
+            axarr[1].plot(correctarr, 'g')        
+            axarr[1].set_ylabel('% correct')
+            axarr[1].axhline(y=0.7, alpha = 0.5, color='orange')
+            axarr[1].axhline(y=0.5, alpha = 0.5, color='red', ls = '--')
+            axarr[1].set_ylim(0.4, 1)
+            
+            # Early licking
+            
+            axarr[2].plot(earlylicksarr, 'b')        
+            axarr[2].set_ylabel('% Early licks')
+            axarr[2].set_xlabel('Trials')
+            axarr[2].set_ylim(0, 0.4)
         
-        axarr[0].plot(delay_duration, 'r')
-        axarr[0].set_ylabel('Delay duration (s)')
-        axarr[0].set_ylim(-0.1, 4)
-
-        
-        # Performance
-        
-        axarr[1].plot(correctarr, 'g')        
-        axarr[1].set_ylabel('% correct')
-        axarr[1].axhline(y=0.7, alpha = 0.5, color='orange')
-        axarr[1].axhline(y=0.5, alpha = 0.5, color='red', ls = '--')
-        axarr[1].set_ylim(0.4, 1)
-        
-        # Early licking
-        
-        axarr[2].plot(earlylicksarr, 'b')        
-        axarr[2].set_ylabel('% Early licks')
-        axarr[2].set_xlabel('Trials')
-        axarr[2].set_ylim(0, 0.4)
+        else:
+            # Performance
+            
+            axarr[0].plot(correctarr, 'g')        
+            axarr[0].set_ylabel('% correct')
+            axarr[0].axhline(y=0.7, alpha = 0.5, color='orange')
+            axarr[0].axhline(y=0.5, alpha = 0.5, color='red', ls = '--')
+            axarr[0].set_ylim(0.4, 1)
+            
+            # Early licking
+            
+            axarr[1].plot(earlylicksarr, 'b')        
+            axarr[1].set_ylabel('% Early licks')
+            axarr[1].set_xlabel('Trials')
+            axarr[1].set_ylim(0, 0.4)
         
         # Color background (optional)
         
         if len(color_background) != 0:
-            for i in range(len(color_background)):            
-                axarr[0].axvspan(background_trials[2*i], background_trials[(2*i)+1], ymin = -0.1, ymax = 4, color = 'red', alpha=0.3)
-                axarr[1].axvspan(background_trials[2*i], background_trials[(2*i)+1], ymin = 0, ymax = 1, color = 'red', alpha=0.3)
-                axarr[2].axvspan(background_trials[2*i], background_trials[(2*i)+1], ymin = 0, ymax = 1, color = 'red', alpha=0.3)
+            for i in range(len(color_background)):
+                if include_delay:
 
+                    axarr[0].axvspan(background_trials[2*i], background_trials[(2*i)+1], ymin = -0.1, ymax = 4, color = 'red', alpha=0.3)
+                    axarr[1].axvspan(background_trials[2*i], background_trials[(2*i)+1], ymin = 0, ymax = 1, color = 'red', alpha=0.3)
+                    axarr[2].axvspan(background_trials[2*i], background_trials[(2*i)+1], ymin = 0, ymax = 1, color = 'red', alpha=0.3)
+                else:
+                    axarr[0].axvspan(background_trials[2*i], background_trials[(2*i)+1], ymin = 0, ymax = 1, color = 'red', alpha=0.3)
+                    axarr[1].axvspan(background_trials[2*i], background_trials[(2*i)+1], ymin = 0, ymax = 1, color = 'red', alpha=0.3)
                 
         # Denote separate sessions
         
         for num in num_trials:
             axarr[0].axvline(num, color = 'grey', alpha=0.5, ls = '--')
             axarr[1].axvline(num, color = 'grey', alpha=0.5, ls = '--')
-            axarr[2].axvline(num, color = 'grey', alpha=0.5, ls = '--')
+            if include_delay:
+                axarr[2].axvline(num, color = 'grey', alpha=0.5, ls = '--')
+            
         
         if save:
             # plt.savefig(self.path + r'\learningcurve.png')
