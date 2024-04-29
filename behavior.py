@@ -112,7 +112,7 @@ class Behavior():
             self.total_sessions = 1
             
 
-    def plot_performance_over_sessions(self, all=False):
+    def plot_performance_over_sessions(self, all=False, color_background = []):
         
         reg = []
         opto_p = []
@@ -120,6 +120,7 @@ class Behavior():
         for i in range(self.total_sessions):
             if all:
                 correct = self.L_correct[i] + self.R_correct[i]
+                reg += [np.sum(correct) / len(self.L_correct[i])] 
 
             else:
 
@@ -136,18 +137,30 @@ class Behavior():
                     
                 opto_p += [np.sum([(self.L_correct[i][t] + self.R_correct[i][t]) for t in opto]) / len(opto)]
 
+        if all:
+            plt.plot(reg, 'g--')
+            plt.scatter(range(len(reg)), reg, c='g', marker = 'o')
+            plt.scatter(np.arange(len(reg))[color_background], np.array(reg)[color_background], c='r', marker = 'o')
+            plt.title('Performance over time')
+            # plt.xticks(range(self.total_sessions), self.sessions, rotation = 45)
+            # plt.ylim(0.45,0.95)
+            plt.xlabel('Session #')
+            plt.ylabel('% correct')
+            plt.axhline(0.5)
+            plt.legend()
+            plt.show()
+        else:
+            plt.plot(reg, 'g-', label='control')
+            plt.plot(opto_p, 'r-', label = 'opto')
+            plt.title('Performance over time')
+            plt.xticks(range(self.total_sessions), self.sessions, rotation = 45)
+            plt.axhline(0.5)
+            plt.legend()
+            plt.show()
             
-        plt.plot(reg, 'g-', label='control')
-        plt.plot(opto_p, 'r-', label = 'opto')
-        plt.title('Performance over time')
-        plt.xticks(range(self.total_sessions), self.sessions, rotation = 45)
-        plt.axhline(0.5)
-        plt.legend()
-        plt.show()
-        
-        
-        return reg, opto_p
-        
+            
+            return reg, opto_p
+            
         
     def plot_LR_performance_over_sessions(self):
         
@@ -438,7 +451,7 @@ class Behavior():
             axarr[0].set_ylabel('% correct')
             axarr[0].axhline(y=0.7, alpha = 0.5, color='orange')
             axarr[0].axhline(y=0.5, alpha = 0.5, color='red', ls = '--')
-            axarr[0].set_ylim(0.4, 1)
+            # axarr[0].set_ylim(0.4, 1)
             
             # Early licking
             

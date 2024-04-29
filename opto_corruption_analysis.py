@@ -256,6 +256,8 @@ for path in paths:
 intialpath, middlepath, finalpath = ['H:\\data\\BAYLORCW038\\python\\2024_02_05', 
                          r'H:\data\BAYLORCW038\python\2024_02_15',
                          'H:\\data\\BAYLORCW038\\python\\2024_03_15']
+intialpath, finalpath = ['H:\\data\\BAYLORCW039\\python\\2024_04_17', 
+                         'H:\\data\\BAYLORCW039\\python\\2024_04_24']
 
     
 l1 = Mode(intialpath, use_reg=True)
