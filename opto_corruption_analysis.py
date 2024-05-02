@@ -244,7 +244,8 @@ plt.show()
 
 paths = ['H:\\data\\BAYLORCW038\\python\\2024_02_05', 
         'H:\\data\\BAYLORCW038\\python\\2024_03_15']
-
+paths = ['H:\\data\\BAYLORCW039\\python\\2024_04_17', 
+         'H:\\data\\BAYLORCW039\\python\\2024_04_24']
 for path in paths:
     
     l1 = Session(path, use_reg=True)
@@ -293,6 +294,8 @@ l1.plot_CD_opto_applied(orthonormal_basis, mean, meantrain, meanstd)
 intialpath, finalpath = ['H:\\data\\BAYLORCW038\\python\\2024_02_05', 
         'H:\\data\\BAYLORCW038\\python\\2024_03_15']
 
+intialpath, finalpath = ['H:\\data\\BAYLORCW039\\python\\2024_04_17', 
+                         'H:\\data\\BAYLORCW039\\python\\2024_04_24']
 # Bootstrap
 angles = []
 angles_stim = []
@@ -316,7 +319,7 @@ plt.scatter(np.zeros(50), angles)
 plt.scatter(np.ones(50), angles_stim)
 plt.axhline(0, ls = '--')
 
-plt.ylim(-0.3, 1)
+# plt.ylim(-0.3, 1)
 plt.xticks(range(2), ["Delay", "Stimulus"])
 plt.xlabel('Choice decoder mode')
 plt.ylabel('Rotation over corruption')
@@ -326,8 +329,8 @@ plt.show()
 plt.scatter(angles, angles_stim)
 plt.axhline(0, ls = '--')
 plt.axvline(0, ls = '--')
-plt.ylim(0, 1)
-plt.xlim(-1, 1)
+# plt.ylim(0, 1)
+# plt.xlim(-1, 1)
 plt.xlabel('Choice decoder angles')
 plt.ylabel('Stimulus decoder angles')
 
