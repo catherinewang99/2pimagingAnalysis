@@ -1071,6 +1071,17 @@ class Session:
                 dff_trial = (trial-mean_per_neuron)/std_per_neuron #(neurons,time)
                 dff_session[0,ti] = dff_trial
             self.dff=dff_session
+            if self.use_background_sub: # convert background trace
+                background_means,background_stds = get_baseline_stats_trialwise(self.background,self.sample)
+                baseline_mean_filter = median_filter_trace(background_means,filter_length,mode,**kwargs) #(neurons,trials)
+                baseline_std_filter = median_filter_trace(background_stds,filter_length,mode,**kwargs) #(neurons,trials)
+                background_session = np.empty((1,len(self.background[0])),dtype=object)
+                for ti,trial in enumerate(self.background[0]):
+                    mean_per_neuron = baseline_mean_filter[:,ti][:,None] #(neurons,1)
+                    std_per_neuron = baseline_std_filter[:,ti][:,None] #(neurons,1)
+                    background_trial = (trial-mean_per_neuron)/std_per_neuron #(neurons,time)
+                    background_session[0,ti] = background_trial
+                self.background=background_session
             
 
     def normalize_all_by_baseline(self):

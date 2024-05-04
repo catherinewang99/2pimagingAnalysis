@@ -40,7 +40,7 @@ class Test_Session():
         sess_default = session.Session(test_data_path)
         sess_dff = session.Session(test_data_path,baseline_normalization="dff_avg")
         assert all([np.all(a==b) for a,b in zip(sess_dff.dff[0],sess_default.dff[0])]), "default behavior gives what we expected previously"
-        sess_med = session.Session(test_data_path,baseline_normalization="median_zscore")
+        sess_med = session.Session(test_data_path,baseline_normalization="median_zscore",use_background_sub=True)
         assert type(sess_med) == type(sess_dff)
         for i in range(sess_med.dff.shape[-1]):
             assert type(sess_med.dff[0,i]) == type(sess_dff.dff[0,i])
