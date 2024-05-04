@@ -21,6 +21,7 @@ from statsmodels.formula.api import ols
 import pandas as pd
 from scipy.stats import mannwhitneyu
 from scipy.stats import mstats
+from scipy.ndimage import median_filter
 from .LinRegpval import LinearRegression
 plt.rcParams['pdf.fonttype'] = 42 
 import time 
@@ -41,12 +42,9 @@ class Session:
     -------
 
     """
-    
-    
     def __init__(self, path, layer_num='all', use_reg = False, triple = False,
-                 filter_reg = True, use_background_sub = False,
+                 filter_reg = True, use_background_sub = False,baseline_normalization = "dff_avg",
                  sess_reg = False, guang=False, passive=False, quality=False):
-        
         """
         Parameters
         ----------
@@ -56,13 +54,20 @@ class Session:
             Layer number to analyze (default is all the layers)
         use_reg : bool, optional
             Contains neurons that are matched only, for all layers
+        triple : bool, optional
+            Whether to use registration that matches across all three sessions,
+            or just pairwise across two sessions (I think). (default False)
         filter_reg : bool, optional
             Uses the pearson filtered versions of the matched neurons, should be true
         use_background_sub: bool, optional
             Whether to use the F_background version for dF/F0 calculations, use
             for stim condition analysis so usually False
+        baseline_normalization: string, optional
+            Options for `normalize_all_by_neural_baseline` method. Options are 
+            [`dff_avg`,`median_zscore`]. See documentation for 
+            `normalize_all_by_neural_baseline` for details.
         sess_reg : bool, optional
-            Reads in .npy file containing the registered neurons only. 
+            Reads in .npy file containing the registered neurons only.
             Usually, this means only one layer. TBC. (default False)
         guang : bool, optional
             Boolean indicating is Guang's data is being used (default False)
@@ -70,24 +75,25 @@ class Session:
             If dataset is from passive experiment (default False)
         quality : bool, optional
             If parent class is quality
-        """       
+        """
         self.use_background_sub = use_background_sub
+        assert baseline_normalization in ["dff_avg","median_zscore"], "`baseline_normalization` parameter value {} not recognized".format(baseline_normalization)
+        self.baseline_normalization = baseline_normalization
+
         if use_background_sub:
             print('Using subtracted background dataset')
             if 'mod_layer_1.mat' not in os.listdir(path):
                 # raise NotImplementedError("No mod layer, altering to no subtracted background")
                 print("No mod layer, altering to no subtracted background")
                 use_background_sub = False
-                
-        
+
         if layer_num != 'all':
             if use_background_sub:
                 filename = [n for n in os.listdir(path) if 'mod_layer_{}'.format(layer_num) in n]
             else:
                 filename = [n for n in os.listdir(path) if 'layer_{}'.format(layer_num) in n and len(n) < 12]
 
-                
-            layer_og = scio.loadmat(r'{}\{}'.format(path, filename[0]))
+            layer_og = scio.loadmat(os.path.join(path, filename[0]))
             layer = copy.deepcopy(layer_og)
             self.dff = layer['dff']
             if 'background' in layer_og.keys():
@@ -98,14 +104,12 @@ class Session:
             if use_reg:
                 if triple:
                     if filter_reg:
-                        self.good_neurons = np.load(path + r'\layer{}_triple_registered_filtered_neurons.npy'.format(layer_num-1))
+                        self.good_neurons = np.load(os.path.join(path,'layer{}_triple_registered_filtered_neurons.npy'.format(layer_num-1)))
                     else:
-                        self.good_neurons = np.load(path + r'\layer{}_triple_registered_neurons.npy'.format(layer_num-1))
+                        self.good_neurons = np.load('layer{}_triple_registered_neurons.npy'.format(layer_num-1))
                 else:
-                    self.good_neurons = np.load(path + r'\layer{}_registered_neurons.npy'.format(layer_num-1))
+                    self.good_neurons = np.load(os.path.join(path,'layer{}_registered_neurons.npy'.format(layer_num-1)))
 
-
-            
         else:
             # Load all layers
 
@@ -115,24 +119,23 @@ class Session:
             counter = 0
             for layer_pth in os.listdir(path):
                 condition = 'mod_layer' in layer_pth and '.mat' in layer_pth if use_background_sub else 'layer' in layer_pth and '.mat' in layer_pth and len(layer_pth) < 12
-                
                 if condition:
 
                     layer_og = scio.loadmat(os.path.join(path, layer_pth))
                     layer = copy.deepcopy(layer_og)
-                    
                     if self.dff is None:
-                        
                         if use_reg:
+                            print("print here")
                             if triple:
                                 if filter_reg:
-                                    self.good_neurons = np.load(path + r'\layer{}_triple_registered_filtered_neurons.npy'.format(counter))
+                                    self.good_neurons = np.load(os.path.join(path,'layer{}_triple_registered_filtered_neurons.npy'.format(counter)))
 
                                 else:
-                                    self.good_neurons = np.load(path + r'\layer{}_triple_registered_neurons.npy'.format(counter))
+                                    print("using the neurons I want")
+                                    self.good_neurons = np.load(os.path.join(path,'layer{}_triple_registered_neurons.npy'.format(counter)))
 
                             else:
-                                self.good_neurons = np.load(path + r'\layer{}_registered_neurons.npy'.format(counter))
+                                self.good_neurons = np.load(os.path.join(path,'layer{}_registered_neurons.npy'.format(counter)))
 
                             # self.good_neurons = layer['dff'][:, :][neurons]
                         self.dff = layer['dff']
@@ -141,44 +144,33 @@ class Session:
                         if 'neuropil' in layer_og.keys():
                             self.npil = layer['neuropil']
                         self.num_trials = layer['dff'].shape[1] 
-                        
                     else:
                         if use_reg:
                             # raise NotImplementedError("Multi plane reg not implemented!")
                             if triple:
                                 if filter_reg:
-                                    neurons = np.load(path + r'\layer{}_triple_registered_filtered_neurons.npy'.format(counter))
+                                    neurons = np.load(os.path.join(path , 'layer{}_triple_registered_filtered_neurons.npy'.format(counter)))
                                     self.good_neurons = np.append(self.good_neurons, neurons + self.dff[0,0].shape[0])
                                 else:
-                                    neurons = np.load(path + r'\layer{}_triple_registered_neurons.npy'.format(counter))
+                                    neurons = np.load(os.path.join(path , 'layer{}_triple_registered_neurons.npy'.format(counter)))
                                     self.good_neurons = np.append(self.good_neurons, neurons + self.dff[0,0].shape[0])
                             else:
-                                neurons = np.load(path + r'\layer{}_registered_neurons.npy'.format(counter))
+                                neurons = np.load(os.path.join(path , 'layer{}_registered_neurons.npy'.format(counter)))
                                 self.good_neurons = np.append(self.good_neurons, neurons + self.dff[0,0].shape[0])
-                            
                         for t in range(self.num_trials):
 
                             add = layer['dff'][0, t]
                             self.dff[0, t] = np.vstack((self.dff[0, t], add))
-                            
                             if 'background' in layer_og.keys():
                                 add = layer['background'][0, t]
                                 self.background[0, t] = np.vstack((self.background[0, t], add))
-                                
                             if 'neuropil' in layer_og.keys():
                                 add = layer['neuropil'][0, t]
                                 self.npil[0, t] = np.vstack((self.npil[0, t], add))
                     counter += 1
-            
-            
-            
-            
             self.fs = 1/(30/counter)
 
-                            
 
-                                        
-        
         behavior = scio.loadmat(os.path.join(path,"behavior.mat"))
         self.path = path
         self.layer_num = layer_num
@@ -261,11 +253,14 @@ class Session:
                 for t in range(self.num_trials):
                     self.dff[0, t] = self.dff[0, t].T
             else:
-                self.normalize_all_by_neural_baseline()
+                print("normalizing")
+                self.normalize_all_by_neural_baseline(self.baseline_normalization)
                 # self.normalize_by_histogram()
                 # self.normalize_all_by_histogram()
                 # self.normalize_all_by_baseline()
+                print(self.dff[0,0][0,0])
                 self.normalize_z_score()    
+                print(self.dff[0,0][0,0])
 
         self.i_good_non_stim_trials = [t for t in self.i_good_trials if not self.stim_ON[t]]
         self.i_good_stim_trials = [t for t in self.i_good_trials if self.stim_ON[t]]
@@ -581,7 +576,7 @@ class Session:
         self.plot_mean_F()
 
         # self.normalize_all_by_baseline()
-        self.normalize_all_by_neural_baseline()
+        self.normalize_all_by_neural_baseline(self.baseline_normalization)
 
         self.normalize_z_score()    
         
@@ -844,8 +839,6 @@ class Session:
             
         return R_av_dff, L_av_dff
     
-
-    
     def get_trace_matrix_multiple(self, neuron_nums, error=False, bias_trials = [], rtrials=[],ltrials=[], non_bias=False, both=False, lickdir=False, trialtype = False, opto=False):
         
        
@@ -1025,42 +1018,61 @@ class Session:
             
         return (trace - mean) / mean # norm by F0
     
-    def normalize_all_by_neural_baseline(self):
-        """Normalize all neurons by each neuron's trial-averaged F0
-        
-        Calculates F0 separately for each neuron, defined by its trial-averaged
-        F for the 3 timebins preceding the sample period. F0 is then subtracted
-        and divided from each trace on each trial. Modifies self.dff directly.
-            
+    def normalize_all_by_neural_baseline(self,baseline_normalization="dff_avg",filter_length=30,mode="reflect",**kwargs):
+        """Normalize all neurons by each neuron's trial-averaged F0. Behavior
+        depends upon `norm_mode`:
+
+        If `dff_avg`, (default behavior), calculates F0 separately for each neuron,
+        defined by its trial-averaged F for the 3 timebins preceding the sample period.
+        F0 is then subtracted and divided from each trace on each trial.
+        If `median_zscore`, calculates a median filter with window size 30 and
+        calculates a moving median mean and standard deviation from the last half second
+        of the baseline period.
+        Modifies self.dff directly.
+
+        For median filter, filter_length is the length of the session to consider, and
+        mode determines how to handle endpoints.
+        additional keyword arguments can be passed to helper function `median_filter_trace`
         """
-        # 
-        
-        for i in range(self.num_neurons):
-        # for i in self.good_neurons:
+        if baseline_normalization == "dff_avg":
 
-            nmean = np.mean([self.dff[0, t][i, self.sample-3:self.sample] for t in range(self.num_trials)]).copy()
-            # nmean = np.mean([self.dff[0, t][i, self.sample-3:self.sample] for t in self.i_good_trials]).copy()
-            
-            for j in range(self.num_trials):
-            # for j in self.i_good_trials:
-                
-                # nmean = np.mean(self.dff[0, j][i, :7])
-                self.dff[0, j][i] = (self.dff[0, j][i] - nmean) / nmean
-            
-        if self.use_background_sub: # convert background trace
-        
-            for i in range(5):
+            for i in range(self.num_neurons):
+            # for i in self.good_neurons:
 
-                nmean = np.mean([self.background[0, t][i, self.sample-3:self.sample] for t in range(self.num_trials)]).copy()
-                
+                nmean = np.mean([self.dff[0, t][i, self.sample-3:self.sample] for t in range(self.num_trials)]).copy()
+                # nmean = np.mean([self.dff[0, t][i, self.sample-3:self.sample] for t in self.i_good_trials]).copy()
+
                 for j in range(self.num_trials):
                 # for j in self.i_good_trials:
-                    
+
                     # nmean = np.mean(self.dff[0, j][i, :7])
-                    self.background[0, j][i] = (self.background[0, j][i] - nmean) / nmean
+                    self.dff[0, j][i] = (self.dff[0, j][i] - nmean) / nmean
+            if self.use_background_sub: # convert background trace
+
+                for i in range(5):
+
+                    nmean = np.mean([self.background[0, t][i, self.sample-3:self.sample] for t in range(self.num_trials)]).copy()
+
+                    for j in range(self.num_trials):
+                    # for j in self.i_good_trials:
+
+                        # nmean = np.mean(self.dff[0, j][i, :7])
+                        self.background[0, j][i] = (self.background[0, j][i] - nmean) / nmean
+
+        if baseline_normalization == "median_zscore":
+            pertrial_means,pertrial_stds = get_baseline_stats_trialwise(self.dff,self.sample)
             
-        
-    
+            baseline_mean_filter = median_filter_trace(pertrial_means,filter_length,mode,**kwargs) #(neurons,trials)
+            baseline_std_filter = median_filter_trace(pertrial_stds,filter_length,mode,**kwargs) #(neurons,trials)
+            dff_session = np.empty((1,len(self.dff[0])),dtype=object)
+            for ti,trial in enumerate(self.dff[0]):
+                mean_per_neuron = baseline_mean_filter[:,ti][:,None] #(neurons,1)
+                std_per_neuron = baseline_std_filter[:,ti][:,None] #(neurons,1)
+                dff_trial = (trial-mean_per_neuron)/std_per_neuron #(neurons,time)
+                dff_session[0,ti] = dff_trial
+            self.dff=dff_session
+            
+
     def normalize_all_by_baseline(self):
         """Normalize all neurons by each neuron's F0 on each trial
         
@@ -1138,10 +1150,7 @@ class Session:
         for i in self.i_good_trials:
             for j in range(self.num_neurons):
                 self.dff[0, i][j] = (self.dff[0, i][j] - overall_mean) / std
-                
-                
         if self.use_background_sub:
-            
             overall_mean = np.mean(cat([cat(self.background[0, i]) for i in self.i_good_trials])).copy()
             std = np.std(cat([cat(self.background[0, i]) for i in self.i_good_trials])).copy()
             
@@ -1149,8 +1158,6 @@ class Session:
             for i in self.i_good_trials:
                 for j in range(5):
                     self.background[0, i][j] = (self.background[0, i][j] - overall_mean) / std
-                    
-                
     def is_selective(self, neuron, epoch, p = 0.0001, bias=False, lickdir = False):
         right, left = self.get_trace_matrix(neuron)
         if lickdir:
@@ -1168,8 +1175,6 @@ class Session:
         # p = 0.01
         # p = 0.0001
         return p_val < p
-        
-        
 
     def get_epoch_selective(self, epoch, p = 0.0001, bias=False, rtrials=[], ltrials=[], return_stat = False, lickdir = False):
         """Identifies neurons that are selective in a given epoch
@@ -3370,8 +3375,7 @@ class Session:
 
         # return prebias_trials
         return bias_trials
-            
-    
+
     def ranked_cells_by_selectivity(self, epoch, p=0.0001):
         """Returns list of neurons based on trial type selectivity 
         
@@ -3417,9 +3421,6 @@ class Session:
         # return neurons, np.take(selectivity,order), (test_r, test_l) # Used to plot heatmap
         
         return order, np.take(selectivity,order), (test_r, test_l)
-        
-
-
 
     def modularity_proportion_by_state(self, p = 0.0001, trials=None):
         """Returns the modularity as a proportion of control trial activity
@@ -3533,6 +3534,25 @@ class Session:
             
         return all_recovery
 
+
+## Helper functions from Taiga's codebase
+### Helper function for dff_median and median_baseline_zscore
+def get_baseline_stats_trialwise(array,sample_start,windowstart=3):
+    """Given an array of shape (1,trials), with entries arrays of shape (neurons,time), returns the per-trial mean and standard deviation for each neuron within a window defined by time index (sample_start-windowstart,sample_start)
+    """
+    baseline_period = np.stack([n[:,int(sample_start-3):int(sample_start)] for n in array[0]],axis = 0) # (trials,neurons,interval)
+    baseline_mean_trialwise = np.mean(baseline_period,axis = -1).T # (neurons,trials)
+    baseline_std_trialwise = np.std(baseline_period,axis = -1).T # (neurons,trials)
+    return baseline_mean_trialwise,baseline_std_trialwise
+
+def median_filter_trace(traces,filter_length,mode="reflect",**kwargs):
+    """Assumes we are given an array of shape (neurons,trials) or (trials,).
+    Applies a median filter with `filter length` (an integer) and boundary handling determined by mode. All other scipy keywork args avaialble. 
+    """
+    assert len(np.shape(traces)) in [1,2], "must be 1d traces or 2d array."
+    if len(np.shape(traces)) == 1:
+        traces = traces[None,:]
+    return median_filter(traces,size=(1,filter_length),mode = mode,**kwargs)
 
 
 
