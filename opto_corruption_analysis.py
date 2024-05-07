@@ -257,8 +257,8 @@ for path in paths:
 intialpath, middlepath, finalpath = ['H:\\data\\BAYLORCW038\\python\\2024_02_05', 
                          r'H:\data\BAYLORCW038\python\2024_02_15',
                          'H:\\data\\BAYLORCW038\\python\\2024_03_15']
-intialpath, finalpath = ['H:\\data\\BAYLORCW039\\python\\2024_04_17', 
-                         'H:\\data\\BAYLORCW039\\python\\2024_04_24']
+intialpath, finalpath = ['H:\\data\\BAYLORCW039\\python\\2024_04_24', 
+                         'H:\\data\\BAYLORCW039\\python\\2024_05_06']
 
     
 l1 = Mode(intialpath, use_reg=True)
@@ -279,6 +279,9 @@ l1.plot_CD_opto_applied(orthonormal_basis, mean, meantrain, meanstd)
 intialpath, middlepath, finalpath = ['H:\\data\\BAYLORCW038\\python\\2024_02_05', 
                          r'H:\data\BAYLORCW038\python\2024_02_15',
                          'H:\\data\\BAYLORCW038\\python\\2024_03_15']
+intialpath, middlepath, finalpath = ['H:\\data\\BAYLORCW039\\python\\2024_04_24', 
+                         r'H:\data\BAYLORCW039\python\2024_02_15',
+                         'H:\\data\\BAYLORCW039\\python\\2024_05_06']
 l1 = Mode(finalpath, use_reg = True)
 # orthonormal_basis, mean = l1.plot_CD(ctl=True)
 l1.plot_CD_opto(ctl=False)

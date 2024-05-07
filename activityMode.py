@@ -1732,6 +1732,8 @@ class Mode(Session):
         if normalize:
 
             proj_allDim = (proj_allDim - meantrain) / meanstd
+            l_proj = (l_proj - meantrain) / meanstd
+            r_proj = (r_proj - meantrain) / meanstd
             
         if return_traces:
             opto_traces = proj_allDim[:len(self.T_cue_aligned_sel)], proj_allDim[len(self.T_cue_aligned_sel):]
@@ -1828,7 +1830,7 @@ class Mode(Session):
         
         r_opto, l_opto = self.get_trace_matrix_multiple(self.good_neurons, opto=True)
 
-        activityRL_opto= np.concatenate((r_opto, l_opto), axis=1)
+        activityRL_opto = np.concatenate((r_opto, l_opto), axis=1)
         
         r_corr = np.where(self.R_correct + self.L_wrong)[0]
         l_corr = np.where(self.L_correct + self.R_wrong)[0]
@@ -1859,6 +1861,8 @@ class Mode(Session):
         if normalize:
 
             proj_allDim = (proj_allDim - meantrain) / meanstd
+            l_proj = (l_proj - meantrain) / meanstd
+            r_proj = (r_proj - meantrain) / meanstd
             
         if return_traces:
             
