@@ -376,8 +376,13 @@ plt.show()
 
 #%% Plot single session performance - diagnostic session
 
-b = behavior.Behavior('H:\\data\\BAYLORCW039\\python\\2024_05_06', single=True)
+b = behavior.Behavior('H:\\data\\BAYLORCW039\\python\\2024_05_08', single=True)
 b.plot_single_session(save=True)
+
+
+# b = behavior.Behavior('H:\\data\\BAYLORCW041\\python\\2024_05_07', single=True)
+# b.plot_single_session(save=True)
+
 
 # b = behavior.Behavior(r'F:\data\BAYLORCW022\python\2023_03_04', single=True)
 # b.plot_single_session(save=True)

@@ -2724,7 +2724,8 @@ class Session:
         if len(fix_axis) != 0:
             plt.setp(axarr, ylim=fix_axis)
 
-        x = np.arange(-5.97,4,self.fs)[:self.time_cutoff] if 'CW03' not in self.path else np.arange(-6.97,4,self.fs)[:self.time_cutoff]
+        # x = np.arange(-5.97,4,self.fs)[:self.time_cutoff] if 'CW03' not in self.path else np.arange(-6.97,4,self.fs)[:self.time_cutoff]
+        x = np.arange(-6.97,4,self.fs)[:self.time_cutoff]
 
         # Get late delay selective neurons
         contra_neurons, ipsi_neurons, contra_trace, ipsi_trace = self.contra_ipsi_pop(range(self.response-9,self.response), p=p, selective_n=selective_neurons) 

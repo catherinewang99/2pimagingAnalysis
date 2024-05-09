@@ -85,8 +85,10 @@ for paths in agg_mice_paths:
 agg_mice_paths = [
                 # [r'H:\data\BAYLORCW038\python\2024_02_05', 
                 #     r'H:\data\BAYLORCW038\python\2024_03_15'],
-                  [r'H:\data\BAYLORCW039\python\2024_04_24', 
-                    r'H:\data\BAYLORCW039\python\2024_05_06']
+                  # [r'H:\data\BAYLORCW039\python\2024_04_24', 
+                  #   r'H:\data\BAYLORCW039\python\2024_05_06'],
+                  [r'H:\data\BAYLORCW039\python\2024_04_18', 
+                    r'H:\data\BAYLORCW039\python\2024_05_08'],
                    ]
 
 
