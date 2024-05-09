@@ -419,6 +419,46 @@ plt.xticks(range(3), ["Initial", "Day 7", "Day 30"])
 # plt.savefig(r'F:\data\Fig 1\beh_opto.pdf')
 plt.show()
 
+#%% Plot selectivity recovery as a bar graph only matched
+
+# CONTRA PATHS:
+all_paths = [['H:\\data\\BAYLORCW039\\python\\2024_04_17', 
+              'H:\\data\\BAYLORCW039\\python\\2024_04_24',
+              'H:\\data\\BAYLORCW039\\python\\2024_05_07']]
+
+naive_sel_recovery,learning_sel_recovery,expert_sel_recovery = [],[],[]
+all_recovery = []
+for paths in all_paths: # For each stage of training
+    recovery = []
+    for path in paths: # For each mouse
+        
+        l1 = Mode(path)
+        # l1 = Mode(path, use_reg=True)
+
+        temp = l1.modularity_proportion_by_CD(p=0.01, period = range(l1.delay, l1.delay+6))
+        if temp > 0 and temp < 1: # Exclude values based on Chen et al method guideliens
+            recovery += [temp]
+    
+    all_recovery += [recovery]
+        
+
+plt.bar(range(3), [np.mean(a) for a in all_recovery])
+plt.scatter(np.zeros(len(all_recovery[0])), all_recovery[0])
+plt.scatter(np.ones(len(all_recovery[1])), all_recovery[1])
+plt.scatter(np.ones(len(all_recovery[2]))+1, all_recovery[2])
+
+plt.xticks(range(3), ['Naive', 'Learning', 'Expert'])
+plt.ylabel('Modularity')
+# plt.savefig(r'F:\data\Fig 3\modularity_bargraph.pdf')
+
+plt.show()
+
+# Add t-test:
+
+tstat, p_val = stats.ttest_ind(all_recovery[1], all_recovery[2], equal_var=False, permutations = np.inf, alternative='less')
+print("mod diff p-value: ", p_val)
+
+
 #%% Correlate modularity with behaavioral recovery (do with more data points)
 
 

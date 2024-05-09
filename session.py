@@ -2839,7 +2839,7 @@ class Session:
             return pref, nonpref, optop, optonp
             
 
-    def modularity_proportion(self, p = 0.0001, trials=None):
+    def modularity_proportion(self, p = 0.0001, trials=None, period=None):
         """Returns the modularity as a proportion of control trial activity
         
         Uses method from Chen et al 2021 to calculate recovery during the 
@@ -2853,6 +2853,10 @@ class Session:
             
         trials : array, optional
             Trials used to calculate recovery for behavior state analysis
+            
+        period : array, optional
+            Time period used to calculate modularity (either during stim or at 
+                                                      end of delay)
             
         Returns
         --------
@@ -2903,7 +2907,8 @@ class Session:
         
         # Add 0.4ms for the time lag factor
         # period = range( int(self.delay + 0.4*(1/self.fs)), int(self.delay + 1.4*(1/self.fs)))
-        period = range(self.response-9, self.response) # Use last second of delay
+        if period is None:
+            period = range(self.response-9, self.response) # Use last second of delay
 
         recovery = np.mean(selo[period] / sel[period])
         error = np.mean(erro[period])
