@@ -421,9 +421,18 @@ plt.show()
 
 #%% Plot selectivity recovery as a bar graph only matched
 
-# CONTRA PATHS:
-all_paths = [['H:\\data\\BAYLORCW039\\python\\2024_04_17', 
+all_paths = [['H:\\data\\BAYLORCW038\\python\\2024_02_05', 
+              'H:\\data\\BAYLORCW039\\python\\2024_04_18',
+              'H:\\data\\BAYLORCW039\\python\\2024_04_17', 
+              ],
+             
+             [ 'H:\\data\\BAYLORCW038\\python\\2024_02_15',
+              'H:\\data\\BAYLORCW039\\python\\2024_04_25',
               'H:\\data\\BAYLORCW039\\python\\2024_04_24',
+              ],
+             
+             ['H:\\data\\BAYLORCW038\\python\\2024_03_15',
+              'H:\\data\\BAYLORCW039\\python\\2024_05_08',
               'H:\\data\\BAYLORCW039\\python\\2024_05_07']]
 
 naive_sel_recovery,learning_sel_recovery,expert_sel_recovery = [],[],[]
@@ -435,7 +444,8 @@ for paths in all_paths: # For each stage of training
         l1 = Mode(path)
         # l1 = Mode(path, use_reg=True)
 
-        temp = l1.modularity_proportion_by_CD(p=0.01, period = range(l1.delay, l1.delay+6))
+        temp = l1.modularity_proportion_by_CD(period = range(l1.delay, l1.delay+6))
+        # temp, _ = l1.modularity_proportion(period = range(l1.delay, l1.delay+6))
         if temp > 0 and temp < 1: # Exclude values based on Chen et al method guideliens
             recovery += [temp]
     

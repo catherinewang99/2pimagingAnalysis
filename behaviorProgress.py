@@ -192,8 +192,8 @@ plt.show()
 # b.plot_performance_over_sessions(all=True, color_background=[2,3,4,5,6,7,8,9, 11, 12, 14,15,16,17,18, 19, 20, 21,22,23])
 
 b = behavior.Behavior(r'H:\data\Behavior data\BAYLORCW039\python_behavior', behavior_only=True)
-b.learning_progression(window = 50, include_delay=False, color_background=[2,3,4,5,8,9,10,11,12,13,14,15,16,20])
-b.plot_performance_over_sessions(all=True, color_background=[2,3,4,5,8,9,10,11,12,13,14,15,16,20])
+b.learning_progression(window = 50, include_delay=False, color_background=[2,3,4,5,8,9,10,11,12,13,14,15,16,20,21,22,23])
+b.plot_performance_over_sessions(all=True, color_background=[2,3,4,5,8,9,10,11,12,13,14,15,16,20,21,22,23])
 
 #%% Compare learning curves ####
 

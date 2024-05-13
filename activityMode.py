@@ -2906,7 +2906,7 @@ class Mode(Session):
             
             
 
-        recovery
+        recovery = 0
         
         if len(r_proj_delta) != 0:
             recovery += np.abs(np.mean(r_proj_delta)) 
