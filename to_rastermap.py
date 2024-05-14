@@ -6,6 +6,7 @@ Created on Tue Dec  5 13:05:18 2023
 
 Prepare neural data for Rastermap viewing
 Use matched cells, grouped by trial type
+or concatenated over trials to test states
 """
 
 import sys
@@ -21,6 +22,28 @@ import pandas as pd
 from sklearn.preprocessing import normalize
 import random
 
+### Concatenating over all trials and combine with behavior state
+#%% Format data for rastermap (concatenate)
+path = r'F:\data\BAYLORCW036\python\2023_10_19'
+
+l1 = session.Session(path, use_reg=True, triple=True)
+
+F = None
+
+
+# concatenate all trials together
+for t in l1.i_good_trials:
+    if F is None:
+        F = l1.dff[0,t][:, 9:l1.time_cutoff] # take out first 1.5 seconds of baseline
+    else:
+        
+        F = np.hstack((F, l1.dff[0,t][:, 9:l1.time_cutoff]))
+
+
+F = F[l1.good_neurons]
+
+np.save(l1.path + '\\F.npy', F)
+### BELOW: grouping by trial type to view neuron sorting
 #%% Format data for rastermap
 
 paths = [r'F:\data\BAYLORCW032\python\2023_10_05',

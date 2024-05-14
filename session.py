@@ -1489,7 +1489,7 @@ class Session:
         
         return sel
     
-    def contra_ipsi_pop(self, epoch, return_sel = False, selective_n = [], p=0.0001, trials = None):
+    def contra_ipsi_pop(self, epoch, return_sel = False, lickdir = False, selective_n = [], p=0.0001, trials = None):
         
         """Finds neurons that are left and right preferring 
         
@@ -1542,7 +1542,7 @@ class Session:
                 
                 R, L = self.get_trace_matrix(neuron_num)
 
-                pref_choice, test_l, test_r = self.screen_preference(neuron_num, epoch) 
+                pref_choice, test_l, test_r = self.screen_preference(neuron_num, epoch, lickdir=lickdir) 
                 
                 if trials is not None: # Filter out non behavior state trials
                 
