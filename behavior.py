@@ -233,6 +233,7 @@ class Behavior():
         
         igood = self.i_good_trials[i]
         opto = self.stim_ON[i][0]
+        opto = [o for o in opto if o in self.i_good_trials[i]]
         igood_opto = np.setdiff1d(igood, opto)
         
         # Filter out early lick
@@ -435,7 +436,7 @@ class Behavior():
             axarr[1].set_ylabel('% correct')
             axarr[1].axhline(y=0.7, alpha = 0.5, color='orange')
             axarr[1].axhline(y=0.5, alpha = 0.5, color='red', ls = '--')
-            axarr[1].set_ylim(0.4, 1)
+            # axarr[1].set_ylim(0.4, 1)
             
             # Early licking
             

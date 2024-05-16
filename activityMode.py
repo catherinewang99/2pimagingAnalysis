@@ -20,9 +20,9 @@ plt.rcParams['pdf.fonttype'] = 42
 
 class Mode(Session):
     
-    def __init__(self, path, lickdir=True, use_reg=False, triple=False, layer_num='all', responsive_neurons = []):
+    def __init__(self, path, lickdir=True, use_reg=False, triple=False, layer_num='all', responsive_neurons = [], use_background_sub=False):
         # Inherit all parameters and functions of session.py
-        super().__init__(path, layer_num=layer_num, use_reg=use_reg, triple=triple) 
+        super().__init__(path, layer_num=layer_num, use_reg=use_reg, triple=triple, use_background_sub=use_background_sub) 
         self.lickdir = lickdir
         self.z_score_baseline()
         
@@ -854,7 +854,7 @@ class Mode(Session):
         
         
         
-        idx_map = {'choice': 1, 'action':5, 'stimulus':0}
+        idx_map = {'choice': 1, 'action':5, 'stimulus':0, 'ramping':7}
         idx = idx_map[mode_input]
 
         orthonormal_basis, mean = self.plot_behaviorally_relevant_modes(plot=False, ctl=ctl, lickdir=lickdir) # one method
@@ -1643,7 +1643,7 @@ class Mode(Session):
         R then L for control, opto traces as well as error bars
         
         '''
-        idx_map = {'choice': 1, 'action':5, 'stimulus':0}
+        idx_map = {'choice': 1, 'action':5, 'stimulus':0, 'ramping':7}
         idx = idx_map[mode_input]
 
         orthonormal_basis, mean = self.plot_behaviorally_relevant_modes(plot=False, ctl=ctl) # one method
