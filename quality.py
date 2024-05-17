@@ -74,7 +74,7 @@ class QC(Session):
         # axarr[1,0].set_ylim(top=self.fs)
         axarr[1,0].axvline(x=delay, c='b', linewidth = 0.5)
         # axarr[1,0].set_xticks(range(0,stack.shape[1], 10), [int(d) for d in x[::10]])
-        
+        stimstack = np.mean(stack, axis = 0)
         stack = np.zeros(self.time_cutoff) # if 'CW03' not in self.path else np.zeros(self.time_cutoff-5)
 
         # for neuron in range(self.num_neurons):
@@ -103,8 +103,14 @@ class QC(Session):
 
         plt.show()
         
-        
         # Second plot
+        
+        plt.plot(np.mean(stack, axis = 0), color='grey')
+        plt.plot(stimstack, color='red')
+        plt.axvspan(self.delay, self.delay+6, color='red', alpha=0.3)
+        plt.show()
+        
+        # Third plot
         stack = np.zeros(self.time_cutoff) # if 'CW03' not in self.path else np.zeros(self.time_cutoff-5)
         stimstack = np.zeros(self.time_cutoff) # if 'CW03' not in self.path else np.zeros(self.time_cutoff-5)
 
@@ -128,7 +134,7 @@ class QC(Session):
 
         plt.plot(np.mean(stimstack, axis = 0), 'r')
         # plt.set_ylim(top=self.fs)
-        plt.axvline(x=delay, c='b', linewidth = 0.5)
+        plt.axvspan(self.delay, self.delay+6, color='red', alpha=0.3)
         
         plt.plot(np.mean(stack, axis = 0), 'b')
         # plt.set_ylim(top=0.2)
