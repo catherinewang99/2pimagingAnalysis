@@ -197,8 +197,8 @@ plt.show()
 
 
 b = behavior.Behavior(r'H:\data\Behavior data\BAYLORCW041\python_behavior', behavior_only=True)
-b.learning_progression(window = 50, include_delay=False, color_background=[3])
-b.plot_performance_over_sessions(all=True, color_background=[3])
+b.learning_progression(window = 50, include_delay=False, color_background=[3,4,5,6,7,8])
+b.plot_performance_over_sessions(all=True, color_background=[3,4,5,6,7,8])
 
 
 # b = behavior.Behavior(r'H:\data\Behavior data\BAYLORCW040\python_behavior', behavior_only=True)
@@ -386,7 +386,7 @@ plt.show()
 
 #%% Plot single session performance - diagnostic session
 
-b = behavior.Behavior('H:\\data\\BAYLORCW039\\python\\2024_05_15', single=True)
+b = behavior.Behavior('H:\\data\\BAYLORCW044\\python\\2024_05_21', single=True)
 b.plot_single_session(save=True)
 
 

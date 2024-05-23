@@ -376,9 +376,18 @@ all_paths = [[r'H:\data\BAYLORCW038\python\2024_02_05',
           r'H:\data\BAYLORCW038\python\2024_02_15',
           r'H:\data\BAYLORCW038\python\2024_03_15',]]
 
+all_paths = [['H:\\data\\BAYLORCW039\\python\\2024_04_17', 
+            'H:\\data\\BAYLORCW039\\python\\2024_04_24',
+            'H:\\data\\BAYLORCW039\\python\\2024_05_06'],
+              ['H:\\data\\BAYLORCW039\\python\\2024_04_18', 
+            'H:\\data\\BAYLORCW039\\python\\2024_04_25',
+            'H:\\data\\BAYLORCW039\\python\\2024_05_20']]
+
 performance_opto = []
 performance_ctl = []
 fig = plt.figure()
+ticks = ["o", "X", "D"]
+t = 0
 for paths in all_paths:
     counter = -1
 
@@ -405,18 +414,17 @@ for paths in all_paths:
     performance_ctl += [ctl]
 
 
-    plt.scatter(np.arange(3)+0.2, opt)
-    plt.scatter(np.arange(3)-0.2, ctl)
-    
+    plt.scatter(np.arange(3)+0.2, opt, color = 'red', marker = ticks[t], label = "FOV {}".format(t + 1))
+    plt.scatter(np.arange(3)-0.2, ctl, color = 'grey', marker = ticks[t])
+    t += 1
     
 plt.bar(np.arange(3)+0.2, np.mean(performance_opto, axis=0), 0.4, fill=False)
 
 plt.bar(np.arange(3)-0.2, np.mean(performance_ctl, axis=0), 0.4, fill=False)
-
-plt.xticks(range(3), ["Initial", "Day 7", "Day 30"])
-# plt.ylim([0.4,1])
-# plt.legend()
-# plt.savefig(r'F:\data\Fig 1\beh_opto.pdf')
+plt.ylabel('Behavior performance')
+plt.xticks(range(3), ["Before corruption", "Midpoint", "Final"])
+plt.ylim([0.4,1])
+plt.legend()
 plt.show()
 
 #%% Plot selectivity recovery as a bar graph only matched
@@ -433,8 +441,9 @@ all_paths = [['H:\\data\\BAYLORCW038\\python\\2024_02_05',
              
              ['H:\\data\\BAYLORCW038\\python\\2024_03_15',
               'H:\\data\\BAYLORCW039\\python\\2024_05_08',
-              'H:\\data\\BAYLORCW039\\python\\2024_05_07']]
+              'H:\\data\\BAYLORCW039\\python\\2024_05_14']]
 
+ticks = ["o", "X", "D"]
 naive_sel_recovery,learning_sel_recovery,expert_sel_recovery = [],[],[]
 all_recovery = []
 for paths in all_paths: # For each stage of training
@@ -445,21 +454,29 @@ for paths in all_paths: # For each stage of training
         # l1 = Mode(path, use_reg=True)
 
         temp = l1.modularity_proportion_by_CD(period = range(l1.delay, l1.delay+6))
+        recovery += [temp]
+        
         # temp, _ = l1.modularity_proportion(period = range(l1.delay, l1.delay+6))
-        if temp > 0 and temp < 1: # Exclude values based on Chen et al method guideliens
-            recovery += [temp]
+        # recovery += [temp]
+
+        # if temp > 0 and temp < 1: # Exclude values based on Chen et al method guideliens
+        #     recovery += [temp]
     
     all_recovery += [recovery]
         
 
 plt.bar(range(3), [np.mean(a) for a in all_recovery])
-plt.scatter(np.zeros(len(all_recovery[0])), all_recovery[0])
-plt.scatter(np.ones(len(all_recovery[1])), all_recovery[1])
-plt.scatter(np.ones(len(all_recovery[2]))+1, all_recovery[2])
+# plt.scatter(np.zeros(len(all_recovery[0])), all_recovery[0])
+# plt.scatter(np.ones(len(all_recovery[1])), all_recovery[1])
+# plt.scatter(np.ones(len(all_recovery[2]))+1, all_recovery[2])
 
-plt.xticks(range(3), ['Naive', 'Learning', 'Expert'])
+for i in range(len(all_paths)):
+    
+    plt.scatter([0,1,2], np.array(all_recovery)[:, i], marker = ticks[i], label = "FOV {}".format(i + 1))
+
+plt.xticks(range(3), ['Before corruption', 'Midpoint', 'Final'])
 plt.ylabel('Modularity')
-# plt.savefig(r'F:\data\Fig 3\modularity_bargraph.pdf')
+plt.legend()
 
 plt.show()
 
