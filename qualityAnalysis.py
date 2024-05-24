@@ -126,7 +126,7 @@ l1 = quality.QC(path, use_background_sub=False)
 l1.all_neurons_heatmap()
 
 
-# l1.number_of_neurons_affected() # look at li et al 2016 for method
+l1.number_of_neurons_affected() # look at li et al 2016 for method
 
 ### Chen et al fig s3 - compare ipsi vs contra
     # - fraction change in delta df/f

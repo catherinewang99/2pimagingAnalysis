@@ -467,5 +467,71 @@ class QC(Session):
 
         plt.show()
         
+    def stim_effect_per_neuron(self, p=0.01):
+        """
+        Give the fraction change per neuron in dF/F0 and -1 if supressed 
+        significantly and 1 if excited significantly (0 otherwise)
+        
+        Return as a population measure (three numbers, frac df/f0, frac supr.,
+                                        frac. excited)
+
+        Parameters
+        ----------
+        p : Int, optional
+            Significantly modulated neuron threshold. The default is 0.01.
+
+        Returns
+        -------
+        frac : int
+        neuron_sig : array of length corresponding to number of neurons, {0, 1, -1}
+
+        """
+        stimon, stimoff = [], []
+        
+        for i in range(len(self.stim_ON)):
+            
+            stimon += [self.stim_ON[i]] if i in self.i_good_trials else [False]
+            stimoff += [~self.stim_ON[i]] if i in self.i_good_trials else [False]
+        
+
+        stim_dff = self.dff[0][stimon]
+        non_stim_dff = self.dff[0][stimoff]
+
+        stack = np.zeros(self.time_cutoff)
+        stim_stack = np.zeros(self.time_cutoff)
+        
+        neuron_sig = []
+        
+        # for neuron in range(self.num_neurons):
+        for neuron in self.good_neurons:
+            
+            stim_dfftrial = []
+            for trial in range(len(stim_dff)):
+                stim_dfftrial += [stim_dff[trial][neuron, :self.time_cutoff]]
+                
+            dfftrial = []
+            for trial in range(len(non_stim_dff)):
+                dfftrial += [non_stim_dff[trial][neuron, :self.time_cutoff]]
+
+
+            tstat, p_val = stats.ttest_ind(np.mean(np.array(stim_dfftrial)[:, self.delay:self.delay+6], axis=0), 
+                                           np.mean(np.array(dfftrial)[:, self.delay:self.delay+6], axis=0))
+            
+            stim_stack = np.vstack((stim_stack, np.mean(np.array(stim_dfftrial), axis=0)))
+            stack = np.vstack((stack, np.mean(np.array(dfftrial), axis=0)))
+            
+            if p_val < p:
+                neuron_sig += [1] if tstat > 0 else [-1]
+            else:
+                neuron_sig += [0]
+
+        stim_stack = normalize(stim_stack[1:])
+        stack = normalize(stack[1:])
+        
+        frac = np.mean(np.array(stim_stack[:, self.delay + 1:self.delay+7]) / np.array(stack[:, self.delay + 1:self.delay+7]))
+
+        return frac, np.array(neuron_sig)
+        # return stim_stack, stack
+
 
         
