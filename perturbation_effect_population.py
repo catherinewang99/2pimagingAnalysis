@@ -85,9 +85,7 @@ for path in ipsi_paths:
     l1 = quality.QC(path, use_background_sub=True)
     
     _, sig_n = l1.stim_effect_per_neuron()
-    
-    all_ipsi_fracs += [frac]
-    
+        
     ipsi_frac_sup += [len(np.where(sig_n < 0)[0]) / len(sig_n)]
     ipsi_frac_exc += [len(np.where(sig_n > 0)[0]) / len(sig_n)]
  
@@ -97,9 +95,7 @@ for path in contra_paths:
     l1 = quality.QC(path, use_background_sub=True)
     
     _, sig_n = l1.stim_effect_per_neuron()
-    
-    all_ipsi_fracs += [frac]
-    
+        
     contra_frac_sup += [len(np.where(sig_n < 0)[0]) / len(sig_n)]
     contra_frac_exc += [len(np.where(sig_n > 0)[0]) / len(sig_n)]
     
