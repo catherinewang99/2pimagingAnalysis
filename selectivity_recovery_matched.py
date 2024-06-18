@@ -149,15 +149,50 @@ for path in paths:
 paths = [r'F:\data\BAYLORCW037\python\2023_11_21',
           r'F:\data\BAYLORCW037\python\2023_11_28',
             r'F:\data\BAYLORCW035\python\2023_12_08',]
+
+
+paths = [ 
+    
+    # r'H:\data\BAYLORCW044\python\2024_05_22',
+    #       r'H:\data\BAYLORCW044\python\2024_05_23',
+           # r'H:\data\BAYLORCW044\python\2024_05_24',
+         
+          r'H:\data\BAYLORCW046\python\2024_05_29',
+          # r'H:\data\BAYLORCW046\python\2024_05_30',
+          # r'H:\data\BAYLORCW046\python\2024_05_31',
+    ]
+
+
+# paths = [ r'H:\data\BAYLORCW044\python\2024_06_04',
+#           r'H:\data\BAYLORCW044\python\2024_06_05',
+#           r'H:\data\BAYLORCW044\python\2024_06_06',
+         
+#           r'H:\data\BAYLORCW046\python\2024_06_07',
+#           r'H:\data\BAYLORCW046\python\2024_06_10',
+#           r'H:\data\BAYLORCW046\python\2024_06_11',
+#     ]
+
 for path in paths:
     
     l1 = session.Session(path)
     
-    l1.selectivity_optogenetics(p=0.01)
+    l1.selectivity_optogenetics(p=0.05)
     
 #%% AGG all sesssions matched neurons
 pref, nonpref, optop, optonp = np.zeros(61), np.zeros(61), np.zeros(61), np.zeros(61)
 num_neurons = 0
+# NEW DATASET
+
+paths = [ r'H:\data\BAYLORCW044\python\2024_05_22',
+         r'H:\data\BAYLORCW044\python\2024_05_23',
+         r'H:\data\BAYLORCW044\python\2024_05_24',
+         
+         r'H:\data\BAYLORCW046\python\2024_05_29',
+         r'H:\data\BAYLORCW046\python\2024_05_30',
+         r'H:\data\BAYLORCW046\python\2024_05_31',
+    ]
+
+
 # CONTRA PATHS:
 paths = [    r'F:\data\BAYLORCW032\python\2023_10_05',
             # r'F:\data\BAYLORCW034\python\2023_10_12',

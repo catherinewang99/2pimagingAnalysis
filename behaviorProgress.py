@@ -197,20 +197,23 @@ plt.show()
 
 
 # b = behavior.Behavior(r'H:\data\Behavior data\BAYLORCW041\python_behavior', behavior_only=True)
-# b.learning_progression(window = 50, include_delay=False, color_background=[3,4,5,6,7,8,9,13,14,15])
-# b.plot_performance_over_sessions(all=True, color_background=[3,4,5,6,7,8,9,13,14,15])
+# b.learning_progression(window = 75, include_delay=False, color_background=[3,4,5,6,7,8,9,13,14,15,16,17,18,19,20])
+# b.plot_performance_over_sessions(all=True, color_background=[3,4,5,6,7,8,9,13,14,15,16,17,18,19,20])
 
 
-b = behavior.Behavior(r'H:\data\Behavior data\BAYLORCW043\python_behavior', behavior_only=True)
-b.learning_progression(window = 50, include_delay=False, color_background=[3,4,5,6,7,8])
-b.plot_performance_over_sessions(all=True, color_background=[3,4,5,6,7,8])
+# b = behavior.Behavior(r'H:\data\Behavior data\BAYLORCW043\python_behavior', behavior_only=True)
+# b.learning_progression(window = 50, include_delay=False, color_background=[3,4,5,6,7,8,9,13,14,15,16,17,18])
+# b.plot_performance_over_sessions(all=True, color_background=[3,4,5,6,7,8,9,13,14,15,16,17,18])
 
+b = behavior.Behavior(r'H:\data\Behavior data\BAYLORCW042\python_behavior', behavior_only=True)
+b.learning_progression(window = 50, include_delay=False, color_background=[2,3,4,5,6,7,8,10,11])
+b.plot_performance_over_sessions(all=True, color_background=[2,3,4,5,6,7,8,10,11])
 
 # b = behavior.Behavior(r'H:\data\Behavior data\BAYLORCW044\python_behavior', behavior_only=True)
 # b.learning_progression(window = 50)
 
-b = behavior.Behavior(r'H:\data\Behavior data\BAYLORCW046\python_behavior', behavior_only=True)
-b.learning_progression(window = 50)
+# b = behavior.Behavior(r'H:\data\Behavior data\BAYLORCW046\python_behavior', behavior_only=True)
+# b.learning_progression(window = 50)
 
 #%% Compare learning curves ####
 
@@ -393,9 +396,11 @@ plt.show()
 
 #%% Plot single session performance - diagnostic session
 
-b = behavior.Behavior('H:\\data\\BAYLORCW042\\python\\2024_05_28', single=True)
-b.plot_single_session(save=True)
+# b = behavior.Behavior('H:\\data\\BAYLORCW043\\python\\2024_06_13', single=True)
+# b.plot_single_session(save=True)
 
+b = behavior.Behavior('H:\\data\\BAYLORCW044\\python\\2024_06_17', single=True)
+b.plot_single_session(save=True)
 
 # b = behavior.Behavior('H:\\data\\BAYLORCW041\\python\\2024_05_15', single=True)
 # b.plot_single_session(save=True)

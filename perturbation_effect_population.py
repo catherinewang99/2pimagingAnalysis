@@ -112,3 +112,102 @@ plt.xlabel('Fraction of neurons with significant dF/F0 change')
 plt.legend()
 plt.show()
     
+#%% Changes at over opto corruption
+
+init_paths, mid_paths, final_paths = [[r'H:\\data\\BAYLORCW038\\python\\2024_02_05',
+                                       r'H:\\data\\BAYLORCW039\\python\\2024_04_17',
+                                       r'H:\\data\\BAYLORCW039\\python\\2024_04_18',
+                                       r'H:\\data\\BAYLORCW041\\python\\2024_05_14',
+                                       r'H:\\data\\BAYLORCW041\\python\\2024_05_13',
+                                       r'H:\\data\\BAYLORCW041\\python\\2024_05_15',
+                                       r'H:\\data\\BAYLORCW043\\python\\2024_05_20',
+                                       r'H:\\data\\BAYLORCW043\\python\\2024_05_21'],
+                                      
+                                       [r'H:\data\BAYLORCW038\python\2024_02_15',
+                                        r'H:\\data\\BAYLORCW039\\python\\2024_04_24',
+                                        r'H:\\data\\BAYLORCW039\\python\\2024_04_25',
+                                        r'H:\\data\\BAYLORCW041\\python\\2024_05_23',
+                                        r'H:\\data\\BAYLORCW041\\python\\2024_05_24',
+                                        r'H:\\data\\BAYLORCW041\\python\\2024_05_28',
+                                        r'H:\\data\\BAYLORCW043\\python\\2024_06_03',
+                                        r'H:\\data\\BAYLORCW043\\python\\2024_06_04'],
+                                      
+                                       [r'H:\\data\\BAYLORCW038\\python\\2024_03_15',
+                                        r'H:\\data\\BAYLORCW039\\python\\2024_05_06',
+                                        r'H:\\data\\BAYLORCW039\\python\\2024_05_08',
+                                        r'H:\\data\\BAYLORCW041\\python\\2024_06_07',
+                                        r'H:\\data\\BAYLORCW041\\python\\2024_06_12',
+                                        r'H:\\data\\BAYLORCW041\\python\\2024_06_11',
+                                        r'H:\\data\\BAYLORCW043\\python\\2024_06_13',
+                                        r'H:\\data\\BAYLORCW043\\python\\2024_06_14']
+                                    ]
+
+# for path in paths:
+#     l1 = quality.QC(path, use_reg=True, triple=True, use_background_sub=False)
+    
+#     frac, sig_n = l1.stim_effect_per_neuron()
+    
+
+all_init_fracs = []
+for path in init_paths:
+
+    l1 = quality.QC(path, use_background_sub=False)
+    
+    _, sig_n = l1.stim_effect_per_neuron()
+        
+    inh = len(np.where(sig_n < 0)[0]) / len(sig_n)
+    exc = len(np.where(sig_n > 0)[0]) / len(sig_n)
+    
+    all_init_fracs += [[inh, exc]]
+    
+all_middle_fracs = []
+for path in mid_paths:
+
+    l1 = quality.QC(path, use_background_sub=False)
+    
+    _, sig_n = l1.stim_effect_per_neuron()
+        
+    inh = len(np.where(sig_n < 0)[0]) / len(sig_n)
+    exc = len(np.where(sig_n > 0)[0]) / len(sig_n)
+    
+    all_middle_fracs += [[inh, exc]]
+      
+all_final_fracs = []
+for path in final_paths:
+
+    l1 = quality.QC(path, use_background_sub=False)
+    
+    _, sig_n = l1.stim_effect_per_neuron()
+        
+    inh = len(np.where(sig_n < 0)[0]) / len(sig_n)
+    exc = len(np.where(sig_n > 0)[0]) / len(sig_n)
+    
+    all_final_fracs += [[inh, exc]]    
+    
+plt.barh([2, 1, 0], [np.mean(all_init_fracs, axis=0)[1], np.mean(all_middle_fracs, axis=0)[1], np.mean(all_final_fracs, axis=0)[1]], color = 'r', edgecolor = 'black', label = 'Excited')
+plt.barh([2, 1, 0], [-np.mean(all_init_fracs, axis=0)[0], -np.mean(all_middle_fracs, axis=0)[0], -np.mean(all_final_fracs, axis=0)[0]], color = 'b', edgecolor = 'black', label = 'Inhibited')
+
+plt.scatter(cat((np.array(all_init_fracs)[:, 1], -1 * np.array(all_init_fracs)[:, 0])), np.ones(np.size(all_init_fracs)) * 2, facecolors='none', edgecolors='grey')
+plt.scatter(cat((np.array(all_middle_fracs)[:, 1], -1 * np.array(all_middle_fracs)[:, 0])), np.ones(np.size(all_middle_fracs)), facecolors='none', edgecolors='grey')
+plt.scatter(cat((np.array(all_final_fracs)[:, 1], -1 * np.array(all_final_fracs)[:, 0])), np.zeros(np.size(all_final_fracs)), facecolors='none', edgecolors='grey')
+
+plt.axvline(0)
+# plt.yticks([0,1], ['Ipsilateral to imaging', 'Contralateral'])
+plt.yticks([0,1,2], ['Final', 'Middle', 'Initial'])
+plt.ylabel('Session')
+plt.xlabel('Fraction of neurons with significant dF/F0 change')
+plt.legend()
+plt.show()
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    

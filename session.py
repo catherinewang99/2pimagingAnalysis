@@ -2915,9 +2915,68 @@ class Session:
         
         return recovery, error
 
+    def selectivity_derivative(self, p = 0.0001, lickdir = False, period=None, selective_neurons = []):
+        """
+        Calculate derivative of selectivity curve (specifically during the 
+                                                   perturbation period)
         
-       
+        Returns
+        -------
+        derivative of perturbation trials, derivative of contrl trials, fraction
 
+        """
+
+        # Get late delay selective neurons
+        contra_neurons, ipsi_neurons, contra_trace, ipsi_trace = self.contra_ipsi_pop(range(self.response-9,self.response), p=p, selective_n=selective_neurons) 
+        
+        if len(contra_neurons) == 0 and len(ipsi_neurons) == 0:
+            
+            raise Exception("No selective neurons :^(") 
+            
+        elif len(contra_neurons) == 0:
+            
+            
+            nonpref, pref = cat(ipsi_trace['r']), cat(ipsi_trace['l'])
+            optonp, optop = self.get_trace_matrix_multiple(ipsi_neurons, opto=True, both=False, lickdir=lickdir)
+            # errnp, errpref = self.get_trace_matrix_multiple(ipsi_neurons, opto=True, error=True)
+            
+        elif len(ipsi_neurons) == 0:
+            
+            nonpref, pref = cat(contra_trace['l']), cat(contra_trace['r'])
+            optop, optonp = self.get_trace_matrix_multiple(contra_neurons, opto=True, both=False, lickdir=lickdir)
+            # errpref, errnp = self.get_trace_matrix_multiple(contra_neurons, opto=True, error=True)
+
+        else:
+            
+            nonpref, pref = cat((cat(ipsi_trace['r']), cat(contra_trace['l']))), cat((cat(ipsi_trace['l']), cat(contra_trace['r'])))
+            optonp, optop = self.get_trace_matrix_multiple(ipsi_neurons, opto=True, both=False, lickdir=lickdir)
+            optop1, optonp1 = self.get_trace_matrix_multiple(contra_neurons, opto = True, both=False, lickdir=lickdir)
+            optonp, optop = cat((optonp, optonp1)), cat((optop, optop1))
+            
+            # errnp, errpref = self.get_trace_matrix_multiple(ipsi_neurons, opto=True, error=True)
+            # errpref1, errnp1 = self.get_trace_matrix_multiple(contra_neurons, opto=True, error=True)
+            # errpref, errnp = cat((errpref, errpref1)), cat((errnp, errnp1))
+
+            
+        sel = np.mean(pref, axis = 0) - np.mean(nonpref, axis = 0)
+        err = np.std(pref, axis=0) / np.sqrt(len(pref)) 
+        err += np.std(nonpref, axis=0) / np.sqrt(len(nonpref))
+        
+        selo = np.mean(optop, axis = 0) - np.mean(optonp, axis = 0)
+        erro = np.std(optop, axis=0) / np.sqrt(len(optop)) 
+        erro += np.std(optonp, axis=0) / np.sqrt(len(optonp))  
+        
+        
+        if period is None:
+            period = range(self.delay, self.delay+6) # Use first second of delay 
+
+        recovery = np.mean(selo[period] / sel[period])
+        error = np.mean(erro[period])
+        
+        return recovery, error
+    
+    
+        return None
 
         
         

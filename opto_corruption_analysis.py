@@ -45,6 +45,9 @@ def angle_between(v1, v2):
 def cos_sim(a,b):
     return np.dot(a, b)/(norm(a)*norm(b))
 
+
+
+
 #%% Changes at single cell level - sankey SDR
 agg_mice_paths = [[['H:\\data\\BAYLORCW038\\python\\2024_02_05', 
                     'H:\\data\\BAYLORCW038\\python\\2024_03_15'],
@@ -258,6 +261,40 @@ for path in paths:
     
     l1 = Session(path, use_reg=True)
     l1.selectivity_optogenetics()
+    
+#%% Selectivity recovery but use OR operation on neurons
+paths = ['H:\\data\\BAYLORCW039\\python\\2024_04_24', 
+         'H:\\data\\BAYLORCW039\\python\\2024_05_06']
+
+paths = ['H:\\data\\BAYLORCW038\\python\\2024_02_05', 
+        'H:\\data\\BAYLORCW038\\python\\2024_03_15']
+
+paths = ['H:\\data\\BAYLORCW039\\python\\2024_04_18', 
+         'H:\\data\\BAYLORCW039\\python\\2024_05_08']
+
+paths = [r'H:\data\BAYLORCW041\python\2024_05_13',
+   r'H:\data\BAYLORCW041\python\2024_05_24',
+  r'H:\data\BAYLORCW041\python\2024_06_12']
+paths = ['H:\\data\\BAYLORCW043\\python\\2024_06_06', 
+        'H:\\data\\BAYLORCW043\\python\\2024_06_13']
+
+# paths =  [r'H:\data\BAYLORCW041\python\2024_05_15',
+#          r'H:\data\BAYLORCW041\python\2024_05_28',
+#          r'H:\data\BAYLORCW041\python\2024_06_11',]
+ 
+# paths = [r'H:\data\BAYLORCW041\python\2024_05_14',
+# r'H:\data\BAYLORCW041\python\2024_05_23',
+# r'H:\data\BAYLORCW041\python\2024_06_07',]
+# for path in paths:
+    
+expert = Session(paths[1], use_reg=True, triple=False, filter_reg=False)
+expert.selectivity_optogenetics()
+selective_neurons = expert.selective_neurons
+
+naive = Session(paths[0], use_reg=True, triple=False, filter_reg=False)
+sel_n = [naive.good_neurons[np.where(expert.good_neurons ==n)[0][0]] for n in selective_neurons]
+naive.selectivity_optogenetics(selective_neurons = sel_n)
+
 #%% Stability of CD 
 
 
@@ -266,10 +303,11 @@ intialpath, middlepath, finalpath = ['H:\\data\\BAYLORCW038\\python\\2024_02_05'
                          'H:\\data\\BAYLORCW038\\python\\2024_03_15']
 intialpath, finalpath = ['H:\\data\\BAYLORCW039\\python\\2024_04_24', 
                          'H:\\data\\BAYLORCW039\\python\\2024_05_06']
-
+intialpath, finalpath = ['H:\\data\\BAYLORCW043\\python\\2024_05_20', 
+                         'H:\\data\\BAYLORCW043\\python\\2024_06_03']
     
 l1 = Mode(intialpath, use_reg=True)
-orthonormal_basis, mean = l1.plot_CD(mode_input='stimulus')#, save = r'F:\data\Fig 2\CDstim_expert_CW37.pdf')
+orthonormal_basis, mean = l1.plot_CD(mode_input='choice')#, save = r'F:\data\Fig 2\CDstim_expert_CW37.pdf')
 
 # l1 = Mode(middlepath)
 
@@ -286,16 +324,36 @@ intialpath, finalpath = ['H:\\data\\BAYLORCW039\\python\\2024_04_24',
                          'H:\\data\\BAYLORCW039\\python\\2024_05_06']
 intialpath, finalpath = ['H:\\data\\BAYLORCW039\\python\\2024_04_18', 
                          'H:\\data\\BAYLORCW039\\python\\2024_05_08']
-    
-l1 = Mode(intialpath, use_reg=True)
+
+intialpath, finalpath = ['H:\\data\\BAYLORCW043\\python\\2024_05_20', 
+                         'H:\\data\\BAYLORCW043\\python\\2024_06_03']
+
+intialpath, middlepath, finalpath = [r'H:\data\BAYLORCW041\python\2024_05_13',
+   r'H:\data\BAYLORCW041\python\2024_05_24',
+  r'H:\data\BAYLORCW041\python\2024_06_12']
+  
+intialpath, _, finalpath =  [r'H:\data\BAYLORCW041\python\2024_05_15',
+          r'H:\data\BAYLORCW041\python\2024_05_28',
+          r'H:\data\BAYLORCW041\python\2024_06_11',]
+ 
+intialpath, _, finalpath = [r'H:\data\BAYLORCW041\python\2024_05_14',
+r'H:\data\BAYLORCW041\python\2024_05_23',
+r'H:\data\BAYLORCW041\python\2024_06_07',]
+
+intialpath, finalpath = ['H:\\data\\BAYLORCW043\\python\\2024_06_06', 
+                         'H:\\data\\BAYLORCW043\\python\\2024_06_13']
+
+
+l1 = Mode(finalpath, use_reg=True, triple=False, filter_reg=False)
 # orthonormal_basis, mean = l1.plot_CD(ctl=True)
 l1.plot_CD_opto(ctl=True)
 control_traces, opto_traces, error_bars, orthonormal_basis, mean, meantrain, meanstd = l1.plot_CD_opto(return_traces=True, return_applied=True,ctl=True)
 
-# l1 = Mode(middlepath)
-# l1.plot_CD_opto()
+# l1 = Mode(middlepath, use_reg=True, triple=True, filter_reg=False)
+# # l1.plot_CD_opto()
+# l1.plot_CD_opto_applied(orthonormal_basis, mean, meantrain, meanstd)
 
-l1 = Mode(finalpath, use_reg = True)
+l1 = Mode(intialpath, use_reg = True, triple=False, filter_reg=False)
 # l1.plot_appliedCD(orthonormal_basis, mean)
 # l1.plot_CD_opto()
 l1.plot_CD_opto_applied(orthonormal_basis, mean, meantrain, meanstd)
@@ -363,10 +421,6 @@ plt.axvline(0, ls = '--')
 plt.xlabel('Choice decoder angles')
 plt.ylabel('Stimulus decoder angles')
 
-#%% Behavioral progress
-
-b = behavior.Behavior(r'H:\data\Behavior data\BAYLORCW038\python_behavior', behavior_only=True)
-b.learning_progression(window = 200)
 
 
 

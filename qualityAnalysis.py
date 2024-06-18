@@ -42,10 +42,10 @@ path = r'F:\data\BAYLORCW034\python\2023_10_24'
 # path = 'F:\\data\\BAYLORCW037\\python\\2023_11_21'
 # path = 'H:\\data\\BAYLORCW038\\python\\2024_02_05'
 # path = 'H:\\data\\BAYLORCW039\\python\\2024_03_08'
-# path = 'H:\\data\\BAYLORCW039\\python\\2024_05_07'
-path = 'H:\\data\\BAYLORCW043\\python\\2024_05_17'
-path = 'H:\\data\\BAYLORCW046\\python\\2024_05_31'
-# path = 'H:\\data\\BAYLORCW041\\python\\2024_05_15'
+path = 'H:\\data\\BAYLORCW039\\python\\2024_05_15'
+path = 'H:\\data\\BAYLORCW044\\python\\2024_06_06'
+path = 'H:\\data\\BAYLORCW044\\python\\2024_06_17'
+# path = 'F:\\data\\BAYLORCW036\\python\\2023_10_17'
 l1 = quality.QC(path, use_background_sub=False)
 
 

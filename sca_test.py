@@ -8,7 +8,8 @@ Testing sparse component analysis at discovering underlying latent factors
 Maybe it can discover behavior state related features?
 
 """
-from sca.models import SCA
+import sca
+
 import sys
 sys.path.append("C:\scripts\Imaging analysis")
 import numpy as np
@@ -22,6 +23,7 @@ import pandas as pd
 from sklearn.preprocessing import normalize
 import random
 
+#%%
 
 path = r'F:\data\BAYLORCW036\python\2023_10_19'
 
@@ -43,5 +45,5 @@ F = F[l1.good_neurons]
 
 X=F
 K=8
-sca = SCA(n_components=K)
+sca = sca.SCA(n_components=K)
 latent = sca.fit_transform(X)
