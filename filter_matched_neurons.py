@@ -64,9 +64,18 @@ agg_mice_paths = [
                 r'H:\data\BAYLORCW041\python\2024_06_07',],
 
         ]
+
+agg_mice_paths = [
+                [r'H:\data\BAYLORCW044\python\2024_05_23',
+                   r'H:\data\BAYLORCW044\python\2024_06_04',
+                  r'H:\data\BAYLORCW044\python\2024_06_18',],
+
+        ]
+
+num_layers = 2
 for paths in agg_mice_paths:
     allkeep_ids = []
-    for layer_num in range(1,6):
+    for layer_num in range(1,num_layers+1):
         keep_ids = []
     
         for path in paths:
@@ -85,7 +94,7 @@ for paths in agg_mice_paths:
         print("TOTAL NEURONS ", len(keep_ids))
         
     
-    for layer_num in range(1,6):
+    for layer_num in range(1,num_layers+1):
         for path in paths:
             l1 = Session(path, layer_num = layer_num, use_reg=True, triple=True, filter_reg = False)
             reg = np.load(path + r'\layer{}_triple_registered_neurons.npy'.format(layer_num-1))

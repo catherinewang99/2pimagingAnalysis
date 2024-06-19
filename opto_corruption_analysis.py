@@ -539,55 +539,95 @@ plt.show()
 tstat, p_val = stats.ttest_ind(all_recovery[1], all_recovery[2], equal_var=False, permutations = np.inf, alternative='less')
 print("mod diff p-value: ", p_val)
 
-#%% Compare proportion of neurons excited/inhibited by stim over stages
-initial_paths = ['H:\\data\\BAYLORCW038\\python\\2024_02_05', 
-              'H:\\data\\BAYLORCW039\\python\\2024_04_18',
-              'H:\\data\\BAYLORCW039\\python\\2024_04_17', 
-              ]
-             
-             # [ 'H:\\data\\BAYLORCW038\\python\\2024_02_15',
-             #  'H:\\data\\BAYLORCW039\\python\\2024_04_25',
-             #  'H:\\data\\BAYLORCW039\\python\\2024_04_24',
-             #  ],
-             
-final_paths = ['H:\\data\\BAYLORCW038\\python\\2024_03_15',
-              'H:\\data\\BAYLORCW039\\python\\2024_05_08',
-              'H:\\data\\BAYLORCW039\\python\\2024_05_14']
+#%% Plot derivative of recovery as a bar graph
 
-ipsi_frac_sup, ipsi_frac_exc = [], []
-for path in final_paths:
+all_paths = [[r'H:\\data\\BAYLORCW038\\python\\2024_02_05',
+               r'H:\\data\\BAYLORCW039\\python\\2024_04_17',
+               r'H:\\data\\BAYLORCW039\\python\\2024_04_18',
+               r'H:\\data\\BAYLORCW041\\python\\2024_05_14',
+               r'H:\\data\\BAYLORCW041\\python\\2024_05_13',
+               r'H:\\data\\BAYLORCW041\\python\\2024_05_15',
+               r'H:\\data\\BAYLORCW043\\python\\2024_05_20',
+               r'H:\\data\\BAYLORCW043\\python\\2024_05_21'],
+              
+               [r'H:\data\BAYLORCW038\python\2024_02_15',
+                r'H:\\data\\BAYLORCW039\\python\\2024_04_24',
+                r'H:\\data\\BAYLORCW039\\python\\2024_04_25',
+                r'H:\\data\\BAYLORCW041\\python\\2024_05_23',
+                r'H:\\data\\BAYLORCW041\\python\\2024_05_24',
+                r'H:\\data\\BAYLORCW041\\python\\2024_05_28',
+                r'H:\\data\\BAYLORCW043\\python\\2024_06_03',
+                r'H:\\data\\BAYLORCW043\\python\\2024_06_04'],
+              
+               [r'H:\\data\\BAYLORCW038\\python\\2024_03_15',
+                r'H:\\data\\BAYLORCW039\\python\\2024_05_06',
+                r'H:\\data\\BAYLORCW039\\python\\2024_05_08',
+                r'H:\\data\\BAYLORCW041\\python\\2024_06_07',
+                r'H:\\data\\BAYLORCW041\\python\\2024_06_12',
+                r'H:\\data\\BAYLORCW041\\python\\2024_06_11',
+                r'H:\\data\\BAYLORCW043\\python\\2024_06_13',
+                r'H:\\data\\BAYLORCW043\\python\\2024_06_14']
+            ]
 
-    l1 = quality.QC(path, use_background_sub=False)
-    
-    _, sig_n = l1.stim_effect_per_neuron()
+ticks = ["o", "X", "D"]
+naive_sel_recovery,learning_sel_recovery,expert_sel_recovery = [],[],[]
+all_recovery, all_recovery_ctl = [], []
+for paths in all_paths: # For each stage of training
+    recovery = []
+    r_ctl = []
+    for path in paths: # For each mouse
         
-    ipsi_frac_sup += [len(np.where(sig_n < 0)[0]) / len(sig_n)]
-    ipsi_frac_exc += [len(np.where(sig_n > 0)[0]) / len(sig_n)]
- 
-contra_frac_sup, contra_frac_exc = [], []
-for path in initial_paths:
+        l1 = Mode(path)
+        # l1 = Mode(path, use_reg=True)
 
-    l1 = quality.QC(path, use_background_sub=False)
-    
-    _, sig_n = l1.stim_effect_per_neuron()
-        
-    contra_frac_sup += [len(np.where(sig_n < 0)[0]) / len(sig_n)]
-    contra_frac_exc += [len(np.where(sig_n > 0)[0]) / len(sig_n)]
-    
-    
-plt.barh([0, 1], [np.mean(ipsi_frac_exc), np.mean(contra_frac_exc)], color = 'r', edgecolor = 'black', label = 'Excited')
-plt.barh([0, 1], [-np.mean(ipsi_frac_sup), -np.mean(contra_frac_sup)], color = 'b', edgecolor = 'black', label = 'Inhibited')
-plt.scatter(cat((ipsi_frac_exc, -1 * np.array(ipsi_frac_sup))), np.zeros(len(cat((ipsi_frac_exc, ipsi_frac_sup)))), facecolors='none', edgecolors='grey')
-plt.scatter(cat((contra_frac_exc, -1 * np.array(contra_frac_sup))), np.ones(len(cat((contra_frac_exc, contra_frac_sup)))), facecolors='none', edgecolors='grey')
+        der,ctl,_ = l1.selectivity_derivative(period = range(l1.delay+2, l1.delay+8))
+        recovery += [np.mean(der)]
+        r_ctl += [np.mean(ctl)]
+        # temp, _ = l1.modularity_proportion(period = range(l1.delay, l1.delay+6))
+        # recovery += [temp]
 
-plt.axvline(0)
-plt.yticks([0,1], ['Final stage', 'Initial stage'])
-plt.ylabel('Condition')
-plt.xlabel('Fraction of neurons with significant dF/F0 change')
+        # if temp > 0 and temp < 1: # Exclude values based on Chen et al method guideliens
+        #     recovery += [temp]
+    
+    all_recovery += [recovery]
+    all_recovery_ctl += [r_ctl]
+
+# plt.bar(range(3), [np.mean(a) for a in all_recovery])
+
+plt.bar(np.arange(3)+0.2, [np.mean(a) for a in all_recovery], 0.4, label='Control')
+plt.scatter(np.zeros(len(all_recovery[0]))+0.2, all_recovery[0])
+plt.scatter(np.ones(len(all_recovery[1]))+0.2, all_recovery[1])
+plt.scatter(np.ones(len(all_recovery[2]))+1+0.2, all_recovery[2])
+
+
+plt.bar(np.arange(3)-0.2, [np.mean(a) for a in all_recovery_ctl], 0.4, label = 'Perturbation')
+plt.scatter(np.zeros(len(all_recovery_ctl[0]))-0.2, all_recovery_ctl[0])
+plt.scatter(np.ones(len(all_recovery_ctl[1]))-0.2, all_recovery_ctl[1])
+plt.scatter(np.ones(len(all_recovery_ctl[2]))+1-0.2, all_recovery_ctl[2])
+
+
+
+for i in range(len(all_paths[0])):
+    
+    plt.plot([-0.2, 0.2], [all_recovery_ctl[0][i], all_recovery[0][i]], color='grey', alpha = 0.5)
+    plt.plot([0.8, 1.2], [all_recovery_ctl[1][i], all_recovery[1][i]], color='grey', alpha = 0.5)
+    plt.plot([1.8, 2.2], [all_recovery_ctl[2][i], all_recovery[2][i]], color='grey', alpha = 0.5)
+
+
+plt.xticks(range(3), ['Before corruption', 'Midpoint', 'Final'])
+plt.ylabel('Derivative of selectivity')
 plt.legend()
-plt.show()
-    
 
+plt.show()
+
+# Add t-test:
+
+tstat, p_val = stats.ttest_ind(all_recovery_ctl[0], all_recovery[0], equal_var=False, permutations = np.inf, alternative='less')
+print("mod diff p-value: ", p_val)
+tstat, p_val = stats.ttest_ind(all_recovery_ctl[1], all_recovery[1], equal_var=False, permutations = np.inf, alternative='less')
+print("mod diff p-value: ", p_val)
+tstat, p_val = stats.ttest_ind(all_recovery_ctl[2], all_recovery[2], equal_var=False, permutations = np.inf, alternative='less')
+print("mod diff p-value: ", p_val)
 
 
 

@@ -2922,7 +2922,7 @@ class Session:
         
         Returns
         -------
-        derivative of perturbation trials, derivative of contrl trials, fraction
+        derivative of perturbation trials, derivative of contrl trials, diff opto - ctl
 
         """
 
@@ -2968,15 +2968,13 @@ class Session:
         
         
         if period is None:
-            period = range(self.delay, self.delay+6) # Use first second of delay 
+            period = range(self.delay+1, self.delay+7) # Use first second of delay 
 
-        recovery = np.mean(selo[period] / sel[period])
-        error = np.mean(erro[period])
-        
-        return recovery, error
+
+        pert_der = np.gradient(selo[period])
+        ctl_der = np.gradient(sel[period])
     
-    
-        return None
+        return pert_der, ctl_der, pert_der - ctl_der
 
         
         

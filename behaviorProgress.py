@@ -399,7 +399,7 @@ plt.show()
 # b = behavior.Behavior('H:\\data\\BAYLORCW043\\python\\2024_06_13', single=True)
 # b.plot_single_session(save=True)
 
-b = behavior.Behavior('H:\\data\\BAYLORCW044\\python\\2024_06_17', single=True)
+b = behavior.Behavior('H:\\data\\BAYLORCW044\\python\\2024_06_12', single=True)
 b.plot_single_session(save=True)
 
 # b = behavior.Behavior('H:\\data\\BAYLORCW041\\python\\2024_05_15', single=True)

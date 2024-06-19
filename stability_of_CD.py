@@ -51,6 +51,9 @@ naivepath, learningpath, expertpath =[r'F:\data\BAYLORCW036\python\2023_10_09',
             r'F:\data\BAYLORCW036\python\2023_10_19',
             r'F:\data\BAYLORCW036\python\2023_10_30',]
 
+naivepath, learningpath, expertpath = [r'H:\data\BAYLORCW044\python\2024_05_23',
+                   r'H:\data\BAYLORCW044\python\2024_06_04',
+                  r'H:\data\BAYLORCW044\python\2024_06_18',]
 # naivepath, learningpath, expertpath =[r'F:\data\BAYLORCW035\python\2023_10_12',
 #             r'F:\data\BAYLORCW035\python\2023_10_26',
 #             r'F:\data\BAYLORCW035\python\2023_12_12',]
@@ -69,7 +72,7 @@ path = expertpath
 l1 = Mode(path)
 orthonormal_basis, mean = l1.plot_CD(mode_input='action')
 
-path =learningpath
+path = learningpath
 l1 = Mode(path)
 orthonormal_basis, mean = l1.plot_CD(mode_input='action')
 
@@ -109,7 +112,7 @@ l1.plot_appliedCD(orthonormal_basis, mean, fix_axis = (-15, 17), save = r'F:\dat
 
 path = expertpath
 l1 = Mode(path, use_reg = True, triple=True)
-orthonormal_basis, mean = l1.plot_CD(mode_input='stimulus')#, save = r'F:\data\Fig 2\CDstim_expert_CW37.pdf')
+orthonormal_basis, mean = l1.plot_CD(mode_input='choice', ctl=True)#, save = r'F:\data\Fig 2\CDstim_expert_CW37.pdf')
 
 path = learningpath
 l1 = Mode(path, use_reg = True, triple=True)

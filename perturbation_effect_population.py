@@ -147,13 +147,13 @@ init_paths, mid_paths, final_paths = [[r'H:\\data\\BAYLORCW038\\python\\2024_02_
     
 #     frac, sig_n = l1.stim_effect_per_neuron()
     
-
+p=0.001
 all_init_fracs = []
 for path in init_paths:
 
     l1 = quality.QC(path, use_background_sub=False)
     
-    _, sig_n = l1.stim_effect_per_neuron()
+    _, sig_n = l1.stim_effect_per_neuron(p=p)
         
     inh = len(np.where(sig_n < 0)[0]) / len(sig_n)
     exc = len(np.where(sig_n > 0)[0]) / len(sig_n)
@@ -165,7 +165,7 @@ for path in mid_paths:
 
     l1 = quality.QC(path, use_background_sub=False)
     
-    _, sig_n = l1.stim_effect_per_neuron()
+    _, sig_n = l1.stim_effect_per_neuron(p=p)
         
     inh = len(np.where(sig_n < 0)[0]) / len(sig_n)
     exc = len(np.where(sig_n > 0)[0]) / len(sig_n)
@@ -177,7 +177,7 @@ for path in final_paths:
 
     l1 = quality.QC(path, use_background_sub=False)
     
-    _, sig_n = l1.stim_effect_per_neuron()
+    _, sig_n = l1.stim_effect_per_neuron(p=p)
         
     inh = len(np.where(sig_n < 0)[0]) / len(sig_n)
     exc = len(np.where(sig_n > 0)[0]) / len(sig_n)
@@ -199,6 +199,53 @@ plt.xlabel('Fraction of neurons with significant dF/F0 change')
 plt.legend()
 plt.show()
     
+#%% Compare proportion of neurons excited/inhibited by stim over stages
+initial_paths = ['H:\\data\\BAYLORCW038\\python\\2024_02_05', 
+              'H:\\data\\BAYLORCW039\\python\\2024_04_18',
+              'H:\\data\\BAYLORCW039\\python\\2024_04_17', 
+              ]
+             
+             # [ 'H:\\data\\BAYLORCW038\\python\\2024_02_15',
+             #  'H:\\data\\BAYLORCW039\\python\\2024_04_25',
+             #  'H:\\data\\BAYLORCW039\\python\\2024_04_24',
+             #  ],
+             
+final_paths = ['H:\\data\\BAYLORCW038\\python\\2024_03_15',
+              'H:\\data\\BAYLORCW039\\python\\2024_05_08',
+              'H:\\data\\BAYLORCW039\\python\\2024_05_14']
+
+ipsi_frac_sup, ipsi_frac_exc = [], []
+for path in final_paths:
+
+    l1 = quality.QC(path, use_background_sub=False)
+    
+    _, sig_n = l1.stim_effect_per_neuron()
+        
+    ipsi_frac_sup += [len(np.where(sig_n < 0)[0]) / len(sig_n)]
+    ipsi_frac_exc += [len(np.where(sig_n > 0)[0]) / len(sig_n)]
+ 
+contra_frac_sup, contra_frac_exc = [], []
+for path in initial_paths:
+
+    l1 = quality.QC(path, use_background_sub=False)
+    
+    _, sig_n = l1.stim_effect_per_neuron()
+        
+    contra_frac_sup += [len(np.where(sig_n < 0)[0]) / len(sig_n)]
+    contra_frac_exc += [len(np.where(sig_n > 0)[0]) / len(sig_n)]
+    
+    
+plt.barh([0, 1], [np.mean(ipsi_frac_exc), np.mean(contra_frac_exc)], color = 'r', edgecolor = 'black', label = 'Excited')
+plt.barh([0, 1], [-np.mean(ipsi_frac_sup), -np.mean(contra_frac_sup)], color = 'b', edgecolor = 'black', label = 'Inhibited')
+plt.scatter(cat((ipsi_frac_exc, -1 * np.array(ipsi_frac_sup))), np.zeros(len(cat((ipsi_frac_exc, ipsi_frac_sup)))), facecolors='none', edgecolors='grey')
+plt.scatter(cat((contra_frac_exc, -1 * np.array(contra_frac_sup))), np.ones(len(cat((contra_frac_exc, contra_frac_sup)))), facecolors='none', edgecolors='grey')
+
+plt.axvline(0)
+plt.yticks([0,1], ['Final stage', 'Initial stage'])
+plt.ylabel('Condition')
+plt.xlabel('Fraction of neurons with significant dF/F0 change')
+plt.legend()
+plt.show()
     
     
     
