@@ -56,6 +56,32 @@ agg_mice_paths = [[['H:\\data\\BAYLORCW038\\python\\2024_02_05',
 agg_mice_paths = [[['H:\\data\\BAYLORCW039\\python\\2024_04_24', 
                     'H:\\data\\BAYLORCW039\\python\\2024_05_06'],
                    ]]
+agg_mice_paths = [['H:\\data\\BAYLORCW038\\python\\2024_02_05', 
+                    'H:\\data\\BAYLORCW038\\python\\2024_03_15'],
+                   
+                   ['H:\\data\\BAYLORCW039\\python\\2024_04_17', 
+                    'H:\\data\\BAYLORCW039\\python\\2024_05_06'],
+                   
+                    [r'H:\\data\\BAYLORCW039\\python\\2024_04_18',
+                     r'H:\\data\\BAYLORCW039\\python\\2024_05_08'],
+                    
+                    [r'H:\\data\\BAYLORCW041\\python\\2024_05_14',
+                      r'H:\\data\\BAYLORCW041\\python\\2024_06_07'],
+                    
+                    [r'H:\\data\\BAYLORCW041\\python\\2024_05_13',
+                      r'H:\\data\\BAYLORCW041\\python\\2024_06_12'],
+
+                    [r'H:\\data\\BAYLORCW041\\python\\2024_05_15',
+                     r'H:\\data\\BAYLORCW041\\python\\2024_06_11'],
+                    ]
+                  #   [r'H:\\data\\BAYLORCW043\\python\\2024_05_20',
+                  #   r'H:\\data\\BAYLORCW043\\python\\2024_06_13'],
+
+                  #   [r'H:\\data\\BAYLORCW043\\python\\2024_05_21',
+                  #    r'H:\\data\\BAYLORCW043\\python\\2024_06_14']
+                  # ]]
+
+
 # p=0.0005
 p=0.001
 
@@ -66,7 +92,10 @@ s1list, d1, r1, ns1 = np.zeros(4),np.zeros(4),np.zeros(4),np.zeros(4)
 for paths in agg_mice_paths: # For each mouse
     stos = []
     nstos = []
-    s1 = Session(paths[0][0], use_reg=True, use_background_sub=False) # Naive
+    if '41' in paths[0]:
+        s1 = Session(paths[0], use_reg=True, triple=True, use_background_sub=False) # Naive
+    else:
+        s1 = Session(paths[0], use_reg=True, use_background_sub=False) # Naive
     # sample_epoch = range(s1.sample+2, s1.delay+2)
     sample_epoch = range(s1.sample, s1.delay+2)
     delay_epoch = range(s1.delay+9, s1.response)
@@ -85,7 +114,10 @@ for paths in agg_mice_paths: # For each mouse
     og_SDR += [[len(naive_sample_sel), len(naive_delay_sel), len(naive_response_sel), len(naive_nonsel)]]
 
     # s2 = session.Session(paths[0][1], use_reg=True, triple=True) # Learning
-    s2 = Session(paths[0][1], use_reg=True) # Expert
+    if '41' in paths[0]:
+        s2 = Session(paths[1], use_reg=True, triple=True, use_background_sub=False) # Naive
+    else:
+        s2 = Session(paths[1], use_reg=True) # Expert
     
     for n in naive_sample_sel:
         if s2.is_selective(s2.good_neurons[np.where(s1.good_neurons ==n)[0][0]], sample_epoch, p=p):
