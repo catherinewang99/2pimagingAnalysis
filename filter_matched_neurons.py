@@ -125,8 +125,14 @@ agg_mice_paths = [
                    #  'H:\\data\\BAYLORCW041\\python\\2024_06_03'],
                    # [r'H:\\data\\BAYLORCW041\\python\\2024_05_13',
                    #  r'H:\\data\\BAYLORCW041\\python\\2024_06_12'],
-                   [r'H:\data\BAYLORCW041\python\2024_05_14',
-                   r'H:\data\BAYLORCW041\python\2024_06_07',]
+                   # [r'H:\data\BAYLORCW041\python\2024_05_14',
+                   # r'H:\data\BAYLORCW041\python\2024_06_07',],
+                   [r'H:\data\BAYLORCW043\python\2024_05_20',
+                   r'H:\data\BAYLORCW043\python\2024_06_03',],
+                   [r'H:\data\BAYLORCW043\python\2024_06_04',
+                   r'H:\data\BAYLORCW043\python\2024_06_14',],
+                   [r'H:\data\BAYLORCW043\python\2024_06_06',
+                   r'H:\data\BAYLORCW043\python\2024_06_13',]
                    ]
 
 

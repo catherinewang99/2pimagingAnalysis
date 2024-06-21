@@ -80,7 +80,8 @@ agg_mice_paths = [['H:\\data\\BAYLORCW038\\python\\2024_02_05',
                   #   [r'H:\\data\\BAYLORCW043\\python\\2024_05_21',
                   #    r'H:\\data\\BAYLORCW043\\python\\2024_06_14']
                   # ]]
-
+agg_mice_paths = [[ r'H:\data\BAYLORCW041\python\2024_05_24',
+   r'H:\data\BAYLORCW041\python\2024_06_12']]
 
 # p=0.0005
 p=0.001
@@ -256,13 +257,19 @@ intialpath, middlepath, finalpath = ['H:\\data\\BAYLORCW038\\python\\2024_02_05'
                          'H:\\data\\BAYLORCW038\\python\\2024_03_15']
 intialpath, finalpath = ['H:\\data\\BAYLORCW039\\python\\2024_04_24', 
                          'H:\\data\\BAYLORCW039\\python\\2024_05_06']
+
+intialpath, finalpath = ['H:\\data\\BAYLORCW041\\python\\2024_05_14', 
+                         'H:\\data\\BAYLORCW041\\python\\2024_05_23']
+intialpath, middlepath, finalpath = [r'H:\data\BAYLORCW041\python\2024_05_13',
+   r'H:\data\BAYLORCW041\python\2024_05_24',
+  r'H:\data\BAYLORCW041\python\2024_06_12']
 # sample CD
 
-l1 = Mode(intialpath, use_reg=True)
+l1 = Mode(intialpath, use_reg=True, triple=True)
 orthonormal_basis_initial, mean = l1.plot_CD(mode_input = 'stimulus')
 orthonormal_basis_initial_choice, mean = l1.plot_CD(mode_input = 'choice')
 
-l1 = Mode(finalpath, use_reg = True)
+l1 = Mode(finalpath, use_reg = True, triple=True)
 orthonormal_basis, mean = l1.plot_CD(mode_input = 'stimulus')
 orthonormal_basis_choice, mean = l1.plot_CD(mode_input = 'choice')
 
@@ -337,13 +344,17 @@ intialpath, finalpath = ['H:\\data\\BAYLORCW039\\python\\2024_04_24',
                          'H:\\data\\BAYLORCW039\\python\\2024_05_06']
 intialpath, finalpath = ['H:\\data\\BAYLORCW043\\python\\2024_05_20', 
                          'H:\\data\\BAYLORCW043\\python\\2024_06_03']
-    
-l1 = Mode(intialpath, use_reg=True)
+intialpath, finalpath = ['H:\\data\\BAYLORCW041\\python\\2024_05_14', 
+                         'H:\\data\\BAYLORCW041\\python\\2024_05_23']
+intialpath, middlepath, finalpath = [r'H:\data\BAYLORCW041\python\2024_05_13',
+   r'H:\data\BAYLORCW041\python\2024_05_24',
+  r'H:\data\BAYLORCW041\python\2024_06_12']
+l1 = Mode(intialpath, use_reg=True, triple=True)
 orthonormal_basis, mean = l1.plot_CD(mode_input='choice')#, save = r'F:\data\Fig 2\CDstim_expert_CW37.pdf')
 
 # l1 = Mode(middlepath)
 
-l1 = Mode(finalpath, use_reg = True)
+l1 = Mode(finalpath, use_reg = True, triple=True)
 l1.plot_appliedCD(orthonormal_basis, mean)
 
 #%% CD recovery to stim
@@ -364,19 +375,19 @@ intialpath, middlepath, finalpath = [r'H:\data\BAYLORCW041\python\2024_05_13',
    r'H:\data\BAYLORCW041\python\2024_05_24',
   r'H:\data\BAYLORCW041\python\2024_06_12']
   
-intialpath, _, finalpath =  [r'H:\data\BAYLORCW041\python\2024_05_15',
-          r'H:\data\BAYLORCW041\python\2024_05_28',
-          r'H:\data\BAYLORCW041\python\2024_06_11',]
+# intialpath, _, finalpath =  [r'H:\data\BAYLORCW041\python\2024_05_15',
+#           r'H:\data\BAYLORCW041\python\2024_05_28',
+#           r'H:\data\BAYLORCW041\python\2024_06_11',]
  
-intialpath, _, finalpath = [r'H:\data\BAYLORCW041\python\2024_05_14',
-r'H:\data\BAYLORCW041\python\2024_05_23',
-r'H:\data\BAYLORCW041\python\2024_06_07',]
+# intialpath, _, finalpath = [r'H:\data\BAYLORCW041\python\2024_05_14',
+# r'H:\data\BAYLORCW041\python\2024_05_23',
+# r'H:\data\BAYLORCW041\python\2024_06_07',]
 
-intialpath, finalpath = ['H:\\data\\BAYLORCW043\\python\\2024_06_06', 
-                         'H:\\data\\BAYLORCW043\\python\\2024_06_13']
+# intialpath, finalpath = ['H:\\data\\BAYLORCW043\\python\\2024_06_06', 
+#                          'H:\\data\\BAYLORCW043\\python\\2024_06_13']
 
 
-l1 = Mode(finalpath, use_reg=True, triple=False, filter_reg=False)
+l1 = Mode(finalpath, use_reg=True, triple=True, filter_reg=True)
 # orthonormal_basis, mean = l1.plot_CD(ctl=True)
 l1.plot_CD_opto(ctl=True)
 control_traces, opto_traces, error_bars, orthonormal_basis, mean, meantrain, meanstd = l1.plot_CD_opto(return_traces=True, return_applied=True,ctl=True)
@@ -385,7 +396,7 @@ control_traces, opto_traces, error_bars, orthonormal_basis, mean, meantrain, mea
 # # l1.plot_CD_opto()
 # l1.plot_CD_opto_applied(orthonormal_basis, mean, meantrain, meanstd)
 
-l1 = Mode(intialpath, use_reg = True, triple=False, filter_reg=False)
+l1 = Mode(intialpath, use_reg = True, triple=True, filter_reg=True)
 # l1.plot_appliedCD(orthonormal_basis, mean)
 # l1.plot_CD_opto()
 l1.plot_CD_opto_applied(orthonormal_basis, mean, meantrain, meanstd)
@@ -603,18 +614,20 @@ all_paths = [[r'H:\\data\\BAYLORCW038\\python\\2024_02_05',
 
 ticks = ["o", "X", "D"]
 naive_sel_recovery,learning_sel_recovery,expert_sel_recovery = [],[],[]
-all_recovery, all_recovery_ctl = [], []
+all_recovery, all_recovery_ctl, all_diff = [], [], []
 for paths in all_paths: # For each stage of training
     recovery = []
     r_ctl = []
+    d_diff = []
     for path in paths: # For each mouse
         
         l1 = Mode(path)
         # l1 = Mode(path, use_reg=True)
 
-        der,ctl,_ = l1.selectivity_derivative(period = range(l1.delay+2, l1.delay+8))
+        der,ctl,diff = l1.selectivity_derivative(period = range(l1.delay, l1.delay+5))
         recovery += [np.mean(der)]
         r_ctl += [np.mean(ctl)]
+        d_diff += [np.mean(diff)]
         # temp, _ = l1.modularity_proportion(period = range(l1.delay, l1.delay+6))
         # recovery += [temp]
 
@@ -623,16 +636,16 @@ for paths in all_paths: # For each stage of training
     
     all_recovery += [recovery]
     all_recovery_ctl += [r_ctl]
-
+    all_diff += [d_diff]
 # plt.bar(range(3), [np.mean(a) for a in all_recovery])
 
-plt.bar(np.arange(3)+0.2, [np.mean(a) for a in all_recovery], 0.4, label='Control')
+plt.bar(np.arange(3)+0.2, [np.mean(a) for a in all_recovery], 0.4, label='Perturbation')
 plt.scatter(np.zeros(len(all_recovery[0]))+0.2, all_recovery[0])
 plt.scatter(np.ones(len(all_recovery[1]))+0.2, all_recovery[1])
 plt.scatter(np.ones(len(all_recovery[2]))+1+0.2, all_recovery[2])
 
 
-plt.bar(np.arange(3)-0.2, [np.mean(a) for a in all_recovery_ctl], 0.4, label = 'Perturbation')
+plt.bar(np.arange(3)-0.2, [np.mean(a) for a in all_recovery_ctl], 0.4, label = 'Control')
 plt.scatter(np.zeros(len(all_recovery_ctl[0]))-0.2, all_recovery_ctl[0])
 plt.scatter(np.ones(len(all_recovery_ctl[1]))-0.2, all_recovery_ctl[1])
 plt.scatter(np.ones(len(all_recovery_ctl[2]))+1-0.2, all_recovery_ctl[2])
@@ -651,6 +664,21 @@ plt.ylabel('Derivative of selectivity')
 plt.legend()
 
 plt.show()
+
+
+plt.bar(np.arange(3), [np.mean(a) for a in all_diff])
+plt.scatter(np.zeros(len(all_diff[0])), all_diff[0])
+plt.scatter(np.ones(len(all_diff[1])), all_diff[1])
+plt.scatter(np.ones(len(all_diff[2]))+1, all_diff[2])
+
+
+
+plt.xticks(range(3), ['Before corruption', 'Midpoint', 'Final'])
+plt.ylabel('Diff in derivative of selectivity (pert-ctl)')
+
+plt.show()
+
+
 
 # Add t-test:
 
