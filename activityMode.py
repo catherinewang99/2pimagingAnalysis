@@ -2789,7 +2789,7 @@ class Mode(Session):
         return CD_recovery_mode
     
     
-    def modularity_proportion_by_CD(self, mode_input = 'choice', trials=None, period=None, normalize=True):
+    def modularity_proportion_by_CD(self, mode_input = 'choice', trials=None, period=None, normalize=True, return_trials=False):
         """Returns the modularity as a proportion of control CD
         
         Define CD using all trials
@@ -2904,7 +2904,8 @@ class Mode(Session):
             l_proj_delta += [left_control_traces[period] - proj_allDim[period]]
             # plt.plot(x, proj_allDim[:len(self.T_cue_aligned_sel), i_pc], 'r', alpha = 0.5, linewidth = 0.5)
             
-            
+        if return_trials:
+            return r_trials, l_trials, r_proj_delta, l_proj_delta
 
         recovery = 0
         

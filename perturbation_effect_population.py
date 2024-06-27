@@ -121,7 +121,8 @@ init_paths, mid_paths, final_paths = [[r'H:\\data\\BAYLORCW038\\python\\2024_02_
                                        r'H:\\data\\BAYLORCW041\\python\\2024_05_13',
                                        r'H:\\data\\BAYLORCW041\\python\\2024_05_15',
                                        r'H:\\data\\BAYLORCW043\\python\\2024_05_20',
-                                       r'H:\\data\\BAYLORCW043\\python\\2024_05_21'],
+                                       r'H:\\data\\BAYLORCW043\\python\\2024_05_21',
+                                       r'H:\\data\\BAYLORCW042\\python\\2024_06_05',],
                                       
                                        [r'H:\data\BAYLORCW038\python\2024_02_15',
                                         r'H:\\data\\BAYLORCW039\\python\\2024_04_24',
@@ -130,7 +131,8 @@ init_paths, mid_paths, final_paths = [[r'H:\\data\\BAYLORCW038\\python\\2024_02_
                                         r'H:\\data\\BAYLORCW041\\python\\2024_05_24',
                                         r'H:\\data\\BAYLORCW041\\python\\2024_05_28',
                                         r'H:\\data\\BAYLORCW043\\python\\2024_06_03',
-                                        r'H:\\data\\BAYLORCW043\\python\\2024_06_04'],
+                                        r'H:\\data\\BAYLORCW043\\python\\2024_06_04',
+                                        r'H:\\data\\BAYLORCW042\\python\\2024_06_14',],
                                       
                                        [r'H:\\data\\BAYLORCW038\\python\\2024_03_15',
                                         r'H:\\data\\BAYLORCW039\\python\\2024_05_06',
@@ -139,7 +141,8 @@ init_paths, mid_paths, final_paths = [[r'H:\\data\\BAYLORCW038\\python\\2024_02_
                                         r'H:\\data\\BAYLORCW041\\python\\2024_06_12',
                                         r'H:\\data\\BAYLORCW041\\python\\2024_06_11',
                                         r'H:\\data\\BAYLORCW043\\python\\2024_06_13',
-                                        r'H:\\data\\BAYLORCW043\\python\\2024_06_14']
+                                        r'H:\\data\\BAYLORCW043\\python\\2024_06_14',
+                                        r'H:\\data\\BAYLORCW042\\python\\2024_06_24',]
                                     ]
 
 # for path in paths:

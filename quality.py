@@ -467,7 +467,7 @@ class QC(Session):
 
         plt.show()
         
-    def stim_effect_per_neuron(self, p=0.01):
+    def stim_effect_per_neuron(self, p=0.01, period=None):
         """
         Give the fraction change per neuron in dF/F0 and -1 if supressed 
         significantly and 1 if excited significantly (0 otherwise)
@@ -479,6 +479,9 @@ class QC(Session):
         ----------
         p : Int, optional
             Significantly modulated neuron threshold. The default is 0.01.
+        
+        period : array, optional
+            Time frame to calculate effect of stim
 
         Returns
         -------
@@ -514,8 +517,8 @@ class QC(Session):
                 dfftrial += [non_stim_dff[trial][neuron, :self.time_cutoff]]
 
 
-            tstat, p_val = stats.ttest_ind(np.mean(np.array(stim_dfftrial)[:, self.delay:self.delay+6], axis=0), 
-                                           np.mean(np.array(dfftrial)[:, self.delay:self.delay+6], axis=0))
+            tstat, p_val = stats.ttest_ind(np.mean(np.array(stim_dfftrial)[:, self.delay+1:self.delay+7], axis=0), 
+                                           np.mean(np.array(dfftrial)[:, self.delay+1:self.delay+7], axis=0))
             
             stim_stack = np.vstack((stim_stack, np.mean(np.array(stim_dfftrial), axis=0)))
             stack = np.vstack((stack, np.mean(np.array(dfftrial), axis=0)))
@@ -527,7 +530,7 @@ class QC(Session):
 
         stim_stack = normalize(stim_stack[1:])
         stack = normalize(stack[1:])
-        
+                
         frac = np.mean(np.array(stim_stack[:, self.delay + 1:self.delay+7]) / np.array(stack[:, self.delay + 1:self.delay+7]))
 
         return frac, np.array(neuron_sig)

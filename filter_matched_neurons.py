@@ -51,26 +51,46 @@ agg_mice_paths = [[r'F:\data\BAYLORCW032\python\2023_10_08',
 
 
 agg_mice_paths = [
-                [r'H:\data\BAYLORCW041\python\2024_05_13',
-                    r'H:\data\BAYLORCW041\python\2024_05_24',
-                  r'H:\data\BAYLORCW041\python\2024_06_12',],
+                # [r'H:\data\BAYLORCW041\python\2024_05_13',
+                #     r'H:\data\BAYLORCW041\python\2024_05_24',
+                #   r'H:\data\BAYLORCW041\python\2024_06_12',],
                   
-                   [r'H:\data\BAYLORCW041\python\2024_05_15',
-                   r'H:\data\BAYLORCW041\python\2024_05_28',
-                   r'H:\data\BAYLORCW041\python\2024_06_11',],
+                #    [r'H:\data\BAYLORCW041\python\2024_05_15',
+                #    r'H:\data\BAYLORCW041\python\2024_05_28',
+                #    r'H:\data\BAYLORCW041\python\2024_06_11',],
                  
-                [r'H:\data\BAYLORCW041\python\2024_05_14',
-                r'H:\data\BAYLORCW041\python\2024_05_23',
-                r'H:\data\BAYLORCW041\python\2024_06_07',],
-
+                # [r'H:\data\BAYLORCW041\python\2024_05_14',
+                # r'H:\data\BAYLORCW041\python\2024_05_23',
+                # r'H:\data\BAYLORCW041\python\2024_06_07',],
+                
+                [r'H:\data\BAYLORCW042\python\2024_06_05',
+                r'H:\data\BAYLORCW042\python\2024_06_14',
+                r'H:\data\BAYLORCW042\python\2024_06_24',],
+                [r'H:\data\BAYLORCW042\python\2024_06_06',
+                r'H:\data\BAYLORCW042\python\2024_06_18',
+                r'H:\data\BAYLORCW042\python\2024_06_26',],
         ]
 
 # agg_mice_paths = [
-#                 [r'H:\data\BAYLORCW044\python\2024_05_23',
-#                    r'H:\data\BAYLORCW044\python\2024_06_04',
-#                   r'H:\data\BAYLORCW044\python\2024_06_18',],
-
-#         ]
+                # [r'H:\data\BAYLORCW044\python\2024_05_22',
+                #     r'H:\data\BAYLORCW044\python\2024_06_06',
+                #   r'H:\data\BAYLORCW044\python\2024_06_19',],
+                # [r'H:\data\BAYLORCW044\python\2024_05_23',
+                #     r'H:\data\BAYLORCW044\python\2024_06_04',
+                #   r'H:\data\BAYLORCW044\python\2024_06_18',],
+                # [r'H:\data\BAYLORCW044\python\2024_05_24',
+                #     r'H:\data\BAYLORCW044\python\2024_06_05',
+                #   r'H:\data\BAYLORCW044\python\2024_06_20',],
+                # [r'H:\data\BAYLORCW046\python\2024_05_29',
+                #     r'H:\data\BAYLORCW046\python\2024_06_07',
+                #   r'H:\data\BAYLORCW046\python\2024_06_24',],
+                # [r'H:\data\BAYLORCW046\python\2024_05_30',
+                #     r'H:\data\BAYLORCW046\python\2024_06_10',
+                #   r'H:\data\BAYLORCW046\python\2024_06_25',],
+                # [r'H:\data\BAYLORCW046\python\2024_05_31',
+                #   r'H:\data\BAYLORCW046\python\2024_06_11',
+                # r'H:\data\BAYLORCW046\python\2024_06_26',],
+                # ]
 
 num_layers = 5
 for paths in agg_mice_paths:

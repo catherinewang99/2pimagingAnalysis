@@ -321,6 +321,10 @@ intialpath, finalpath = ['H:\\data\\BAYLORCW041\\python\\2024_05_14',
 intialpath, middlepath, finalpath = [r'H:\data\BAYLORCW041\python\2024_05_13',
    r'H:\data\BAYLORCW041\python\2024_05_24',
   r'H:\data\BAYLORCW041\python\2024_06_12']
+
+intialpath, middlepath, finalpath = [r'H:\data\BAYLORCW042\python\2024_06_05',
+r'H:\data\BAYLORCW042\python\2024_06_14',
+r'H:\data\BAYLORCW042\python\2024_06_24',]
 # sample CD
 
 l1 = Mode(intialpath, use_reg=True, triple=True)
@@ -434,7 +438,11 @@ intialpath, finalpath = ['H:\\data\\BAYLORCW043\\python\\2024_05_20',
 intialpath, middlepath, finalpath = [r'H:\data\BAYLORCW041\python\2024_05_13',
    r'H:\data\BAYLORCW041\python\2024_05_24',
   r'H:\data\BAYLORCW041\python\2024_06_12']
-  
+
+intialpath, middlepath, finalpath = [r'H:\data\BAYLORCW042\python\2024_06_05',
+r'H:\data\BAYLORCW042\python\2024_06_14',
+r'H:\data\BAYLORCW042\python\2024_06_24',]
+ 
 # intialpath, _, finalpath =  [r'H:\data\BAYLORCW041\python\2024_05_15',
 #           r'H:\data\BAYLORCW041\python\2024_05_28',
 #           r'H:\data\BAYLORCW041\python\2024_06_11',]
@@ -447,16 +455,16 @@ intialpath, middlepath, finalpath = [r'H:\data\BAYLORCW041\python\2024_05_13',
 #                          'H:\\data\\BAYLORCW043\\python\\2024_06_13']
 
 
-l1 = Mode(finalpath, use_reg=True, triple=True, filter_reg=True)
+l1 = Mode(intialpath, use_reg=True, triple=True, filter_reg=True)
 # orthonormal_basis, mean = l1.plot_CD(ctl=True)
 l1.plot_CD_opto(ctl=True)
 control_traces, opto_traces, error_bars, orthonormal_basis, mean, meantrain, meanstd = l1.plot_CD_opto(return_traces=True, return_applied=True,ctl=True)
 
-# l1 = Mode(middlepath, use_reg=True, triple=True, filter_reg=False)
-# # l1.plot_CD_opto()
-# l1.plot_CD_opto_applied(orthonormal_basis, mean, meantrain, meanstd)
+l1 = Mode(middlepath, use_reg=True, triple=True, filter_reg=True)
+# l1.plot_CD_opto()
+l1.plot_CD_opto_applied(orthonormal_basis, mean, meantrain, meanstd)
 
-l1 = Mode(intialpath, use_reg = True, triple=True, filter_reg=True)
+l1 = Mode(finalpath, use_reg = True, triple=True, filter_reg=True)
 # l1.plot_appliedCD(orthonormal_basis, mean)
 # l1.plot_CD_opto()
 l1.plot_CD_opto_applied(orthonormal_basis, mean, meantrain, meanstd)
