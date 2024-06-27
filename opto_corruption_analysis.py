@@ -45,7 +45,65 @@ def angle_between(v1, v2):
 def cos_sim(a,b):
     return np.dot(a, b)/(norm(a)*norm(b))
 
+#%% Get number to make SANKEY diagram contra ipsi
 
+agg_mice_paths = [[ r'H:\data\BAYLORCW041\python\2024_05_13',
+   r'H:\data\BAYLORCW041\python\2024_06_12']]
+
+p=0.001
+
+og_SDR = []
+c1, i1, ns1 = np.zeros(3),np.zeros(3),np.zeros(3)
+for paths in agg_mice_paths: # For each mouse
+
+    s1 = Session(paths[0], use_reg=True, triple=True) # Naive
+    # epoch = range(s1.response, s1.time_cutoff) # response selective
+    epoch = range(s1.delay + 9, s1.response) # delay selective
+    # epoch = range(s1.sample, s1.delay) # sample selective
+    
+    contra_neurons, ipsi_neurons, _, _ = s1.contra_ipsi_pop(epoch, p=p)
+    naive_nonsel = [n for n in s1.good_neurons if n not in ipsi_neurons and n not in contra_neurons]
+
+    og_SDR += [[len(contra_neurons), len(ipsi_neurons), len(naive_nonsel)]]
+
+    # s2 = session.Session(paths[0][1], use_reg=True, triple=True) # Learning
+    s2 = Session(paths[1], use_reg=True, triple=True) # Expert
+
+    # learning = sum([s2.is_selective(s2.good_neurons[np.where(s1.good_neurons ==n)[0][0]], epoch) for n in naive_sel])
+    # expert = sum([s3.is_selective(s3.good_neurons[np.where(s1.good_neurons ==n)[0][0]], epoch) for n in naive_sel])
+    
+    for n in contra_neurons:
+        if s2.is_selective(s2.good_neurons[np.where(s1.good_neurons ==n)[0][0]], epoch, p=p):
+            ipsi, _, _ = s2.screen_preference(s2.good_neurons[np.where(s1.good_neurons ==n)[0][0]], epoch)
+            if not ipsi:
+                c1[0] += 1
+            else:
+                c1[1] += 1
+        else:
+            c1[2] += 1
+    
+    for n in ipsi_neurons:
+        if s2.is_selective(s2.good_neurons[np.where(s1.good_neurons ==n)[0][0]], epoch, p=p):
+            ipsi, _, _ = s2.screen_preference(s2.good_neurons[np.where(s1.good_neurons ==n)[0][0]], epoch)
+            if not ipsi:
+                i1[0] += 1
+            else:
+                i1[1] += 1
+        else:
+            i1[2] += 1
+    
+
+    for n in naive_nonsel:
+        if s2.is_selective(s2.good_neurons[np.where(s1.good_neurons ==n)[0][0]], epoch, p=p):
+            ipsi, _, _ = s2.screen_preference(s2.good_neurons[np.where(s1.good_neurons ==n)[0][0]], epoch)
+            if not ipsi:
+                ns1[0] += 1
+            else:
+                ns1[1] += 1
+        else:
+            ns1[2] += 1
+    
+og_SDR = np.sum(og_SDR, axis=0)
 
 
 #%% Changes at single cell level - sankey SDR
@@ -350,9 +408,11 @@ intialpath, middlepath, finalpath = [r'H:\data\BAYLORCW041\python\2024_05_13',
    r'H:\data\BAYLORCW041\python\2024_05_24',
   r'H:\data\BAYLORCW041\python\2024_06_12']
 l1 = Mode(intialpath, use_reg=True, triple=True)
-orthonormal_basis, mean = l1.plot_CD(mode_input='choice')#, save = r'F:\data\Fig 2\CDstim_expert_CW37.pdf')
+orthonormal_basis, mean = l1.plot_CD(mode_input='stimulus')#, save = r'F:\data\Fig 2\CDstim_expert_CW37.pdf')
 
 # l1 = Mode(middlepath)
+l1 = Mode(middlepath, use_reg = True, triple=True)
+l1.plot_appliedCD(orthonormal_basis, mean)
 
 l1 = Mode(finalpath, use_reg = True, triple=True)
 l1.plot_appliedCD(orthonormal_basis, mean)
