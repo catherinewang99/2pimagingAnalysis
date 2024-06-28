@@ -71,7 +71,7 @@ agg_mice_paths = [
                 r'H:\data\BAYLORCW042\python\2024_06_26',],
         ]
 
-# agg_mice_paths = [
+agg_mice_paths = [
                 # [r'H:\data\BAYLORCW044\python\2024_05_22',
                 #     r'H:\data\BAYLORCW044\python\2024_06_06',
                 #   r'H:\data\BAYLORCW044\python\2024_06_19',],
@@ -84,15 +84,15 @@ agg_mice_paths = [
                 # [r'H:\data\BAYLORCW046\python\2024_05_29',
                 #     r'H:\data\BAYLORCW046\python\2024_06_07',
                 #   r'H:\data\BAYLORCW046\python\2024_06_24',],
-                # [r'H:\data\BAYLORCW046\python\2024_05_30',
-                #     r'H:\data\BAYLORCW046\python\2024_06_10',
-                #   r'H:\data\BAYLORCW046\python\2024_06_25',],
+                [r'H:\data\BAYLORCW046\python\2024_05_30',
+                    r'H:\data\BAYLORCW046\python\2024_06_10',
+                  r'H:\data\BAYLORCW046\python\2024_06_27',],
                 # [r'H:\data\BAYLORCW046\python\2024_05_31',
                 #   r'H:\data\BAYLORCW046\python\2024_06_11',
                 # r'H:\data\BAYLORCW046\python\2024_06_26',],
-                # ]
+                ]
 
-num_layers = 5
+num_layers = 2
 for paths in agg_mice_paths:
     allkeep_ids = []
     for layer_num in range(1,num_layers+1):

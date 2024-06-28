@@ -100,7 +100,7 @@ for path in allpaths:
     correct = np.convolve(correct, np.ones(window*2)/(window*2), mode = 'same')
     # correctarr = correct[window:-window]
     
-    r_trials, l_trials, r_proj_delta, l_proj_delta = l1.modularity_proportion_by_CD(period = range(l1.delay, l1.delay+15), return_trials=True)
+    r_trials, l_trials, r_proj_delta, l_proj_delta = l1.modularity_proportion_by_CD(period = range(l1.delay+15, l1.delay+45), return_trials=True)
     r_delta = np.mean(r_proj_delta, axis=1)
     l_delta = np.mean(l_proj_delta, axis=1)
     trials = cat((r_trials, l_trials))
