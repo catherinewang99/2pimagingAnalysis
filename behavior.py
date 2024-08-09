@@ -112,7 +112,7 @@ class Behavior():
             self.total_sessions = 1
             
 
-    def plot_performance_over_sessions(self, all=False, color_background = []):
+    def plot_performance_over_sessions(self, all=False, exclude_EL = False, color_background = [], return_vals=False):
         
         reg = []
         opto_p = []
@@ -120,7 +120,12 @@ class Behavior():
         for i in range(self.total_sessions):
             if all:
                 correct = self.L_correct[i] + self.R_correct[i]
-                reg += [np.sum(correct) / len(self.L_correct[i])] 
+                
+                if exclude_EL: # Exclude early lick
+                    correct = np.delete(correct, np.where(self.early_lick[i])[0])
+                    reg += [np.sum(correct) / len(correct)] 
+                else: # Not excluding early lick
+                    reg += [np.sum(correct) / len(self.L_correct[i])] 
 
             else:
 
@@ -136,7 +141,10 @@ class Behavior():
                 reg += [np.sum([(self.L_correct[i][t] + self.R_correct[i][t]) for t in igood_opto]) / len(igood_opto)]
                     
                 opto_p += [np.sum([(self.L_correct[i][t] + self.R_correct[i][t]) for t in opto]) / len(opto)]
-
+                
+        if return_vals:
+            return reg
+        
         if all:
             plt.plot(reg, 'g--')
             plt.scatter(range(len(reg)), reg, c='g', marker = 'o')
@@ -149,6 +157,8 @@ class Behavior():
             plt.axhline(0.5)
             plt.legend()
             plt.show()
+            
+
         else:
             plt.plot(reg, 'g-', label='control')
             plt.plot(opto_p, 'r-', label = 'opto')

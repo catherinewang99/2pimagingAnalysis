@@ -4,6 +4,8 @@ Created on Tue Apr 11 11:42:45 2023
 
 @author: Catherine Wang
 """
+import sys
+sys.path.append("C:\scripts\Imaging analysis")
 import numpy as np
 from numpy import concatenate as cat
 import matplotlib.pyplot as plt

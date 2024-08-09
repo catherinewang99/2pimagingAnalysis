@@ -21,7 +21,7 @@ from statsmodels.formula.api import ols
 import pandas as pd
 from scipy.stats import mannwhitneyu
 from scipy.stats import mstats
-from LinRegpval import LinearRegression
+# from LinRegpval import LinearRegression
 plt.rcParams['pdf.fonttype'] = 42 
 import time 
 import random

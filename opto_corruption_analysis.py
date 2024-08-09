@@ -542,62 +542,7 @@ plt.ylabel('Stimulus decoder angles')
 
 
 
-#%% Behavioral recovery no L/R info
 
-all_paths = [[r'H:\data\BAYLORCW038\python\2024_02_05',
-          r'H:\data\BAYLORCW038\python\2024_02_15',
-          r'H:\data\BAYLORCW038\python\2024_03_15',]]
-
-all_paths = [['H:\\data\\BAYLORCW039\\python\\2024_04_17', 
-            'H:\\data\\BAYLORCW039\\python\\2024_04_24',
-            'H:\\data\\BAYLORCW039\\python\\2024_05_06'],
-              ['H:\\data\\BAYLORCW039\\python\\2024_04_18', 
-            'H:\\data\\BAYLORCW039\\python\\2024_04_25',
-            'H:\\data\\BAYLORCW039\\python\\2024_05_20']]
-
-performance_opto = []
-performance_ctl = []
-fig = plt.figure()
-ticks = ["o", "X", "D"]
-t = 0
-for paths in all_paths:
-    counter = -1
-
-    opt, ctl = [],[]
-    for path in paths:
-        counter += 1
-        l1 = Session(path)
-        stim_trials = np.where(l1.stim_ON)[0]
-        control_trials = np.where(~l1.stim_ON)[0]
-        
-        perf_right, perf_left, perf_all = l1.performance_in_trials(stim_trials)
-        opt += [perf_all]
-        # plt.scatter(counter + 0.2, perf_right, c='b', marker='x')
-        # plt.scatter(counter + 0.2, perf_left, c='r', marker='x')
-       
-        perf_rightctl, perf_left, perf_all_c = l1.performance_in_trials(control_trials)
-        ctl += [perf_all_c]
-        # plt.scatter(counter - 0.2, perf_rightctl, c='b', marker='o')
-        # plt.scatter(counter - 0.2, perf_left, c='r', marker='o')
-        plt.plot([counter - 0.2, counter + 0.2], [perf_all_c, perf_all], color='grey')
-        
-        
-    performance_opto += [opt]
-    performance_ctl += [ctl]
-
-
-    plt.scatter(np.arange(3)+0.2, opt, color = 'red', marker = ticks[t], label = "FOV {}".format(t + 1))
-    plt.scatter(np.arange(3)-0.2, ctl, color = 'grey', marker = ticks[t])
-    t += 1
-    
-plt.bar(np.arange(3)+0.2, np.mean(performance_opto, axis=0), 0.4, fill=False)
-
-plt.bar(np.arange(3)-0.2, np.mean(performance_ctl, axis=0), 0.4, fill=False)
-plt.ylabel('Behavior performance')
-plt.xticks(range(3), ["Before corruption", "Midpoint", "Final"])
-plt.ylim([0.4,1])
-plt.legend()
-plt.show()
 
 #%% Plot selectivity recovery as a bar graph only matched
 

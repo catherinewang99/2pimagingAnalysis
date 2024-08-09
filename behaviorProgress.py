@@ -12,6 +12,7 @@ import scipy.io as scio
 import matplotlib.pyplot as plt
 import session
 import behavior
+cat = np.concatenate
 plt.rcParams['pdf.fonttype'] = '42' 
 
 
@@ -163,7 +164,7 @@ plt.bar(np.arange(3)-0.2, np.mean(performance_ctl, axis=0), 0.4, fill=False)
 plt.xticks(range(3), ["Naive", "Learning", "Expert"])
 # plt.ylim([0.4,1])
 # plt.legend()
-plt.savefig(r'F:\data\Fig 1\beh_opto.pdf')
+# plt.savefig(r'F:\data\Fig 1\beh_opto.pdf')
 plt.show()
     
 #%% Plot learning progression
@@ -205,15 +206,17 @@ plt.show()
 # b.learning_progression(window = 50, include_delay=False, color_background=[3,4,5,6,7,8,9,13,14,15,16,17,18])
 # b.plot_performance_over_sessions(all=True, color_background=[3,4,5,6,7,8,9,13,14,15,16,17,18])
 
-# b = behavior.Behavior(r'H:\data\Behavior data\BAYLORCW042\python_behavior', behavior_only=True)
-# b.learning_progression(window = 50, include_delay=False, color_background=[2,3,4,5,6,7,8,10,11,12,14,15,16,17,18])
-# b.plot_performance_over_sessions(all=True, color_background=[2,3,4,5,6,7,8,10,11,12,14,15,16,17,18])
+b = behavior.Behavior(r'H:\data\Behavior data\BAYLORCW042\python_behavior', behavior_only=True)
+b.learning_progression(window = 50, include_delay=False, color_background=[2,3,4,5,6,7,8,10,11,12,14,15,16,17,18])
+b.plot_performance_over_sessions(all=True, color_background=[2,3,4,5,6,7,8,10,11,12,14,15,16,17,18])
 
 # b = behavior.Behavior(r'H:\data\Behavior data\BAYLORCW044\python_behavior', behavior_only=True)
 # b.learning_progression(window = 50)
 
-b = behavior.Behavior(r'H:\data\Behavior data\BAYLORCW046\python_behavior', behavior_only=True)
-b.learning_progression(window = 50, imaging=False)
+# b = behavior.Behavior(r'H:\data\Behavior data\BAYLORCW046\python_behavior', behavior_only=True)
+# b.learning_progression(window = 50, imaging=False)
+
+
 
 #%% Compare learning curves ####
 
