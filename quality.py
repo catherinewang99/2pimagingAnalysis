@@ -505,6 +505,10 @@ class QC(Session):
         
         neuron_sig = []
         
+        if period is None:
+            period = np.arange(self.delay+1,self.delay+7)
+        
+        
         # for neuron in range(self.num_neurons):
         for neuron in self.good_neurons:
             
@@ -517,8 +521,8 @@ class QC(Session):
                 dfftrial += [non_stim_dff[trial][neuron, :self.time_cutoff]]
 
 
-            tstat, p_val = stats.ttest_ind(np.mean(np.array(stim_dfftrial)[:, self.delay+1:self.delay+7], axis=0), 
-                                           np.mean(np.array(dfftrial)[:, self.delay+1:self.delay+7], axis=0))
+            tstat, p_val = stats.ttest_ind(np.mean(np.array(stim_dfftrial)[:, period], axis=0), 
+                                           np.mean(np.array(dfftrial)[:, period], axis=0))
             
             stim_stack = np.vstack((stim_stack, np.mean(np.array(stim_dfftrial), axis=0)))
             stack = np.vstack((stack, np.mean(np.array(dfftrial), axis=0)))
@@ -531,7 +535,7 @@ class QC(Session):
         stim_stack = normalize(stim_stack[1:])
         stack = normalize(stack[1:])
                 
-        frac = np.mean(np.array(stim_stack[:, self.delay + 1:self.delay+7]) / np.array(stack[:, self.delay + 1:self.delay+7]))
+        frac = np.mean(np.array(stim_stack[:, period]) / np.array(stack[:, period]))
 
         return frac, np.array(neuron_sig)
         # return stim_stack, stack

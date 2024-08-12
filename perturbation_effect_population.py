@@ -151,12 +151,13 @@ init_paths, mid_paths, final_paths = [[r'H:\\data\\BAYLORCW038\\python\\2024_02_
 #     frac, sig_n = l1.stim_effect_per_neuron()
     
 p=0.001
+period = np.arange(l1.response-6, l1.response)
 all_init_fracs = []
 for path in init_paths:
 
     l1 = quality.QC(path, use_background_sub=False)
     
-    _, sig_n = l1.stim_effect_per_neuron(p=p)
+    _, sig_n = l1.stim_effect_per_neuron(p=p, period=period)
         
     inh = len(np.where(sig_n < 0)[0]) / len(sig_n)
     exc = len(np.where(sig_n > 0)[0]) / len(sig_n)
@@ -168,7 +169,7 @@ for path in mid_paths:
 
     l1 = quality.QC(path, use_background_sub=False)
     
-    _, sig_n = l1.stim_effect_per_neuron(p=p)
+    _, sig_n = l1.stim_effect_per_neuron(p=p, period=period)
         
     inh = len(np.where(sig_n < 0)[0]) / len(sig_n)
     exc = len(np.where(sig_n > 0)[0]) / len(sig_n)
@@ -180,12 +181,12 @@ for path in final_paths:
 
     l1 = quality.QC(path, use_background_sub=False)
     
-    _, sig_n = l1.stim_effect_per_neuron(p=p)
+    _, sig_n = l1.stim_effect_per_neuron(p=p,period=period)
         
     inh = len(np.where(sig_n < 0)[0]) / len(sig_n)
     exc = len(np.where(sig_n > 0)[0]) / len(sig_n)
     
-    all_final_fracs += [[inh, exc]]    
+    all_final_fracs += [[inh, exc]]
     
 plt.barh([2, 1, 0], [np.mean(all_init_fracs, axis=0)[1], np.mean(all_middle_fracs, axis=0)[1], np.mean(all_final_fracs, axis=0)[1]], color = 'r', edgecolor = 'black', label = 'Excited')
 plt.barh([2, 1, 0], [-np.mean(all_init_fracs, axis=0)[0], -np.mean(all_middle_fracs, axis=0)[0], -np.mean(all_final_fracs, axis=0)[0]], color = 'b', edgecolor = 'black', label = 'Inhibited')

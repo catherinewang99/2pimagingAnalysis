@@ -96,7 +96,11 @@ for i in range(5):
 #%% Bar graph showing behavior diff after opto corruption
 
 
-fig = plt.figure(figsize =(6, 10)) 
+fig = plt.figure(figsize =(6, 8)) 
+
+# Include first initial performance
+plt.scatter(np.ones(len(cat(perf_init))) * -0.8, cat(perf_init))
+plt.bar([-0.8], np.mean(cat(perf_init)), 0.4, fill=False)
 
 # Use all sessions:
 # First round
@@ -113,9 +117,15 @@ plt.bar(1.2, np.mean(cat(perf_final)), 0.4, fill=False)
 plt.show()
 
 
-# Only use last three sessions:
+# Only use last three sessions of opto corruption:
 fig = plt.figure(figsize =(6, 8)) 
 last_n = 3
+
+
+# Include first initial performance
+plt.scatter(np.ones(len(cat(perf_init))) * -0.8, cat(perf_init))
+plt.bar([-0.8], np.mean(cat(perf_init)), 0.4, fill=False)
+
 # First round
 plt.scatter(np.ones(5*last_n)*(-0.2), cat([p[-last_n:] for p in perf_firstopto]))
 plt.scatter(np.ones(len(cat(perf_mid)))*0.2, cat(perf_mid))
@@ -130,17 +140,46 @@ plt.bar(1.2, np.mean(cat(perf_final)), 0.4, fill=False)
 plt.ylabel("Performance")
 plt.xticks([-0.2, 0.2, 0.8, 1.2], ["Opto round 1", "Middle perf.", "Opto round 2", "Final perf."])
 plt.ylim(bottom=0.4)
-plt.savefig(r'H:\Fig 4\perf_barscatter_rounds.pdf')
+# plt.savefig(r'H:\Fig 4\perf_barscatter_rounds.pdf')
 plt.show()
+
+
+
+# Only use first three sessions of opto corruption:
+fig = plt.figure(figsize =(6, 8)) 
+last_n = 3
+
+
+# Init --> first round
+plt.scatter(np.ones(5*last_n)*(0.2), cat([p[:last_n] for p in perf_firstopto]))
+plt.scatter(np.ones(len(cat(perf_init)))*-0.2, cat(perf_init))
+plt.bar(0.2, np.mean(cat([p[:last_n] for p in perf_firstopto])), 0.4, fill=False)
+plt.bar(-0.2, np.mean(cat(perf_init)), 0.4, fill=False)
+
+# Mid --> Second round
+plt.scatter(np.ones(5*last_n)*(1.2), cat([p[:last_n] for p in perf_secondopto]))
+plt.scatter(np.ones(len(cat(perf_mid)))*1-0.2, cat(perf_mid))
+plt.bar(1.2, np.mean(cat([p[:last_n] for p in perf_secondopto])), 0.4, fill=False)
+plt.bar(1-0.2, np.mean(cat(perf_mid)), 0.4, fill=False) 
+
+
+plt.ylabel("Performance")
+plt.xticks([-0.2, 0.2, 0.8, 1.2], ["Initial perf.", "Opto round 1", "Middle perf.", "Opto round 2"])
+plt.ylim(bottom=0.4)
+plt.savefig(r'H:\Fig 4\perfpost_barscatter_rounds.pdf')
+plt.show()
+
+
 #%%
-# Only look at the difference
-# Only use last three sessions:
+# Only look at the DIFFERENCE
+# Only use last three sessions: 
 fig = plt.figure(figsize =(6, 8)) 
 
 last_n = 1
 # First round
 av_perf = np.mean([p[-last_n:] for p in perf_firstopto],axis=1)
 first_perf = [p[0] for p in perf_mid]
+first_perf = [np.mean(p[:]) for p in perf_mid]
 diff = first_perf - av_perf
 
 plt.scatter(np.zeros(5), diff)
@@ -148,7 +187,8 @@ plt.bar([0], np.mean(diff), 0.7, fill=False)
 
 # Second round
 av_perf = np.mean([p[-last_n:] for p in perf_secondopto],axis=1)
-first_perf = [p[0] for p in perf_mid]
+first_perf = [p[0] for p in perf_final]
+first_perf = [np.mean(p[:]) for p in perf_final]
 diff = first_perf - av_perf
 
 plt.scatter(np.ones(5), diff)
@@ -158,6 +198,37 @@ plt.ylabel("Difference in performance")
 plt.xticks([0, 1], ["Middle perf. - Opto round 1" , "Final perf. - Opto round 2"])
 plt.savefig(r'H:\Fig 4\perfdiff_barscatter_rounds.pdf')
 plt.show()
+
+############################
+# Only use first three sessions:
+fig = plt.figure(figsize =(6, 8)) 
+
+last_n = 3
+
+# First round
+av_perf = np.mean([p[:last_n] for p in perf_firstopto],axis=1)
+first_perf = [p[-1] for p in perf_init]
+# first_perf = [np.mean(p[:]) for p in perf_init]
+diff = av_perf - first_perf
+
+plt.scatter(np.zeros(5), diff)
+plt.bar([0], np.mean(diff), 0.7, fill=False)
+
+# Second round
+av_perf = np.mean([p[:last_n] for p in perf_secondopto],axis=1)
+first_perf = [p[-1] for p in perf_mid]
+# first_perf = [np.mean(p[:]) for p in perf_mid]
+diff = av_perf - first_perf
+
+plt.scatter(np.ones(5), diff)
+plt.bar([1], np.mean(diff), 0.7, fill=False)
+
+plt.ylabel("Difference in performance")
+plt.xticks([0, 1], ["Opto round 1 - Init perf." , "Opto round 2 - Mid perf."])
+plt.savefig(r'H:\Fig 4\perfdiffpost_barscatter_rounds.pdf')
+plt.show()
+
+    
 #%% Behavioral recovery no L/R info
 
 all_paths = [[r'H:\data\BAYLORCW038\python\2024_02_05',
