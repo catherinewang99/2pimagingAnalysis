@@ -50,13 +50,49 @@ def cos_sim(a,b):
 agg_mice_paths = [[ r'H:\data\BAYLORCW041\python\2024_05_13',
    r'H:\data\BAYLORCW041\python\2024_06_12']]
 
+agg_mice_paths = [
+            # [r'H:\data\BAYLORCW038\python\2024_02_05',
+            #   r'H:\data\BAYLORCW038\python\2024_02_15',
+            #   r'H:\data\BAYLORCW038\python\2024_03_15',],
+             
+              ['H:\\data\\BAYLORCW039\\python\\2024_04_17', 
+            'H:\\data\\BAYLORCW039\\python\\2024_04_24',
+            'H:\\data\\BAYLORCW039\\python\\2024_05_06'],
+              ['H:\\data\\BAYLORCW039\\python\\2024_04_18', 
+            'H:\\data\\BAYLORCW039\\python\\2024_04_25',
+            'H:\\data\\BAYLORCW039\\python\\2024_05_08'],
+              
+            ['H:\\data\\BAYLORCW041\\python\\2024_05_14', 
+          'H:\\data\\BAYLORCW041\\python\\2024_05_23',
+          'H:\\data\\BAYLORCW041\\python\\2024_06_07'],
+            ['H:\\data\\BAYLORCW041\\python\\2024_05_13', 
+          'H:\\data\\BAYLORCW041\\python\\2024_05_24',
+          'H:\\data\\BAYLORCW041\\python\\2024_06_12'],
+            ['H:\\data\\BAYLORCW041\\python\\2024_05_15', 
+          'H:\\data\\BAYLORCW041\\python\\2024_05_28',
+          'H:\\data\\BAYLORCW041\\python\\2024_06_11'],
+            
+            ['H:\\data\\BAYLORCW043\\python\\2024_05_20', 
+          'H:\\data\\BAYLORCW043\\python\\2024_06_03',
+          'H:\\data\\BAYLORCW043\\python\\2024_06_13'],
+            ['H:\\data\\BAYLORCW043\\python\\2024_05_22', 
+          'H:\\data\\BAYLORCW043\\python\\2024_06_04',
+          'H:\\data\\BAYLORCW043\\python\\2024_06_14'],
+            
+             ['H:\\data\\BAYLORCW042\\python\\2024_06_05', 
+           'H:\\data\\BAYLORCW042\\python\\2024_06_14',
+           'H:\\data\\BAYLORCW042\\python\\2024_06_24']
+            ]
+
 p=0.001
+stage1, stage2 = 0, 1 
+triple=True
 
 og_SDR = []
 c1, i1, ns1 = np.zeros(3),np.zeros(3),np.zeros(3)
 for paths in agg_mice_paths: # For each mouse
 
-    s1 = Session(paths[0], use_reg=True, triple=True) # Naive
+    s1 = Session(paths[stage1], use_reg=True, triple=triple) # Naive
     # epoch = range(s1.response, s1.time_cutoff) # response selective
     epoch = range(s1.delay + 9, s1.response) # delay selective
     # epoch = range(s1.sample, s1.delay) # sample selective
@@ -67,7 +103,7 @@ for paths in agg_mice_paths: # For each mouse
     og_SDR += [[len(contra_neurons), len(ipsi_neurons), len(naive_nonsel)]]
 
     # s2 = session.Session(paths[0][1], use_reg=True, triple=True) # Learning
-    s2 = Session(paths[1], use_reg=True, triple=True) # Expert
+    s2 = Session(paths[stage2], use_reg=True, triple=triple) # Expert
 
     # learning = sum([s2.is_selective(s2.good_neurons[np.where(s1.good_neurons ==n)[0][0]], epoch) for n in naive_sel])
     # expert = sum([s3.is_selective(s3.good_neurons[np.where(s1.good_neurons ==n)[0][0]], epoch) for n in naive_sel])
@@ -106,6 +142,10 @@ for paths in agg_mice_paths: # For each mouse
 og_SDR = np.sum(og_SDR, axis=0)
 
 
+#%% Plot bar graph showing proportion of recruitment into contra ipsi
+
+
+
 #%% Changes at single cell level - sankey SDR
 agg_mice_paths = [[['H:\\data\\BAYLORCW038\\python\\2024_02_05', 
                     'H:\\data\\BAYLORCW038\\python\\2024_03_15'],
@@ -141,21 +181,66 @@ agg_mice_paths = [['H:\\data\\BAYLORCW038\\python\\2024_02_05',
 agg_mice_paths = [[ r'H:\data\BAYLORCW041\python\2024_05_24',
    r'H:\data\BAYLORCW041\python\2024_06_12']]
 
-# p=0.0005
+
+agg_mice_paths = [
+            # [r'H:\data\BAYLORCW038\python\2024_02_05',
+            #   r'H:\data\BAYLORCW038\python\2024_02_15',
+            #   r'H:\data\BAYLORCW038\python\2024_03_15',],
+             
+              ['H:\\data\\BAYLORCW039\\python\\2024_04_17', 
+            'H:\\data\\BAYLORCW039\\python\\2024_04_24',
+            'H:\\data\\BAYLORCW039\\python\\2024_05_06'],
+              ['H:\\data\\BAYLORCW039\\python\\2024_04_18', 
+            'H:\\data\\BAYLORCW039\\python\\2024_04_25',
+            'H:\\data\\BAYLORCW039\\python\\2024_05_08'],
+              
+            ['H:\\data\\BAYLORCW041\\python\\2024_05_14', 
+          'H:\\data\\BAYLORCW041\\python\\2024_05_23',
+          'H:\\data\\BAYLORCW041\\python\\2024_06_07'],
+            ['H:\\data\\BAYLORCW041\\python\\2024_05_13', 
+          'H:\\data\\BAYLORCW041\\python\\2024_05_24',
+          'H:\\data\\BAYLORCW041\\python\\2024_06_12'],
+            ['H:\\data\\BAYLORCW041\\python\\2024_05_15', 
+          'H:\\data\\BAYLORCW041\\python\\2024_05_28',
+          'H:\\data\\BAYLORCW041\\python\\2024_06_11'],
+            
+          #   ['H:\\data\\BAYLORCW043\\python\\2024_05_20', 
+          # 'H:\\data\\BAYLORCW043\\python\\2024_06_03',
+          # 'H:\\data\\BAYLORCW043\\python\\2024_06_13'], # NEEDS TO BE SWITCHED IF MID --> FINAL
+            
+             ['H:\\data\\BAYLORCW043\\python\\2024_05_20', 
+           'H:\\data\\BAYLORCW043\\python\\2024_06_06',
+           'H:\\data\\BAYLORCW043\\python\\2024_06_13'], # NEEDS TO BE SWITCHED IF INIT --> MID
+            
+             ['H:\\data\\BAYLORCW043\\python\\2024_05_22', 
+           'H:\\data\\BAYLORCW043\\python\\2024_06_04',
+           'H:\\data\\BAYLORCW043\\python\\2024_06_14'], # ONLY IF MID --> FINAL
+            
+             ['H:\\data\\BAYLORCW042\\python\\2024_06_05', 
+           'H:\\data\\BAYLORCW042\\python\\2024_06_14',
+           'H:\\data\\BAYLORCW042\\python\\2024_06_24']
+            ]
+
 p=0.001
+stage1, stage2 = 1,2
+triple=True
+
 
 og_SDR = []
 allstos = []
 allnstos = []
-s1list, d1, r1, ns1 = np.zeros(4),np.zeros(4),np.zeros(4),np.zeros(4)
-for paths in agg_mice_paths: # For each mouse
+all_s1list, all_d1, all_r1, all_ns1 = [],[],[],[]
+for paths in agg_mice_paths: # For each mouse/FOV
     stos = []
     nstos = []
-    if '41' in paths[0]:
-        s1 = Session(paths[0], use_reg=True, triple=True, use_background_sub=False) # Naive
+    s1list, d1, r1, ns1 = np.zeros(4),np.zeros(4),np.zeros(4),np.zeros(4)
+
+    # s1 = Session(paths[stage1], use_reg=True, triple=triple) # Learning
+    if '43' in paths[0]:
+        s1 = Session(paths[stage1], use_reg=True, triple=False, use_background_sub=False) # Naive
     else:
-        s1 = Session(paths[0], use_reg=True, use_background_sub=False) # Naive
-    # sample_epoch = range(s1.sample+2, s1.delay+2)
+        s1 = Session(paths[stage1], use_reg=True, triple=triple, use_background_sub=False) # Naive
+
     sample_epoch = range(s1.sample, s1.delay+2)
     delay_epoch = range(s1.delay+9, s1.response)
     response_epoch = range(s1.response, s1.response + 12)
@@ -172,11 +257,11 @@ for paths in agg_mice_paths: # For each mouse
 
     og_SDR += [[len(naive_sample_sel), len(naive_delay_sel), len(naive_response_sel), len(naive_nonsel)]]
 
-    # s2 = session.Session(paths[0][1], use_reg=True, triple=True) # Learning
-    if '41' in paths[0]:
-        s2 = Session(paths[1], use_reg=True, triple=True, use_background_sub=False) # Naive
+    # s2 = Session(paths[stage2], use_reg=True, triple=triple) # Learning
+    if '43' in paths[0]:
+        s2 = Session(paths[stage2], use_reg=True, triple=False, use_background_sub=False) # Naive
     else:
-        s2 = Session(paths[1], use_reg=True) # Expert
+        s2 = Session(paths[stage2], use_reg=True, triple=triple, use_background_sub=False) # Naive
     
     for n in naive_sample_sel:
         if s2.is_selective(s2.good_neurons[np.where(s1.good_neurons ==n)[0][0]], sample_epoch, p=p):
@@ -234,9 +319,191 @@ for paths in agg_mice_paths: # For each mouse
             ns1[3] += 1
     allstos += [[stos]]
     allnstos += [[nstos]]
+    
+    all_s1list += [s1list]
+    all_d1 += [d1]
+    all_r1 += [r1]
+    all_ns1 += [ns1]
 
 og_SDR = np.sum(og_SDR, axis=0)
 
+#%% Plot bar graph showing proportion of recruitment into SDR neurons
+
+# all_SDR_initmid = [all_s1list, all_d1, all_r1, all_ns1]
+all_SDR_midfinal = [all_s1list, all_d1, all_r1, all_ns1]
+titles = ['Sample', 'Delay', 'Response', 'Non-sel.']
+for sel_type in range(4): # Go thru each type of SDR sel
+    all_neurons = np.sum(all_SDR_initmid[sel_type], axis=1) # Total neurons to divide by
+    
+    f = plt.figure(figsize=(6,6))
+    
+    all_props = []
+    for i in range(len(all_neurons)): #For each FOV
+        props = all_SDR_initmid[sel_type][i] / all_neurons[i]
+        all_props += [props]
+        plt.scatter(np.arange(4)-0.2, props, marker='o')
+    
+    plt.bar(np.arange(4)-0.2, np.mean(all_props, axis=0), 0.4, fill=False, label="First round")
+    plt.xticks(np.arange(4), ['Sample', 'Delay', 'Response', 'Non-sel.'])
+    plt.axhline(0.5, ls='--', alpha=0.5)
+
+    # Go thru the mid to final stages
+    all_neurons = np.sum(all_SDR_midfinal[sel_type], axis=1) # Total neurons to divide by
+        
+    all_props = []
+    for i in range(len(all_neurons)): #For each FOV
+        props = all_SDR_midfinal[sel_type][i] / all_neurons[i]
+        all_props += [props]
+        plt.scatter(np.arange(4)+0.2, props, marker='o')
+    
+    plt.bar(np.arange(4)+0.2, np.mean(all_props, axis=0), 0.4, alpha = 0.2, fill='grey', label="Second round")
+
+    plt.legend()
+    plt.ylabel('Proportion of neurons')
+    plt.xlabel('Pool that {} neurons recruited from'.format(titles[sel_type]))
+    plt.title('{} selective neurons'.format(titles[sel_type]))
+    
+# Bar plot showing just the within type proportions
+f = plt.figure(figsize=(6,6))
+
+for sel_type in range(4): # Go thru each type of SDR sel
+    all_neurons = np.sum(all_SDR_initmid[sel_type], axis=1) # Total neurons to divide by
+    
+    all_props = []
+    for i in range(len(all_neurons)): #For each FOV
+        props = all_SDR_initmid[sel_type][i] / all_neurons[i]
+        all_props += [props]
+        plt.scatter((sel_type) - 0.2, props[sel_type], marker='o')
+    if sel_type == 0:
+        plt.bar((sel_type) - 0.2, np.mean(np.array(all_props)[:,sel_type]), 0.4, fill=False, label="First round of opto")
+    else:
+        plt.bar((sel_type) - 0.2, np.mean(np.array(all_props)[:,sel_type]), 0.4, fill=False)
+
+    plt.xticks(np.arange(4), ['Sample', 'Delay', 'Response', 'Non-sel.'])
+    plt.axhline(0.5, ls='--', alpha=0.5)
+
+    # Go thru the mid to final stages
+    all_neurons = np.sum(all_SDR_midfinal[sel_type], axis=1) # Total neurons to divide by
+        
+    all_props = []
+    for i in range(len(all_neurons)): #For each FOV
+        props = all_SDR_midfinal[sel_type][i] / all_neurons[i]
+        all_props += [props]
+        plt.scatter((sel_type)+0.2, props[sel_type], marker='o')
+    
+    if sel_type == 0:
+        plt.bar((sel_type)+0.2, np.mean(np.array(all_props)[:,sel_type]), 0.4, alpha = 0.2, color='grey', label="Second round of opto")
+    else:
+        plt.bar((sel_type)+0.2, np.mean(np.array(all_props)[:,sel_type]), 0.4, alpha = 0.2, color='grey')
+
+
+plt.legend()
+plt.ylabel('Proportion of neurons retained')
+plt.xlabel('Type of selectivity')
+plt.title('Retention of selective neurons by epoch')
+
+#%% Retention of general selectivity
+
+agg_mice_paths = [
+            # [r'H:\data\BAYLORCW038\python\2024_02_05',
+            #   r'H:\data\BAYLORCW038\python\2024_02_15',
+            #   r'H:\data\BAYLORCW038\python\2024_03_15',],
+             
+              ['H:\\data\\BAYLORCW039\\python\\2024_04_17', 
+            'H:\\data\\BAYLORCW039\\python\\2024_04_24',
+            'H:\\data\\BAYLORCW039\\python\\2024_05_06'],
+              ['H:\\data\\BAYLORCW039\\python\\2024_04_18', 
+            'H:\\data\\BAYLORCW039\\python\\2024_04_25',
+            'H:\\data\\BAYLORCW039\\python\\2024_05_08'],
+              
+            ['H:\\data\\BAYLORCW041\\python\\2024_05_14', 
+          'H:\\data\\BAYLORCW041\\python\\2024_05_23',
+          'H:\\data\\BAYLORCW041\\python\\2024_06_07'],
+            ['H:\\data\\BAYLORCW041\\python\\2024_05_13', 
+          'H:\\data\\BAYLORCW041\\python\\2024_05_24',
+          'H:\\data\\BAYLORCW041\\python\\2024_06_12'],
+            ['H:\\data\\BAYLORCW041\\python\\2024_05_15', 
+          'H:\\data\\BAYLORCW041\\python\\2024_05_28',
+          'H:\\data\\BAYLORCW041\\python\\2024_06_11'],
+            
+          #   ['H:\\data\\BAYLORCW043\\python\\2024_05_20', 
+          # 'H:\\data\\BAYLORCW043\\python\\2024_06_03',
+          # 'H:\\data\\BAYLORCW043\\python\\2024_06_13'], # NEEDS TO BE SWITCHED IF MID --> FINAL
+            
+             ['H:\\data\\BAYLORCW043\\python\\2024_05_20', 
+           'H:\\data\\BAYLORCW043\\python\\2024_06_06',
+           'H:\\data\\BAYLORCW043\\python\\2024_06_13'], # NEEDS TO BE SWITCHED IF INIT --> MID
+            
+             ['H:\\data\\BAYLORCW043\\python\\2024_05_22', 
+           'H:\\data\\BAYLORCW043\\python\\2024_06_04',
+           'H:\\data\\BAYLORCW043\\python\\2024_06_14'], # ONLY IF MID --> FINAL
+            
+             ['H:\\data\\BAYLORCW042\\python\\2024_06_05', 
+           'H:\\data\\BAYLORCW042\\python\\2024_06_14',
+           'H:\\data\\BAYLORCW042\\python\\2024_06_24']
+            ]
+
+p=0.001
+stage1, stage2 = 1,2
+triple=True
+
+
+og_SDR = []
+allstos = []
+allnstos = []
+all_s1list, all_d1, all_r1, all_ns1 = [],[],[],[]
+for paths in agg_mice_paths: # For each mouse/FOV
+    stos = []
+    nstos = []
+    s1list, d1, r1, ns1 = np.zeros(4),np.zeros(4),np.zeros(4),np.zeros(4)
+
+    # s1 = Session(paths[stage1], use_reg=True, triple=triple) # Learning
+    if '43' in paths[0]:
+        s1 = Session(paths[stage1], use_reg=True, triple=False, use_background_sub=False) # Naive
+    else:
+        s1 = Session(paths[stage1], use_reg=True, triple=triple, use_background_sub=False) # Naive
+
+    whole_epoch = range(s1.time_cutoff)
+
+    naive_sel = s1.get_epoch_selective(whole_epoch, p=p)
+    naive_nonsel = [n for n in s1.good_neurons if n not in naive_sel]
+
+    # s2 = Session(paths[stage2], use_reg=True, triple=triple) # Learning
+    if '43' in paths[0]:
+        s2 = Session(paths[stage2], use_reg=True, triple=False, use_background_sub=False) # Naive
+    else:
+        s2 = Session(paths[stage2], use_reg=True, triple=triple, use_background_sub=False) # Naive
+    
+    for n in naive_sel:
+        if s2.is_selective(s2.good_neurons[np.where(s1.good_neurons ==n)[0][0]], whole_epoch, p=p):
+            s1list[0] += 1
+
+        else:
+            ns1[3] += 1
+            # stos += [(n, s2.good_neurons[np.where(s1.good_neurons ==n)[0][0]])]  #save sample to ns cells
+
+    for n in naive_nonsel:
+        if s2.is_selective(s2.good_neurons[np.where(s1.good_neurons ==n)[0][0]], sample_epoch, p=p):
+            ns1[0] += 1
+            nstos += [(n, s2.good_neurons[np.where(s1.good_neurons ==n)[0][0]])]  #save ns to sample cells
+
+        elif s2.is_selective(s2.good_neurons[np.where(s1.good_neurons ==n)[0][0]], delay_epoch, p=p):
+            ns1[1] += 1
+            # nstos += [(n, s2.good_neurons[np.where(s1.good_neurons ==n)[0][0]])]  #save ns to delay cells
+
+        elif s2.is_selective(s2.good_neurons[np.where(s1.good_neurons ==n)[0][0]], response_epoch, p=p):
+            ns1[2] += 1
+        else:
+            ns1[3] += 1
+    allstos += [[stos]]
+    allnstos += [[nstos]]
+    
+    all_s1list += [s1list]
+    all_d1 += [d1]
+    all_r1 += [r1]
+    all_ns1 += [ns1]
+
+og_SDR = np.sum(og_SDR, axis=0)
 #%% Plot the selectivity of recruited sample neurons vs stable sample neurons
 # look at the accompanying recovery to stim
 
