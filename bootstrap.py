@@ -26,18 +26,18 @@ from random import shuffle
 
 class Sample(Session):
     
-    def __init__(self, path, layer_num='all', guang=False, passive=False):
-        
+    def __init__(self, path, use_reg=False, triple=False, filter_reg= True, layer_num='all', guang=False, passive=False, use_background_sub=False):
+
         # Inherit all parameters and functions of session.py
-        super().__init__(path, layer_num, guang, passive)
-        
+        super().__init__(path, layer_num=layer_num, use_reg=use_reg, triple=triple, filter_reg=filter_reg, use_background_sub=use_background_sub) 
+
         self.n = self.get_selective_neurons()
 
         
     def get_selective_neurons(self):
         
         neurons = []
-        epochs = [range(self.sample, self.sample+6), 
+        epochs = [range(self.sample, self.delay), 
                   range(self.delay, self.response), 
                   range(self.response, self.time_cutoff)]
         

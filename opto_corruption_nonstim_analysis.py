@@ -362,7 +362,7 @@ for sel_type in range(4): # Go thru each type of SDR sel
     plt.ylabel('Proportion of neurons')
     plt.xlabel('Pool that {} neurons recruited from'.format(titles[sel_type]))
     plt.title('{} selective neurons'.format(titles[sel_type]))
-    
+    plt.show()
 # Bar plot showing just the within type proportions
 f = plt.figure(figsize=(6,6))
 
@@ -401,9 +401,10 @@ plt.legend()
 plt.ylabel('Proportion of neurons retained')
 plt.xlabel('Type of selectivity')
 plt.title('Retention of selective neurons by epoch')
+plt.savefig(r'H:\Fig 4\neural\retention_of_SDR_neurons.pdf')
 
 #%% Retention of general selectivity
-
+# FIXME
 agg_mice_paths = [
             # [r'H:\data\BAYLORCW038\python\2024_02_05',
             #   r'H:\data\BAYLORCW038\python\2024_02_15',
@@ -482,19 +483,19 @@ for paths in agg_mice_paths: # For each mouse/FOV
             ns1[3] += 1
             # stos += [(n, s2.good_neurons[np.where(s1.good_neurons ==n)[0][0]])]  #save sample to ns cells
 
-    for n in naive_nonsel:
-        if s2.is_selective(s2.good_neurons[np.where(s1.good_neurons ==n)[0][0]], sample_epoch, p=p):
-            ns1[0] += 1
-            nstos += [(n, s2.good_neurons[np.where(s1.good_neurons ==n)[0][0]])]  #save ns to sample cells
+    # for n in naive_nonsel:
+    #     if s2.is_selective(s2.good_neurons[np.where(s1.good_neurons ==n)[0][0]], sample_epoch, p=p):
+    #         ns1[0] += 1
+    #         nstos += [(n, s2.good_neurons[np.where(s1.good_neurons ==n)[0][0]])]  #save ns to sample cells
 
-        elif s2.is_selective(s2.good_neurons[np.where(s1.good_neurons ==n)[0][0]], delay_epoch, p=p):
-            ns1[1] += 1
-            # nstos += [(n, s2.good_neurons[np.where(s1.good_neurons ==n)[0][0]])]  #save ns to delay cells
+    #     elif s2.is_selective(s2.good_neurons[np.where(s1.good_neurons ==n)[0][0]], delay_epoch, p=p):
+    #         ns1[1] += 1
+    #         # nstos += [(n, s2.good_neurons[np.where(s1.good_neurons ==n)[0][0]])]  #save ns to delay cells
 
-        elif s2.is_selective(s2.good_neurons[np.where(s1.good_neurons ==n)[0][0]], response_epoch, p=p):
-            ns1[2] += 1
-        else:
-            ns1[3] += 1
+    #     elif s2.is_selective(s2.good_neurons[np.where(s1.good_neurons ==n)[0][0]], response_epoch, p=p):
+    #         ns1[2] += 1
+    #     else:
+    #         ns1[3] += 1
     allstos += [[stos]]
     allnstos += [[nstos]]
     
@@ -576,53 +577,119 @@ ax[1].fill_between(x, selo - erro,
 
 ax[0].set_xlabel('Time from Go cue (s)')
 
-#%% Contributions of neurons to CD before and after
-intialpath, middlepath, finalpath = ['H:\\data\\BAYLORCW038\\python\\2024_02_05', 
-                         r'H:\data\BAYLORCW038\python\2024_02_15',
-                         'H:\\data\\BAYLORCW038\\python\\2024_03_15']
-intialpath, finalpath = ['H:\\data\\BAYLORCW039\\python\\2024_04_24', 
-                         'H:\\data\\BAYLORCW039\\python\\2024_05_06']
-
-intialpath, finalpath = ['H:\\data\\BAYLORCW041\\python\\2024_05_14', 
-                         'H:\\data\\BAYLORCW041\\python\\2024_05_23']
-intialpath, middlepath, finalpath = [r'H:\data\BAYLORCW041\python\2024_05_13',
-   r'H:\data\BAYLORCW041\python\2024_05_24',
-  r'H:\data\BAYLORCW041\python\2024_06_12']
-
-intialpath, middlepath, finalpath = [r'H:\data\BAYLORCW042\python\2024_06_05',
-r'H:\data\BAYLORCW042\python\2024_06_14',
-r'H:\data\BAYLORCW042\python\2024_06_24',]
-
-intialpath, middlepath, finalpath = [r'H:\data\BAYLORCW042\python\2024_06_06',
-r'H:\data\BAYLORCW042\python\2024_06_18',
-r'H:\data\BAYLORCW042\python\2024_06_26',]
-# sample CD
-
-l1 = Mode(intialpath, use_reg=True, triple=True)
-orthonormal_basis_initial, mean = l1.plot_CD(mode_input = 'stimulus')
-orthonormal_basis_initial_choice, mean = l1.plot_CD(mode_input = 'choice')
-
-l1 = Mode(finalpath, use_reg = True, triple=True)
-orthonormal_basis, mean = l1.plot_CD(mode_input = 'stimulus')
-orthonormal_basis_choice, mean = l1.plot_CD(mode_input = 'choice')
-
-plt.scatter(orthonormal_basis_initial, orthonormal_basis)
-plt.title('Pearsons correlation: {}, p-val: {}'.format(stats.pearsonr(orthonormal_basis_initial, orthonormal_basis)[0], 
-                                                       stats.pearsonr(orthonormal_basis_initial, orthonormal_basis)[1]))
-plt.xlabel('Initial sample CD values')
-plt.ylabel('Final sample CD values')
-plt.show()
-
-# delay CD
+#%% Contributions of neurons to CD before and after as a scatter plot
 
 
-plt.scatter(orthonormal_basis_initial_choice, orthonormal_basis_choice)
-plt.title('Pearsons correlation: {}, p-val: {}'.format(stats.pearsonr(orthonormal_basis_initial_choice, orthonormal_basis_choice)[0], 
-                                                       stats.pearsonr(orthonormal_basis_initial_choice, orthonormal_basis_choice)[1]))
-plt.xlabel('Initial delay CD values')
-plt.ylabel('Final delay CD values')
-plt.show()
+# intialpath, middlepath, finalpath = ['H:\\data\\BAYLORCW038\\python\\2024_02_05', 
+#                          r'H:\data\BAYLORCW038\python\2024_02_15',
+#                          'H:\\data\\BAYLORCW038\\python\\2024_03_15']
+# intialpath, finalpath = ['H:\\data\\BAYLORCW039\\python\\2024_04_24', 
+#                          'H:\\data\\BAYLORCW039\\python\\2024_05_06']
 
+# intialpath, finalpath = ['H:\\data\\BAYLORCW041\\python\\2024_05_14', 
+#                          'H:\\data\\BAYLORCW041\\python\\2024_05_23']
+# intialpath, middlepath, finalpath = [r'H:\data\BAYLORCW041\python\2024_05_13',
+#    r'H:\data\BAYLORCW041\python\2024_05_24',
+#   r'H:\data\BAYLORCW041\python\2024_06_12']
+
+# intialpath, middlepath, finalpath = [r'H:\data\BAYLORCW042\python\2024_06_05',
+# r'H:\data\BAYLORCW042\python\2024_06_14',
+# r'H:\data\BAYLORCW042\python\2024_06_24',]
+
+# intialpath, middlepath, finalpath = [r'H:\data\BAYLORCW042\python\2024_06_06',
+# r'H:\data\BAYLORCW042\python\2024_06_18',
+# r'H:\data\BAYLORCW042\python\2024_06_26',]
+agg_mice_paths = [
+            # [r'H:\data\BAYLORCW038\python\2024_02_05',
+            #   r'H:\data\BAYLORCW038\python\2024_02_15',
+            #   r'H:\data\BAYLORCW038\python\2024_03_15',],
+             
+              ['H:\\data\\BAYLORCW039\\python\\2024_04_17', 
+            'H:\\data\\BAYLORCW039\\python\\2024_04_24',
+            'H:\\data\\BAYLORCW039\\python\\2024_05_06'],
+              ['H:\\data\\BAYLORCW039\\python\\2024_04_18', 
+            'H:\\data\\BAYLORCW039\\python\\2024_04_25',
+            'H:\\data\\BAYLORCW039\\python\\2024_05_08'],
+              
+            ['H:\\data\\BAYLORCW041\\python\\2024_05_14', 
+          'H:\\data\\BAYLORCW041\\python\\2024_05_23',
+          'H:\\data\\BAYLORCW041\\python\\2024_06_07'],
+            ['H:\\data\\BAYLORCW041\\python\\2024_05_13', 
+          'H:\\data\\BAYLORCW041\\python\\2024_05_24',
+          'H:\\data\\BAYLORCW041\\python\\2024_06_12'],
+            ['H:\\data\\BAYLORCW041\\python\\2024_05_15', 
+          'H:\\data\\BAYLORCW041\\python\\2024_05_28',
+          'H:\\data\\BAYLORCW041\\python\\2024_06_11'],
+            
+            #   ['H:\\data\\BAYLORCW043\\python\\2024_05_20', 
+            # 'H:\\data\\BAYLORCW043\\python\\2024_06_03',
+            # '-'], # NEEDS TO BE SWITCHED IF MID --> FINAL
+            
+               ['-', 
+            'H:\\data\\BAYLORCW043\\python\\2024_06_06',
+            'H:\\data\\BAYLORCW043\\python\\2024_06_13'], # NEEDS TO BE SWITCHED IF INIT --> MID
+            
+              ['-', 
+            'H:\\data\\BAYLORCW043\\python\\2024_06_04',
+            'H:\\data\\BAYLORCW043\\python\\2024_06_14'], # ONLY IF MID --> FINAL
+            
+             ['H:\\data\\BAYLORCW042\\python\\2024_06_05', 
+           'H:\\data\\BAYLORCW042\\python\\2024_06_14',
+           'H:\\data\\BAYLORCW042\\python\\2024_06_24']
+            ]
+
+r_stim, r_delay = [], []
+
+for paths in agg_mice_paths:
+    
+    intialpath, finalpath = paths[1], paths[2]
+    
+    # sample CD
+    if '43' in paths[1] or '38' in paths[1]:
+        l1 = Mode(intialpath, use_reg=True, triple=False)
+        l2 = Mode(finalpath, use_reg = True, triple=False)
+    else:
+        l1 = Mode(intialpath, use_reg=True, triple=True)
+        l2 = Mode(finalpath, use_reg = True, triple=True)
+
+    orthonormal_basis_initial, mean = l1.plot_CD(mode_input = 'stimulus')
+    orthonormal_basis_initial_choice, mean = l1.plot_CD(mode_input = 'choice')
+    
+    orthonormal_basis, mean = l2.plot_CD(mode_input = 'stimulus')
+    orthonormal_basis_choice, mean = l2.plot_CD(mode_input = 'choice')
+    
+    plt.scatter(orthonormal_basis_initial, orthonormal_basis)
+    plt.title('Pearsons correlation: {}, p-val: {}'.format(stats.pearsonr(orthonormal_basis_initial, orthonormal_basis)[0], 
+                                                           stats.pearsonr(orthonormal_basis_initial, orthonormal_basis)[1]))
+    plt.xlabel('Initial sample CD values')
+    plt.ylabel('Final sample CD values')
+    plt.show()
+    r_stim += [stats.pearsonr(orthonormal_basis_initial, orthonormal_basis)[0]]
+    
+    # delay CD
+    
+    
+    plt.scatter(orthonormal_basis_initial_choice, orthonormal_basis_choice)
+    plt.title('Pearsons correlation: {}, p-val: {}'.format(stats.pearsonr(orthonormal_basis_initial_choice, orthonormal_basis_choice)[0], 
+                                                           stats.pearsonr(orthonormal_basis_initial_choice, orthonormal_basis_choice)[1]))
+    plt.xlabel('Initial delay CD values')
+    plt.ylabel('Final delay CD values')
+    plt.show()
+    r_delay += [stats.pearsonr(orthonormal_basis_initial_choice, orthonormal_basis_choice)[0]]
+#%% Plot the R squared values of each FOV
+# r_stimr1, r_delayr1 = r_stim, r_delay
+
+f = plt.figure(figsize = (5,5))
+plt.scatter(np.abs(r_stimr1), np.abs(r_delayr1), label="Round 1")
+plt.scatter(np.abs(r_stim), np.abs(r_delay), label="Round 2")
+plt.xlabel('R2 values for sample mode')
+plt.ylabel('R2 values for delay mode')
+plt.axhline(0, ls='--')
+plt.axvline(0, ls='--')
+plt.axhline(0.5, ls='--', alpha = 0.5)
+plt.axvline(0.5, ls='--', alpha = 0.5)
+plt.legend()
+plt.savefig(r'H:\Fig 4\neural\R2_vals_sampledelaymodes.pdf')
 
 #%% Stability of CD 
 
