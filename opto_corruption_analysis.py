@@ -309,96 +309,215 @@ ax[1].fill_between(x, selo - erro,
 
 ax[0].set_xlabel('Time from Go cue (s)')
 
-#%% Contributions of neurons to CD before and after
-intialpath, middlepath, finalpath = ['H:\\data\\BAYLORCW038\\python\\2024_02_05', 
-                         r'H:\data\BAYLORCW038\python\2024_02_15',
-                         'H:\\data\\BAYLORCW038\\python\\2024_03_15']
-intialpath, finalpath = ['H:\\data\\BAYLORCW039\\python\\2024_04_24', 
-                         'H:\\data\\BAYLORCW039\\python\\2024_05_06']
-
-intialpath, finalpath = ['H:\\data\\BAYLORCW041\\python\\2024_05_14', 
-                         'H:\\data\\BAYLORCW041\\python\\2024_05_23']
-intialpath, middlepath, finalpath = [r'H:\data\BAYLORCW041\python\2024_05_13',
-   r'H:\data\BAYLORCW041\python\2024_05_24',
-  r'H:\data\BAYLORCW041\python\2024_06_12']
-
-intialpath, middlepath, finalpath = [r'H:\data\BAYLORCW042\python\2024_06_05',
-r'H:\data\BAYLORCW042\python\2024_06_14',
-r'H:\data\BAYLORCW042\python\2024_06_24',]
-
-intialpath, middlepath, finalpath = [r'H:\data\BAYLORCW042\python\2024_06_06',
-r'H:\data\BAYLORCW042\python\2024_06_18',
-r'H:\data\BAYLORCW042\python\2024_06_26',]
-# sample CD
-
-l1 = Mode(intialpath, use_reg=True, triple=True)
-orthonormal_basis_initial, mean = l1.plot_CD(mode_input = 'stimulus')
-orthonormal_basis_initial_choice, mean = l1.plot_CD(mode_input = 'choice')
-
-l1 = Mode(finalpath, use_reg = True, triple=True)
-orthonormal_basis, mean = l1.plot_CD(mode_input = 'stimulus')
-orthonormal_basis_choice, mean = l1.plot_CD(mode_input = 'choice')
-
-plt.scatter(orthonormal_basis_initial, orthonormal_basis)
-plt.title('Pearsons correlation: {}, p-val: {}'.format(stats.pearsonr(orthonormal_basis_initial, orthonormal_basis)[0], 
-                                                       stats.pearsonr(orthonormal_basis_initial, orthonormal_basis)[1]))
-plt.xlabel('Initial sample CD values')
-plt.ylabel('Final sample CD values')
-plt.show()
-
-# delay CD
 
 
-plt.scatter(orthonormal_basis_initial_choice, orthonormal_basis_choice)
-plt.title('Pearsons correlation: {}, p-val: {}'.format(stats.pearsonr(orthonormal_basis_initial_choice, orthonormal_basis_choice)[0], 
-                                                       stats.pearsonr(orthonormal_basis_initial_choice, orthonormal_basis_choice)[1]))
-plt.xlabel('Initial delay CD values')
-plt.ylabel('Final delay CD values')
-plt.show()
-
-#%% Selectivity recovery
+#%% Selectivity recovery ALL SESSIONS NON MATCHED
 
 paths = ['H:\\data\\BAYLORCW038\\python\\2024_02_05', 
         'H:\\data\\BAYLORCW038\\python\\2024_03_15']
 paths = ['H:\\data\\BAYLORCW039\\python\\2024_04_17', 
          'H:\\data\\BAYLORCW039\\python\\2024_04_24']
-for path in paths:
+agg_mice_paths = [
+                    [r'H:\data\BAYLORCW038\python\2024_02_05',
+                     'H:\\data\\BAYLORCW039\\python\\2024_04_17',
+                     'H:\\data\\BAYLORCW039\\python\\2024_04_18',
+                     'H:\\data\\BAYLORCW041\\python\\2024_05_14', 
+                     'H:\\data\\BAYLORCW041\\python\\2024_05_13', 
+                     'H:\\data\\BAYLORCW041\\python\\2024_05_15', 
+                     'H:\\data\\BAYLORCW043\\python\\2024_05_20', 
+                     'H:\\data\\BAYLORCW043\\python\\2024_05_21', 
+                     'H:\\data\\BAYLORCW042\\python\\2024_06_05', 
+                     'H:\\data\\BAYLORCW042\\python\\2024_06_06', 
+                     ],
+                    
+                    [r'H:\data\BAYLORCW038\python\2024_02_15',
+                     'H:\\data\\BAYLORCW039\\python\\2024_04_24',
+                     'H:\\data\\BAYLORCW039\\python\\2024_04_25',
+                     'H:\\data\\BAYLORCW041\\python\\2024_05_23',
+                     'H:\\data\\BAYLORCW041\\python\\2024_05_24',
+                     'H:\\data\\BAYLORCW041\\python\\2024_05_28',
+                     'H:\\data\\BAYLORCW043\\python\\2024_06_03',
+                     'H:\\data\\BAYLORCW043\\python\\2024_06_06',
+                     'H:\\data\\BAYLORCW043\\python\\2024_06_04',
+                     'H:\\data\\BAYLORCW042\\python\\2024_06_14',
+                     'H:\\data\\BAYLORCW042\\python\\2024_06_18',
+                     ],
+                    
+                    [r'H:\data\BAYLORCW038\python\2024_03_15',
+                     'H:\\data\\BAYLORCW039\\python\\2024_05_06',
+                     'H:\\data\\BAYLORCW039\\python\\2024_05_08',
+                     'H:\\data\\BAYLORCW041\\python\\2024_06_07',
+                     'H:\\data\\BAYLORCW041\\python\\2024_06_12',
+                     'H:\\data\\BAYLORCW041\\python\\2024_06_11',
+                     'H:\\data\\BAYLORCW043\\python\\2024_06_13',
+                     'H:\\data\\BAYLORCW043\\python\\2024_06_14',
+                     'H:\\data\\BAYLORCW042\\python\\2024_06_24'
+                     ]
     
-    l1 = Session(path, use_reg=True)
-    l1.selectivity_optogenetics()
+                    ]
+
+pref, nonpref, optop, optonp = np.zeros(61), np.zeros(61), np.zeros(61), np.zeros(61)
+num_neurons = 0
+
+f, axarr = plt.subplots(1,3, sharex='col', figsize=(15,5))  
+
+for i in range(3):
+    for path in agg_mice_paths[i]:
     
+        
+        l1 = Session(path)
+        
+        pref_, nonpref_, optop_, optonp_ = l1.selectivity_optogenetics(p=0.001, lickdir=True, return_traces=True)
+        
+        pref = np.vstack((pref, pref_))
+        nonpref = np.vstack((nonpref, nonpref_))
+        optop = np.vstack((optop, optop_))
+        optonp = np.vstack((optonp, optonp_))
+        
+        num_neurons += len(l1.selective_neurons)
+        
+    pref, nonpref, optop, optonp = pref[1:], nonpref[1:], optop[1:], optonp[1:]
+    
+    sel = np.mean(pref, axis = 0) - np.mean(nonpref, axis = 0)
+    err = np.std(pref, axis=0) / np.sqrt(len(pref)) 
+    err += np.std(nonpref, axis=0) / np.sqrt(len(nonpref))
+    
+    selo = np.mean(optop, axis = 0) - np.mean(optonp, axis = 0)
+    erro = np.std(optop, axis=0) / np.sqrt(len(optop)) 
+    erro += np.std(optonp, axis=0) / np.sqrt(len(optonp))  
+    
+    x = np.arange(-6.97,4,l1.fs)[:l1.time_cutoff]
+    axarr[i].plot(x, sel, 'black')
+            
+    axarr[i].fill_between(x, sel - err, 
+              sel + err,
+              color=['darkgray'])
+    
+    axarr[i].plot(x, selo, 'r-')
+            
+    axarr[i].fill_between(x, selo - erro, 
+              selo + erro,
+              color=['#ffaeb1'])       
+    
+    axarr[i].axvline(-4.3, color = 'grey', alpha=0.5, ls = '--')
+    axarr[i].axvline(-3, color = 'grey', alpha=0.5, ls = '--')
+    axarr[i].axvline(0, color = 'grey', alpha=0.5, ls = '--')
+    axarr[i].hlines(y=max(cat((selo, sel))), xmin=-3, xmax=-2, linewidth=10, color='red')
+    
+    axarr[i].set_title('Optogenetic effect on selectivity (n = {} neurons)'.format(num_neurons))                  
+    axarr[i].set_xlabel('Time from Go cue (s)')
+    axarr[i].set_ylabel('Selectivity')
+    axarr[i].set_ylim((-0.2, 1.2))
+
+# plt.savefig(r'F:\data\Fig 3\lea_sel_recovery_ALL.pdf')
+plt.show()
+
+#%% Selectivity recovery MATCHED
+
+agg_mice_paths = [
+                    [
+                        r'H:\data\BAYLORCW038\python\2024_02_05',
+                     'H:\\data\\BAYLORCW039\\python\\2024_04_17',
+                     'H:\\data\\BAYLORCW039\\python\\2024_04_18',
+                     'H:\\data\\BAYLORCW041\\python\\2024_05_14', 
+                     'H:\\data\\BAYLORCW041\\python\\2024_05_13', 
+                     'H:\\data\\BAYLORCW041\\python\\2024_05_15', 
+                     'H:\\data\\BAYLORCW042\\python\\2024_06_05', 
+                     ],
+                    
+                    [
+                        # r'H:\data\BAYLORCW038\python\2024_02_15',
+                     'H:\\data\\BAYLORCW039\\python\\2024_04_24',
+                     'H:\\data\\BAYLORCW039\\python\\2024_04_25',
+                     'H:\\data\\BAYLORCW041\\python\\2024_05_23',
+                     'H:\\data\\BAYLORCW041\\python\\2024_05_24',
+                     'H:\\data\\BAYLORCW041\\python\\2024_05_28',
+                     'H:\\data\\BAYLORCW042\\python\\2024_06_14',
+                     ],
+                    
+                    [
+                        r'H:\data\BAYLORCW038\python\2024_03_15',
+                     'H:\\data\\BAYLORCW039\\python\\2024_05_06',
+                     'H:\\data\\BAYLORCW039\\python\\2024_05_08',
+                     'H:\\data\\BAYLORCW041\\python\\2024_06_07',
+                     'H:\\data\\BAYLORCW041\\python\\2024_06_12',
+                     'H:\\data\\BAYLORCW041\\python\\2024_06_11',
+                     'H:\\data\\BAYLORCW042\\python\\2024_06_24'
+                     ]
+    
+                    ]
+
+
+
+pref, nonpref, optop, optonp = np.zeros(61), np.zeros(61), np.zeros(61), np.zeros(61)
+num_neurons = 0
+
+f, axarr = plt.subplots(1,3, sharex='col', figsize=(15,5))  
+
+for i in range(3):
+    for path in agg_mice_paths[i]:
+    
+        if '43' in path or '38' in path:
+            l1 = Session(path, use_reg=True, triple=False)
+        else:
+            l1 = Session(path, use_reg=True, triple=True)
+
+        pref_, nonpref_, optop_, optonp_ = l1.selectivity_optogenetics(p=0.01, lickdir=True, return_traces=True)
+        
+        pref = np.vstack((pref, pref_))
+        nonpref = np.vstack((nonpref, nonpref_))
+        optop = np.vstack((optop, optop_))
+        optonp = np.vstack((optonp, optonp_))
+        
+        num_neurons += len(l1.selective_neurons)
+        
+    pref, nonpref, optop, optonp = pref[1:], nonpref[1:], optop[1:], optonp[1:]
+    
+    sel = np.mean(pref, axis = 0) - np.mean(nonpref, axis = 0)
+    err = np.std(pref, axis=0) / np.sqrt(len(pref)) 
+    err += np.std(nonpref, axis=0) / np.sqrt(len(nonpref))
+    
+    selo = np.mean(optop, axis = 0) - np.mean(optonp, axis = 0)
+    erro = np.std(optop, axis=0) / np.sqrt(len(optop)) 
+    erro += np.std(optonp, axis=0) / np.sqrt(len(optonp))  
+    
+    x = np.arange(-6.97,4,l1.fs)[:l1.time_cutoff]
+    axarr[i].plot(x, sel, 'black')
+            
+    axarr[i].fill_between(x, sel - err, 
+              sel + err,
+              color=['darkgray'])
+    
+    axarr[i].plot(x, selo, 'r-')
+            
+    axarr[i].fill_between(x, selo - erro, 
+              selo + erro,
+              color=['#ffaeb1'])       
+    
+    axarr[i].axvline(-4.3, color = 'grey', alpha=0.5, ls = '--')
+    axarr[i].axvline(-3, color = 'grey', alpha=0.5, ls = '--')
+    axarr[i].axvline(0, color = 'grey', alpha=0.5, ls = '--')
+    axarr[i].hlines(y=max(cat((selo, sel))), xmin=-3, xmax=-2, linewidth=10, color='red')
+    
+    axarr[i].set_title('Optogenetic effect on selectivity (n = {} neurons)'.format(num_neurons))                  
+    axarr[i].set_xlabel('Time from Go cue (s)')
+    axarr[i].set_ylabel('Selectivity')
+    axarr[i].set_ylim((-0.2, 1.0))
+
+# plt.savefig(r'F:\data\Fig 3\lea_sel_recovery_ALL.pdf')
+plt.show()
+
 #%% Selectivity recovery but use OR operation on neurons
-paths = ['H:\\data\\BAYLORCW039\\python\\2024_04_24', 
-         'H:\\data\\BAYLORCW039\\python\\2024_05_06']
 
-paths = ['H:\\data\\BAYLORCW038\\python\\2024_02_05', 
-        'H:\\data\\BAYLORCW038\\python\\2024_03_15']
-
-paths = ['H:\\data\\BAYLORCW039\\python\\2024_04_18', 
-         'H:\\data\\BAYLORCW039\\python\\2024_05_08']
-
-paths = [r'H:\data\BAYLORCW041\python\2024_05_13',
-   r'H:\data\BAYLORCW041\python\2024_05_24',
-  r'H:\data\BAYLORCW041\python\2024_06_12']
-paths = ['H:\\data\\BAYLORCW043\\python\\2024_06_06', 
-        'H:\\data\\BAYLORCW043\\python\\2024_06_13']
-
-# paths =  [r'H:\data\BAYLORCW041\python\2024_05_15',
-#          r'H:\data\BAYLORCW041\python\2024_05_28',
-#          r'H:\data\BAYLORCW041\python\2024_06_11',]
- 
-# paths = [r'H:\data\BAYLORCW041\python\2024_05_14',
-# r'H:\data\BAYLORCW041\python\2024_05_23',
-# r'H:\data\BAYLORCW041\python\2024_06_07',]
-# for path in paths:
+for path in agg_mice_paths:
     
-expert = Session(paths[1], use_reg=True, triple=False, filter_reg=False)
-expert.selectivity_optogenetics()
-selective_neurons = expert.selective_neurons
-
-naive = Session(paths[0], use_reg=True, triple=False, filter_reg=False)
-sel_n = [naive.good_neurons[np.where(expert.good_neurons ==n)[0][0]] for n in selective_neurons]
-naive.selectivity_optogenetics(selective_neurons = sel_n)
+    expert = Session(paths[1], use_reg=True, triple=False, filter_reg=False)
+    expert.selectivity_optogenetics()
+    selective_neurons = expert.selective_neurons
+    
+    naive = Session(paths[0], use_reg=True, triple=False, filter_reg=False)
+    sel_n = [naive.good_neurons[np.where(expert.good_neurons ==n)[0][0]] for n in selective_neurons]
+    naive.selectivity_optogenetics(selective_neurons = sel_n)
 
 #%% Stability of CD 
 
@@ -632,10 +751,49 @@ all_paths = [[r'H:\\data\\BAYLORCW038\\python\\2024_02_05',
                 r'H:\\data\\BAYLORCW043\\python\\2024_06_14']
             ]
 
+agg_mice_paths = [
+                    [r'H:\data\BAYLORCW038\python\2024_02_05',
+                     'H:\\data\\BAYLORCW039\\python\\2024_04_17',
+                     'H:\\data\\BAYLORCW039\\python\\2024_04_18',
+                     'H:\\data\\BAYLORCW041\\python\\2024_05_14', 
+                     'H:\\data\\BAYLORCW041\\python\\2024_05_13', 
+                     'H:\\data\\BAYLORCW041\\python\\2024_05_15', 
+                     'H:\\data\\BAYLORCW043\\python\\2024_05_20', 
+                     'H:\\data\\BAYLORCW043\\python\\2024_05_21', 
+                     'H:\\data\\BAYLORCW042\\python\\2024_06_05', 
+                     'H:\\data\\BAYLORCW042\\python\\2024_06_06', 
+                     ],
+                    
+                    [r'H:\data\BAYLORCW038\python\2024_02_15',
+                     'H:\\data\\BAYLORCW039\\python\\2024_04_24',
+                     'H:\\data\\BAYLORCW039\\python\\2024_04_25',
+                     'H:\\data\\BAYLORCW041\\python\\2024_05_23',
+                     'H:\\data\\BAYLORCW041\\python\\2024_05_24',
+                     'H:\\data\\BAYLORCW041\\python\\2024_05_28',
+                     'H:\\data\\BAYLORCW043\\python\\2024_06_03',
+                     'H:\\data\\BAYLORCW043\\python\\2024_06_06',
+                     'H:\\data\\BAYLORCW043\\python\\2024_06_04',
+                     'H:\\data\\BAYLORCW042\\python\\2024_06_14',
+                     'H:\\data\\BAYLORCW042\\python\\2024_06_18',
+                     ],
+                    
+                    [r'H:\data\BAYLORCW038\python\2024_03_15',
+                     'H:\\data\\BAYLORCW039\\python\\2024_05_06',
+                     'H:\\data\\BAYLORCW039\\python\\2024_05_08',
+                     'H:\\data\\BAYLORCW041\\python\\2024_06_07',
+                     'H:\\data\\BAYLORCW041\\python\\2024_06_12',
+                     'H:\\data\\BAYLORCW041\\python\\2024_06_11',
+                     'H:\\data\\BAYLORCW043\\python\\2024_06_13',
+                     'H:\\data\\BAYLORCW043\\python\\2024_06_14',
+                     'H:\\data\\BAYLORCW042\\python\\2024_06_24'
+                     ]
+    
+                    ]
+
 ticks = ["o", "X", "D"]
 naive_sel_recovery,learning_sel_recovery,expert_sel_recovery = [],[],[]
 all_recovery, all_recovery_ctl, all_diff = [], [], []
-for paths in all_paths: # For each stage of training
+for paths in agg_mice_paths: # For each stage of training
     recovery = []
     r_ctl = []
     d_diff = []
@@ -657,6 +815,8 @@ for paths in all_paths: # For each stage of training
     all_recovery += [recovery]
     all_recovery_ctl += [r_ctl]
     all_diff += [d_diff]
+
+f = plt.figure(figsize=(7,5))
 # plt.bar(range(3), [np.mean(a) for a in all_recovery])
 
 plt.bar(np.arange(3)+0.2, [np.mean(a) for a in all_recovery], 0.4, label='Perturbation')

@@ -2719,10 +2719,7 @@ class Session:
             List of selective neurons to plot from
         """
         
-        f, axarr = plt.subplots(1,1, sharex='col', figsize=(5,5))
-        
-        if len(fix_axis) != 0:
-            plt.setp(axarr, ylim=fix_axis)
+
 
         # x = np.arange(-5.97,4,self.fs)[:self.time_cutoff] if 'CW03' not in self.path else np.arange(-6.97,4,self.fs)[:self.time_cutoff]
         x = np.arange(-6.97,4,self.fs)[:self.time_cutoff]
@@ -2766,6 +2763,9 @@ class Session:
         selo = np.mean(optop, axis = 0) - np.mean(optonp, axis = 0)
         erro = np.std(optop, axis=0) / np.sqrt(len(optop)) 
         erro += np.std(optonp, axis=0) / np.sqrt(len(optonp))  
+        
+        if return_traces:
+            return pref, nonpref, optop, optonp
 
         if 'CW03' in self.path:
             
@@ -2774,7 +2774,12 @@ class Session:
             # err = err[5:]
             # erro = erro[5:]
             x = np.arange(-6.97,4,self.fs)[:self.time_cutoff]
-
+            
+        f, axarr = plt.subplots(1,1, sharex='col', figsize=(5,5))
+        
+        if len(fix_axis) != 0:
+            plt.setp(axarr, ylim=fix_axis)
+            
         axarr.plot(x, sel, 'black')
                 
         axarr.fill_between(x, sel - err, 
@@ -2834,9 +2839,7 @@ class Session:
             plt.savefig(self.path + r'opto_effect_on_selectivity.png')
 
         plt.show()
-        
-        if return_traces:
-            return pref, nonpref, optop, optonp
+
             
 
     def modularity_proportion(self, p = 0.0001, trials=None, period=None):
