@@ -204,15 +204,15 @@ agg_mice_paths = [
           'H:\\data\\BAYLORCW041\\python\\2024_05_28',
           'H:\\data\\BAYLORCW041\\python\\2024_06_11'],
             
-          #   ['H:\\data\\BAYLORCW043\\python\\2024_05_20', 
-          # 'H:\\data\\BAYLORCW043\\python\\2024_06_03',
-          # 'H:\\data\\BAYLORCW043\\python\\2024_06_13'], # NEEDS TO BE SWITCHED IF MID --> FINAL
+           #   ['H:\\data\\BAYLORCW043\\python\\2024_05_20', 
+           # 'H:\\data\\BAYLORCW043\\python\\2024_06_03',
+           # 'H:\\data\\BAYLORCW043\\python\\2024_06_13'], # ONLY IF INIT --> MID
             
-             ['H:\\data\\BAYLORCW043\\python\\2024_05_20', 
+             ['-', 
            'H:\\data\\BAYLORCW043\\python\\2024_06_06',
-           'H:\\data\\BAYLORCW043\\python\\2024_06_13'], # NEEDS TO BE SWITCHED IF INIT --> MID
+           'H:\\data\\BAYLORCW043\\python\\2024_06_13'], #  ONLY IF MID --> FINAL
             
-             ['H:\\data\\BAYLORCW043\\python\\2024_05_22', 
+             ['-', 
            'H:\\data\\BAYLORCW043\\python\\2024_06_04',
            'H:\\data\\BAYLORCW043\\python\\2024_06_14'], # ONLY IF MID --> FINAL
             
@@ -227,16 +227,21 @@ triple=True
 
 
 og_SDR = []
-allstos = []
-allnstos = []
+allstos, allnstos, alldtod, allnstod = [],[],[],[]
+alldtons, allstons = [],[]
 all_s1list, all_d1, all_r1, all_ns1 = [],[],[],[]
 for paths in agg_mice_paths: # For each mouse/FOV
     stos = []
     nstos = []
+    dtod = []
+    nstod = []
+    
+    dtons, stons = [], []
+    
     s1list, d1, r1, ns1 = np.zeros(4),np.zeros(4),np.zeros(4),np.zeros(4)
 
     # s1 = Session(paths[stage1], use_reg=True, triple=triple) # Learning
-    if '43' in paths[0]:
+    if '43' in paths[1]:
         s1 = Session(paths[stage1], use_reg=True, triple=False, use_background_sub=False) # Naive
     else:
         s1 = Session(paths[stage1], use_reg=True, triple=triple, use_background_sub=False) # Naive
@@ -258,7 +263,7 @@ for paths in agg_mice_paths: # For each mouse/FOV
     og_SDR += [[len(naive_sample_sel), len(naive_delay_sel), len(naive_response_sel), len(naive_nonsel)]]
 
     # s2 = Session(paths[stage2], use_reg=True, triple=triple) # Learning
-    if '43' in paths[0]:
+    if '43' in paths[1]:
         s2 = Session(paths[stage2], use_reg=True, triple=False, use_background_sub=False) # Naive
     else:
         s2 = Session(paths[stage2], use_reg=True, triple=triple, use_background_sub=False) # Naive
@@ -274,7 +279,7 @@ for paths in agg_mice_paths: # For each mouse/FOV
             s1list[2] += 1
         else:
             s1list[3] += 1
-            # stos += [(n, s2.good_neurons[np.where(s1.good_neurons ==n)[0][0]])]  #save sample to ns cells
+            stons += [(n, s2.good_neurons[np.where(s1.good_neurons ==n)[0][0]])]  #save sample to ns cells
 
     
     for n in naive_delay_sel:
@@ -282,13 +287,13 @@ for paths in agg_mice_paths: # For each mouse/FOV
             d1[0] += 1
         elif s2.is_selective(s2.good_neurons[np.where(s1.good_neurons ==n)[0][0]], delay_epoch, p=p):
             d1[1] += 1
-            # stos += [(n, s2.good_neurons[np.where(s1.good_neurons ==n)[0][0]])]  #save delay to delay cells
+            dtod += [(n, s2.good_neurons[np.where(s1.good_neurons ==n)[0][0]])]  #save delay to delay cells
 
         elif s2.is_selective(s2.good_neurons[np.where(s1.good_neurons ==n)[0][0]], response_epoch, p=p):
             d1[2] += 1
         else:
             d1[3] += 1
-            # nstos += [(n, s2.good_neurons[np.where(s1.good_neurons ==n)[0][0]])]  #save delay to ns cells
+            dtons += [(n, s2.good_neurons[np.where(s1.good_neurons ==n)[0][0]])]  #save delay to ns cells
 
     
     for n in naive_response_sel:
@@ -311,14 +316,20 @@ for paths in agg_mice_paths: # For each mouse/FOV
 
         elif s2.is_selective(s2.good_neurons[np.where(s1.good_neurons ==n)[0][0]], delay_epoch, p=p):
             ns1[1] += 1
-            # nstos += [(n, s2.good_neurons[np.where(s1.good_neurons ==n)[0][0]])]  #save ns to delay cells
+            nstod += [(n, s2.good_neurons[np.where(s1.good_neurons ==n)[0][0]])]  #save ns to delay cells
 
         elif s2.is_selective(s2.good_neurons[np.where(s1.good_neurons ==n)[0][0]], response_epoch, p=p):
             ns1[2] += 1
         else:
             ns1[3] += 1
-    allstos += [[stos]]
-    allnstos += [[nstos]]
+            
+    allstos += [stos]
+    allnstos += [nstos]
+    alldtod += [dtod]
+    allnstod += [nstod]
+    
+    allstons += [stons]
+    alldtons += [dtons]
     
     all_s1list += [s1list]
     all_d1 += [d1]
@@ -402,6 +413,105 @@ plt.ylabel('Proportion of neurons retained')
 plt.xlabel('Type of selectivity')
 plt.title('Retention of selective neurons by epoch')
 plt.savefig(r'H:\Fig 4\neural\retention_of_SDR_neurons.pdf')
+
+
+#%% Plot the selectivity of recruited vs retained vs dropout neurons
+# look at the accompanying recovery to stim
+
+
+# Alternative method:
+
+# intialpath, middlepath, finalpath = ['H:\\data\\BAYLORCW038\\python\\2024_02_05', 
+#                          r'H:\data\BAYLORCW038\python\2024_02_15',
+#                          'H:\\data\\BAYLORCW038\\python\\2024_03_15']
+# intialpath, finalpath = ['H:\\data\\BAYLORCW039\\python\\2024_04_24', 
+#                          'H:\\data\\BAYLORCW039\\python\\2024_05_06']
+# allcats = [allstos, allnstos, alldtod, allnstod, allstons, alldtons]
+allcats = [allnstos, alldtod, allnstod, allstons, alldtons]
+
+for cats in allcats:
+    num_neurons, counter = 0, 0
+    for paths in agg_mice_paths:
+        
+        intialpath, finalpath =  paths[stage1], paths[stage2]
+        if '43' in paths[1] or '38' in paths[1]:
+            s1 = Session(intialpath, use_reg=True) # pre
+            s2 = Session(finalpath, use_reg=True) # post
+        else:
+            s1 = Session(intialpath, use_reg=True, triple=True) # pre
+            s2 = Session(finalpath, use_reg=True, triple=True) # post
+        stos = np.array(cats[counter])
+        counter += 1
+        num_neurons += len(stos)
+
+        for i in range(len(stos)):
+            
+            if i == 0:
+                pre_sel = s1.plot_selectivity(stos[i,0], plot=False)
+                post_sel = s2.plot_selectivity(stos[i,1], plot=False)
+        
+                pre_sel_opto = s1.plot_selectivity(stos[i,0], plot=False, opto=True)
+                post_sel_opto = s2.plot_selectivity(stos[i,1], plot=False, opto=True)
+            else:
+                pre_sel = np.vstack((pre_sel, s1.plot_selectivity(stos[i,0], plot=False)))
+                post_sel = np.vstack((post_sel, s2.plot_selectivity(stos[i,1], plot=False)))
+                
+                pre_sel_opto = np.vstack((pre_sel_opto, s1.plot_selectivity(stos[i,0], plot=False, opto=True)))
+                post_sel_opto = np.vstack((post_sel_opto, s2.plot_selectivity(stos[i,1], plot=False, opto=True)))
+                
+            
+    
+    f, ax = plt.subplots(1,2, sharey='row', figsize=(10,5))
+    sel = np.mean(pre_sel, axis=0)
+    err = np.std(pre_sel, axis=0) / np.sqrt(len(pre_sel)) 
+    selo = np.mean(pre_sel_opto, axis=0)
+    erro = np.std(pre_sel_opto, axis=0) / np.sqrt(len(pre_sel_opto)) 
+    
+    x = np.arange(-6.97,5,s1.fs)[:s1.time_cutoff]
+    ax[0].plot(x, sel, 'black')
+            
+    ax[0].fill_between(x, sel - err, 
+              sel + err,
+              color=['darkgray'])
+    
+    ax[0].plot(x, selo, 'r-')
+            
+    ax[0].fill_between(x, selo - erro, 
+              selo + erro,
+              color=['#ffaeb1']) 
+    
+    sel = np.mean(post_sel, axis=0)
+    err = np.std(post_sel, axis=0) / np.sqrt(len(post_sel)) 
+    selo = np.mean(post_sel_opto, axis=0)
+    erro = np.std(post_sel_opto, axis=0) / np.sqrt(len(post_sel_opto)) 
+    
+    x = np.arange(-6.97,5,s1.fs)[:s1.time_cutoff]
+    ax[1].plot(x, sel, 'black')
+            
+    ax[1].fill_between(x, sel - err, 
+              sel + err,
+              color=['darkgray'])
+    
+    ax[1].plot(x, selo, 'r-')
+            
+    ax[1].fill_between(x, selo - erro, 
+              selo + erro,
+              color=['#ffaeb1']) 
+    
+    for i in range(2):
+        ax[i].axvline(-4.3, color = 'grey', alpha=0.5, ls = '--')
+        ax[i].axvline(-3, color = 'grey', alpha=0.5, ls = '--')
+        ax[i].axvline(0, color = 'grey', alpha=0.5, ls = '--')
+        ax[i].hlines(y=max(cat((selo, sel))), xmin=-3, xmax=-2, linewidth=10, color='red')
+        
+    ax[0].set_xlabel('Time from Go cue (s)')
+    ax[0].set_ylabel('Selectivity')
+
+    ax[0].set_title('Optogenetic effect on selectivity (n = {} neurons)'.format(num_neurons))                  
+    # ax[1].set_title('Optogenetic effect on selectivity (n = {} neurons)'.format(num_neurons))         
+    plt.show()         
+
+
 
 #%% Retention of general selectivity
 # FIXME
@@ -505,77 +615,7 @@ for paths in agg_mice_paths: # For each mouse/FOV
     all_ns1 += [ns1]
 
 og_SDR = np.sum(og_SDR, axis=0)
-#%% Plot the selectivity of recruited sample neurons vs stable sample neurons
-# look at the accompanying recovery to stim
 
-stos = np.array(stos)
-stos_old = stos
-# stos = np.array(nstos)
-
-intialpath, middlepath, finalpath = ['H:\\data\\BAYLORCW038\\python\\2024_02_05', 
-                         r'H:\data\BAYLORCW038\python\2024_02_15',
-                         'H:\\data\\BAYLORCW038\\python\\2024_03_15']
-intialpath, finalpath = ['H:\\data\\BAYLORCW039\\python\\2024_04_24', 
-                         'H:\\data\\BAYLORCW039\\python\\2024_05_06']
-s1 = Session(intialpath, use_reg=True, use_background_sub=False) # pre
-s2 = Session(finalpath, use_reg=True) # post
-
-
-for i in range(stos.shape[0]):
-    
-    if i == 0:
-        pre_sel = s1.plot_selectivity(stos[i,0], plot=False)
-        post_sel = s2.plot_selectivity(stos[i,1], plot=False)
-
-        pre_sel_opto = s1.plot_selectivity(stos[i,0], plot=False, opto=True)
-        post_sel_opto = s2.plot_selectivity(stos[i,1], plot=False, opto=True)
-    else:
-        pre_sel = np.vstack((pre_sel, s1.plot_selectivity(stos[i,0], plot=False)))
-        post_sel = np.vstack((post_sel, s2.plot_selectivity(stos[i,1], plot=False)))
-        
-        pre_sel_opto = np.vstack((pre_sel_opto, s1.plot_selectivity(stos[i,0], plot=False, opto=True)))
-        post_sel_opto = np.vstack((post_sel_opto, s2.plot_selectivity(stos[i,1], plot=False, opto=True)))
-
-f, ax = plt.subplots(1,2, sharey='row', figsize=(10,5))
-sel = np.mean(pre_sel, axis=0)
-err = np.std(pre_sel, axis=0) / np.sqrt(len(pre_sel)) 
-selo = np.mean(pre_sel_opto, axis=0)
-erro = np.std(pre_sel_opto, axis=0) / np.sqrt(len(pre_sel_opto)) 
-
-x = np.arange(-5.97,5,s1.fs)[:s1.time_cutoff]
-ax[0].plot(x, sel, 'black')
-        
-ax[0].fill_between(x, sel - err, 
-          sel + err,
-          color=['darkgray'])
-
-ax[0].plot(x, selo, 'r-')
-        
-ax[0].fill_between(x, selo - erro, 
-          selo + erro,
-          color=['#ffaeb1']) 
-
-sel = np.mean(post_sel, axis=0)
-err = np.std(post_sel, axis=0) / np.sqrt(len(post_sel)) 
-selo = np.mean(post_sel_opto, axis=0)
-erro = np.std(post_sel_opto, axis=0) / np.sqrt(len(post_sel_opto)) 
-
-x = np.arange(-5.97,5,s1.fs)[:s1.time_cutoff]
-ax[1].plot(x, sel, 'black')
-        
-ax[1].fill_between(x, sel - err, 
-          sel + err,
-          color=['darkgray'])
-
-ax[1].plot(x, selo, 'r-')
-        
-ax[1].fill_between(x, selo - erro, 
-          selo + erro,
-          color=['#ffaeb1']) 
-
-
-
-ax[0].set_xlabel('Time from Go cue (s)')
 
 #%% Contributions of neurons to CD before and after as a scatter plot
 
