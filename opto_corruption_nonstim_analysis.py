@@ -208,7 +208,7 @@ agg_mice_paths = [
             'H:\\data\\BAYLORCW043\\python\\2024_06_03',
             '-'], # ONLY IF INIT --> MID
             
-            #   ['-', 
+              # ['-', 
             # 'H:\\data\\BAYLORCW043\\python\\2024_06_06',
             # 'H:\\data\\BAYLORCW043\\python\\2024_06_13'], #  ONLY IF MID --> FINAL
             
@@ -569,6 +569,117 @@ for cats in allcats:
 
 #%% Quantify the robustness / modularity of recruited vs retained vs pruned neurons
 
+allcats = [alldtod, allnstod, alldtons] # delay only
+by_FOV = True
+period = np.arange(s1.delay, s1.delay+6)
+period = np.arange(s1.response-6, s1.response)
+allpre_areas = []
+allpost_areas = []
+for cats in allcats:
+    pre_area = []
+    post_area = []
+    
+    num_neurons, counter = 0, 0
+    for paths in agg_mice_paths: # For every FOV
+        
+        intialpath, finalpath =  paths[stage1], paths[stage2]
+        if '43' in paths[1] or '38' in paths[1]:
+            s1 = Session(intialpath, use_reg=True) # pre
+            s2 = Session(finalpath, use_reg=True) # post
+        else:
+            s1 = Session(intialpath, use_reg=True, triple=True) # pre
+            s2 = Session(finalpath, use_reg=True, triple=True) # post
+        stos = np.array(cats[counter])
+        counter += 1
+
+        for i in range(len(stos)): # For every neuron
+            
+            if by_FOV and i == 0 :
+                print("first addition")
+                pre_sel = s1.plot_selectivity(stos[i,0], plot=False)
+                post_sel = s2.plot_selectivity(stos[i,1], plot=False)
+        
+                pre_sel_opto = s1.plot_selectivity(stos[i,0], plot=False, opto=True)
+                post_sel_opto = s2.plot_selectivity(stos[i,1], plot=False, opto=True)
+                
+            elif num_neurons + i == 0:
+                print("first addition non FOV")
+                pre_sel = s1.plot_selectivity(stos[i,0], plot=False)
+                post_sel = s2.plot_selectivity(stos[i,1], plot=False)
+        
+                pre_sel_opto = s1.plot_selectivity(stos[i,0], plot=False, opto=True)
+                post_sel_opto = s2.plot_selectivity(stos[i,1], plot=False, opto=True)
+            else:
+                pre_sel = np.vstack((pre_sel, s1.plot_selectivity(stos[i,0], plot=False)))
+                post_sel = np.vstack((post_sel, s2.plot_selectivity(stos[i,1], plot=False)))
+                
+                pre_sel_opto = np.vstack((pre_sel_opto, s1.plot_selectivity(stos[i,0], plot=False, opto=True)))
+                post_sel_opto = np.vstack((post_sel_opto, s2.plot_selectivity(stos[i,1], plot=False, opto=True)))
+         
+        # To aggregate over FOVs (unused)
+        if num_neurons == 0 and by_FOV:
+            
+            if stos.shape[0] == 1:
+                agg_pre_sel = pre_sel
+                agg_pre_sel_opto = pre_sel_opto
+                
+                agg_post_sel = post_sel
+                agg_post_sel_opto = post_sel_opto
+            else:
+                agg_pre_sel = np.mean(pre_sel, axis=0)
+                agg_pre_sel_opto = np.mean(pre_sel_opto, axis=0)
+                
+                agg_post_sel = np.mean(post_sel, axis=0)
+                agg_post_sel_opto = np.mean(post_sel_opto, axis=0)
+            
+        elif by_FOV:
+            if stos.shape[0] == 1:
+                
+                agg_pre_sel = np.vstack((agg_pre_sel, pre_sel))
+                agg_pre_sel_opto = np.vstack((agg_pre_sel_opto, pre_sel_opto))
+                
+                agg_post_sel = np.vstack((agg_post_sel, post_sel))
+                agg_post_sel_opto = np.vstack((agg_post_sel_opto, post_sel_opto))
+                
+            else:
+
+                agg_pre_sel = np.vstack((agg_pre_sel, np.mean(pre_sel, axis=0)))
+                agg_pre_sel_opto = np.vstack((agg_pre_sel_opto, np.mean(pre_sel_opto, axis=0)))
+                
+                agg_post_sel = np.vstack((agg_post_sel, np.mean(post_sel, axis=0)))
+                agg_post_sel_opto = np.vstack((agg_post_sel_opto, np.mean(post_sel_opto, axis=0)))
+                
+        num_neurons += len(stos)
+    
+        # For every FOV, get the area between curves
+        if stos.shape[0] == 1: # Only one neuron
+    
+            pre_area += [np.trapz(y = pre_sel[period] - pre_sel_opto[period], dx = 1/s1.fs)]  
+            post_area += [np.trapz(y = post_sel[period] - post_sel_opto[period], dx = 1/s1.fs)]  
+            
+        else: 
+            
+            pre_area += [np.trapz(y = np.mean(pre_sel, axis=0)[period] - np.mean(pre_sel_opto, axis=0)[period],
+                                  dx = 1/s1.fs)]  
+            post_area += [np.trapz(y = np.mean(post_sel, axis=0)[period] - np.mean(post_sel_opto, axis=0)[period],
+                                   dx = 1/s1.fs)]  
+    
+    allpre_areas += [pre_area]
+    allpost_areas += [post_area]
+        
+    
+titles = ["Retained", "Recruited", "Pruned"]
+f = plt.figure(figsize=(10,5))
+plt.bar(np.arange(3)-0.2, np.mean(np.abs(allpre_areas), axis=1), 0.4, label="Before")
+plt.bar(np.arange(3)+0.2, np.mean(np.abs(allpost_areas), axis=1), 0.4, label="After")
+for i in range(3):
+    plt.scatter(np.zeros(np.array(allpre_areas).shape[1])+i-0.2, np.array(np.abs(allpre_areas))[i,:])
+    plt.scatter(np.zeros(np.array(allpost_areas).shape[1])+i+0.2, np.array(np.abs(allpost_areas))[i,:])
+plt.xticks(np.arange(3), ['Retained', 'Recruited', 'Pruned'])
+plt.xlabel('Type of neuron')
+# plt.ylabel('Coupling strength (area between curves)')
+plt.ylabel('Lack of robustness (area between curves)')
+plt.legend()
 
 
 

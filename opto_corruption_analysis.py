@@ -356,18 +356,19 @@ agg_mice_paths = [
     
                     ]
 
-pref, nonpref, optop, optonp = np.zeros(61), np.zeros(61), np.zeros(61), np.zeros(61)
-num_neurons = 0
 
 f, axarr = plt.subplots(1,3, sharex='col', figsize=(15,5))  
 
 for i in range(3):
+    
+    pref, nonpref, optop, optonp = np.zeros(61), np.zeros(61), np.zeros(61), np.zeros(61)
+    num_neurons = 0
     for path in agg_mice_paths[i]:
     
         
         l1 = Session(path)
         
-        pref_, nonpref_, optop_, optonp_ = l1.selectivity_optogenetics(p=0.001, lickdir=True, return_traces=True)
+        pref_, nonpref_, optop_, optonp_ = l1.selectivity_optogenetics(p=0.01, lickdir=True, return_traces=True)
         
         pref = np.vstack((pref, pref_))
         nonpref = np.vstack((nonpref, nonpref_))
@@ -449,12 +450,12 @@ agg_mice_paths = [
 
 
 
-pref, nonpref, optop, optonp = np.zeros(61), np.zeros(61), np.zeros(61), np.zeros(61)
-num_neurons = 0
 
 f, axarr = plt.subplots(1,3, sharex='col', figsize=(15,5))  
 
 for i in range(3):
+    pref, nonpref, optop, optonp = np.zeros(61), np.zeros(61), np.zeros(61), np.zeros(61)
+    num_neurons = 0
     for path in agg_mice_paths[i]:
     
         if '43' in path or '38' in path:
@@ -462,7 +463,7 @@ for i in range(3):
         else:
             l1 = Session(path, use_reg=True, triple=True)
 
-        pref_, nonpref_, optop_, optonp_ = l1.selectivity_optogenetics(p=0.01, lickdir=True, return_traces=True)
+        pref_, nonpref_, optop_, optonp_ = l1.selectivity_optogenetics(p=0.001, lickdir=True, return_traces=True)
         
         pref = np.vstack((pref, pref_))
         nonpref = np.vstack((nonpref, nonpref_))
