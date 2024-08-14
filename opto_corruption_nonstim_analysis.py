@@ -204,17 +204,17 @@ agg_mice_paths = [
           'H:\\data\\BAYLORCW041\\python\\2024_05_28',
           'H:\\data\\BAYLORCW041\\python\\2024_06_11'],
             
-           #   ['H:\\data\\BAYLORCW043\\python\\2024_05_20', 
-           # 'H:\\data\\BAYLORCW043\\python\\2024_06_03',
-           # 'H:\\data\\BAYLORCW043\\python\\2024_06_13'], # ONLY IF INIT --> MID
+            #   ['H:\\data\\BAYLORCW043\\python\\2024_05_20', 
+            # 'H:\\data\\BAYLORCW043\\python\\2024_06_03',
+            # '-'], # ONLY IF INIT --> MID
             
-             ['-', 
-           'H:\\data\\BAYLORCW043\\python\\2024_06_06',
-           'H:\\data\\BAYLORCW043\\python\\2024_06_13'], #  ONLY IF MID --> FINAL
+              ['-', 
+            'H:\\data\\BAYLORCW043\\python\\2024_06_06',
+            'H:\\data\\BAYLORCW043\\python\\2024_06_13'], #  ONLY IF MID --> FINAL
             
-             ['-', 
-           'H:\\data\\BAYLORCW043\\python\\2024_06_04',
-           'H:\\data\\BAYLORCW043\\python\\2024_06_14'], # ONLY IF MID --> FINAL
+              ['-', 
+            'H:\\data\\BAYLORCW043\\python\\2024_06_04',
+            'H:\\data\\BAYLORCW043\\python\\2024_06_14'], # ONLY IF MID --> FINAL
             
              ['H:\\data\\BAYLORCW042\\python\\2024_06_05', 
            'H:\\data\\BAYLORCW042\\python\\2024_06_14',
@@ -426,8 +426,8 @@ plt.savefig(r'H:\Fig 4\neural\retention_of_SDR_neurons.pdf')
 #                          'H:\\data\\BAYLORCW038\\python\\2024_03_15']
 # intialpath, finalpath = ['H:\\data\\BAYLORCW039\\python\\2024_04_24', 
 #                          'H:\\data\\BAYLORCW039\\python\\2024_05_06']
-# allcats = [allstos, allnstos, alldtod, allnstod, allstons, alldtons]
-allcats = [allnstos, alldtod, allnstod, allstons, alldtons]
+allcats = [allstos, allnstos, alldtod, allnstod, allstons, alldtons]
+# allcats = [allnstos, alldtod, allnstod, allstons, alldtons]
 
 for cats in allcats:
     num_neurons, counter = 0, 0
@@ -442,11 +442,11 @@ for cats in allcats:
             s2 = Session(finalpath, use_reg=True, triple=True) # post
         stos = np.array(cats[counter])
         counter += 1
-        num_neurons += len(stos)
 
         for i in range(len(stos)):
             
-            if i == 0:
+            if num_neurons + i == 0:
+                print("first addition")
                 pre_sel = s1.plot_selectivity(stos[i,0], plot=False)
                 post_sel = s2.plot_selectivity(stos[i,1], plot=False)
         
@@ -459,7 +459,8 @@ for cats in allcats:
                 pre_sel_opto = np.vstack((pre_sel_opto, s1.plot_selectivity(stos[i,0], plot=False, opto=True)))
                 post_sel_opto = np.vstack((post_sel_opto, s2.plot_selectivity(stos[i,1], plot=False, opto=True)))
                 
-            
+        num_neurons += len(stos)
+
     
     f, ax = plt.subplots(1,2, sharey='row', figsize=(10,5))
     sel = np.mean(pre_sel, axis=0)
