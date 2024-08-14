@@ -204,17 +204,17 @@ agg_mice_paths = [
           'H:\\data\\BAYLORCW041\\python\\2024_05_28',
           'H:\\data\\BAYLORCW041\\python\\2024_06_11'],
             
-            #   ['H:\\data\\BAYLORCW043\\python\\2024_05_20', 
-            # 'H:\\data\\BAYLORCW043\\python\\2024_06_03',
-            # '-'], # ONLY IF INIT --> MID
+              ['H:\\data\\BAYLORCW043\\python\\2024_05_20', 
+            'H:\\data\\BAYLORCW043\\python\\2024_06_03',
+            '-'], # ONLY IF INIT --> MID
             
-              ['-', 
-            'H:\\data\\BAYLORCW043\\python\\2024_06_06',
-            'H:\\data\\BAYLORCW043\\python\\2024_06_13'], #  ONLY IF MID --> FINAL
+            #   ['-', 
+            # 'H:\\data\\BAYLORCW043\\python\\2024_06_06',
+            # 'H:\\data\\BAYLORCW043\\python\\2024_06_13'], #  ONLY IF MID --> FINAL
             
-              ['-', 
-            'H:\\data\\BAYLORCW043\\python\\2024_06_04',
-            'H:\\data\\BAYLORCW043\\python\\2024_06_14'], # ONLY IF MID --> FINAL
+            #   ['-', 
+            # 'H:\\data\\BAYLORCW043\\python\\2024_06_04',
+            # 'H:\\data\\BAYLORCW043\\python\\2024_06_14'], # ONLY IF MID --> FINAL
             
              ['H:\\data\\BAYLORCW042\\python\\2024_06_05', 
            'H:\\data\\BAYLORCW042\\python\\2024_06_14',
@@ -222,7 +222,7 @@ agg_mice_paths = [
             ]
 
 p=0.001
-stage1, stage2 = 1,2
+stage1, stage2 = 0,1
 triple=True
 
 
@@ -427,7 +427,8 @@ plt.savefig(r'H:\Fig 4\neural\retention_of_SDR_neurons.pdf')
 # intialpath, finalpath = ['H:\\data\\BAYLORCW039\\python\\2024_04_24', 
 #                          'H:\\data\\BAYLORCW039\\python\\2024_05_06']
 allcats = [allstos, allnstos, alldtod, allnstod, allstons, alldtons]
-# allcats = [allnstos, alldtod, allnstod, allstons, alldtons]
+allcats = [alldtod, allnstod, alldtons] # delay only
+by_FOV = True
 
 for cats in allcats:
     num_neurons, counter = 0, 0
@@ -445,8 +446,16 @@ for cats in allcats:
 
         for i in range(len(stos)):
             
-            if num_neurons + i == 0:
+            if by_FOV and i == 0 :
                 print("first addition")
+                pre_sel = s1.plot_selectivity(stos[i,0], plot=False)
+                post_sel = s2.plot_selectivity(stos[i,1], plot=False)
+        
+                pre_sel_opto = s1.plot_selectivity(stos[i,0], plot=False, opto=True)
+                post_sel_opto = s2.plot_selectivity(stos[i,1], plot=False, opto=True)
+                
+            elif num_neurons + i == 0:
+                print("first addition non FOV")
                 pre_sel = s1.plot_selectivity(stos[i,0], plot=False)
                 post_sel = s2.plot_selectivity(stos[i,1], plot=False)
         
@@ -459,15 +468,54 @@ for cats in allcats:
                 pre_sel_opto = np.vstack((pre_sel_opto, s1.plot_selectivity(stos[i,0], plot=False, opto=True)))
                 post_sel_opto = np.vstack((post_sel_opto, s2.plot_selectivity(stos[i,1], plot=False, opto=True)))
                 
-        num_neurons += len(stos)
+        if num_neurons == 0 and by_FOV:
+            
+            if stos.shape[0] == 1:
+                agg_pre_sel = pre_sel
+                agg_pre_sel_opto = pre_sel_opto
+                
+                agg_post_sel = post_sel
+                agg_post_sel_opto = post_sel_opto
+            else:
+                agg_pre_sel = np.mean(pre_sel, axis=0)
+                agg_pre_sel_opto = np.mean(pre_sel_opto, axis=0)
+                
+                agg_post_sel = np.mean(post_sel, axis=0)
+                agg_post_sel_opto = np.mean(post_sel_opto, axis=0)
+            
+        elif by_FOV:
+            if stos.shape[0] == 1:
+                
+                agg_pre_sel = np.vstack((agg_pre_sel, pre_sel))
+                agg_pre_sel_opto = np.vstack((agg_pre_sel_opto, pre_sel_opto))
+                
+                agg_post_sel = np.vstack((agg_post_sel, post_sel))
+                agg_post_sel_opto = np.vstack((agg_post_sel_opto, post_sel_opto))
+                
+            else:
 
-    
+                agg_pre_sel = np.vstack((agg_pre_sel, np.mean(pre_sel, axis=0)))
+                agg_pre_sel_opto = np.vstack((agg_pre_sel_opto, np.mean(pre_sel_opto, axis=0)))
+                
+                agg_post_sel = np.vstack((agg_post_sel, np.mean(post_sel, axis=0)))
+                agg_post_sel_opto = np.vstack((agg_post_sel_opto, np.mean(post_sel_opto, axis=0)))
+                
+        num_neurons += len(stos)
+        
     f, ax = plt.subplots(1,2, sharey='row', figsize=(10,5))
-    sel = np.mean(pre_sel, axis=0)
-    err = np.std(pre_sel, axis=0) / np.sqrt(len(pre_sel)) 
-    selo = np.mean(pre_sel_opto, axis=0)
-    erro = np.std(pre_sel_opto, axis=0) / np.sqrt(len(pre_sel_opto)) 
-    
+
+    if by_FOV:
+        sel = np.mean(agg_pre_sel, axis=0)
+        err = np.std(agg_pre_sel, axis=0) / np.sqrt(len(agg_pre_sel)) 
+        selo = np.mean(agg_pre_sel_opto, axis=0)
+        erro = np.std(agg_pre_sel_opto, axis=0) / np.sqrt(len(agg_pre_sel_opto)) 
+    else:
+        sel = np.mean(pre_sel, axis=0)
+        err = np.std(pre_sel, axis=0) / np.sqrt(len(pre_sel)) 
+        selo = np.mean(pre_sel_opto, axis=0)
+        erro = np.std(pre_sel_opto, axis=0) / np.sqrt(len(pre_sel_opto))
+        
+        
     x = np.arange(-6.97,5,s1.fs)[:s1.time_cutoff]
     ax[0].plot(x, sel, 'black')
             
@@ -481,11 +529,17 @@ for cats in allcats:
               selo + erro,
               color=['#ffaeb1']) 
     
-    sel = np.mean(post_sel, axis=0)
-    err = np.std(post_sel, axis=0) / np.sqrt(len(post_sel)) 
-    selo = np.mean(post_sel_opto, axis=0)
-    erro = np.std(post_sel_opto, axis=0) / np.sqrt(len(post_sel_opto)) 
-    
+    if by_FOV:
+        sel = np.mean(agg_post_sel, axis=0)
+        err = np.std(agg_post_sel, axis=0) / np.sqrt(len(agg_post_sel)) 
+        selo = np.mean(agg_post_sel_opto, axis=0)
+        erro = np.std(agg_post_sel_opto, axis=0) / np.sqrt(len(agg_post_sel_opto)) 
+    else:
+        sel = np.mean(post_sel, axis=0)
+        err = np.std(post_sel, axis=0) / np.sqrt(len(post_sel)) 
+        selo = np.mean(post_sel_opto, axis=0)
+        erro = np.std(post_sel_opto, axis=0) / np.sqrt(len(post_sel_opto)) 
+        
     x = np.arange(-6.97,5,s1.fs)[:s1.time_cutoff]
     ax[1].plot(x, sel, 'black')
             
@@ -511,6 +565,10 @@ for cats in allcats:
     ax[0].set_title('Optogenetic effect on selectivity (n = {} neurons)'.format(num_neurons))                  
     # ax[1].set_title('Optogenetic effect on selectivity (n = {} neurons)'.format(num_neurons))         
     plt.show()         
+
+
+#%% Quantify the robustness / modularity of recruited vs retained vs pruned neurons
+
 
 
 
