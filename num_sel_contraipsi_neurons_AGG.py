@@ -141,8 +141,7 @@ plt.show()
 
 
 
-#%%
-# Aggregate plot TRAINED ##
+#%% Aggregate plot EXPERT ##
 allcontra, allipsi = [], []
 #original sessions
 paths = [r'F:\data\BAYLORCW032\python\2023_10_24',
@@ -152,12 +151,12 @@ paths = [r'F:\data\BAYLORCW032\python\2023_10_24',
 
 
 paths = [
-        r'H:\data\BAYLORCW044\python\2024_06_06',
-        r'H:\data\BAYLORCW044\python\2024_06_04',
+        r'H:\data\BAYLORCW044\python\2024_06_19',
+        r'H:\data\BAYLORCW044\python\2024_06_18',
         
-        r'H:\data\BAYLORCW046\python\2024_06_07',
-        r'H:\data\BAYLORCW046\python\2024_06_10',
-        r'H:\data\BAYLORCW046\python\2024_06_11',
+        r'H:\data\BAYLORCW046\python\2024_06_24',
+        r'H:\data\BAYLORCW046\python\2024_06_27',
+        r'H:\data\BAYLORCW046\python\2024_06_26',
 
         ]
 for path in paths:

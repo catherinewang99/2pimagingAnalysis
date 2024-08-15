@@ -544,7 +544,7 @@ for paths in all_paths:
     for path in paths:
 
         l1 = session.Session(path, use_reg=True, triple=True)
-        temp = l1.modularity_proportion(p=0.01)
+        temp, _ = l1.modularity_proportion(p=0.01)
 
         if temp > 0 and temp < 1: # Exclude values based on Chen et al method guidelines
 
@@ -595,6 +595,13 @@ all_paths = [[    r'F:\data\BAYLORCW032\python\2023_10_05',
             r'F:\data\BAYLORCW035\python\2023_10_12',
         r'F:\data\BAYLORCW035\python\2023_11_02',
 
+        r'H:\data\BAYLORCW044\python\2024_05_22',
+        r'H:\data\BAYLORCW044\python\2024_05_23',
+        r'H:\data\BAYLORCW044\python\2024_05_24',
+        
+        r'H:\data\BAYLORCW046\python\2024_05_29',
+        r'H:\data\BAYLORCW046\python\2024_05_30',
+        r'H:\data\BAYLORCW046\python\2024_05_31',
             ],
              [r'F:\data\BAYLORCW032\python\2023_10_19',
             # r'F:\data\BAYLORCW034\python\2023_10_22',
@@ -607,6 +614,16 @@ all_paths = [[    r'F:\data\BAYLORCW032\python\2023_10_05',
             r'F:\data\BAYLORCW035\python\2023_11_27',
             r'F:\data\BAYLORCW035\python\2023_11_29',
             r'F:\data\BAYLORCW037\python\2023_11_28',
+            
+        r'H:\data\BAYLORCW044\python\2024_06_06',
+        r'H:\data\BAYLORCW044\python\2024_06_04',
+        r'H:\data\BAYLORCW044\python\2024_06_03',
+        r'H:\data\BAYLORCW044\python\2024_06_12',
+
+        r'H:\data\BAYLORCW046\python\2024_06_07',
+        r'H:\data\BAYLORCW046\python\2024_06_10',
+        r'H:\data\BAYLORCW046\python\2024_06_11',
+        r'H:\data\BAYLORCW046\python\2024_06_19',
 
         ],
         [r'F:\data\BAYLORCW032\python\2023_10_24',
@@ -620,8 +637,17 @@ all_paths = [[    r'F:\data\BAYLORCW032\python\2023_10_05',
             r'F:\data\BAYLORCW035\python\2023_12_14',
             r'F:\data\BAYLORCW035\python\2023_12_16',
             r'F:\data\BAYLORCW037\python\2023_12_13',
+            
+            r'H:\data\BAYLORCW044\python\2024_06_19',
+            r'H:\data\BAYLORCW044\python\2024_06_18',
+            r'H:\data\BAYLORCW044\python\2024_06_17',
+            
+            r'H:\data\BAYLORCW046\python\2024_06_24',
+            r'H:\data\BAYLORCW046\python\2024_06_27',
+            r'H:\data\BAYLORCW046\python\2024_06_26',
+            r'H:\data\BAYLORCW046\python\2024_06_25',
 
-            ]]
+]]
 
 all_deltas = []
 all_mod = []
@@ -634,7 +660,10 @@ for paths in all_paths:
     for path in paths:
 
         l1 = session.Session(path)
-        temp = l1.modularity_proportion(p=0.01)
+        temp, _ = l1.modularity_proportion(p=0.01, period = range(l1.response - 1.5*(1/l1.fs), l1.response))
+        
+        if temp is None: # No selective neurons
+            continue
 
         if temp > 0 and temp < 1: # Exclude values based on Chen et al method guidelines
 
@@ -644,10 +673,11 @@ for paths in all_paths:
             _, _, perf_all = l1.performance_in_trials(stim_trials)
             _, _, perf_all_c = l1.performance_in_trials(control_trials)
             
-            if perf_all_c < 0.5: #Skip low performance sessions
+            if perf_all_c < 0.5 or perf_all / perf_all_c > 1: #Skip low performance sessions
                 continue
             
             modularity += [temp]
+
 
             deltas += [perf_all / perf_all_c]
             # deltas += [perf_all_c - perf_all]
@@ -670,7 +700,121 @@ plt.legend()
 plt.title('Pearsons correlation: {}, p-val: {}'.format(stats.pearsonr(cat(all_mod), cat(all_deltas))[0], 
                                                        stats.pearsonr(cat(all_mod), cat(all_deltas))[1]))
 
-plt.savefig(r'F:\data\Fig 3\corr_behaviordiff_modularity_ALL.pdf')
+plt.savefig(r'F:\data\Fig 3\corr_behaviordiff_modularity_ALL_plus.pdf')
+plt.show()
+
+#%% Correlate modularity with robustness ALL SESS
+    
+all_paths = [[    r'F:\data\BAYLORCW032\python\2023_10_05',
+            # r'F:\data\BAYLORCW034\python\2023_10_12',
+            r'F:\data\BAYLORCW036\python\2023_10_09',
+            r'F:\data\BAYLORCW035\python\2023_10_26',
+            r'F:\data\BAYLORCW037\python\2023_11_21',
+            
+            r'F:\data\BAYLORCW036\python\2023_10_16',
+            r'F:\data\BAYLORCW035\python\2023_10_12',
+        r'F:\data\BAYLORCW035\python\2023_11_02',
+
+        r'H:\data\BAYLORCW044\python\2024_05_22',
+        r'H:\data\BAYLORCW044\python\2024_05_23',
+        r'H:\data\BAYLORCW044\python\2024_05_24',
+        
+        r'H:\data\BAYLORCW046\python\2024_05_29',
+        r'H:\data\BAYLORCW046\python\2024_05_30',
+        r'H:\data\BAYLORCW046\python\2024_05_31',
+            ],
+             [r'F:\data\BAYLORCW032\python\2023_10_19',
+            # r'F:\data\BAYLORCW034\python\2023_10_22',
+            r'F:\data\BAYLORCW036\python\2023_10_19',
+            r'F:\data\BAYLORCW035\python\2023_12_07',
+            r'F:\data\BAYLORCW037\python\2023_12_08',
+
+        r'F:\data\BAYLORCW032\python\2023_10_18',
+        r'F:\data\BAYLORCW035\python\2023_10_25',
+            r'F:\data\BAYLORCW035\python\2023_11_27',
+            r'F:\data\BAYLORCW035\python\2023_11_29',
+            r'F:\data\BAYLORCW037\python\2023_11_28',
+            
+        r'H:\data\BAYLORCW044\python\2024_06_06',
+        r'H:\data\BAYLORCW044\python\2024_06_04',
+        r'H:\data\BAYLORCW044\python\2024_06_03',
+        r'H:\data\BAYLORCW044\python\2024_06_12',
+
+        r'H:\data\BAYLORCW046\python\2024_06_07',
+        r'H:\data\BAYLORCW046\python\2024_06_10',
+        r'H:\data\BAYLORCW046\python\2024_06_11',
+        r'H:\data\BAYLORCW046\python\2024_06_19',
+
+        ],
+        [r'F:\data\BAYLORCW032\python\2023_10_24',
+            # r'F:\data\BAYLORCW034\python\2023_10_27',
+            r'F:\data\BAYLORCW036\python\2023_10_30',
+            r'F:\data\BAYLORCW035\python\2023_12_15',
+            r'F:\data\BAYLORCW037\python\2023_12_15',
+            
+            r'F:\data\BAYLORCW036\python\2023_10_28',
+        r'F:\data\BAYLORCW035\python\2023_12_12',
+            r'F:\data\BAYLORCW035\python\2023_12_14',
+            r'F:\data\BAYLORCW035\python\2023_12_16',
+            r'F:\data\BAYLORCW037\python\2023_12_13',
+            
+            r'H:\data\BAYLORCW044\python\2024_06_19',
+            r'H:\data\BAYLORCW044\python\2024_06_18',
+            r'H:\data\BAYLORCW044\python\2024_06_17',
+            
+            r'H:\data\BAYLORCW046\python\2024_06_24',
+            r'H:\data\BAYLORCW046\python\2024_06_27',
+            r'H:\data\BAYLORCW046\python\2024_06_26',
+            r'H:\data\BAYLORCW046\python\2024_06_25',
+
+        ]]
+
+
+all_deltas = []
+all_mod = []
+p=0.01
+
+for paths in all_paths:
+
+    deltas = []
+    modularity = []
+
+    for path in paths:
+
+        l1 = session.Session(path)
+        temp, _ = l1.modularity_proportion(p=p) # Robustness
+        
+        if temp is None: # No selective neurons
+            continue
+
+        if temp > 0 and temp < 1: # Exclude values based on Chen et al method guidelines
+            
+            mod, _ = l1.modularity_proportion(p=p, period=range(l1.delay, l1.delay + int(1/l1.fs))) # Modularity / Coupling using first second of delay
+            
+            if mod > 0 and mod < 1:
+                
+                deltas += [temp]
+                modularity += [mod]
+
+    all_deltas += [deltas]
+    all_mod += [modularity]
+    
+    
+fig = plt.figure(figsize=(7,6))
+
+ls = ['Naive', 'Learning', 'Expert']
+
+for i in range(3):
+    plt.scatter(all_mod[i], all_deltas[i], label = ls[i], s=150, alpha = 0.7)
+
+plt.xlabel('Modularity, unperturbed hemisphere')
+plt.ylabel('Robustness')
+# plt.ylabel('Behvioral recovery, (delta correct, control-photoinhib.)')
+plt.legend()
+plt.title('Pearsons correlation: {}, p-val: {}'.format(stats.pearsonr(cat(all_mod), cat(all_deltas))[0], 
+                                                       stats.pearsonr(cat(all_mod), cat(all_deltas))[1]))
+
+plt.savefig(r'F:\data\Fig 3\corr_modularity_robustness_ALL.pdf')
 plt.show()
 
 #%% CD recovery

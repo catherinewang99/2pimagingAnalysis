@@ -2725,7 +2725,7 @@ class Session:
         x = np.arange(-6.97,4,self.fs)[:self.time_cutoff]
 
         # Get late delay selective neurons
-        contra_neurons, ipsi_neurons, contra_trace, ipsi_trace = self.contra_ipsi_pop(range(self.response-9,self.response), p=p, selective_n=selective_neurons) 
+        contra_neurons, ipsi_neurons, contra_trace, ipsi_trace = self.contra_ipsi_pop(range(self.response-int(1.5*(1/self.fs)),self.response), p=p, selective_n=selective_neurons) 
         
         if len(contra_neurons) == 0 and len(ipsi_neurons) == 0:
             
@@ -2868,12 +2868,14 @@ class Session:
             
         """
         
-        # Get late delay selective neurons
-        contra_neurons, ipsi_neurons, contra_trace, ipsi_trace = self.contra_ipsi_pop(range(self.response-9,self.response), p=p) 
+        # Get late delay selective neurons using second half of delay
+        contra_neurons, ipsi_neurons, contra_trace, ipsi_trace = self.contra_ipsi_pop(range(self.response-int(1.5*(1/self.fs)),self.response), p=p) 
         
         if len(contra_neurons) == 0 and len(ipsi_neurons) == 0:
             
-            raise Exception("No selective neurons :^(") 
+            # raise Exception("No selective neurons :^(") 
+            # NO SELECTIVE NEURONS
+            return None, None
             
         elif len(contra_neurons) == 0:
             
@@ -2911,7 +2913,7 @@ class Session:
         # Add 0.4ms for the time lag factor
         # period = range( int(self.delay + 0.4*(1/self.fs)), int(self.delay + 1.4*(1/self.fs)))
         if period is None:
-            period = range(self.response-9, self.response) # Use last second of delay
+            period = range(self.response-int(1*(1/self.fs)), self.response) # Use last second of delay
 
         recovery = np.mean(selo[period] / sel[period])
         error = np.mean(erro[period])
@@ -2930,7 +2932,7 @@ class Session:
         """
 
         # Get late delay selective neurons
-        contra_neurons, ipsi_neurons, contra_trace, ipsi_trace = self.contra_ipsi_pop(range(self.response-9,self.response), p=p, selective_n=selective_neurons) 
+        contra_neurons, ipsi_neurons, contra_trace, ipsi_trace = self.contra_ipsi_pop(range(self.response-int(1.5*(1/self.fs)),self.response), p=p, selective_n=selective_neurons) 
         
         if len(contra_neurons) == 0 and len(ipsi_neurons) == 0:
             
@@ -2971,7 +2973,7 @@ class Session:
         
         
         if period is None:
-            period = range(self.delay+1, self.delay+7) # Use first second of delay 
+            period = range(self.delay+int((1/self.fs)), self.delay+int(1.2*(1/self.fs))) # Use first second of delay 
 
 
         pert_der = np.gradient(selo[period])
