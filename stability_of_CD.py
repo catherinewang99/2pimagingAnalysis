@@ -54,6 +54,11 @@ naivepath, learningpath, expertpath =[r'F:\data\BAYLORCW036\python\2023_10_09',
 naivepath, learningpath, expertpath = [r'H:\data\BAYLORCW044\python\2024_05_23',
                    r'H:\data\BAYLORCW044\python\2024_06_04',
                   r'H:\data\BAYLORCW044\python\2024_06_18',]
+
+naivepath, learningpath, expertpath = [r'H:\data\BAYLORCW046\python\2024_05_31',
+                   r'H:\data\BAYLORCW046\python\2024_06_11',
+                  r'H:\data\BAYLORCW046\python\2024_06_26',]
+
 # naivepath, learningpath, expertpath =[r'F:\data\BAYLORCW035\python\2023_10_12',
 #             r'F:\data\BAYLORCW035\python\2023_10_26',
 #             r'F:\data\BAYLORCW035\python\2023_12_12',]
