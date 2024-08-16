@@ -199,9 +199,9 @@ plt.colorbar()
 
 agg_mice_paths = [
     
-            [r'F:\data\BAYLORCW032\python\2023_10_08',
-              r'F:\data\BAYLORCW032\python\2023_10_16',
-              r'F:\data\BAYLORCW032\python\2023_10_25',
+            [r'F:\data\BAYLORCW032\python\2023_10_05',
+              r'F:\data\BAYLORCW032\python\2023_10_19',
+              r'F:\data\BAYLORCW032\python\2023_10_24',
           ],
          
            # [ r'F:\data\BAYLORCW034\python\2023_10_12',

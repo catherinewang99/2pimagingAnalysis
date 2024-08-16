@@ -660,7 +660,7 @@ for paths in all_paths:
     for path in paths:
 
         l1 = session.Session(path)
-        temp, _ = l1.modularity_proportion(p=0.01, period = range(l1.response - 1.5*(1/l1.fs), l1.response))
+        temp, _ = l1.modularity_proportion(p=0.01, period = range(l1.response - int(1.5*(1/l1.fs)), l1.response))
         
         if temp is None: # No selective neurons
             continue
@@ -816,6 +816,8 @@ plt.title('Pearsons correlation: {}, p-val: {}'.format(stats.pearsonr(cat(all_mo
 
 plt.savefig(r'F:\data\Fig 3\corr_modularity_robustness_ALL.pdf')
 plt.show()
+
+
 
 #%% CD recovery
 

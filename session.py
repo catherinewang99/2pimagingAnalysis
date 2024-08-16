@@ -242,6 +242,7 @@ class Session:
                                      np.where(self.R_ignore)[0]))) 
         
         self.stim_ON = cat(behavior['StimDur_tmp']) > 0
+        
         if 'StimLevel' in behavior.keys():
             self.stim_level = cat(behavior['StimLevel'])
             
@@ -250,7 +251,14 @@ class Session:
             print('More Bpod trials than 2 photon trials')
             self.i_good_trials = [i for i in self.i_good_trials if i < self.num_trials]
             self.stim_ON = self.stim_ON[:self.num_trials]
-            
+        
+        # Re-adjust with i good trials
+        self.stim_trials = np.where(self.stim_ON)[0]
+        self.lick_L_trials = np.array([i for i in self.lick_L_trials if i in self.i_good_trials])
+        self.lick_R_trials = np.array([i for i in self.lick_R_trials if i in self.i_good_trials])
+        self.L_trials = np.array([i for i in self.L_trials if i in self.i_good_trials])
+        self.R_trials = np.array([i for i in self.R_trials if i in self.i_good_trials])
+
         self.sample = int(2.5*(1/self.fs))
         self.delay = self.sample + int(1.3*(1/self.fs))
         self.response = self.delay + int(3*(1/self.fs))
@@ -591,7 +599,7 @@ class Session:
 
             # self.plot_mean_F()
 
-        self.plot_mean_F()
+        # self.plot_mean_F()
 
         # self.normalize_all_by_baseline()
         self.normalize_all_by_neural_baseline()
@@ -2429,34 +2437,42 @@ class Session:
         #     x = np.arange(-5.97,4,self.fs)[:self.time_cutoff-5]
         #     steps = range(5, self.time_cutoff)
 
-        for t in steps:
+        # for t in steps:
             
-            sig_neurons = []
+        # sig_neurons = []
 
-            # for n in range(self.num_neurons):
-            for n in self.good_neurons:
-                
-                r, l = self.get_trace_matrix(n)
-                r, l = np.matrix(r), np.matrix(l)
-                t_val, p = stats.ttest_ind(r[:, t], l[:, t])
-                
-                if p < 0.01:
-                     
-                    if np.mean(r[:, t]) < np.mean(l[:, t]):
-                        sig_neurons += [1]  # ipsi
-                        
-                    elif np.mean(r[:, t]) > np.mean(l[:, t]):
-                        sig_neurons += [-1]  # contra
-                    
-                    else:
-                        print("Error on neuron {} at time {}".format(n,t))
-
+        for n in self.good_neurons:
+            
+            r, l = self.get_trace_matrix(n)
+            r, l = np.matrix(r), np.matrix(l)
+            # t_val, p = stats.ttest_ind(r[:, t], l[:, t])
+            t_val, p = stats.ttest_ind(r, l, axis=0)
+            p = p < 0.01
+            
+            for t in steps:
+    
+                if t_val[t] > 0: # R > L
+                    contra[t] += p[t]
                 else:
+                    ipsi[t] += p[t]
+                
+                # if p < 0.01:
+                     
+                #     if np.mean(r[:, t]) < np.mean(l[:, t]):
+                #         sig_neurons += [1]  # ipsi
+                        
+                #     elif np.mean(r[:, t]) > np.mean(l[:, t]):
+                #         sig_neurons += [-1]  # contra
                     
-                    sig_neurons += [0]
+                #     else:
+                #         print("Error on neuron {} at time {}".format(n,t))
+
+                # else:
+                    
+                #     sig_neurons += [0]
             
-            contra[t] = sum(np.array(sig_neurons) == -1)
-            ipsi[t] = sum(np.array(sig_neurons) == 1)
+            # contra[t] = sum(np.array(sig_neurons) == -1)
+            # ipsi[t] = sum(np.array(sig_neurons) == 1)
         
         if return_nums:
             return contra, ipsi
@@ -2725,7 +2741,7 @@ class Session:
         x = np.arange(-6.97,4,self.fs)[:self.time_cutoff]
 
         # Get late delay selective neurons
-        contra_neurons, ipsi_neurons, contra_trace, ipsi_trace = self.contra_ipsi_pop(range(self.response-int(1.5*(1/self.fs)),self.response), p=p, selective_n=selective_neurons) 
+        contra_neurons, ipsi_neurons, contra_trace, ipsi_trace = self.contra_ipsi_pop(range(self.response-int(1.5*(1/self.fs)), self.response), p=p, selective_n=selective_neurons) 
         
         if len(contra_neurons) == 0 and len(ipsi_neurons) == 0:
             
@@ -2981,7 +2997,42 @@ class Session:
     
         return pert_der, ctl_der, pert_der - ctl_der
 
+    def susceptibility(self):
+        """
+        Calculates the per neuron susceptibility to perturbation, measured as a
+        simple difference between control/opto trials during the whole delay
+
+        Returns
+        -------
+        array : one positive value for every good neuron
+
+        """
         
+        period = range(self.delay, self.response)
+        all_sus = []
+        
+        for n in self.good_neurons:
+            
+            control_trials = [t for t in self.L_trials if t not in self.stim_trials]
+            pert_trials = [t for t in self.L_trials if t in self.stim_trials]
+
+            control = [self.dff[0,l][n, period] for l in control_trials]
+            pert = [self.dff[0,l][n, period] for l in pert_trials]
+            diff = np.abs(np.average(control, axis=0) - np.average(pert, axis=0))
+            
+            control_trials = [t for t in self.R_trials if t not in self.stim_trials]
+            pert_trials = [t for t in self.R_trials if t in self.stim_trials]
+
+            control = [self.dff[0,l][n, period] for l in control_trials]
+            pert = [self.dff[0,l][n, period] for l in pert_trials]
+            diff += np.abs(np.average(control, axis=0) - np.average(pert, axis=0))
+            
+            all_sus += [np.sum(diff)]
+        
+        return all_sus
+            
+            
+
         
     def single_neuron_sel(self, type, p=0.01, save=False, plot=True):
         """Plots proportion of stim/lick/reward/mixed cells over trial using two different methods
