@@ -36,17 +36,16 @@ paths = [
 for path in paths:
     l1 = session.Session(path, use_reg=True, triple=True)
     contra, ipsi = l1.plot_number_of_sig_neurons(return_nums=True)
+
+    x = np.arange(-6.97,6,1/30)[:l1.time_cutoff*2]
+    nums = np.interp(x, np.arange(-6.97,6,1/15)[:l1.time_cutoff], contra)
+    contra = scipy.signal.decimate(nums, 5)
+    
+    nums = np.interp(x, np.arange(-6.97,6,1/15)[:l1.time_cutoff], ipsi)
+    ipsi = scipy.signal.decimate(nums, 5)
+    
     allcontra += [contra/len(l1.good_neurons)]
-    allipsi += [ipsi/len(l1.good_neurons)]
-
-
-x = np.arange(-6.97,6,1/30)[:l1.time_cutoff*2]
-nums = np.interp(x, np.arange(-6.97,6,1/15)[:l1.time_cutoff], np.sum(allcontra, axis=0))
-allcontra = scipy.signal.decimate(nums, 5)
-
-x = np.arange(-6.97,6,1/30)[:l1.time_cutoff*2]
-nums = np.interp(x, np.arange(-6.97,6,1/15)[:l1.time_cutoff], np.sum(allipsi, axis=0))
-allipsi = scipy.signal.decimate(nums, 5)
+    allipsi += [ipsi/len(l1.good_neurons)]    
 
 paths = [
         r'F:\data\BAYLORCW032\python\2023_10_08',
@@ -58,20 +57,25 @@ paths = [
 for path in paths:
     l1 = session.Session(path, use_reg=True, triple=True)
     contra, ipsi = l1.plot_number_of_sig_neurons(return_nums=True)
-    allcontra = np.vstack((allcontra, contra))
-    allipsi = np.vstack((allipsi, ipsi))
+    allcontra = np.vstack((allcontra, contra/len(l1.good_neurons)))
+    allipsi = np.vstack((allipsi, ipsi/len(l1.good_neurons)))
     
     
 x = np.arange(-6.97,6,1/6)[:61] # Downsample everything to this
 
-plt.bar(x, np.sum(allcontra, axis=0), color = 'b', edgecolor = 'white', width = 0.17, label = 'contra')
-plt.bar(x, -np.sum(allipsi, axis=0), color = 'r',edgecolor = 'white', width = 0.17, label = 'ipsi')
+plt.plot(x, np.mean(allcontra, axis=0), color = 'b', marker = 'o', markersize=5)
+plt.plot(x, -np.mean(allipsi, axis=0), color = 'r', marker = 'o', markersize=5)
+
+for i in range(9):
+    plt.plot(x, allcontra[i], color = 'b', alpha = 0.5, linewidth = 0.5)
+    plt.plot(x, -allipsi[i], color = 'r', alpha = 0.5, linewidth = 0.5)
+
 plt.axvline(-4.3)
 plt.axvline(-3)
 plt.axvline(0)
 # plt.ylim(bottom = -350)
 # plt.ylim(top = 350)
-plt.ylabel('Number of sig sel neurons')
+plt.ylabel('Proportion of sig sel neurons')
 plt.xlabel('Time from Go cue (s)')
 plt.legend()
 # plt.savefig(r'F:\data\Fig 1\naive_numproportion_sel_neuronsALL.pdf')
@@ -97,17 +101,16 @@ paths = [
 for path in paths:
     l1 = session.Session(path, use_reg=True, triple=True)
     contra, ipsi = l1.plot_number_of_sig_neurons(return_nums=True)
-    allcontra += [contra]
-    allipsi += [ipsi]
 
-
-x = np.arange(-6.97,6,1/30)[:l1.time_cutoff*2]
-nums = np.interp(x, np.arange(-6.97,6,1/15)[:l1.time_cutoff], np.sum(allcontra, axis=0))
-allcontra = scipy.signal.decimate(nums, 5)
-
-x = np.arange(-6.97,6,1/30)[:l1.time_cutoff*2]
-nums = np.interp(x, np.arange(-6.97,6,1/15)[:l1.time_cutoff], np.sum(allipsi, axis=0))
-allipsi = scipy.signal.decimate(nums, 5)
+    x = np.arange(-6.97,6,1/30)[:l1.time_cutoff*2]
+    nums = np.interp(x, np.arange(-6.97,6,1/15)[:l1.time_cutoff], contra)
+    contra = scipy.signal.decimate(nums, 5)
+    
+    nums = np.interp(x, np.arange(-6.97,6,1/15)[:l1.time_cutoff], ipsi)
+    ipsi = scipy.signal.decimate(nums, 5)
+    
+    allcontra += [contra/len(l1.good_neurons)]
+    allipsi += [ipsi/len(l1.good_neurons)]    
 
 paths = [
         r'F:\data\BAYLORCW032\python\2023_10_16',
@@ -119,26 +122,30 @@ paths = [
 for path in paths:
     l1 = session.Session(path, use_reg=True, triple=True)
     contra, ipsi = l1.plot_number_of_sig_neurons(return_nums=True)
-    allcontra = np.vstack((allcontra, contra))
-    allipsi = np.vstack((allipsi, ipsi))
+    allcontra = np.vstack((allcontra, contra/len(l1.good_neurons)))
+    allipsi = np.vstack((allipsi, ipsi/len(l1.good_neurons)))
     
     
 x = np.arange(-6.97,6,1/6)[:61] # Downsample everything to this
 
-plt.bar(x, np.sum(allcontra, axis=0), color = 'b', edgecolor = 'white', width = 0.17, label = 'contra')
-plt.bar(x, -np.sum(allipsi, axis=0), color = 'r',edgecolor = 'white', width = 0.17, label = 'ipsi')
+plt.plot(x, np.mean(allcontra, axis=0), color = 'b', marker = 'o', markersize=5)
+plt.plot(x, -np.mean(allipsi, axis=0), color = 'r', marker = 'o', markersize=5)
+
+for i in range(9):
+    plt.plot(x, allcontra[i], color = 'b', alpha = 0.5, linewidth = 0.5)
+    plt.plot(x, -allipsi[i], color = 'r', alpha = 0.5, linewidth = 0.5)
+
 plt.axvline(-4.3)
 plt.axvline(-3)
 plt.axvline(0)
 # plt.ylim(bottom = -350)
 # plt.ylim(top = 350)
-plt.ylabel('Number of sig sel neurons')
+plt.ylabel('Proportion of sig sel neurons')
 plt.xlabel('Time from Go cue (s)')
 plt.legend()
+# plt.savefig(r'F:\data\Fig 1\naive_numproportion_sel_neuronsALL.pdf')
 
-plt.savefig(r'F:\data\Fig 1\learning_numproportion_sel_neuronsALL.pdf')
 plt.show()
-
 
 
 #%% Aggregate plot EXPERT ##
@@ -162,18 +169,17 @@ paths = [
 for path in paths:
     l1 = session.Session(path, use_reg=True, triple=True)
     contra, ipsi = l1.plot_number_of_sig_neurons(return_nums=True)
-    allcontra += [contra]
-    allipsi += [ipsi]
 
-
-x = np.arange(-6.97,6,1/30)[:l1.time_cutoff*2]
-nums = np.interp(x, np.arange(-6.97,6,1/15)[:l1.time_cutoff], np.sum(allcontra, axis=0))
-allcontra = scipy.signal.decimate(nums, 5)
-
-x = np.arange(-6.97,6,1/30)[:l1.time_cutoff*2]
-nums = np.interp(x, np.arange(-6.97,6,1/15)[:l1.time_cutoff], np.sum(allipsi, axis=0))
-allipsi = scipy.signal.decimate(nums, 5)
-
+    x = np.arange(-6.97,6,1/30)[:l1.time_cutoff*2]
+    nums = np.interp(x, np.arange(-6.97,6,1/15)[:151], contra)
+    contra = scipy.signal.decimate(nums, 5)
+    
+    nums = np.interp(x, np.arange(-6.97,6,1/15)[:151], ipsi)
+    ipsi = scipy.signal.decimate(nums, 5)
+    
+    allcontra += [contra/len(l1.good_neurons)]
+    allipsi += [ipsi/len(l1.good_neurons)]   
+    
 #testing new sessions
 paths = [
         r'F:\data\BAYLORCW032\python\2023_10_25',
@@ -185,23 +191,30 @@ paths = [
 for path in paths:
     l1 = session.Session(path, use_reg=True, triple=True)
     contra, ipsi = l1.plot_number_of_sig_neurons(return_nums=True)
-    allcontra = np.vstack((allcontra, contra))
-    allipsi = np.vstack((allipsi, ipsi))
+    allcontra = np.vstack((allcontra, contra/len(l1.good_neurons)))
+    allipsi = np.vstack((allipsi, ipsi/len(l1.good_neurons)))
     
     
 x = np.arange(-6.97,6,1/6)[:61] # Downsample everything to this
 
-plt.bar(x, np.sum(allcontra, axis=0), color = 'b', edgecolor = 'white', width = 0.17, label = 'contra')
-plt.bar(x, -np.sum(allipsi, axis=0), color = 'r',edgecolor = 'white', width = 0.17, label = 'ipsi')
+plt.plot(x, np.mean(allcontra, axis=0), color = 'b', marker = 'o', markersize=5)
+plt.plot(x, -np.mean(allipsi, axis=0), color = 'r', marker = 'o', markersize=5)
+
+for i in range(9):
+    plt.plot(x, allcontra[i], color = 'b', alpha = 0.5, linewidth = 0.5)
+    plt.plot(x, -allipsi[i], color = 'r', alpha = 0.5, linewidth = 0.5)
+
 plt.axvline(-4.3)
 plt.axvline(-3)
 plt.axvline(0)
 # plt.ylim(bottom = -350)
 # plt.ylim(top = 350)
-plt.ylabel('Number of sig sel neurons')
+plt.ylabel('Proportion of sig sel neurons')
 plt.xlabel('Time from Go cue (s)')
 plt.legend()
-plt.savefig(r'F:\data\Fig 1\expert_numproportion_sel_neuronsALL.pdf')
+# plt.savefig(r'F:\data\Fig 1\naive_numproportion_sel_neuronsALL.pdf')
+
+plt.show()
 
 
 

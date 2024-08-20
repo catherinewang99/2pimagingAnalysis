@@ -264,14 +264,85 @@ plt.xlabel('Susceptibility')
 
 
 
+#%% Investigate single neuron susceptibility changes
 
 
+paths = all_matched_paths[4]
 
 
+intialpath, finalpath = paths[1], paths[2]
+
+# sample CD
+s1 = Session(intialpath, use_reg=True, triple=True)
+s2 = Session(finalpath, use_reg=True, triple=True)
+
+s1_sus = s1.susceptibility()
+s2_sus = s2.susceptibility()
+
+f = plt.figure(figsize=(5,5))
+
+plt.scatter(s1_sus, s2_sus)
+plt.plot(range(40), range(40))
+r_sus = [stats.pearsonr(s1_sus, s2_sus)[0]]
+plt.xlabel('Learning')
+plt.ylabel('Expert')
+plt.title('Susceptibility')
+
+f = plt.figure(figsize=(5,5))
+less = len([i for i in range(len(s1_sus)) if s1_sus[i] > s2_sus[i]])
+plt.bar([0,1],[less / len(s1_sus), 1 - (less / len(s1_sus))])
+plt.xticks([0,1], ['Less susceptible', 'More'])
+
+# Plot all neurons' susceptibility as a bar plot
+f = plt.figure(figsize=(15,5))
+
+scores = np.array(s2_sus) - np.array(s1_sus)
+
+plt.bar(range(len(scores)), np.sort(scores))
+plt.axhline(np.quantile(scores,0.25), color = 'r', ls = '--')
+plt.axhline(np.quantile(scores,0.75), color = 'r', ls = '--')
+plt.axhline(np.quantile(scores,0.95), color = 'y', ls = '--')
+plt.axhline(np.quantile(scores,0.05), color = 'y', ls = '--')
+plt.xlabel('Neuron #')
+plt.ylabel('Delta of susceptibility')
 
 
+# Plot bar graph but with sample neurons in red
+
+f = plt.figure(figsize=(15,5))
+
+scores = np.array(s2_sus) - np.array(s1_sus)
 
 
+# plt.bar(range(len(scores)), np.sort(scores))
+sus_order = np.argsort(scores)
+for i in range(len(sus_order)):
+    # If sample selective, plot in red
+    if s1.is_selective(s1.good_neurons[sus_order[i]], range(s1.sample, s1.delay), p=0.01):
+        plt.bar([i], scores[sus_order[i]], color='red')
+        plt.scatter([i], [max(scores)], color='red')
+    else:
+        plt.bar([i], scores[sus_order[i]], fill=False)
+
+    
+plt.axhline(np.quantile(scores,0.25), color = 'r', ls = '--')
+plt.axhline(np.quantile(scores,0.75), color = 'r', ls = '--')
+plt.axhline(np.quantile(scores,0.95), color = 'y', ls = '--')
+plt.axhline(np.quantile(scores,0.05), color = 'y', ls = '--')
+plt.xlabel('Neuron #')
+plt.ylabel('Delta of susceptibility')
 
 
+# Look on individual neuron level
+s1_sorted_n = np.take(s1.good_neurons, np.argsort(scores))
+s2_sorted_n = np.take(s2.good_neurons, np.argsort(scores))
 
+i=-4
+s1.plot_rasterPSTH_sidebyside(s1_sorted_n[i])
+s2.plot_rasterPSTH_sidebyside(s2_sorted_n[i])
+
+# look as population
+s1_neurons = s1.good_neurons[np.where(scores > np.quantile(scores,0.95))[0]]
+s1.selectivity_optogenetics(selective_neurons = s1_neurons)
+s2_neurons = s2.good_neurons[np.where(scores > np.quantile(scores,0.95))[0]]
+s2.selectivity_optogenetics(selective_neurons = s2_neurons)

@@ -4,7 +4,8 @@ Created on Wed Jan 18 10:46:39 2023
 
 @author: Catherine Wang
 """
-# from neuralFuncs import plot_PSTH
+import sys
+sys.path.append("C:\scripts\Imaging analysis")
 import numpy as np
 from numpy import concatenate as cat
 import matplotlib.pyplot as plt
@@ -2387,7 +2388,7 @@ class Session:
         axarr[1, 1].axvline(self.delay, linestyle = '--')
         axarr[1, 1].axvline(self.response, linestyle = '--')
         if not bias:
-            axarr[1, 1].hlines(y=vmax, xmin=self.delay, xmax=self.delay + 5, linewidth=10, color='red')
+            axarr[1, 1].hlines(y=vmax, xmin=self.delay, xmax=self.delay + (1/self.fs), linewidth=10, color='red')
             
         if fixaxis != False:
             axarr[1, 1].set_ylim([fixaxis[0], fixaxis[1]])
