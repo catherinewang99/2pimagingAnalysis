@@ -267,7 +267,7 @@ plt.xlabel('Susceptibility')
 #%% Investigate single neuron susceptibility changes
 
 
-paths = all_matched_paths[4]
+paths = all_matched_paths[6]
 
 
 intialpath, finalpath = paths[1], paths[2]
@@ -337,7 +337,7 @@ plt.ylabel('Delta of susceptibility')
 s1_sorted_n = np.take(s1.good_neurons, np.argsort(scores))
 s2_sorted_n = np.take(s2.good_neurons, np.argsort(scores))
 
-i=-4
+i=0
 s1.plot_rasterPSTH_sidebyside(s1_sorted_n[i])
 s2.plot_rasterPSTH_sidebyside(s2_sorted_n[i])
 
