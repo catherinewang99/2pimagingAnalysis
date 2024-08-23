@@ -18,32 +18,55 @@ import pandas as pd
 plt.rcParams['pdf.fonttype'] = '42' 
 
 #%% Plot all at once
-allpaths =  [[
-        # r'F:\data\BAYLORCW032\python\2023_10_08',
-        # r'F:\data\BAYLORCW034\python\2023_10_12',
-        r'F:\data\BAYLORCW036\python\2023_10_09',
-        r'F:\data\BAYLORCW035\python\2023_10_26',
-        r'F:\data\BAYLORCW037\python\2023_11_21',
+agg_matched_paths = [[    
+            r'F:\data\BAYLORCW032\python\2023_10_05',
+            # r'F:\data\BAYLORCW034\python\2023_10_12',
+            r'F:\data\BAYLORCW036\python\2023_10_09',
+            r'F:\data\BAYLORCW035\python\2023_10_26',
+            r'F:\data\BAYLORCW037\python\2023_11_21',
+            
+
+        r'H:\data\BAYLORCW044\python\2024_05_22',
+        r'H:\data\BAYLORCW044\python\2024_05_23',
+        
+        r'H:\data\BAYLORCW046\python\2024_05_29',
+        r'H:\data\BAYLORCW046\python\2024_05_30',
+        r'H:\data\BAYLORCW046\python\2024_05_31',
+            ],
+             [r'F:\data\BAYLORCW032\python\2023_10_19',
+            # r'F:\data\BAYLORCW034\python\2023_10_22',
+            r'F:\data\BAYLORCW036\python\2023_10_19',
+            r'F:\data\BAYLORCW035\python\2023_12_07',
+            r'F:\data\BAYLORCW037\python\2023_12_08',
+
+            
+        r'H:\data\BAYLORCW044\python\2024_06_06',
+        r'H:\data\BAYLORCW044\python\2024_06_04',
+
+        r'H:\data\BAYLORCW046\python\2024_06_07',
+        r'H:\data\BAYLORCW046\python\2024_06_10',
+        r'H:\data\BAYLORCW046\python\2024_06_11',
+
         ],
-        [
-        # r'F:\data\BAYLORCW032\python\2023_10_16',
-        # r'F:\data\BAYLORCW034\python\2023_10_22',
-        r'F:\data\BAYLORCW036\python\2023_10_19',
-        r'F:\data\BAYLORCW035\python\2023_12_07',
-        r'F:\data\BAYLORCW037\python\2023_12_08',
-        ],
-        [
-        # r'F:\data\BAYLORCW032\python\2023_10_25',
-        # r'F:\data\BAYLORCW034\python\2023_10_27',
-        r'F:\data\BAYLORCW036\python\2023_10_30',
-        r'F:\data\BAYLORCW035\python\2023_12_15',
-        r'F:\data\BAYLORCW037\python\2023_12_15',
+        [r'F:\data\BAYLORCW032\python\2023_10_24',
+            # r'F:\data\BAYLORCW034\python\2023_10_27',
+            r'F:\data\BAYLORCW036\python\2023_10_30',
+            r'F:\data\BAYLORCW035\python\2023_12_15',
+            r'F:\data\BAYLORCW037\python\2023_12_15',
+            
+            
+            r'H:\data\BAYLORCW044\python\2024_06_19',
+            r'H:\data\BAYLORCW044\python\2024_06_18',
+            
+            r'H:\data\BAYLORCW046\python\2024_06_24',
+            r'H:\data\BAYLORCW046\python\2024_06_27',
+            r'H:\data\BAYLORCW046\python\2024_06_26',
+
         ]]
 
 
-
-f, axarr = plt.subplots(4,3, figsize=(36,10))
-plt.setp(axarr, ylim=(-0.2,2))
+f, axarr = plt.subplots(4,3, sharey='row', sharex = True, figsize=(28,18))
+plt.setp(axarr, ylim=(-0.2,1.4))
 
 for j in range(3):
     
@@ -52,9 +75,10 @@ for j in range(3):
     outcomenonpref, outcomepref = [], []
     actionnonpref, actionpref = [], []
     
-    for path in allpaths[j]:
+    for path in agg_matched_paths[j]:
         l1 = session.Session(path, use_reg=True, triple=True)
-        _, _, _, numoutcome, stim_sel, choice_sel, outcome_sel, action_sel = l1.stim_choice_outcome_selectivity(plot=False)
+        _, _, _, numoutcome, stim_sel, choice_sel, outcome_sel, action_sel = l1.stim_choice_outcome_selectivity(plot=False, 
+                                                                                                                downsample='04' in path)
     
         snp, sp = stim_sel
         stimnonpref += snp
@@ -75,7 +99,7 @@ for j in range(3):
         print(len(numoutcome))
     
     
-    x = np.arange(-6.97,4,l1.fs)[:l1.time_cutoff]
+    x = np.arange(-6.97,4,1/6)[:61]
     titles = ['Stimulus selective', 'Choice selective', 'Outcome selective', 'Action selective']
     
     err = np.std(stimpref, axis=0) / np.sqrt(len(stimpref)) 
@@ -138,26 +162,26 @@ axarr[0].set_xlabel('Time from Go cue (s)')
 
 
 
-plt.savefig(r'F:\data\Fig 2\NLE_all_selectivitynocw32.pdf')
+plt.savefig(r'F:\data\Fig 2\NLE_all_selectivity.pdf')
 plt.show()
 
 #%% Do it by selectivity type
 allpaths =  [[
-        # r'F:\data\BAYLORCW032\python\2023_10_08',
+        # r'F:\data\BAYLORCW032\python\2023_10_05',
         # r'F:\data\BAYLORCW034\python\2023_10_12',
         r'F:\data\BAYLORCW036\python\2023_10_09',
         r'F:\data\BAYLORCW035\python\2023_10_26',
         r'F:\data\BAYLORCW037\python\2023_11_21',
         ],
         [
-        # r'F:\data\BAYLORCW032\python\2023_10_16',
+        # r'F:\data\BAYLORCW032\python\2023_10_19',
         # r'F:\data\BAYLORCW034\python\2023_10_22',
         r'F:\data\BAYLORCW036\python\2023_10_19',
         r'F:\data\BAYLORCW035\python\2023_12_07',
         r'F:\data\BAYLORCW037\python\2023_12_08',
         ],
         [
-        # r'F:\data\BAYLORCW032\python\2023_10_25',
+        # r'F:\data\BAYLORCW032\python\2023_10_24',
         # r'F:\data\BAYLORCW034\python\2023_10_27',
         r'F:\data\BAYLORCW036\python\2023_10_30',
         r'F:\data\BAYLORCW035\python\2023_12_15',

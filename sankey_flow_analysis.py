@@ -207,34 +207,34 @@ all_matched_paths = [
 
 
 
-agg_mice_paths = [[[r'F:\data\BAYLORCW032\python\2023_10_08',
-          r'F:\data\BAYLORCW032\python\2023_10_16',
-          r'F:\data\BAYLORCW032\python\2023_10_25',
-          r'F:\data\BAYLORCW032\python\cellreg\layer{}\1008_1016_1025pairs_proc.npy'],],
+# agg_mice_paths = [[[r'F:\data\BAYLORCW032\python\2023_10_08',
+#           r'F:\data\BAYLORCW032\python\2023_10_16',
+#           r'F:\data\BAYLORCW032\python\2023_10_25',
+#           r'F:\data\BAYLORCW032\python\cellreg\layer{}\1008_1016_1025pairs_proc.npy'],],
 
          
-        [[ r'F:\data\BAYLORCW034\python\2023_10_12',
-              r'F:\data\BAYLORCW034\python\2023_10_22',
-              r'F:\data\BAYLORCW034\python\2023_10_27',
-              r'F:\data\BAYLORCW034\python\cellreg\layer{}\1012_1022_1027pairs_proc.npy'],],
+#         [[ r'F:\data\BAYLORCW034\python\2023_10_12',
+#               r'F:\data\BAYLORCW034\python\2023_10_22',
+#               r'F:\data\BAYLORCW034\python\2023_10_27',
+#               r'F:\data\BAYLORCW034\python\cellreg\layer{}\1012_1022_1027pairs_proc.npy'],],
          
-    [[r'F:\data\BAYLORCW036\python\2023_10_09',
-            r'F:\data\BAYLORCW036\python\2023_10_19',
-            r'F:\data\BAYLORCW036\python\2023_10_30',
-            r'F:\data\BAYLORCW036\python\cellreg\layer{}\1009_1019_1030pairs_proc.npy'],
-        ],
+#     [[r'F:\data\BAYLORCW036\python\2023_10_09',
+#             r'F:\data\BAYLORCW036\python\2023_10_19',
+#             r'F:\data\BAYLORCW036\python\2023_10_30',
+#             r'F:\data\BAYLORCW036\python\cellreg\layer{}\1009_1019_1030pairs_proc.npy'],
+#         ],
     
-    [[r'F:\data\BAYLORCW035\python\2023_10_26',
-            r'F:\data\BAYLORCW035\python\2023_12_07',
-            r'F:\data\BAYLORCW035\python\2023_12_15',],
-        ],
+#     [[r'F:\data\BAYLORCW035\python\2023_10_26',
+#             r'F:\data\BAYLORCW035\python\2023_12_07',
+#             r'F:\data\BAYLORCW035\python\2023_12_15',],
+#         ],
     
-    [[r'F:\data\BAYLORCW037\python\2023_11_21',
-            r'F:\data\BAYLORCW037\python\2023_12_08',
-            r'F:\data\BAYLORCW037\python\2023_12_15',],
-        ]    
+#     [[r'F:\data\BAYLORCW037\python\2023_11_21',
+#             r'F:\data\BAYLORCW037\python\2023_12_08',
+#             r'F:\data\BAYLORCW037\python\2023_12_15',],
+#         ]    
 
-    ]
+#     ]
 
 #%% Get number to make SANKEY diagram SDR
 
@@ -242,19 +242,18 @@ agg_mice_paths = [[[r'F:\data\BAYLORCW032\python\2023_10_08',
 #             r'F:\data\BAYLORCW037\python\2023_12_08',
 #             r'F:\data\BAYLORCW037\python\2023_12_15',]
 
-p=0.0005
-# p=0.001
+# p=0.0005
+p=0.001
 
-og_SDR = []
-allstod = []
-s1list, d1, r1, ns1 = np.zeros(4),np.zeros(4),np.zeros(4),np.zeros(4)
-for paths in agg_mice_paths: # For each mouse
-    stod = []
-    s1 = session.Session(paths[0][0], use_reg=True, triple=True, use_background_sub=False) # Naive
-    # sample_epoch = range(s1.sample+2, s1.delay+2)
-    sample_epoch = range(s1.sample, s1.delay+2)
-    delay_epoch = range(s1.delay+9, s1.response)
-    response_epoch = range(s1.response, s1.response + 12)
+alls1list, alld1, allr1, allns1 = [],[],[],[]
+for paths in all_matched_paths: # For each mouse/FOV
+    s1list, d1, r1, ns1 = np.zeros(4),np.zeros(4),np.zeros(4),np.zeros(4)
+
+    s1 = session.Session(paths[0], use_reg=True, triple=True, use_background_sub=False) # Naive
+
+    sample_epoch = range(s1.sample, s1.delay)
+    delay_epoch = range(s1.delay+int(1.5 * 1/s1.fs), s1.response)
+    response_epoch = range(s1.response, s1.response + int(2*1/s1.fs))
     
     naive_sample_sel = s1.get_epoch_selective(sample_epoch, p=p)
     
@@ -266,10 +265,7 @@ for paths in agg_mice_paths: # For each mouse
 
     naive_nonsel = [n for n in s1.good_neurons if n not in naive_sample_sel and n not in naive_delay_sel and n not in naive_response_sel]
 
-    og_SDR += [[len(naive_sample_sel), len(naive_delay_sel), len(naive_response_sel), len(naive_nonsel)]]
-
-    # s2 = session.Session(paths[0][1], use_reg=True, triple=True) # Learning
-    s2 = session.Session(paths[0][2], use_reg=True, triple=True) # Expert
+    s2 = session.Session(paths[2], use_reg=True, triple=True) # Expert
     
     for n in naive_sample_sel:
         if s2.is_selective(s2.good_neurons[np.where(s1.good_neurons ==n)[0][0]], sample_epoch, p=p):
@@ -298,7 +294,6 @@ for paths in agg_mice_paths: # For each mouse
 
         elif s2.is_selective(s2.good_neurons[np.where(s1.good_neurons ==n)[0][0]], delay_epoch, p=p):
             r1[1] += 1
-            stod += [(n, s2.good_neurons[np.where(s1.good_neurons ==n)[0][0]])]  #save delay to sample cells
 
         elif s2.is_selective(s2.good_neurons[np.where(s1.good_neurons ==n)[0][0]], response_epoch, p=p):
             r1[2] += 1
@@ -315,9 +310,19 @@ for paths in agg_mice_paths: # For each mouse
             ns1[2] += 1
         else:
             ns1[3] += 1
-    allstod += [[stod]]
+
+    s1list, d1, r1, ns1 = s1list / len(s1.good_neurons), d1 / len(s1.good_neurons), r1 / len(s1.good_neurons), ns1 / len(s1.good_neurons)
     
-og_SDR = np.sum(og_SDR, axis=0)
+    alls1list += [s1list]
+    alld1 += [d1]
+    allr1 += [r1] 
+    allns1 += [ns1]
+    
+
+alls1list = np.mean(alls1list, axis=0) 
+alld1 = np.mean(alld1, axis=0)
+allr1 = np.mean(allr1, axis=0)
+allns1 = np.mean(allns1, axis=0)
 
 #%% Calculate SDR signifiances
 allnums = np.vstack((s1list, d1, r1, ns1))

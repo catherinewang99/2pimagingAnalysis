@@ -10,6 +10,7 @@ import numpy as np
 from numpy import concatenate as cat
 import matplotlib.pyplot as plt
 from scipy import stats
+import scipy
 import copy
 import scipy.io as scio
 from sklearn.preprocessing import normalize
@@ -3277,7 +3278,7 @@ class Session:
             return stim_neurons, choice_neurons, action_neurons, outcome_neurons
 
 
-    def stim_choice_outcome_selectivity(self, save=False, y_axis = 0, action=False, states = None, plot=True):
+    def stim_choice_outcome_selectivity(self, save=False, y_axis = 0, action=False, states = None, plot=True, downsample=False):
         """Plots selectivity traces of stim/lick/reward/action cells using Susu's method
         
         Susu method called from single_neuron_sel method
@@ -3438,7 +3439,46 @@ class Session:
                 plt.savefig(self.path + r'stim_choice_outcome_selectivity.pdf')
                 
             plt.show()
+        if downsample:
+            a,b=stim_sel
+            a,b = self.dodownsample(a), self.dodownsample(b)
+            stim_sel=a,b
+            
+            a,b=choice_sel
+            a,b = self.dodownsample(a), self.dodownsample(b)
+            choice_sel=a,b
+            
+            a,b=outcome_sel
+            a,b = self.dodownsample(a), self.dodownsample(b)
+            outcome_sel=a,b
+            
+            a,b=action_sel
+            a,b = self.dodownsample(a), self.dodownsample(b)
+            action_sel=a,b
+            
         return stim_neurons, choice_neurons, outcome_neurons, action_neurons, stim_sel, choice_sel, outcome_sel, action_sel
+    
+    def dodownsample(self, a):
+        """
+        Downsample for CW 44, 46 to fit with prev data
+    
+        Parameters
+        ----------
+        a : TYPE
+            DESCRIPTION.
+    
+        Returns
+        -------
+        a : TYPE
+            DESCRIPTION.
+    
+        """
+        for i in range(len(a)):
+            x = np.arange(-6.97,6,1/30)[:self.time_cutoff*2]
+            nums = np.interp(x, np.arange(-6.97,6,1/15)[:self.time_cutoff], a[i])
+            a[i] = scipy.signal.decimate(nums, 5)
+        
+        return a
 
 ######### BEHAVIOR STATE FUNCTIONS #################
 
