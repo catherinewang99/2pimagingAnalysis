@@ -208,6 +208,8 @@ f = plt.figure(figsize=(5,5))
 plt.bar([1], np.mean(r_sus), fill=False)
 plt.scatter(np.ones(len(r_sus)), r_sus)
 plt.xticks([1], ['R-values'])
+
+
 #%% Selectivity vs susceptibility
 
 all_r_sus = []
@@ -250,6 +252,10 @@ for i in range(3):
 # ax[0].set_xlabel('Susceptibility')
 # ax[0].set_ylabel('Selectivity')
 # plt.show()
+
+    f = plt.figure(figsize=(7,5))
+    plt.hist(allsus)
+    plt.xlabel('Susceptibility')
 
 #%% Plot selectivity vs sus
 

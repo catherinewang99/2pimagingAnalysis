@@ -2998,7 +2998,7 @@ class Session:
     
         return pert_der, ctl_der, pert_der - ctl_der
 
-    def susceptibility(self):
+    def susceptibility(self, period=None):
         """
         Calculates the per neuron susceptibility to perturbation, measured as a
         simple difference between control/opto trials during the whole delay
@@ -3008,8 +3008,9 @@ class Session:
         array : one positive value for every good neuron
 
         """
-        
-        period = range(self.delay, self.response)
+        if period is None:
+            period = range(self.delay, self.response)
+            
         all_sus = []
         
         for n in self.good_neurons:
