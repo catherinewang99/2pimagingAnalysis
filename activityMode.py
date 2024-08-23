@@ -146,7 +146,7 @@ class Mode(Session):
         
         for i in range(self.num_neurons):
 
-            std = np.mean(np.std([self.dff[0, t][i, self.sample-9:self.sample] for t in range(self.num_trials)],axis=0)).copy()
+            std = np.mean(np.std([self.dff[0, t][i, self.sample-int(1.5*1/self.fs):self.sample] for t in range(self.num_trials)],axis=0)).copy()
             # nmean = np.mean([self.dff[0, t][i, self.sample-3:self.sample] for t in self.i_good_trials]).copy()
             
             for j in range(self.num_trials):
@@ -783,7 +783,7 @@ class Mode(Session):
         else:
             
             orthonormal_basis, var_allDim = self.func_compute_epoch_decoder([self.PSTH_r_train_correct, 
-                                                                            self.PSTH_l_train_correct], range(self.delay+9, self.response))
+                                                                            self.PSTH_l_train_correct], range(self.delay+int(1.5*1/self.fs), self.response))
         
 
 
@@ -1295,7 +1295,7 @@ class Mode(Session):
         for n in self.good_neurons:
             
             # stim_period += [self.dff[0, trial][n, self.delay: self.delay + 6]]
-            poststim_period += [self.dff[0, trial][n, self.response-1]]
+            poststim_period += [self.dff[0, trial][n, self.response-int(1/6*1/self.fs)]]
             
         # Take diff between post stim - stim
         # StimRecovery_mode = np.mean(np.array(poststim_period), axis=1) - np.mean(np.array(stim_period), axis=1)
@@ -1366,7 +1366,7 @@ class Mode(Session):
         i_pc = 0
         projright, projleft = [], []
         
-        time_point_map = {'choice': self.response-1, 'action':self.response+7, 'stimulus':self.delay-1}
+        time_point_map = {'choice': self.response-int(1/6*1/self.fs), 'action':self.response+int(7/6*1/self.fs), 'stimulus':self.delay-int(1/6*1/self.fs)}
         time_point = time_point_map[mode_input]
         
         # Project for every trial in train set for DB
@@ -1503,13 +1503,13 @@ class Mode(Session):
             activity = self.dff[0, r_trials[t]][self.good_neurons] 
             activity = activity 
             proj_allDim = np.dot(activity.T, orthonormal_basis)
-            projright += [proj_allDim[self.response-1, i_pc]]
+            projright += [proj_allDim[self.response-int(1/6*1/self.fs), i_pc]]
             
         for t in self.l_train_idx:
             activity = self.dff[0, l_trials[t]][self.good_neurons]
             activity = activity 
             proj_allDim = np.dot(activity.T, orthonormal_basis)
-            projleft += [proj_allDim[self.response-1, i_pc]]
+            projleft += [proj_allDim[self.response-int(1/6*1/self.fs), i_pc]]
 
 
 
@@ -1523,7 +1523,7 @@ class Mode(Session):
             activity = activity - np.tile(np.mean(activityRL_train, axis=1)[:, None], (1, activity.shape[1]))
             proj_allDim = np.dot(activity.T, orthonormal_basis)
 
-            decoderchoice += [proj_allDim[self.response-1, i_pc]<db]
+            decoderchoice += [proj_allDim[self.response-int(1/6*1/self.fs), i_pc]<db]
             plt.plot(x, proj_allDim[:len(self.T_cue_aligned_sel), i_pc], 'b', alpha = 0.5,  linewidth = 0.5)
             # plt.scatter(x[self.response-1],[proj_allDim[self.response-1, i_pc]], color='b')
             
@@ -1532,7 +1532,7 @@ class Mode(Session):
             activity = activity - np.tile(np.mean(activityRL_train, axis=1)[:, None], (1, activity.shape[1]))
             proj_allDim = np.dot(activity.T, orthonormal_basis)
 
-            decoderchoice += [proj_allDim[self.response-1, i_pc]>db]
+            decoderchoice += [proj_allDim[self.response-int(1/6*1/self.fs), i_pc]>db]
             plt.plot(x, proj_allDim[:len(self.T_cue_aligned_sel), i_pc], 'r', alpha = 0.5, linewidth = 0.5)
             # plt.scatter(x[self.response-1],[proj_allDim[self.response-1, i_pc]], color='r')
             
@@ -2050,7 +2050,7 @@ class Mode(Session):
             activity = self.dff[0, r_trials[t]][self.good_neurons] 
             activity = activity - np.tile(np.mean(activityRL_train, axis=1)[:, None], (1, activity.shape[1]))
             proj_allDim = np.dot(activity.T, orthonormal_basis)
-            projright += [proj_allDim[self.delay-3:self.delay, i_pc]]
+            projright += [proj_allDim[self.delay-int(1/2*1/self.fs):self.delay, i_pc]]
 
             # plt.plot(x, proj_allDim[:len(self.T_cue_aligned_sel), i_pc], 'b', alpha = 0.5,  linewidth = 0.5)
             
@@ -2058,7 +2058,7 @@ class Mode(Session):
             activity = self.dff[0, l_trials[t]][self.good_neurons]
             activity = activity - np.tile(np.mean(activityRL_train, axis=1)[:, None], (1, activity.shape[1]))
             proj_allDim = np.dot(activity.T, orthonormal_basis)
-            projleft += [proj_allDim[self.delay-3:self.delay, i_pc]]
+            projleft += [proj_allDim[self.delay-int(1/2*1/self.fs):self.delay, i_pc]]
 
             # plt.plot(x, proj_allDim[:len(self.T_cue_aligned_sel), i_pc], 'r', alpha = 0.5, linewidth = 0.5)
             
@@ -2083,7 +2083,7 @@ class Mode(Session):
             activity = activity - np.tile(np.mean(activityRL_train, axis=1)[:, None], (1, activity.shape[1]))
             proj_allDim = np.dot(activity.T, orthonormal_basis)
             
-            proj_point = np.mean(proj_allDim[self.delay-3:self.delay, i_pc])
+            proj_point = np.mean(proj_allDim[self.delay-int(1/2*1/self.fs):self.delay, i_pc])
             if proj_point < r_median and proj_point < db:
                 r_proj_allDim_weak += [[proj_allDim[:self.time_cutoff, i_pc]]]
             elif proj_point > r_median and proj_point < db:
@@ -2099,7 +2099,7 @@ class Mode(Session):
             activity = activity - np.tile(np.mean(activityRL_train, axis=1)[:, None], (1, activity.shape[1]))
             proj_allDim = np.dot(activity.T, orthonormal_basis)
             
-            proj_point = np.mean(proj_allDim[self.delay-3:self.delay, i_pc])
+            proj_point = np.mean(proj_allDim[self.delay-int(1/2*1/self.fs):self.delay, i_pc])
             # print(proj_allDim.shape)
             if proj_point < l_median and proj_point > db:
                 l_proj_allDim_weak += [proj_allDim[:self.time_cutoff, i_pc]]
@@ -2174,7 +2174,7 @@ class Mode(Session):
             proj_allDim = np.dot(activity.T, orthonormal_basis)
 
             # plt.plot(x, proj_allDim[:len(self.T_cue_aligned_sel), i_pc], 'b', alpha = 0.5,  linewidth = 0.5)
-            proj_point = np.mean(proj_allDim[self.delay-3:self.delay, i_pc])
+            proj_point = np.mean(proj_allDim[self.delay-int(1/2*1/self.fs):self.delay, i_pc])
             if proj_point < r_median and proj_point < db:
                 r_proj_allDim_weak += [[proj_allDim[:self.time_cutoff, i_pc]]]
                 if len(r_proj_allDim_weak) > 3:
@@ -2196,7 +2196,7 @@ class Mode(Session):
             proj_allDim = np.dot(activity.T, orthonormal_basis)
 
             # plt.plot(x, proj_allDim[:len(self.T_cue_aligned_sel), i_pc], 'r', alpha = 0.5, linewidth = 0.5)
-            proj_point = np.mean(proj_allDim[self.delay-3:self.delay, i_pc])
+            proj_point = np.mean(proj_allDim[self.delay-int(1/2*1/self.fs):self.delay, i_pc])
             # print(proj_allDim.shape)
             if proj_point < l_median and proj_point > db:
                 l_proj_allDim_weak += [proj_allDim[:self.time_cutoff, i_pc]]
@@ -2409,7 +2409,7 @@ class Mode(Session):
         Use method from Guang's paper
         """
         
-        time_point_map = {'choice': self.response-1, 'action':self.response+7, 'stimulus':self.delay-1}
+        time_point_map = {'choice': self.response-int(1/6 * 1/self.fs), 'action':self.response+int(7/6 * 1/self.fs), 'stimulus':self.delay-int(1/6 * 1/self.fs)}
         time_point = time_point_map[mode_input]
         
        
@@ -2497,7 +2497,7 @@ class Mode(Session):
         """
         
         responsive_neurons, indices = [], []
-        stimepoch = range(self.delay, self.delay+6)
+        stimepoch = range(self.delay, self.delay+int(1*1/self.fs))
         alltrain = np.where(~self.stim_ON)[0]
         alloptotrain = np.where(self.stim_ON)[0]
         counter = 0
@@ -2830,7 +2830,7 @@ class Mode(Session):
        
         x = np.arange(-6.97,4,self.fs)[:self.time_cutoff]
         if period is None: 
-            period = range(self.response-6,self.response)
+            period = range(self.response-int(1*1/self.fs),self.response)
 
         # orthonormal_basis = orthonormal_basis.reshape(-1,1)
         i_pc = 0
@@ -3032,7 +3032,7 @@ class Mode(Session):
                 activity = activity - np.tile(np.mean(activityRL_train, axis=1)[:, None], (1, activity.shape[1]))
                 proj_allDim = np.dot(activity.T, orthonormal_basis)
                 proj_allDim = (proj_allDim - meantrain) / meanstd
-                r_proj_delta += [right_control_traces[self.response-6:self.response] - proj_allDim[self.response-6:self.response]]
+                r_proj_delta += [right_control_traces[self.response-int(1*1/self.fs):self.response] - proj_allDim[self.response-int(1*1/self.fs):self.response]]
                 # plt.plot(x, proj_allDim[:len(self.T_cue_aligned_sel), i_pc], 'b', alpha = 0.5,  linewidth = 0.5)
                 
             for l in l_trials:
@@ -3040,7 +3040,7 @@ class Mode(Session):
                 activity = activity - np.tile(np.mean(activityRL_train, axis=1)[:, None], (1, activity.shape[1]))
                 proj_allDim = np.dot(activity.T, orthonormal_basis)
                 proj_allDim = (proj_allDim - meantrain) / meanstd
-                l_proj_delta += [left_control_traces[self.response-6:self.response] - proj_allDim[self.response-6:self.response]]
+                l_proj_delta += [left_control_traces[self.response-int(1*1/self.fs):self.response] - proj_allDim[self.response-int(1*1/self.fs):self.response]]
                 # plt.plot(x, proj_allDim[:len(self.T_cue_aligned_sel), i_pc], 'r', alpha = 0.5, linewidth = 0.5)
                 
                 
