@@ -18,7 +18,7 @@ from scipy.stats import chisquare
 import pandas as pd
 from activityMode import Mode
 from scipy import stats
-#%%
+#%% paths
 all_matched_paths = [
     
             [r'F:\data\BAYLORCW032\python\2023_10_05',
@@ -160,7 +160,8 @@ modes = ['choice', 'action', 'stimulus']
 for i in range(3):
     mode_input = modes[i]
     allaccs = []
-    
+    if i != 1:
+        continue
     counter = 1
     for paths in all_matched_paths:
         
@@ -192,7 +193,7 @@ for i in range(3):
     plt.errorbar([0,1,2], np.mean(allaccs, axis=0),
                  stats.sem(allaccs, axis=0),
                  color = 'r')
-    for i in range(4):
+    for i in range(len(allaccs)):
         plt.scatter([0,1,2], allaccs[i])
     plt.xticks([0,1,2], ['Naive', 'Learning', 'Expert'])
     plt.ylim(bottom=0.4, top =1)

@@ -122,7 +122,29 @@ all_paths = [[r'F:\data\BAYLORCW032\python\2023_10_05',
 
         [r'F:\data\BAYLORCW037\python\2023_11_21',
             r'F:\data\BAYLORCW037\python\2023_11_28',
-            r'F:\data\BAYLORCW037\python\2023_12_15',]]
+            r'F:\data\BAYLORCW037\python\2023_12_15',],
+        
+         [r'H:\data\BAYLORCW044\python\2024_05_22',
+          r'H:\data\BAYLORCW044\python\2024_06_06',
+        r'H:\data\BAYLORCW044\python\2024_06_19'],
+         
+            [r'H:\data\BAYLORCW044\python\2024_05_23',
+             r'H:\data\BAYLORCW044\python\2024_06_04',
+        r'H:\data\BAYLORCW044\python\2024_06_18'],
+
+            [r'H:\data\BAYLORCW046\python\2024_05_29',
+             r'H:\data\BAYLORCW046\python\2024_06_07',
+             r'H:\data\BAYLORCW046\python\2024_06_24'],
+
+
+            [r'H:\data\BAYLORCW046\python\2024_05_30',
+             r'H:\data\BAYLORCW046\python\2024_06_10',
+             r'H:\data\BAYLORCW046\python\2024_06_27'],
+
+            [r'H:\data\BAYLORCW046\python\2024_05_31',
+             r'H:\data\BAYLORCW046\python\2024_06_11',
+             r'H:\data\BAYLORCW046\python\2024_06_26'
+             ]]
 
 performance_opto = []
 performance_ctl = []
@@ -162,9 +184,12 @@ plt.bar(np.arange(3)+0.2, np.mean(performance_opto, axis=0), 0.4, fill=False)
 plt.bar(np.arange(3)-0.2, np.mean(performance_ctl, axis=0), 0.4, fill=False)
 
 plt.xticks(range(3), ["Naive", "Learning", "Expert"])
-# plt.ylim([0.4,1])
+plt.axhline(0.5, ls='--')
+plt.ylim([0.15,1])
+plt.yticks(ticks=plt.yticks()[0][1:], labels=(100 * np.array(plt.yticks()[0][1:])).astype(int)) #Multiply all ticks by 100
+plt.ylabel('Performance (%)')
 # plt.legend()
-# plt.savefig(r'F:\data\Fig 1\beh_opto.pdf')
+plt.savefig(r'F:\data\Fig 1\updated_beh_opto.pdf')
 plt.show()
     
 #%% Plot learning progression
@@ -328,15 +353,15 @@ plt.show()
 
 #%% Separate learning curves by naive, learning, expert AGG all mice
 
-f, axarr = plt.subplots(1, 3, sharex='col', figsize=(20,6))
+# f, axarr = plt.subplots(1, 3, sharex='col', figsize=(20,6))
 
 all_acc = []
 all_EL = []
-mice_id = [32, 34, 36, 37, 35]
-
-sess = [[(0,4),(0,2), (0,2),(0,5),(0,4)],
-        [(4,11),(2,13),(2,15), (5,21), (4,40)],
-        [(11,14),(13,15), (15,17),(21,24), (40,43)]
+mice_id = [32, 34, 36, 37, 35, 44, 46]
+colors = ['red', 'orange', 'blue']
+sess = [[(0,4),(0,2), (0,2),(0,5),(0,4), (0,4), (0,3)],
+        [(4,11),(2,13),(2,15), (5,21), (4,40), (4, 18), (3,18)],
+        [(11,14),(13,15), (15,17),(21,24), (40,43), (18,21), (18,23)]
         ]
 
 length = [4, 35, 4]
@@ -344,19 +369,24 @@ name = ['naive', 'learning', 'expert']
 for i in range(3):
     fig = plt.figure(figsize =(length[i], 12)) 
 
-    for idx in range(5):
-        b = behavior.Behavior('F:\data\Behavior data\BAYLORCW0{}\python_behavior'.format(mice_id[idx]), 
+    for idx in range(len(mice_id)):
+        if mice_id[idx] > 40:
+            b = behavior.Behavior('H:\data\Behavior data\BAYLORCW0{}\python_behavior'.format(mice_id[idx]), 
+                                  behavior_only=True)
+        else:
+            b = behavior.Behavior('F:\data\Behavior data\BAYLORCW0{}\python_behavior'.format(mice_id[idx]), 
                               behavior_only=True)
         _, correctarr, _ = b.get_acc_EL(window=150, sessions = sess[i][idx])
         
+        plt.scatter(len(correctarr), correctarr[-1], marker='o', s=650, alpha = 0.85, color = colors[i])
+
         plt.plot(correctarr, 'g', alpha =0.75)        
         plt.ylabel('% correct')
         plt.axhline(y=0.7, alpha = 0.5, color='orange')
         plt.axhline(y=0.5, alpha = 0.5, color='red', ls = '--')
-        plt.ylim(0.18, 0.92)
+        plt.ylim(0.18, 0.99)
         
-        plt.scatter(len(correctarr), correctarr[-1], marker='o', s=650, alpha = 0.5, color = 'g')
-    plt.savefig(r'F:\data\Fig 1\alllearningcurves_{}.pdf'.format(name[i]),transparent=True)
+    plt.savefig(r'F:\data\Fig 1\updated_alllearningcurves_{}.pdf'.format(name[i]),transparent=True)
 
     plt.show()
         # axarr[i].plot(correctarr, 'g', alpha =0.75)        

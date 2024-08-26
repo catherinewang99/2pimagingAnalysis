@@ -27,6 +27,9 @@ from scipy.stats import mstats
 plt.rcParams['pdf.fonttype'] = 42 
 import time 
 import random
+from itertools import groupby
+from operator import itemgetter
+
 
 class Session:
     """
@@ -47,7 +50,8 @@ class Session:
     
     def __init__(self, path, layer_num='all', use_reg = False, triple = False,
                  filter_reg = True, use_background_sub = False,
-                 sess_reg = False, guang=False, passive=False, quality=False):
+                 sess_reg = False, guang=False, passive=False, quality=False,
+                 remove_consec_opto = True):
         
         """
         Parameters
@@ -72,6 +76,8 @@ class Session:
             If dataset is from passive experiment (default False)
         quality : bool, optional
             If parent class is quality
+        remove_consec_opto : bool, optional
+            Whether to remove consecutive opto trials
         """       
         self.use_background_sub = use_background_sub
         if use_background_sub:
@@ -245,6 +251,7 @@ class Session:
         
         self.stim_ON = cat(behavior['StimDur_tmp']) > 0
         
+        
         if 'StimLevel' in behavior.keys():
             self.stim_level = cat(behavior['StimLevel'])
             
@@ -256,6 +263,20 @@ class Session:
         
         # Re-adjust with i good trials
         self.stim_trials = np.where(self.stim_ON)[0]
+        
+        # Modify stim on to take out the repeat stim trials
+        if remove_consec_opto:
+            flip_indices = []
+            for i in range(len(self.stim_trials)-1):
+                for j in range(1, len(self.stim_trials)):
+                    if self.stim_trials[j]-self.stim_trials[i] == 1:
+                        if self.stim_trials[i-1] not in flip_indices: # If the prev index not already removed
+                            flip_indices += [self.stim_trials[i]]
+            
+            self.stim_ON[flip_indices] = False
+            self.stim_trials = np.where(self.stim_ON)[0]
+            print('Removed {} consecutive stim trials'.format(len(flip_indices)))
+
         self.lick_L_trials = np.array([i for i in self.lick_L_trials if i in self.i_good_trials])
         self.lick_R_trials = np.array([i for i in self.lick_R_trials if i in self.i_good_trials])
         self.L_trials = np.array([i for i in self.L_trials if i in self.i_good_trials])
@@ -2719,7 +2740,7 @@ class Session:
         plt.show()
 
 
-    def selectivity_optogenetics(self, save=False, p = 0.0001, lickdir = False, return_traces = False, fix_axis = [], selective_neurons = []):
+    def selectivity_optogenetics(self, save=False, p = 0.0001, lickdir = False, return_traces = False, fix_axis = [], selective_neurons = [], downsample=False):
         """Plots overall selectivity trace across opto vs control trials
         
         Uses late delay epoch to calculate selectivity
@@ -2783,6 +2804,12 @@ class Session:
         erro += np.std(optonp, axis=0) / np.sqrt(len(optonp))  
         
         if return_traces:
+            
+            if downsample:
+
+                pref, nonpref = self.dodownsample(pref), self.dodownsample(nonpref)
+                optop, optonp = self.dodownsample(optop), self.dodownsample(optonp)
+                
             return pref, nonpref, optop, optonp
 
         if 'CW03' in self.path:
@@ -3473,12 +3500,13 @@ class Session:
             DESCRIPTION.
     
         """
+        b=np.zeros(61)
         for i in range(len(a)):
             x = np.arange(-6.97,6,1/30)[:self.time_cutoff*2]
             nums = np.interp(x, np.arange(-6.97,6,1/15)[:self.time_cutoff], a[i])
-            a[i] = scipy.signal.decimate(nums, 5)
+            b = np.vstack((b, scipy.signal.decimate(nums, 5)))
         
-        return a
+        return b[1:]
 
 ######### BEHAVIOR STATE FUNCTIONS #################
 
