@@ -155,49 +155,54 @@ allpaths = [[r'F:\data\BAYLORCW032\python\2023_10_08',
                      r'F:\data\BAYLORCW035\python\2023_12_15',]
         ]
 
-mode_input = 'choice'
-allaccs = []
 
-counter = 1
-for paths in all_matched_paths:
+modes = ['choice', 'action', 'stimulus']
+for i in range(3):
+    mode_input = modes[i]
+    allaccs = []
     
-    l1 = Mode(paths[2], use_reg=True, triple=True) #Expert
-    orthonormal_basis, mean, db, acc_expert = l1.decision_boundary(mode_input=mode_input)
-
+    counter = 1
+    for paths in all_matched_paths:
+        
+        l1 = Mode(paths[2], use_reg=True, triple=True) #Expert
+        orthonormal_basis, mean, db, acc_expert = l1.decision_boundary(mode_input=mode_input)
     
-    l1 = Mode(paths[1], use_reg=True, triple=True) #Learning
-    acc_learning = l1.decision_boundary_appliedCD(mode_input, orthonormal_basis, mean, db)
-
-    l1 = Mode(paths[0], use_reg=True, triple=True) # Naive
-    acc_naive = l1.decision_boundary_appliedCD(mode_input, orthonormal_basis, mean, db)
+        
+        l1 = Mode(paths[1], use_reg=True, triple=True) #Learning
+        acc_learning = l1.decision_boundary_appliedCD(mode_input, orthonormal_basis, mean, db)
     
-    nai = np.mean(acc_naive)
-    nai = nai if nai > 0.5 else 1-nai
-    exp = np.mean(acc_expert)
-    exp = exp if exp > 0.5 else 1-exp
-    lea = np.mean(acc_learning)
-    lea = lea if lea > 0.5 else 1-lea
+        l1 = Mode(paths[0], use_reg=True, triple=True) # Naive
+        acc_naive = l1.decision_boundary_appliedCD(mode_input, orthonormal_basis, mean, db)
+        
+        nai = np.mean(acc_naive)
+        nai = nai if nai > 0.5 else 1-nai
+        exp = np.mean(acc_expert)
+        exp = exp if exp > 0.5 else 1-exp
+        lea = np.mean(acc_learning)
+        lea = lea if lea > 0.5 else 1-lea
+        
+        allaccs += [[nai, lea, exp]]
+        # plt.scatter([0,1,2], [nai, lea, exp], label=counter)
+        counter += 1
     
-    allaccs += [[nai, lea, exp]]
-    # plt.scatter([0,1,2], [nai, lea, exp], label=counter)
-    counter += 1
-
-fig = plt.figure(figsize=(5,5))
-
+    fig = plt.figure(figsize=(5,5))
     
-plt.bar([0,1,2], np.mean(allaccs, axis=0))
-plt.errorbar([0,1,2], np.mean(allaccs, axis=0),
-             stats.sem(allaccs, axis=0),
-             color = 'r')
-for i in range(4):
-    plt.scatter([0,1,2], allaccs[i])
-plt.xticks([0,1,2], ['Naive', 'Learning', 'Expert'])
-plt.ylim(bottom=0.4, top =1)
-# plt.savefig(r'F:\data\Fig 2\naivectl_CD_action_AGG_decoding_NLE.pdf')
-plt.show()
-
-stats.ttest_ind(np.array(allaccs)[:, 0], np.array(allaccs)[:, 1])
-stats.ttest_ind(np.array(allaccs)[:, 2], np.array(allaccs)[:, 1])
+        
+    plt.bar([0,1,2], np.mean(allaccs, axis=0))
+    plt.errorbar([0,1,2], np.mean(allaccs, axis=0),
+                 stats.sem(allaccs, axis=0),
+                 color = 'r')
+    for i in range(4):
+        plt.scatter([0,1,2], allaccs[i])
+    plt.xticks([0,1,2], ['Naive', 'Learning', 'Expert'])
+    plt.ylim(bottom=0.4, top =1)
+    plt.axhline(0.5, ls='--', color='black')
+    plt.title(mode_input)
+    plt.savefig(r'F:\data\Fig 2\CD_{}_allAGG_decoding_NLE.pdf'.format(mode_input))
+    plt.show()
+    
+    stats.ttest_ind(np.array(allaccs)[:, 0], np.array(allaccs)[:, 1])
+    stats.ttest_ind(np.array(allaccs)[:, 2], np.array(allaccs)[:, 1])
 
 #%% Decoding analysis applied across training stages for choice CW37
 paths =[r'F:\data\BAYLORCW037\python\2023_11_21',

@@ -3149,7 +3149,7 @@ class Session:
             
             stim, lick, reward = [],[],[]
             
-            stimtime, delaytime, outcometime = range(self.sample, self.delay), range(self.response-6, self.response), range(self.time_cutoff - 6, self.time_cutoff)
+            stimtime, delaytime, outcometime = range(self.sample, self.delay), range(self.response-int(1*1/self.fs), self.response), range(self.time_cutoff - int(1*1/self.fs), self.time_cutoff)
 
             for t in range(self.time_cutoff):
                 
@@ -3234,12 +3234,12 @@ class Session:
                 
                 _, stimp = mannwhitneyu(cat((mean_count(RR, range(self.sample,self.delay)), mean_count(RL, range(self.sample,self.delay)))),
                                         cat((mean_count(LL, range(self.sample,self.delay)), mean_count(LR, range(self.sample,self.delay)))))
-                _, choicep = mannwhitneyu(cat((mean_count(RR, range(self.response-6,self.response)), mean_count(LR, range(self.response-6,self.response)))),
-                                          cat((mean_count(LL, range(self.response-6,self.response)), mean_count(RL, range(self.response-6,self.response)))))
+                _, choicep = mannwhitneyu(cat((mean_count(RR, range(self.response-int(1*1/self.fs),self.response)), mean_count(LR, range(self.response-int(1*1/self.fs),self.response)))),
+                                          cat((mean_count(LL, range(self.response-int(1*1/self.fs),self.response)), mean_count(RL, range(self.response-int(1*1/self.fs),self.response)))))
                 _, actionp = mannwhitneyu(cat((mean_count(RR, range(self.response,self.time_cutoff)), mean_count(LR, range(self.response,self.time_cutoff)))),
                                           cat((mean_count(LL, range(self.response,self.time_cutoff)), mean_count(RL, range(self.response,self.time_cutoff)))))
-                _, outcomep = mannwhitneyu(cat((mean_count(LL, range(self.time_cutoff - 6,self.time_cutoff)), mean_count(RR, range(self.time_cutoff - 6,self.time_cutoff)))),
-                                            cat((mean_count(LR, range(self.time_cutoff - 6,self.time_cutoff)), mean_count(RL, range(self.time_cutoff - 6,self.time_cutoff)))))
+                _, outcomep = mannwhitneyu(cat((mean_count(LL, range(self.time_cutoff - int(1*1/self.fs),self.time_cutoff)), mean_count(RR, range(self.time_cutoff - int(1*1/self.fs),self.time_cutoff)))),
+                                            cat((mean_count(LR, range(self.time_cutoff - int(1*1/self.fs),self.time_cutoff)), mean_count(RL, range(self.time_cutoff - int(1*1/self.fs),self.time_cutoff)))))
                 
                 # _, stimp = mannwhitneyu(mean_count(RR, range(self.sample,self.delay)) + mean_count(RL, range(self.sample,self.delay)),
                 #                         mean_count(LL, range(self.sample,self.delay)) + mean_count(LR, range(self.sample,self.delay)))
@@ -3321,7 +3321,7 @@ class Session:
         
         ################## ACTION #####################
         if action:
-            nonpref, pref = self.contra_ipsi_pop(range(self.response, self.response+6), return_sel=True, selective_n = action_neurons, trials=states)
+            nonpref, pref = self.contra_ipsi_pop(range(self.response, self.response+int(1*1/self.fs)), return_sel=True, selective_n = action_neurons, trials=states)
             err = np.std(pref, axis=0) / np.sqrt(len(pref)) 
             err += np.std(nonpref, axis=0) / np.sqrt(len(nonpref))
             sel = np.mean(pref, axis=0) - np.mean(nonpref, axis=0)
@@ -3397,7 +3397,7 @@ class Session:
             axarr[2].set_title(titles[2])
             
         ################## ACTION #####################
-        nonpref, pref = self.contra_ipsi_pop(range(self.response, self.response+6), return_sel=True, selective_n = action_neurons, trials=states)
+        nonpref, pref = self.contra_ipsi_pop(range(self.response, self.response+int(1*1/self.fs)), return_sel=True, selective_n = action_neurons, trials=states)
         if any(isinstance(x, np.float64) for x in nonpref):
             nonpref = pd.DataFrame(np.array(nonpref)).dropna().to_numpy()[:, 0]
         if any(isinstance(x, np.float64) for x in pref):

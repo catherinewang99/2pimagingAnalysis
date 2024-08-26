@@ -65,8 +65,8 @@ agg_matched_paths = [[
         ]]
 
 
-f, axarr = plt.subplots(4,3, sharey='row', sharex = True, figsize=(28,18))
-plt.setp(axarr, ylim=(-0.2,1.4))
+f, axarr = plt.subplots(4,3, sharey='row', sharex = True, figsize=(24,18))
+plt.setp(axarr, ylim=(-0.2,1.2))
 
 for j in range(3):
     
@@ -157,12 +157,12 @@ for i in range(3):
         axarr[j,i].axhline(0, color = 'grey', alpha=0.5, ls = '--')
         
         
-axarr[0].set_ylabel('Selectivity')
-axarr[0].set_xlabel('Time from Go cue (s)')
+axarr[0,0].set_ylabel('Selectivity')
+axarr[2,1].set_xlabel('Time from Go cue (s)')
 
 
 
-plt.savefig(r'F:\data\Fig 2\NLE_all_selectivity.pdf')
+plt.savefig(r'F:\data\Fig 2\NLE_all_selectivityagg.pdf')
 plt.show()
 
 #%% Do it by selectivity type
