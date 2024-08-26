@@ -1571,15 +1571,15 @@ class Session:
             # Skip sessions with fewer than 15 neurons
             if self.screen_preference(neuron_num, epoch) != 0:
                 
-                R, L = self.get_trace_matrix(neuron_num)
+                R, L = self.get_trace_matrix(neuron_num, lickdir=lickdir)
 
                 pref_choice, test_l, test_r = self.screen_preference(neuron_num, epoch, lickdir=lickdir) 
                 
                 if trials is not None: # Filter out non behavior state trials
                 
-                    R, L = self.get_trace_matrix(neuron_num, lickdir=True)
+                    R, L = self.get_trace_matrix(neuron_num, lickdir=lickdir)
 
-                    pref_choice, test_l, test_r = self.screen_preference(neuron_num, epoch, lickdir=True) 
+                    pref_choice, test_l, test_r = self.screen_preference(neuron_num, epoch, lickdir=lickdir) 
                     
                     test_l = [t for t in test_l if self.lick_L_trials[t] in trials]
                     test_r = [t for t in test_r if self.lick_R_trials[t] in trials]
@@ -2764,7 +2764,10 @@ class Session:
         x = np.arange(-6.97,4,self.fs)[:self.time_cutoff]
 
         # Get late delay selective neurons
-        contra_neurons, ipsi_neurons, contra_trace, ipsi_trace = self.contra_ipsi_pop(range(self.response-int(1.5*(1/self.fs)), self.response), p=p, selective_n=selective_neurons) 
+        contra_neurons, ipsi_neurons, contra_trace, ipsi_trace = self.contra_ipsi_pop(range(self.response-int(1.5*(1/self.fs)), self.response), 
+                                                                                      p=p, 
+                                                                                      lickdir=lickdir,
+                                                                                      selective_n=selective_neurons) 
         
         if len(contra_neurons) == 0 and len(ipsi_neurons) == 0:
             
