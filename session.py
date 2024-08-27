@@ -270,8 +270,8 @@ class Session:
             for i in range(len(self.stim_trials)-1):
                 for j in range(1, len(self.stim_trials)):
                     if self.stim_trials[j]-self.stim_trials[i] == 1:
-                        if self.stim_trials[i-1] not in flip_indices: # If the prev index not already removed
-                            flip_indices += [self.stim_trials[i]]
+                        # if self.stim_trials[i-1] not in flip_indices: # If the prev index not already removed
+                        flip_indices += [self.stim_trials[j]]
             
             self.stim_ON[flip_indices] = False
             self.stim_trials = np.where(self.stim_ON)[0]
@@ -2890,7 +2890,7 @@ class Session:
 
             
 
-    def modularity_proportion(self, p = 0.0001, trials=None, period=None):
+    def modularity_proportion(self, p = 0.0001, lickdir=False, trials=None, period=None):
         """Returns the modularity as a proportion of control trial activity
         
         Uses method from Chen et al 2021 to calculate recovery during the 
@@ -2917,7 +2917,9 @@ class Session:
         """
         
         # Get late delay selective neurons using second half of delay
-        contra_neurons, ipsi_neurons, contra_trace, ipsi_trace = self.contra_ipsi_pop(range(self.response-int(1.5*(1/self.fs)),self.response), p=p) 
+        contra_neurons, ipsi_neurons, contra_trace, ipsi_trace = self.contra_ipsi_pop(range(self.response-int(1.5*(1/self.fs)),self.response), 
+                                                                                      p=p,
+                                                                                      lickdir=lickdir) 
         
         if len(contra_neurons) == 0 and len(ipsi_neurons) == 0:
             
@@ -2929,20 +2931,20 @@ class Session:
             
             
             nonpref, pref = cat(ipsi_trace['r']), cat(ipsi_trace['l'])
-            optonp, optop = self.get_trace_matrix_multiple(ipsi_neurons, opto=True, both=False)
+            optonp, optop = self.get_trace_matrix_multiple(ipsi_neurons, opto=True, both=False, lickdir=lickdir)
             # errnp, errpref = self.get_trace_matrix_multiple(ipsi_neurons, opto=True, error=True)
             
         elif len(ipsi_neurons) == 0:
             
             nonpref, pref = cat(contra_trace['l']), cat(contra_trace['r'])
-            optop, optonp = self.get_trace_matrix_multiple(contra_neurons, opto=True, both=False)
+            optop, optonp = self.get_trace_matrix_multiple(contra_neurons, opto=True, both=False, lickdir=lickdir)
             # errpref, errnp = self.get_trace_matrix_multiple(contra_neurons, opto=True, error=True)
 
         else:
             
             nonpref, pref = cat((cat(ipsi_trace['r']), cat(contra_trace['l']))), cat((cat(ipsi_trace['l']), cat(contra_trace['r'])))
-            optonp, optop = self.get_trace_matrix_multiple(ipsi_neurons, opto=True, both=False)
-            optop1, optonp1 = self.get_trace_matrix_multiple(contra_neurons, opto = True, both=False)
+            optonp, optop = self.get_trace_matrix_multiple(ipsi_neurons, opto=True, both=False, lickdir=lickdir)
+            optop1, optonp1 = self.get_trace_matrix_multiple(contra_neurons, opto = True, both=False, lickdir=lickdir)
             optonp, optop = cat((optonp, optonp1)), cat((optop, optop1))
             
             # errnp, errpref = self.get_trace_matrix_multiple(ipsi_neurons, opto=True, error=True)

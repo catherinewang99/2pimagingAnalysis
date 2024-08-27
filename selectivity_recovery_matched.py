@@ -203,9 +203,9 @@ paths = [    r'F:\data\BAYLORCW032\python\2023_10_05',
             r'H:\data\BAYLORCW044\python\2024_05_22',
             r'H:\data\BAYLORCW044\python\2024_05_23',
             
-            # r'H:\data\BAYLORCW046\python\2024_05_29',
+            r'H:\data\BAYLORCW046\python\2024_05_29',
             r'H:\data\BAYLORCW046\python\2024_05_30',
-            # r'H:\data\BAYLORCW046\python\2024_05_31',
+            r'H:\data\BAYLORCW046\python\2024_05_31',
             ]
 
 paths = [r'F:\data\BAYLORCW032\python\2023_10_19',
@@ -223,20 +223,20 @@ paths = [r'F:\data\BAYLORCW032\python\2023_10_19',
             ]
 
 
-# paths = [r'F:\data\BAYLORCW032\python\2023_10_24',
-#             # r'F:\data\BAYLORCW034\python\2023_10_27',
-#             r'F:\data\BAYLORCW036\python\2023_10_30',
-#             r'F:\data\BAYLORCW035\python\2023_12_15',
-#             r'F:\data\BAYLORCW037\python\2023_12_15',
+paths = [r'F:\data\BAYLORCW032\python\2023_10_24',
+            # r'F:\data\BAYLORCW034\python\2023_10_27',
+            r'F:\data\BAYLORCW036\python\2023_10_30',
+            r'F:\data\BAYLORCW035\python\2023_12_15',
+            r'F:\data\BAYLORCW037\python\2023_12_15',
             
-#             r'H:\data\BAYLORCW044\python\2024_06_19',
-#             r'H:\data\BAYLORCW044\python\2024_06_18',
+            r'H:\data\BAYLORCW044\python\2024_06_19',
+            r'H:\data\BAYLORCW044\python\2024_06_18',
             
-#             r'H:\data\BAYLORCW046\python\2024_06_24',
-#             r'H:\data\BAYLORCW046\python\2024_06_27',
-#             r'H:\data\BAYLORCW046\python\2024_06_26',
+            r'H:\data\BAYLORCW046\python\2024_06_24',
+            r'H:\data\BAYLORCW046\python\2024_06_27',
+            r'H:\data\BAYLORCW046\python\2024_06_26',
             
-#             ]
+            ]
 
 
 
@@ -252,11 +252,11 @@ paths = [r'F:\data\BAYLORCW032\python\2023_10_19',
 #             r'F:\data\BAYLORCW036\python\2023_10_17',]
 for path in paths:
     
-    l1 = session.Session(path, use_reg=True, triple=True)
+    l1 = session.Session(path, use_reg=True, triple=True, remove_consec_opto=True)
     # l1 = session.Session(path)
     
     pref_, nonpref_, optop_, optonp_ = l1.selectivity_optogenetics(p=0.01, 
-                                                                   lickdir=True, 
+                                                                   lickdir=False, 
                                                                    return_traces=True,
                                                                    downsample='04' in path)
     
@@ -301,7 +301,7 @@ axarr.set_xlabel('Time from Go cue (s)')
 axarr.set_ylabel('Selectivity')
 axarr.set_ylim((-0.2, 0.7))
 
-# plt.savefig(r'F:\data\Fig 3\exp_sel_recovery_updated.pdf')
+# plt.savefig(r'F:\data\Fig 3\nai_sel_recovery_updated.pdf')
 plt.show()
 #%% AGG all sesssions ALL unmatched neurons MORE sessions
 pref, nonpref, optop, optonp = np.zeros(61), np.zeros(61), np.zeros(61), np.zeros(61)
@@ -365,7 +365,7 @@ for path in paths:
     l1 = session.Session(path)
     # l1 = session.Session(path)
     
-    pref_, nonpref_, optop_, optonp_ = l1.selectivity_optogenetics(p=0.01, lickdir=True, return_traces=True)
+    pref_, nonpref_, optop_, optonp_ = l1.selectivity_optogenetics(p=0.01, lickdir=False, return_traces=True)
     
     pref = np.vstack((pref, pref_))
     nonpref = np.vstack((nonpref, nonpref_))
@@ -442,9 +442,9 @@ all_paths = [[    r'F:\data\BAYLORCW032\python\2023_10_05',
             r'H:\data\BAYLORCW044\python\2024_05_22',
             r'H:\data\BAYLORCW044\python\2024_05_23',
             
-            # r'H:\data\BAYLORCW046\python\2024_05_29',
+            r'H:\data\BAYLORCW046\python\2024_05_29',
             r'H:\data\BAYLORCW046\python\2024_05_30',
-            # r'H:\data\BAYLORCW046\python\2024_05_31',
+            r'H:\data\BAYLORCW046\python\2024_05_31',
             ],
 
              [r'F:\data\BAYLORCW032\python\2023_10_19',
@@ -456,9 +456,9 @@ all_paths = [[    r'F:\data\BAYLORCW032\python\2023_10_05',
             r'H:\data\BAYLORCW044\python\2024_06_06',
             r'H:\data\BAYLORCW044\python\2024_06_04',
 
-            # r'H:\data\BAYLORCW046\python\2024_06_07',
+            r'H:\data\BAYLORCW046\python\2024_06_07',
             r'H:\data\BAYLORCW046\python\2024_06_10',
-            # r'H:\data\BAYLORCW046\python\2024_06_11',
+            r'H:\data\BAYLORCW046\python\2024_06_11',
             ],
 
 
@@ -471,9 +471,9 @@ all_paths = [[    r'F:\data\BAYLORCW032\python\2023_10_05',
             r'H:\data\BAYLORCW044\python\2024_06_19',
             r'H:\data\BAYLORCW044\python\2024_06_18',
             
-            # r'H:\data\BAYLORCW046\python\2024_06_24',
+            r'H:\data\BAYLORCW046\python\2024_06_24',
             r'H:\data\BAYLORCW046\python\2024_06_27',
-            # r'H:\data\BAYLORCW046\python\2024_06_26',
+            r'H:\data\BAYLORCW046\python\2024_06_26',
             
             ]]
 
@@ -483,9 +483,9 @@ for paths in all_paths: # For each stage of training
     recovery = []
     for path in paths: # For each mouse
         
-        l1 = session.Session(path, use_reg=True, triple=True)
+        l1 = session.Session(path, use_reg=True, triple=True, remove_consec_opto=True)
         # l1 = session.Session(path)
-        temp, _ = l1.modularity_proportion(p=0.01)
+        temp, _ = l1.modularity_proportion(p=0.01, lickdir=True)
         if temp > 0 and temp < 1: # Exclude values based on Chen et al method guideliens
             recovery += [temp]
     
@@ -499,7 +499,7 @@ plt.scatter(np.ones(len(all_recovery[2]))+1, all_recovery[2])
 
 plt.xticks(range(3), ['Naive', 'Learning', 'Expert'])
 plt.ylabel('Modularity')
-plt.savefig(r'F:\data\Fig 3\updated_modularity_bargraph.pdf')
+# plt.savefig(r'F:\data\Fig 3\updated_modularity_bargraph.pdf')
 
 plt.show()
 
