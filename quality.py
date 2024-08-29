@@ -506,7 +506,7 @@ class QC(Session):
         neuron_sig = []
         
         if period is None:
-            period = np.arange(self.delay+1,self.delay+7)
+            period = np.arange(self.delay+int(1/6*1/self.fs),self.delay+int(7/6*1/self.fs))
         
         
         # for neuron in range(self.num_neurons):

@@ -51,7 +51,7 @@ class Session:
     def __init__(self, path, layer_num='all', use_reg = False, triple = False,
                  filter_reg = True, use_background_sub = False,
                  sess_reg = False, guang=False, passive=False, quality=False,
-                 remove_consec_opto = True):
+                 remove_consec_opto = False):
         
         """
         Parameters

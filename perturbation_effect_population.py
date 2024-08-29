@@ -43,6 +43,13 @@ contra_paths = [
             r'F:\data\BAYLORCW036\python\2023_10_30',
             r'F:\data\BAYLORCW035\python\2023_12_15',
             r'F:\data\BAYLORCW037\python\2023_12_15',
+            
+            r'H:\data\BAYLORCW044\python\2024_05_22',
+            r'H:\data\BAYLORCW044\python\2024_05_23',
+            
+            r'H:\data\BAYLORCW046\python\2024_05_29',
+            r'H:\data\BAYLORCW046\python\2024_05_30',
+            r'H:\data\BAYLORCW046\python\2024_05_31',
             ]
 
 

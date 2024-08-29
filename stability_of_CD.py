@@ -116,7 +116,7 @@ l1.plot_appliedCD(orthonormal_basis, mean, fix_axis = (-15, 17), save = r'F:\dat
 
 #%% Stim dimension
 
-path = expertpath
+path = naivepath
 l1 = Mode(path, use_reg = True, triple=True)
 orthonormal_basis, mean = l1.plot_CD(mode_input='stimulus', ctl=True)#, save = r'F:\data\Fig 2\CDstim_expert_CW37.pdf')
 
@@ -124,7 +124,7 @@ path = learningpath
 l1 = Mode(path, use_reg = True, triple=True)
 l1.plot_appliedCD(orthonormal_basis, mean)#, save = r'F:\data\Fig 2\CDstim_learning_CW37.pdf')
 
-path = naivepath
+path = expertpath
 l1 = Mode(path, use_reg = True, triple=True)
 l1.plot_appliedCD(orthonormal_basis, mean)#,  save = r'F:\data\Fig 2\CDstim_naive_CW37.pdf')
 

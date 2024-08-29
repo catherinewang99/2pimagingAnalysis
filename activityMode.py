@@ -1367,6 +1367,8 @@ class Mode(Session):
         projright, projleft = [], []
         
         time_point_map = {'choice': self.response-int(1/6*1/self.fs), 'action':self.response+int(7/6*1/self.fs), 'stimulus':self.delay-int(1/6*1/self.fs)}
+        # DEcode stim using end of delay
+        time_point_map = {'choice': self.response-int(1/6*1/self.fs), 'action':self.response+int(7/6*1/self.fs), 'stimulus':self.response-int(1/6*1/self.fs)}
         time_point = time_point_map[mode_input]
         
         # Project for every trial in train set for DB

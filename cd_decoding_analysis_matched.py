@@ -160,7 +160,7 @@ modes = ['choice', 'action', 'stimulus']
 for i in range(3):
     mode_input = modes[i]
     allaccs = []
-    if i != 1:
+    if i != 2:
         continue
     counter = 1
     for paths in all_matched_paths:

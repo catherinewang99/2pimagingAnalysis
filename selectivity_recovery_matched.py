@@ -223,20 +223,20 @@ paths = [r'F:\data\BAYLORCW032\python\2023_10_19',
             ]
 
 
-paths = [r'F:\data\BAYLORCW032\python\2023_10_24',
-            # r'F:\data\BAYLORCW034\python\2023_10_27',
-            r'F:\data\BAYLORCW036\python\2023_10_30',
-            r'F:\data\BAYLORCW035\python\2023_12_15',
-            r'F:\data\BAYLORCW037\python\2023_12_15',
+# paths = [r'F:\data\BAYLORCW032\python\2023_10_24',
+#             # r'F:\data\BAYLORCW034\python\2023_10_27',
+#             r'F:\data\BAYLORCW036\python\2023_10_30',
+#             r'F:\data\BAYLORCW035\python\2023_12_15',
+#             r'F:\data\BAYLORCW037\python\2023_12_15',
             
-            r'H:\data\BAYLORCW044\python\2024_06_19',
-            r'H:\data\BAYLORCW044\python\2024_06_18',
+#             r'H:\data\BAYLORCW044\python\2024_06_19',
+#             r'H:\data\BAYLORCW044\python\2024_06_18',
             
-            r'H:\data\BAYLORCW046\python\2024_06_24',
-            r'H:\data\BAYLORCW046\python\2024_06_27',
-            r'H:\data\BAYLORCW046\python\2024_06_26',
+#             r'H:\data\BAYLORCW046\python\2024_06_24',
+#             r'H:\data\BAYLORCW046\python\2024_06_27',
+#             r'H:\data\BAYLORCW046\python\2024_06_26',
             
-            ]
+#             ]
 
 
 
@@ -252,7 +252,7 @@ paths = [r'F:\data\BAYLORCW032\python\2023_10_24',
 #             r'F:\data\BAYLORCW036\python\2023_10_17',]
 for path in paths:
     
-    l1 = session.Session(path, use_reg=True, triple=True, remove_consec_opto=True)
+    l1 = session.Session(path, use_reg=True, triple=True, remove_consec_opto=False)
     # l1 = session.Session(path)
     
     pref_, nonpref_, optop_, optonp_ = l1.selectivity_optogenetics(p=0.01, 
@@ -388,13 +388,13 @@ for i in range(3):
         # l1 = session.Session(path)
         if i == 0:
             pref_, nonpref_, optop_, optonp_ = l1.selectivity_optogenetics(p=0.01, 
-                                                                           lickdir=True, 
+                                                                           lickdir=False, 
                                                                            return_traces=True,
                                                                            downsample='04' in path)
         else: 
             sel_n = [l1.good_neurons[n] for n in expert_neurons[j]] 
             pref_, nonpref_, optop_, optonp_ = l1.selectivity_optogenetics(p=0.01, 
-                                                                           lickdir=True, 
+                                                                           lickdir=False, 
                                                                            return_traces=True,
                                                                            selective_neurons=sel_n,
                                                                            downsample='04' in path)
