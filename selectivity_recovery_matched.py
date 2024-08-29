@@ -303,6 +303,153 @@ axarr.set_ylim((-0.2, 0.7))
 
 # plt.savefig(r'F:\data\Fig 3\nai_sel_recovery_updated.pdf')
 plt.show()
+
+
+#%% AGG all sesssions matched neurons only from expert pool
+
+# NEW DATASET
+
+paths = [ r'H:\data\BAYLORCW044\python\2024_05_22',
+         r'H:\data\BAYLORCW044\python\2024_05_23',
+         r'H:\data\BAYLORCW044\python\2024_05_24',
+         
+         r'H:\data\BAYLORCW046\python\2024_05_29',
+         r'H:\data\BAYLORCW046\python\2024_05_30',
+         r'H:\data\BAYLORCW046\python\2024_05_31',
+    ]
+
+
+# CONTRA PATHS:
+allpaths = [[r'F:\data\BAYLORCW032\python\2023_10_24',
+            # r'F:\data\BAYLORCW034\python\2023_10_27',
+            r'F:\data\BAYLORCW036\python\2023_10_30',
+            r'F:\data\BAYLORCW035\python\2023_12_15',
+            r'F:\data\BAYLORCW037\python\2023_12_15',
+            
+            r'H:\data\BAYLORCW044\python\2024_06_19',
+            r'H:\data\BAYLORCW044\python\2024_06_18',
+            
+            r'H:\data\BAYLORCW046\python\2024_06_24',
+            r'H:\data\BAYLORCW046\python\2024_06_27',
+            r'H:\data\BAYLORCW046\python\2024_06_26',
+            
+            ],
+            [r'F:\data\BAYLORCW032\python\2023_10_19',
+            # r'F:\data\BAYLORCW034\python\2023_10_22',
+            r'F:\data\BAYLORCW036\python\2023_10_19',
+            r'F:\data\BAYLORCW035\python\2023_12_07',
+            r'F:\data\BAYLORCW037\python\2023_12_08',
+            
+            r'H:\data\BAYLORCW044\python\2024_06_06',
+            r'H:\data\BAYLORCW044\python\2024_06_04',
+
+            r'H:\data\BAYLORCW046\python\2024_06_07',
+            r'H:\data\BAYLORCW046\python\2024_06_10',
+            r'H:\data\BAYLORCW046\python\2024_06_11',
+            ],
+            [r'F:\data\BAYLORCW032\python\2023_10_05',
+            # r'F:\data\BAYLORCW034\python\2023_10_12',
+            r'F:\data\BAYLORCW036\python\2023_10_09',
+            r'F:\data\BAYLORCW035\python\2023_10_26',
+            r'F:\data\BAYLORCW037\python\2023_11_21',
+            
+            r'H:\data\BAYLORCW044\python\2024_05_22',
+            r'H:\data\BAYLORCW044\python\2024_05_23',
+            
+            r'H:\data\BAYLORCW046\python\2024_05_29',
+            r'H:\data\BAYLORCW046\python\2024_05_30',
+            r'H:\data\BAYLORCW046\python\2024_05_31',
+            ]]
+
+
+
+
+
+# IPSI PATHS:
+# paths = [r'F:\data\BAYLORCW032\python\2023_10_25',
+#             r'F:\data\BAYLORCW034\python\2023_10_28',
+#             r'F:\data\BAYLORCW036\python\2023_10_20',]
+# paths = [r'F:\data\BAYLORCW032\python\2023_10_08',
+#             r'F:\data\BAYLORCW035\python\2023_10_11',
+#             r'F:\data\BAYLORCW036\python\2023_10_07',]
+# paths = [r'F:\data\BAYLORCW032\python\2023_10_16',
+#             r'F:\data\BAYLORCW035\python\2023_10_27',
+#             r'F:\data\BAYLORCW036\python\2023_10_17',]
+
+expert_neurons = []
+for i in range(3):
+    pref, nonpref, optop, optonp = np.zeros(61), np.zeros(61), np.zeros(61), np.zeros(61)
+    num_neurons = 0
+    paths = allpaths[i]
+    for j in range(len(paths)):
+        
+        path = paths[j]
+        l1 = session.Session(path, use_reg=True, triple=True, remove_consec_opto=True)
+        # l1 = session.Session(path)
+        if i == 0:
+            pref_, nonpref_, optop_, optonp_ = l1.selectivity_optogenetics(p=0.01, 
+                                                                           lickdir=True, 
+                                                                           return_traces=True,
+                                                                           downsample='04' in path)
+        else: 
+            sel_n = [l1.good_neurons[n] for n in expert_neurons[j]] 
+            pref_, nonpref_, optop_, optonp_ = l1.selectivity_optogenetics(p=0.01, 
+                                                                           lickdir=True, 
+                                                                           return_traces=True,
+                                                                           selective_neurons=sel_n,
+                                                                           downsample='04' in path)
+        pref = np.vstack((pref, np.mean(pref_,axis=0)))
+        nonpref = np.vstack((nonpref, np.mean(nonpref_, axis=0)))
+        optop = np.vstack((optop, np.mean(optop_,axis=0)))
+        optonp = np.vstack((optonp, np.mean(optonp_,axis=0)))
+        
+        if i == 0:
+            expert_neurons += [[np.where(l1.good_neurons == n)[0][0] for n in l1.selective_neurons]]
+            num_neurons += len(expert_neurons[j])
+
+        else:
+            num_neurons += len(expert_neurons[j])
+
+        
+    pref, nonpref, optop, optonp = pref[1:], nonpref[1:], optop[1:], optonp[1:]
+    
+    sel = np.mean(pref, axis = 0) - np.mean(nonpref, axis = 0)
+    err = np.std(pref, axis=0) / np.sqrt(num_neurons) 
+    err += np.std(nonpref, axis=0) / np.sqrt(num_neurons)
+    
+    selo = np.mean(optop, axis = 0) - np.mean(optonp, axis = 0)
+    erro = np.std(optop, axis=0) / np.sqrt(num_neurons) 
+    erro += np.std(optonp, axis=0) / np.sqrt(num_neurons)  
+    
+    f, axarr = plt.subplots(1,1, sharex='col', figsize=(5,5))  
+    x = np.arange(-6.97,4,1/6)[:pref.shape[1]]
+    axarr.plot(x, sel, 'black')
+            
+    axarr.fill_between(x, sel - err, 
+              sel + err,
+              color=['darkgray'])
+    
+    axarr.plot(x, selo, 'r-')
+            
+    axarr.fill_between(x, selo - erro, 
+              selo + erro,
+              color=['#ffaeb1'])       
+    
+    axarr.axvline(-4.3, color = 'grey', alpha=0.5, ls = '--')
+    axarr.axvline(-3, color = 'grey', alpha=0.5, ls = '--')
+    axarr.axvline(0, color = 'grey', alpha=0.5, ls = '--')
+    axarr.hlines(y=max(cat((selo, sel))), xmin=-3, xmax=-2, linewidth=10, color='red')
+    
+    axarr.set_title('Optogenetic effect on selectivity (n = {} neurons)'.format(num_neurons))                  
+    axarr.set_xlabel('Time from Go cue (s)')
+    axarr.set_ylabel('Selectivity')
+    axarr.set_ylim((-0.2, 0.7))
+    
+    # plt.savefig(r'F:\data\Fig 3\nai_sel_recovery_updated.pdf')
+    plt.show()
+
+
+
 #%% AGG all sesssions ALL unmatched neurons MORE sessions
 pref, nonpref, optop, optonp = np.zeros(61), np.zeros(61), np.zeros(61), np.zeros(61)
 num_neurons = 0
@@ -486,7 +633,8 @@ for paths in all_paths: # For each stage of training
         l1 = session.Session(path, use_reg=True, triple=True, remove_consec_opto=True)
         # l1 = session.Session(path)
         temp, _ = l1.modularity_proportion(p=0.01, lickdir=True)
-        if temp > 0 and temp < 1: # Exclude values based on Chen et al method guideliens
+        # if temp > 0 and temp < 1: # Exclude values based on Chen et al method guidelines
+        if True:
             recovery += [temp]
     
     all_recovery += [recovery]
@@ -506,6 +654,7 @@ plt.show()
 # Add t-test:
 
 tstat, p_val = scipy.stats.ttest_ind(all_recovery[1], all_recovery[2], equal_var=False, permutations = np.inf, alternative='less')
+tstat, p_val = scipy.stats.ttest_rel(all_recovery[1], all_recovery[2])
 print("mod diff p-value: ", p_val)
 
 
@@ -615,8 +764,8 @@ for paths in all_paths:
 
     for path in paths:
 
-        l1 = session.Session(path, use_reg=True, triple=True)
-        temp, _ = l1.modularity_proportion(p=0.01)
+        l1 = session.Session(path, use_reg=True, triple=True, remove_consec_opto=True)
+        temp, _ = l1.modularity_proportion(p=0.01, lickdir=True)
 
         if temp > 0 and temp < 1: # Exclude values based on Chen et al method guidelines
 

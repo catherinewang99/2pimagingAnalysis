@@ -268,10 +268,10 @@ class Session:
         if remove_consec_opto:
             flip_indices = []
             for i in range(len(self.stim_trials)-1):
-                for j in range(1, len(self.stim_trials)):
-                    if self.stim_trials[j]-self.stim_trials[i] == 1:
-                        # if self.stim_trials[i-1] not in flip_indices: # If the prev index not already removed
-                        flip_indices += [self.stim_trials[j]]
+                # for j in range(1, len(self.stim_trials)):
+                if self.stim_trials[i+1]-self.stim_trials[i] == 1:
+                    # if self.stim_trials[i-1] not in flip_indices: # If the prev index not already removed
+                    flip_indices += [self.stim_trials[i+1]]
             
             self.stim_ON[flip_indices] = False
             self.stim_trials = np.where(self.stim_ON)[0]
