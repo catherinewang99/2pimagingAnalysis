@@ -14,14 +14,38 @@ sys.path.append("C:\scripts\Imaging analysis")
 import numpy as np
 import scipy.io as scio
 import matplotlib.pyplot as plt
-import session
+from alm_2p import session
 from activityMode import Mode
 from matplotlib.pyplot import figure
 import numpy as np
 import pandas as pd
 from sklearn.decomposition import PCA
 import stats
+from numpy.linalg import norm
+
 plt.rcParams['pdf.fonttype'] = '42' 
+
+
+def unit_vector(vector):
+    """ Returns the unit vector of the vector.  """
+    return vector / np.linalg.norm(vector)
+
+def angle_between(v1, v2):
+    """ Returns the angle in radians between vectors 'v1' and 'v2'::
+
+            >>> angle_between((1, 0, 0), (0, 1, 0))
+            1.5707963267948966
+            >>> angle_between((1, 0, 0), (1, 0, 0))
+            0.0
+            >>> angle_between((1, 0, 0), (-1, 0, 0))
+            3.141592653589793
+    """
+    v1_u = unit_vector(v1)
+    v2_u = unit_vector(v2)
+    return np.arccos(np.clip(np.dot(v1_u, v2_u), -1.0, 1.0))
+
+def cos_sim(a,b):
+    return np.dot(a, b)/(norm(a)*norm(b))
 
 
 paths = [[r'F:\data\BAYLORCW032\python\2023_10_08',
@@ -116,15 +140,15 @@ l1.plot_appliedCD(orthonormal_basis, mean, fix_axis = (-15, 17), save = r'F:\dat
 
 #%% Stim dimension
 
-path = naivepath
+path = learningpath
 l1 = Mode(path, use_reg = True, triple=True)
 orthonormal_basis, mean = l1.plot_CD(mode_input='stimulus', ctl=True)#, save = r'F:\data\Fig 2\CDstim_expert_CW37.pdf')
 
-path = learningpath
+path = expertpath
 l1 = Mode(path, use_reg = True, triple=True)
 l1.plot_appliedCD(orthonormal_basis, mean)#, save = r'F:\data\Fig 2\CDstim_learning_CW37.pdf')
 
-path = expertpath
+path = naivepath
 l1 = Mode(path, use_reg = True, triple=True)
 l1.plot_appliedCD(orthonormal_basis, mean)#,  save = r'F:\data\Fig 2\CDstim_naive_CW37.pdf')
 
@@ -299,3 +323,39 @@ plt.axvline(0, ls='--')
 plt.axhline(0.5, ls='--', alpha = 0.5)
 plt.axvline(0.5, ls='--', alpha = 0.5)
 # plt.legend()
+
+
+#%% Stability of choice mode vs amplitude of sample mode
+# Here: amplitude is decoding accuracy and stability is dot product across
+
+sample_ampl = []
+choice_stability = []
+
+for paths in all_matched_paths:
+    
+    l1 = Mode(paths[1], use_reg=True, triple=True) #Learning
+    orthonormal_basis, mean, db, acc_learning = l1.decision_boundary(mode_input='stimulus', persistence=False)
+    lea = np.mean(acc_learning)
+    lea = lea if lea > 0.5 else 1-lea
+    sample_ampl += [lea]
+    
+    l2 = Mode(paths[2], use_reg=True, triple=True) #Expert
+    orthonormal_basis_initial_choice, mean = l1.plot_CD(mode_input = 'choice')
+    orthonormal_basis_choice, mean = l2.plot_CD(mode_input = 'choice')
+
+    choice_stability += [cos_sim(orthonormal_basis_initial_choice, orthonormal_basis_choice)]
+
+f = plt.figure(figsize = (5,5))
+plt.scatter(sample_ampl, np.abs(choice_stability))
+plt.xlabel('Sample amplitude (learning)')
+plt.ylabel('Stability of CD_choice (learning-->expert)')
+# plt.axhline(0, ls='--')
+# plt.axvline(0, ls='--')
+# plt.axhline(0.5, ls='--', alpha = 0.5)
+# plt.axvline(0.5, ls='--', alpha = 0.5)
+
+scipy.stats.pearsonr(sample_ampl, np.abs(choice_stability))
+
+
+#%% Rotation of choice mode vs robustness
+# Robustness defined in expert stage?

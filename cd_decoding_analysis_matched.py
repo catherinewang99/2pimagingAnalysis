@@ -7,13 +7,13 @@ Created on Mon Nov 20 12:59:23 2023
 
 
 import sys
-sys.path.append("C:\scripts\Imaging analysis")
+sys.path.append("C:\scripts\Imaging analysis\src")
 import numpy as np
 import scipy.io as scio
 import matplotlib.pyplot as plt
-import session
+from alm_2p import session
 from matplotlib.pyplot import figure
-import decon
+# import decon
 from scipy.stats import chisquare
 import pandas as pd
 from activityMode import Mode
@@ -157,6 +157,7 @@ allpaths = [[r'F:\data\BAYLORCW032\python\2023_10_08',
 
 
 modes = ['choice', 'action', 'stimulus']
+pers=True
 for i in range(3):
     mode_input = modes[i]
     allaccs = []
@@ -165,15 +166,15 @@ for i in range(3):
     counter = 1
     for paths in all_matched_paths:
         
-        l1 = Mode(paths[2], use_reg=True, triple=True) #Expert
-        orthonormal_basis, mean, db, acc_expert = l1.decision_boundary(mode_input=mode_input)
+        l1 = Mode(paths[0], use_reg=True, triple=True) #Learning
+        orthonormal_basis, mean, db, acc_naive = l1.decision_boundary(mode_input=mode_input, persistence=pers)
     
         
-        l1 = Mode(paths[1], use_reg=True, triple=True) #Learning
-        acc_learning = l1.decision_boundary_appliedCD(mode_input, orthonormal_basis, mean, db)
+        l1 = Mode(paths[1], use_reg=True, triple=True) #Expert
+        acc_learning= l1.decision_boundary_appliedCD(mode_input, orthonormal_basis, mean, db, persistence=pers)
     
-        l1 = Mode(paths[0], use_reg=True, triple=True) # Naive
-        acc_naive = l1.decision_boundary_appliedCD(mode_input, orthonormal_basis, mean, db)
+        l1 = Mode(paths[2], use_reg=True, triple=True) # Naive
+        acc_expert = l1.decision_boundary_appliedCD(mode_input, orthonormal_basis, mean, db, persistence=pers)
         
         nai = np.mean(acc_naive)
         nai = nai if nai > 0.5 else 1-nai
@@ -199,7 +200,7 @@ for i in range(3):
     plt.ylim(bottom=0.4, top =1)
     plt.axhline(0.5, ls='--', color='black')
     plt.title(mode_input)
-    plt.savefig(r'F:\data\Fig 2\CD_{}_allAGG_decoding_NLE.pdf'.format(mode_input))
+    plt.savefig(r'F:\data\Fig 2\CD_{}_allAGG_decoding_NLE_trainedonnaive.pdf'.format(mode_input))
     plt.show()
     
     stats.ttest_ind(np.array(allaccs)[:, 0], np.array(allaccs)[:, 1])

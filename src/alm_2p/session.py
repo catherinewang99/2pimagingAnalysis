@@ -99,8 +99,11 @@ class Session:
                 use_background_sub = False
 
         if layer_num != 'all':
-            if use_background_sub:
+            if use_background_sub and 'mod_layer_1.mat' in os.listdir(path):
                 filename = [n for n in os.listdir(path) if 'mod_layer_{}'.format(layer_num) in n]
+            elif use_background_sub and 'mod_layer_1.mat' not in os.listdir(path):
+                print('No background subtracted dataset, use regular instead.')
+                filename = [n for n in os.listdir(path) if 'layer_{}'.format(layer_num) in n and len(n) < 12]
             else:
                 filename = [n for n in os.listdir(path) if 'layer_{}'.format(layer_num) in n and len(n) < 12]
 
@@ -2793,7 +2796,8 @@ class Session:
         
         if len(contra_neurons) == 0 and len(ipsi_neurons) == 0:
             
-            raise Exception("No selective neurons :^(") 
+            print("No selective neurons :^(") 
+            return None, None, None, None
             
         elif len(contra_neurons) == 0:
             

@@ -13,7 +13,7 @@ from scipy import stats
 import copy
 import scipy.io as scio
 from sklearn.preprocessing import normalize
-from session import Session
+from alm_2p.session import Session
 import sympy
 from random import shuffle
 import time
@@ -1328,7 +1328,7 @@ class Mode(Session):
         
 ## DECODING ANALYSIS ##
         
-    def decision_boundary(self, mode_input='choice', opto=False, error=False):
+    def decision_boundary(self, mode_input='choice', opto=False, error=False, persistence=False):
         """
         Calculate decision boundary across trials of CD
         
@@ -1336,6 +1336,10 @@ class Mode(Session):
         Use method from Guang's paper
         
         Use orthgonalized CD's and specify which mode to use
+        
+        persistence : bool, optional
+            If True, then the calculation for sample mode deocding is based on 
+            the end of the delay instead of end of sample period
         """
         
         idx_map = {'choice': 1, 'action':5, 'stimulus':0}
@@ -1368,7 +1372,8 @@ class Mode(Session):
         
         time_point_map = {'choice': self.response-int(1/6*1/self.fs), 'action':self.response+int(7/6*1/self.fs), 'stimulus':self.delay-int(1/6*1/self.fs)}
         # DEcode stim using end of delay
-        time_point_map = {'choice': self.response-int(1/6*1/self.fs), 'action':self.response+int(7/6*1/self.fs), 'stimulus':self.response-int(1/6*1/self.fs)}
+        if persistence:
+            time_point_map = {'choice': self.response-int(1/6*1/self.fs), 'action':self.response+int(7/6*1/self.fs), 'stimulus':self.response-int(1/6*1/self.fs)}
         time_point = time_point_map[mode_input]
         
         # Project for every trial in train set for DB
@@ -2403,7 +2408,7 @@ class Mode(Session):
         return proj_allDim[:len(self.T_cue_aligned_sel)], proj_allDim[len(self.T_cue_aligned_sel):]
            
 
-    def decision_boundary_appliedCD(self, mode_input, orthonormal_basis, mean, db):
+    def decision_boundary_appliedCD(self, mode_input, orthonormal_basis, mean, db, persistence=False):
         """
         Calculate decision boundary across trials of CD
         
@@ -2412,6 +2417,11 @@ class Mode(Session):
         """
         
         time_point_map = {'choice': self.response-int(1/6 * 1/self.fs), 'action':self.response+int(7/6 * 1/self.fs), 'stimulus':self.delay-int(1/6 * 1/self.fs)}
+        if persistence:
+            time_point_map = {'choice': self.response-int(1/6 * 1/self.fs), 
+                              'action':self.response+int(7/6 * 1/self.fs), 
+                              'stimulus':self.response-int(1/6 * 1/self.fs)}
+
         time_point = time_point_map[mode_input]
         
        

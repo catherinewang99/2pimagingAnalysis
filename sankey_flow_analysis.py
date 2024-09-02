@@ -249,7 +249,7 @@ alls1list, alld1, allr1, allns1 = [],[],[],[]
 for paths in all_matched_paths: # For each mouse/FOV
     s1list, d1, r1, ns1 = np.zeros(4),np.zeros(4),np.zeros(4),np.zeros(4)
 
-    s1 = session.Session(paths[0], use_reg=True, triple=True, use_background_sub=False) # Naive
+    s1 = session.Session(paths[1], use_reg=True, triple=True, use_background_sub=False) # Naive
 
     sample_epoch = range(s1.sample, s1.delay)
     delay_epoch = range(s1.delay+int(1.5 * 1/s1.fs), s1.response)
@@ -265,7 +265,7 @@ for paths in all_matched_paths: # For each mouse/FOV
 
     naive_nonsel = [n for n in s1.good_neurons if n not in naive_sample_sel and n not in naive_delay_sel and n not in naive_response_sel]
 
-    s2 = session.Session(paths[2], use_reg=True, triple=True) # Expert
+    s2 = session.Session(paths[2], use_reg=True, triple=True) # Learning
     
     for n in naive_sample_sel:
         if s2.is_selective(s2.good_neurons[np.where(s1.good_neurons ==n)[0][0]], sample_epoch, p=p):

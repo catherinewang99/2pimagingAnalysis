@@ -1,0 +1,10 @@
+Metadata-Version: 2.1
+Name: alm-2p
+Version: 0.0.1
+Summary: tools developed by Catherine for 2p imaging in ALM
+Home-page: https://github.com/cellistigs/alm_2pimagingAnalysis
+Author: Catherine Wang and Taiga Abe
+Author-email: taigaabe@stanford.edu
+Classifier: License :: OSI Approved :: MIT License
+Requires-Python: >=3.6
+Description-Content-Type: test/markdown

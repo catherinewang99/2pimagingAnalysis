@@ -19,8 +19,7 @@ import statsmodels.api as sm
 from statsmodels.formula.api import ols
 import pandas as pd
 from scipy.stats import mannwhitneyu
-from session import Session
- 
+from alm_2p.session import Session
 
 
 class QC(Session):

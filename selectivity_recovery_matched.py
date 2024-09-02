@@ -10,9 +10,9 @@ sys.path.append("C:\scripts\Imaging analysis")
 import numpy as np
 import scipy.io as scio
 import matplotlib.pyplot as plt
-import session
+from alm_2p import session
 from matplotlib.pyplot import figure
-import decon
+# import decon
 from scipy.stats import chisquare
 import pandas as pd
 from activityMode import Mode
@@ -41,10 +41,10 @@ paths = [[r'F:\data\BAYLORCW032\python\2023_10_08',
 paths = [r'F:\data\BAYLORCW032\python\2023_10_05',
           r'F:\data\BAYLORCW032\python\2023_10_19',
           r'F:\data\BAYLORCW032\python\2023_10_24',]
-# IPSI
-paths = [r'F:\data\BAYLORCW032\python\2023_10_08',
-          r'F:\data\BAYLORCW032\python\2023_10_16',
-          r'F:\data\BAYLORCW032\python\2023_10_25',]
+# # IPSI
+# paths = [r'F:\data\BAYLORCW032\python\2023_10_08',
+#           r'F:\data\BAYLORCW032\python\2023_10_16',
+#           r'F:\data\BAYLORCW032\python\2023_10_25',]
 for path in paths:
     
     l1 = Mode(path, use_reg=True, triple=True)
@@ -208,19 +208,19 @@ paths = [    r'F:\data\BAYLORCW032\python\2023_10_05',
             r'H:\data\BAYLORCW046\python\2024_05_31',
             ]
 
-paths = [r'F:\data\BAYLORCW032\python\2023_10_19',
-            # r'F:\data\BAYLORCW034\python\2023_10_22',
-            r'F:\data\BAYLORCW036\python\2023_10_19',
-            r'F:\data\BAYLORCW035\python\2023_12_07',
-            r'F:\data\BAYLORCW037\python\2023_12_08',
+# paths = [r'F:\data\BAYLORCW032\python\2023_10_19',
+#             # r'F:\data\BAYLORCW034\python\2023_10_22',
+#             r'F:\data\BAYLORCW036\python\2023_10_19',
+#             r'F:\data\BAYLORCW035\python\2023_12_07',
+#             r'F:\data\BAYLORCW037\python\2023_12_08',
             
-            r'H:\data\BAYLORCW044\python\2024_06_06',
-            r'H:\data\BAYLORCW044\python\2024_06_04',
+#             r'H:\data\BAYLORCW044\python\2024_06_06',
+#             r'H:\data\BAYLORCW044\python\2024_06_04',
 
-            r'H:\data\BAYLORCW046\python\2024_06_07',
-            r'H:\data\BAYLORCW046\python\2024_06_10',
-            r'H:\data\BAYLORCW046\python\2024_06_11',
-            ]
+#             r'H:\data\BAYLORCW046\python\2024_06_07',
+#             r'H:\data\BAYLORCW046\python\2024_06_10',
+#             r'H:\data\BAYLORCW046\python\2024_06_11',
+#             ]
 
 
 # paths = [r'F:\data\BAYLORCW032\python\2023_10_24',
@@ -252,13 +252,20 @@ paths = [r'F:\data\BAYLORCW032\python\2023_10_19',
 #             r'F:\data\BAYLORCW036\python\2023_10_17',]
 for path in paths:
     
-    l1 = session.Session(path, use_reg=True, triple=True, remove_consec_opto=False)
+    l1 = session.Session(path, use_reg=True, triple=True, 
+                         remove_consec_opto=True)
+                         # baseline_normalization="median_zscore")
     # l1 = session.Session(path)
+    
     
     pref_, nonpref_, optop_, optonp_ = l1.selectivity_optogenetics(p=0.01, 
                                                                    lickdir=False, 
                                                                    return_traces=True,
                                                                    downsample='04' in path)
+    
+    if pref_ is None: # no selective neurons
+        
+        continue
     
     pref = np.vstack((pref, np.mean(pref_,axis=0)))
     nonpref = np.vstack((nonpref, np.mean(nonpref_, axis=0)))
@@ -301,7 +308,7 @@ axarr.set_xlabel('Time from Go cue (s)')
 axarr.set_ylabel('Selectivity')
 axarr.set_ylim((-0.2, 0.7))
 
-# plt.savefig(r'F:\data\Fig 3\nai_sel_recovery_updated.pdf')
+# plt.savefig(r'F:\data\Fig 3\exp_sel_recovery_updated.pdf')
 plt.show()
 
 

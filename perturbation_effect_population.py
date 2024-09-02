@@ -16,7 +16,7 @@ sys.path.append("C:\scripts\Imaging analysis")
 import numpy as np
 import scipy.io as scio
 import matplotlib.pyplot as plt
-from session import Session
+# from alm_2p import session
 from matplotlib.pyplot import figure
 from numpy import concatenate as cat
 from sklearn.preprocessing import normalize
@@ -27,6 +27,47 @@ from activityMode import Mode
 cat = np.concatenate
 
 plt.rcParams['pdf.fonttype'] = '42' 
+#%% CONTRA PATHS:
+allpaths = [[r'F:\data\BAYLORCW032\python\2023_10_24',
+            # r'F:\data\BAYLORCW034\python\2023_10_27',
+            r'F:\data\BAYLORCW036\python\2023_10_30',
+            r'F:\data\BAYLORCW035\python\2023_12_15',
+            r'F:\data\BAYLORCW037\python\2023_12_15',
+            
+            r'H:\data\BAYLORCW044\python\2024_06_19',
+            r'H:\data\BAYLORCW044\python\2024_06_18',
+            
+            r'H:\data\BAYLORCW046\python\2024_06_24',
+            r'H:\data\BAYLORCW046\python\2024_06_27',
+            r'H:\data\BAYLORCW046\python\2024_06_26',
+            
+            ],
+            [r'F:\data\BAYLORCW032\python\2023_10_19',
+            # r'F:\data\BAYLORCW034\python\2023_10_22',
+            r'F:\data\BAYLORCW036\python\2023_10_19',
+            r'F:\data\BAYLORCW035\python\2023_12_07',
+            r'F:\data\BAYLORCW037\python\2023_12_08',
+            
+            r'H:\data\BAYLORCW044\python\2024_06_06',
+            r'H:\data\BAYLORCW044\python\2024_06_04',
+
+            r'H:\data\BAYLORCW046\python\2024_06_07',
+            r'H:\data\BAYLORCW046\python\2024_06_10',
+            r'H:\data\BAYLORCW046\python\2024_06_11',
+            ],
+            [r'F:\data\BAYLORCW032\python\2023_10_05',
+            # r'F:\data\BAYLORCW034\python\2023_10_12',
+            r'F:\data\BAYLORCW036\python\2023_10_09',
+            r'F:\data\BAYLORCW035\python\2023_10_26',
+            r'F:\data\BAYLORCW037\python\2023_11_21',
+            
+            r'H:\data\BAYLORCW044\python\2024_05_22',
+            r'H:\data\BAYLORCW044\python\2024_05_23',
+            
+            r'H:\data\BAYLORCW046\python\2024_05_29',
+            r'H:\data\BAYLORCW046\python\2024_05_30',
+            r'H:\data\BAYLORCW046\python\2024_05_31',
+            ]]
 
 #%% Fraction change in dF/F0 by stimulation
 
@@ -119,6 +160,36 @@ plt.xlabel('Fraction of neurons with significant dF/F0 change')
 plt.legend()
 plt.show()
     
+#%% Fraction of neurons affected by stim over learning
+
+f = plt.figure(figsize = (5,5))
+
+for i in range(3):
+    contra_frac_sup, contra_frac_exc = [], []
+    contra_paths = allpaths[i]
+    for path in contra_paths:
+    
+        l1 = quality.QC(path, use_background_sub=False)
+        
+        _, sig_n = l1.stim_effect_per_neuron()
+            
+        contra_frac_sup += [len(np.where(sig_n < 0)[0]) / len(sig_n)]
+        contra_frac_exc += [len(np.where(sig_n > 0)[0]) / len(sig_n)]
+        
+        
+    plt.barh([2-i], [np.mean(contra_frac_exc)], color = 'r', edgecolor = 'black', label = 'Excited')
+    plt.barh([2-i], [-np.mean(contra_frac_sup)], color = 'b', edgecolor = 'black', label = 'Inhibited')
+
+    plt.scatter(cat((contra_frac_exc, -1 * np.array(contra_frac_sup))), np.ones(len(cat((contra_frac_exc, contra_frac_sup)))) * (2-i), facecolors='none', edgecolors='grey')
+
+plt.axvline(0)
+plt.yticks([0,1,2], ['Expert', 'Learning', 'Naive'])
+plt.ylabel('Condition')
+plt.xlabel('Fraction of neurons with significant dF/F0 change')
+plt.legend()
+plt.show()
+
+
 #%% Changes at over opto corruption
 
 init_paths, mid_paths, final_paths = [[r'H:\\data\\BAYLORCW038\\python\\2024_02_05',
