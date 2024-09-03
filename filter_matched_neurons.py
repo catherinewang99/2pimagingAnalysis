@@ -13,7 +13,7 @@ sys.path.append("C:\scripts\Imaging analysis")
 import numpy as np
 import scipy.io as scio
 import matplotlib.pyplot as plt
-from session import Session
+from alm_2p.session import Session
 from matplotlib.pyplot import figure
 import decon
 from scipy.stats import chisquare
@@ -198,3 +198,77 @@ for paths in agg_mice_paths:
             new_reg = reg[allkeep_ids[layer_num-1]]
             np.save(path + r'\layer{}_registered_filtered_neurons.npy'.format(layer_num-1), new_reg)
 
+
+#%% Make lists of selective neurons to be saved for triple matched sessions:
+    
+agg_mice_paths = [
+    
+            [r'F:\data\BAYLORCW032\python\2023_10_05',
+              r'F:\data\BAYLORCW032\python\2023_10_19',
+              r'F:\data\BAYLORCW032\python\2023_10_24',
+          ],
+         
+           # [ r'F:\data\BAYLORCW034\python\2023_10_12',
+           #    r'F:\data\BAYLORCW034\python\2023_10_22',
+           #    r'F:\data\BAYLORCW034\python\2023_10_27',
+           #    r'F:\data\BAYLORCW034\python\cellreg\layer{}\1012_1022_1027pairs_proc.npy'],
+         
+            [r'F:\data\BAYLORCW036\python\2023_10_09',
+            r'F:\data\BAYLORCW036\python\2023_10_19',
+            r'F:\data\BAYLORCW036\python\2023_10_30',
+           ],
+         
+         [r'F:\data\BAYLORCW037\python\2023_11_21',
+            r'F:\data\BAYLORCW037\python\2023_12_08',
+            r'F:\data\BAYLORCW037\python\2023_12_15',],
+         
+         [r'F:\data\BAYLORCW035\python\2023_10_26',
+            r'F:\data\BAYLORCW035\python\2023_12_07',
+            r'F:\data\BAYLORCW035\python\2023_12_15',],
+         
+         [r'H:\data\BAYLORCW044\python\2024_05_22',
+          r'H:\data\BAYLORCW044\python\2024_06_06',
+        r'H:\data\BAYLORCW044\python\2024_06_19'],
+
+         
+            [r'H:\data\BAYLORCW044\python\2024_05_23',
+             r'H:\data\BAYLORCW044\python\2024_06_04',
+        r'H:\data\BAYLORCW044\python\2024_06_18'],
+
+            [r'H:\data\BAYLORCW046\python\2024_05_29',
+             r'H:\data\BAYLORCW046\python\2024_06_07',
+             r'H:\data\BAYLORCW046\python\2024_06_24'],
+
+
+            [r'H:\data\BAYLORCW046\python\2024_05_30',
+             r'H:\data\BAYLORCW046\python\2024_06_10',
+             r'H:\data\BAYLORCW046\python\2024_06_27'],
+
+            [r'H:\data\BAYLORCW046\python\2024_05_31',
+             r'H:\data\BAYLORCW046\python\2024_06_11',
+             r'H:\data\BAYLORCW046\python\2024_06_26'
+             ]
+         
+        ]
+
+for paths in agg_mice_paths:
+    
+    naivepath, learningpath, expertpath = paths[0], paths[1], paths[2]
+    
+    # Compare to only the selective neurons included:
+    all_sel_neurons = []
+    l1 = Session(naivepath, use_reg = True, triple=True)
+    sel = l1.get_epoch_selective(range(l1.time_cutoff), p=0.05)
+    all_sel_neurons += [np.where(l1.good_neurons == s)[0] for s in sel]
+    l1 = Session(learningpath, use_reg = True, triple=True)
+    sel = l1.get_epoch_selective(range(l1.time_cutoff), p=0.05)
+    all_sel_neurons += [np.where(l1.good_neurons == s)[0] for s in sel]
+    l1 = Session(expertpath, use_reg = True, triple=True)
+    sel = l1.get_epoch_selective(range(l1.time_cutoff), p=0.05)
+    all_sel_neurons += [np.where(l1.good_neurons == s)[0] for s in sel]
+    
+    all_sel_neurons = list(set(cat(all_sel_neurons)))
+    
+    np.save(naivepath + '\selective_neurons.npy', all_sel_neurons)
+    np.save(learningpath + '\selective_neurons.npy', all_sel_neurons)
+    np.save(expertpath + '\selective_neurons.npy', all_sel_neurons)

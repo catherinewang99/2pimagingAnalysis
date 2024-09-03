@@ -48,7 +48,7 @@ class Session:
 
     """
     def __init__(self, path, layer_num='all', use_reg = False, triple = False,
-                 filter_reg = True, use_background_sub = False,baseline_normalization = "dff_avg",
+                 filter_reg = True, use_background_sub = False, baseline_normalization = "dff_avg",
                  sess_reg = False, guang=False, passive=False, quality=False,
                  remove_consec_opto = False):
         
@@ -96,8 +96,9 @@ class Session:
             if 'mod_layer_1.mat' not in os.listdir(path):
                 # raise NotImplementedError("No mod layer, altering to no subtracted background")
                 print("No mod layer, altering to no subtracted background")
+                self.use_background_sub = False
                 use_background_sub = False
-
+                
         if layer_num != 'all':
             if use_background_sub and 'mod_layer_1.mat' in os.listdir(path):
                 filename = [n for n in os.listdir(path) if 'mod_layer_{}'.format(layer_num) in n]
@@ -145,7 +146,6 @@ class Session:
 
                     if self.dff is None:
                         if use_reg:
-                            print("print here")
                             if triple:
                                 if filter_reg:
                                     self.good_neurons = np.load(os.path.join(path,'layer{}_triple_registered_filtered_neurons.npy'.format(counter)))

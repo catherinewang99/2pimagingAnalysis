@@ -162,24 +162,34 @@ plt.show()
     
 #%% Fraction of neurons affected by stim over learning
 
-f = plt.figure(figsize = (5,5))
-
+allsup, allexc = [], []
 for i in range(3):
     contra_frac_sup, contra_frac_exc = [], []
     contra_paths = allpaths[i]
     for path in contra_paths:
     
-        l1 = quality.QC(path, use_background_sub=False)
+        l1 = quality.QC(path=path, use_reg=True, triple=True, use_background_sub=True, baseline_normalization="median_zscore")
         
         _, sig_n = l1.stim_effect_per_neuron()
             
         contra_frac_sup += [len(np.where(sig_n < 0)[0]) / len(sig_n)]
         contra_frac_exc += [len(np.where(sig_n > 0)[0]) / len(sig_n)]
         
-        
-    plt.barh([2-i], [np.mean(contra_frac_exc)], color = 'r', edgecolor = 'black', label = 'Excited')
-    plt.barh([2-i], [-np.mean(contra_frac_sup)], color = 'b', edgecolor = 'black', label = 'Inhibited')
+    allsup += [contra_frac_sup]
+    allexc += [contra_frac_exc]
+    
+f = plt.figure(figsize = (5,5))
 
+for i in range(3):
+    contra_frac_exc = allexc[i]
+    contra_frac_sup = allsup[i]
+    if i ==0:
+        plt.barh([2-i], [np.mean(contra_frac_exc)], color = 'r', edgecolor = 'black', label = 'Excited')
+        plt.barh([2-i], [-np.mean(contra_frac_sup)], color = 'b', edgecolor = 'black', label = 'Inhibited')
+    else:
+        plt.barh([2-i], [np.mean(contra_frac_exc)], color = 'r', edgecolor = 'black')
+        plt.barh([2-i], [-np.mean(contra_frac_sup)], color = 'b', edgecolor = 'black')
+    
     plt.scatter(cat((contra_frac_exc, -1 * np.array(contra_frac_sup))), np.ones(len(cat((contra_frac_exc, contra_frac_sup)))) * (2-i), facecolors='none', edgecolors='grey')
 
 plt.axvline(0)
@@ -187,6 +197,7 @@ plt.yticks([0,1,2], ['Expert', 'Learning', 'Naive'])
 plt.ylabel('Condition')
 plt.xlabel('Fraction of neurons with significant dF/F0 change')
 plt.legend()
+plt.savefig(r'F:\data\Fig 3\opto_population_effect_overlearning.pdf')
 plt.show()
 
 

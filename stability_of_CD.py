@@ -22,7 +22,7 @@ import pandas as pd
 from sklearn.decomposition import PCA
 import stats
 from numpy.linalg import norm
-
+cat = np.concatenate
 plt.rcParams['pdf.fonttype'] = '42' 
 
 
@@ -217,6 +217,79 @@ plt.axvline(l1.response, color = 'white', ls='--', linewidth = 0.5)
 plt.xticks([l1.sample, l1.delay, l1.response], [-4.3, -3, 0])    
 plt.yticks([l1.sample, l1.delay, l1.response], [-4.3, -3, 0])    
 plt.colorbar()
+#%% Plot R2 values for CD stability over learning
+paths = [naivepath, learningpath, expertpath]
+allr = []
+for i in range(3):
+    
+    r_choice = []
+    path = paths[i]
+    l1 = Mode(path, use_reg = True, triple=True)
+    orthonormal_basis_initial, mean = l1.plot_CD()
+    for _ in range(25):
+    
+        l1 = Mode(path, use_reg = True, triple=True)
+        orthonormal_basis, mean = l1.plot_CD()
+        
+        r_choice += [stats.pearsonr(orthonormal_basis_initial, orthonormal_basis)[0]]
+        
+    allr += [np.abs(r_choice)]
+
+f = plt.figure(figsize = (5,5))
+plt.bar([0,1,2], np.mean(allr, axis=1))
+for i in range(3):
+    plt.scatter(np.ones(len(allr[i])) * i, allr[i])
+plt.xticks([0,1,2], ['Naive', 'Learning', 'Expert'])
+plt.ylabel('R2 value')
+plt.ylim(bottom=0.5)
+
+
+#%% Plot R2 values of same CD over many pairs of runs to show stability of calculation
+
+r_choice = []
+path = learningpath
+l1 = Mode(path, use_reg = True, triple=True)
+orthonormal_basis_initial, mean = l1.plot_CD()
+for _ in range(25):
+
+    l1 = Mode(path, use_reg = True, triple=True)
+    orthonormal_basis, mean = l1.plot_CD()
+    
+    r_choice += [stats.pearsonr(orthonormal_basis_initial, orthonormal_basis)[0]]
+
+# Compare to only the selective neurons included:
+all_sel_neurons = []
+l1 = session.Session(naivepath, use_reg = True, triple=True)
+sel = l1.get_epoch_selective(range(l1.time_cutoff), p=0.05)
+all_sel_neurons += [np.where(l1.good_neurons == s)[0] for s in sel]
+l1 = session.Session(learningpath, use_reg = True, triple=True)
+sel = l1.get_epoch_selective(range(l1.time_cutoff), p=0.05)
+all_sel_neurons += [np.where(l1.good_neurons == s)[0] for s in sel]
+l1 = session.Session(expertpath, use_reg = True, triple=True)
+sel = l1.get_epoch_selective(range(l1.time_cutoff), p=0.05)
+all_sel_neurons += [np.where(l1.good_neurons == s)[0] for s in sel]
+
+all_sel_neurons = list(set(cat(all_sel_neurons)))
+
+
+r_choice_stab = []
+path = learningpath
+l1 = Mode(path, use_reg = True, triple=True, responsive_neurons=all_sel_neurons)
+orthonormal_basis_initial, mean = l1.plot_CD()
+for _ in range(25):
+
+    l1 = Mode(path, use_reg = True, triple=True, responsive_neurons=all_sel_neurons)
+    orthonormal_basis, mean = l1.plot_CD()
+    
+    r_choice_stab += [stats.pearsonr(orthonormal_basis_initial, orthonormal_basis)[0]]
+
+r_choice, r_choice_stab = np.abs(r_choice), np.abs(r_choice_stab)
+f = plt.figure(figsize=(5,7))
+plt.bar([0,1], [np.mean(r_choice), np.mean(r_choice_stab)])
+plt.scatter(np.zeros(len(r_choice)), r_choice)
+plt.scatter(np.ones(len(r_choice_stab)), r_choice_stab)
+plt.xticks([0,1], ['Control', 'Selective neurons only'])
+plt.ylabel('R2 value')
 
 #%% Stability of CD_delay in learning vs expert, measured by unit r2 values
 
@@ -331,15 +404,15 @@ plt.axvline(0.5, ls='--', alpha = 0.5)
 sample_ampl = []
 choice_stability = []
 
-for paths in all_matched_paths:
+for paths in agg_mice_paths:
     
-    l1 = Mode(paths[1], use_reg=True, triple=True) #Learning
+    l1 = Mode(paths[1], use_reg=True, triple=True, use_selective=True, baseline_normalization="median_zscore") #Learning
     orthonormal_basis, mean, db, acc_learning = l1.decision_boundary(mode_input='stimulus', persistence=False)
     lea = np.mean(acc_learning)
     lea = lea if lea > 0.5 else 1-lea
     sample_ampl += [lea]
     
-    l2 = Mode(paths[2], use_reg=True, triple=True) #Expert
+    l2 = Mode(paths[2], use_reg=True, triple=True, use_selective=True,  baseline_normalization="median_zscore") #Expert
     orthonormal_basis_initial_choice, mean = l1.plot_CD(mode_input = 'choice')
     orthonormal_basis_choice, mean = l2.plot_CD(mode_input = 'choice')
 

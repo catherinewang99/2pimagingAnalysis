@@ -22,9 +22,13 @@ plt.rcParams['pdf.fonttype'] = 42
 
 class Mode(Session):
     
-    def __init__(self, path, lickdir=True, use_reg=False, triple=False, filter_reg= True, layer_num='all', responsive_neurons = [], use_background_sub=False):
+    def __init__(self, path, lickdir=True, use_reg=False, triple=False, filter_reg= True, 
+                 layer_num='all', responsive_neurons = [], use_selective= False, use_background_sub=False,
+                 baseline_normalization = "dff_avg"):
         # Inherit all parameters and functions of session.py
-        super().__init__(path, layer_num=layer_num, use_reg=use_reg, triple=triple, filter_reg=filter_reg, use_background_sub=use_background_sub) 
+        super().__init__(path, layer_num=layer_num, use_reg=use_reg, triple=triple, 
+                         filter_reg=filter_reg, use_background_sub=use_background_sub,
+                         baseline_normalization=baseline_normalization) 
         self.lickdir = lickdir
         self.z_score_baseline()
         
@@ -34,6 +38,10 @@ class Mode(Session):
             self.responsive_neurons = self.good_neurons[responsive_neurons]
             self.good_neurons = self.good_neurons[responsive_neurons]
             
+        if use_selective:
+            idx = np.load(path + '\selective_neurons.npy')
+            self.good_neurons = self.good_neurons[idx]
+
         # Construct train and test sets for control and opto trials
         # built this section so we can split trials into train/test and track at the same time 
         # for error bar creation in some subsequent graphs

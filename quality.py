@@ -24,9 +24,13 @@ from alm_2p.session import Session
 
 class QC(Session):
 
-    def __init__(self, path, layer_num='all', guang=False, passive=False, quality=True, use_background_sub = False):
-        
-        super().__init__(path, layer_num, guang, passive, quality=quality, use_background_sub=use_background_sub)
+    def __init__(self, path, layer_num='all', guang=False, passive=False, 
+                 use_reg = False, triple = False, filter_reg = True,
+                 quality=True, use_background_sub = False, baseline_normalization="dff_avg"):
+
+        super().__init__(path, layer_num=layer_num, guang=guang, passive=passive, quality=quality, 
+                         use_reg = use_reg, triple = triple, filter_reg = filter_reg,
+                         use_background_sub=use_background_sub, baseline_normalization=baseline_normalization)
             
         
     ### Quality analysis section ###
