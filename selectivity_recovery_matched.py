@@ -326,7 +326,7 @@ paths = [ r'H:\data\BAYLORCW044\python\2024_05_22',
     ]
 
 
-# CONTRA PATHS:
+# CONTRA PATHS BACKWARDS:
 allpaths = [[r'F:\data\BAYLORCW032\python\2023_10_24',
             # r'F:\data\BAYLORCW034\python\2023_10_27',
             r'F:\data\BAYLORCW036\python\2023_10_30',

@@ -136,7 +136,7 @@ class Mode(Session):
             
         self.T_cue_aligned_sel = np.arange(self.time_cutoff)
         
-        self.start_t = 3
+        # self.start_t = 3
     
         time_epochs = [self.sample, self.delay, self.response]
         self.time_epochs = time_epochs

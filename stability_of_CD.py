@@ -46,7 +46,7 @@ def angle_between(v1, v2):
 
 def cos_sim(a,b):
     return np.dot(a, b)/(norm(a)*norm(b))
-
+#%% PATHS
 
 paths = [[r'F:\data\BAYLORCW032\python\2023_10_08',
           r'F:\data\BAYLORCW032\python\2023_10_16',
@@ -96,6 +96,51 @@ naivepath, learningpath, expertpath = [r'H:\data\BAYLORCW046\python\2024_05_31',
 # naivepath, learningpath, expertpath =[r'F:\data\BAYLORCW037\python\2023_11_21',
 #             r'F:\data\BAYLORCW037\python\2023_12_08',
 #             r'F:\data\BAYLORCW037\python\2023_12_15',]
+
+allpaths = [[    r'F:\data\BAYLORCW032\python\2023_10_05',
+            # r'F:\data\BAYLORCW034\python\2023_10_12',
+            r'F:\data\BAYLORCW036\python\2023_10_09',
+            r'F:\data\BAYLORCW035\python\2023_10_26',
+            r'F:\data\BAYLORCW037\python\2023_11_21',
+            
+            r'H:\data\BAYLORCW044\python\2024_05_22',
+            r'H:\data\BAYLORCW044\python\2024_05_23',
+            
+            r'H:\data\BAYLORCW046\python\2024_05_29',
+            r'H:\data\BAYLORCW046\python\2024_05_30',
+            r'H:\data\BAYLORCW046\python\2024_05_31',
+            ],
+
+             [r'F:\data\BAYLORCW032\python\2023_10_19',
+            # r'F:\data\BAYLORCW034\python\2023_10_22',
+            r'F:\data\BAYLORCW036\python\2023_10_19',
+            r'F:\data\BAYLORCW035\python\2023_12_07',
+            r'F:\data\BAYLORCW037\python\2023_12_08',
+            
+            r'H:\data\BAYLORCW044\python\2024_06_06',
+            r'H:\data\BAYLORCW044\python\2024_06_04',
+
+            r'H:\data\BAYLORCW046\python\2024_06_07',
+            r'H:\data\BAYLORCW046\python\2024_06_10',
+            r'H:\data\BAYLORCW046\python\2024_06_11',
+            ],
+
+
+             [r'F:\data\BAYLORCW032\python\2023_10_24',
+            # r'F:\data\BAYLORCW034\python\2023_10_27',
+            r'F:\data\BAYLORCW036\python\2023_10_30',
+            r'F:\data\BAYLORCW035\python\2023_12_15',
+            r'F:\data\BAYLORCW037\python\2023_12_15',
+            
+            r'H:\data\BAYLORCW044\python\2024_06_19',
+            r'H:\data\BAYLORCW044\python\2024_06_18',
+            
+            r'H:\data\BAYLORCW046\python\2024_06_24',
+            r'H:\data\BAYLORCW046\python\2024_06_27',
+            r'H:\data\BAYLORCW046\python\2024_06_26',
+            
+            ]]
+
 #%% Choice dimension unmatched
 
 path = expertpath
@@ -201,7 +246,7 @@ projR, projL = l1.plot_CD(plot=False, auto_corr_return=True)
 
 allproj = np.vstack((projR, projL))
 df = pd.DataFrame(allproj,
-                  columns=range(61))
+                  columns=range(l1.time_cutoff))
 
 corrs = df.corr()
 plt.imshow(corrs)
@@ -217,28 +262,44 @@ plt.axvline(l1.response, color = 'white', ls='--', linewidth = 0.5)
 plt.xticks([l1.sample, l1.delay, l1.response], [-4.3, -3, 0])    
 plt.yticks([l1.sample, l1.delay, l1.response], [-4.3, -3, 0])    
 plt.colorbar()
-#%% Plot R2 values for CD stability over learning
+#%% Plot R2 values for CD stability over learning TAKES A LONG TIME TO RUN
 paths = [naivepath, learningpath, expertpath]
-allr = []
+allrs = []
+allmeans = []
+medians = []
+weights = []
 for i in range(3):
-    
-    r_choice = []
-    path = paths[i]
-    l1 = Mode(path, use_reg = True, triple=True)
-    orthonormal_basis_initial, mean = l1.plot_CD()
-    for _ in range(25):
-    
-        l1 = Mode(path, use_reg = True, triple=True)
-        orthonormal_basis, mean = l1.plot_CD()
-        
-        r_choice += [stats.pearsonr(orthonormal_basis_initial, orthonormal_basis)[0]]
-        
-    allr += [np.abs(r_choice)]
+    means = []
+    med=[]
+    rs = []
+    for path in allpaths[i]:
 
+        # path = paths[i]
+        l1 = Mode(path, use_reg = True, triple=True)
+        orthonormal_basis_initial, mean = l1.plot_CD()
+        r_choice = []
+        for _ in range(10):
+        
+            l1 = Mode(path, use_reg = True, triple=True)
+            orthonormal_basis, mean = l1.plot_CD()
+            orthonormal_basis_initial = np.vstack((orthonormal_basis_initial, orthonormal_basis))
+            
+            r_choice += [stats.pearsonr(orthonormal_basis_initial[0], orthonormal_basis)[0]]
+            
+        rs += [np.mean(np.abs(r_choice))]
+        means += [np.mean(np.var(orthonormal_basis_initial, axis=0))]
+        med += [np.median(np.var(orthonormal_basis_initial, axis=0))]
+        
+        
+    allrs += [rs]
+    allmeans += [means]
+    medians += [med]
+    weights += [orthonormal_basis_initial]
+    
 f = plt.figure(figsize = (5,5))
-plt.bar([0,1,2], np.mean(allr, axis=1))
+plt.bar([0,1,2], np.mean(allrs, axis=1))
 for i in range(3):
-    plt.scatter(np.ones(len(allr[i])) * i, allr[i])
+    plt.scatter(np.ones(len(allrs[i])) * i, allrs[i])
 plt.xticks([0,1,2], ['Naive', 'Learning', 'Expert'])
 plt.ylabel('R2 value')
 plt.ylim(bottom=0.5)

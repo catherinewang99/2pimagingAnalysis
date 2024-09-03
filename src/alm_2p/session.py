@@ -1321,10 +1321,7 @@ class Session:
         poststat, negtstat = [],[]
         # for neuron in range(self.num_neurons):
         for neuron in neurons: # Only look at provided neurons
-            right, left = self.get_trace_matrix(neuron, rtrials=rtrials, ltrials=ltrials)
-            if lickdir:
-                right, left = self.get_trace_matrix(neuron, lickdir=True, rtrials=rtrials, ltrials=ltrials)
-                
+            right, left = self.get_trace_matrix(neuron, lickdir=lickdir, rtrials=rtrials, ltrials=ltrials)          
                 
             if bias:
                 biasidx = self.find_bias_trials()
@@ -1367,11 +1364,8 @@ class Session:
         poststat, negtstat = [],[]
         # for neuron in range(self.num_neurons):
         for neuron in neurons: # Only look at provided neurons
-            right, left = self.get_trace_matrix(neuron, rtrials=rtrials, ltrials=ltrials)
-            if lickdir:
-                right, left = self.get_trace_matrix(neuron, lickdir=True, rtrials=rtrials, ltrials=ltrials)
-                
-                
+            right, left = self.get_trace_matrix(neuron, lickdir=lickdir, rtrials=rtrials, ltrials=ltrials)
+                           
             if bias:
                 biasidx = self.find_bias_trials()
                 right,left = self.get_trace_matrix(neuron, bias_trials= biasidx)

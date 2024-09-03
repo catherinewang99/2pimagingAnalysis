@@ -28,21 +28,21 @@ cat = np.concatenate
 
 plt.rcParams['pdf.fonttype'] = '42' 
 #%% CONTRA PATHS:
-allpaths = [[r'F:\data\BAYLORCW032\python\2023_10_24',
-            # r'F:\data\BAYLORCW034\python\2023_10_27',
-            r'F:\data\BAYLORCW036\python\2023_10_30',
-            r'F:\data\BAYLORCW035\python\2023_12_15',
-            r'F:\data\BAYLORCW037\python\2023_12_15',
+all_paths = [[    r'F:\data\BAYLORCW032\python\2023_10_05',
+            # r'F:\data\BAYLORCW034\python\2023_10_12',
+            r'F:\data\BAYLORCW036\python\2023_10_09',
+            r'F:\data\BAYLORCW035\python\2023_10_26',
+            r'F:\data\BAYLORCW037\python\2023_11_21',
             
-            r'H:\data\BAYLORCW044\python\2024_06_19',
-            r'H:\data\BAYLORCW044\python\2024_06_18',
+            r'H:\data\BAYLORCW044\python\2024_05_22',
+            r'H:\data\BAYLORCW044\python\2024_05_23',
             
-            r'H:\data\BAYLORCW046\python\2024_06_24',
-            r'H:\data\BAYLORCW046\python\2024_06_27',
-            r'H:\data\BAYLORCW046\python\2024_06_26',
-            
+            r'H:\data\BAYLORCW046\python\2024_05_29',
+            r'H:\data\BAYLORCW046\python\2024_05_30',
+            r'H:\data\BAYLORCW046\python\2024_05_31',
             ],
-            [r'F:\data\BAYLORCW032\python\2023_10_19',
+
+             [r'F:\data\BAYLORCW032\python\2023_10_19',
             # r'F:\data\BAYLORCW034\python\2023_10_22',
             r'F:\data\BAYLORCW036\python\2023_10_19',
             r'F:\data\BAYLORCW035\python\2023_12_07',
@@ -55,18 +55,21 @@ allpaths = [[r'F:\data\BAYLORCW032\python\2023_10_24',
             r'H:\data\BAYLORCW046\python\2024_06_10',
             r'H:\data\BAYLORCW046\python\2024_06_11',
             ],
-            [r'F:\data\BAYLORCW032\python\2023_10_05',
-            # r'F:\data\BAYLORCW034\python\2023_10_12',
-            r'F:\data\BAYLORCW036\python\2023_10_09',
-            r'F:\data\BAYLORCW035\python\2023_10_26',
-            r'F:\data\BAYLORCW037\python\2023_11_21',
+
+
+             [r'F:\data\BAYLORCW032\python\2023_10_24',
+            # r'F:\data\BAYLORCW034\python\2023_10_27',
+            r'F:\data\BAYLORCW036\python\2023_10_30',
+            r'F:\data\BAYLORCW035\python\2023_12_15',
+            r'F:\data\BAYLORCW037\python\2023_12_15',
             
-            r'H:\data\BAYLORCW044\python\2024_05_22',
-            r'H:\data\BAYLORCW044\python\2024_05_23',
+            r'H:\data\BAYLORCW044\python\2024_06_19',
+            r'H:\data\BAYLORCW044\python\2024_06_18',
             
-            r'H:\data\BAYLORCW046\python\2024_05_29',
-            r'H:\data\BAYLORCW046\python\2024_05_30',
-            r'H:\data\BAYLORCW046\python\2024_05_31',
+            r'H:\data\BAYLORCW046\python\2024_06_24',
+            r'H:\data\BAYLORCW046\python\2024_06_27',
+            r'H:\data\BAYLORCW046\python\2024_06_26',
+            
             ]]
 
 #%% Fraction change in dF/F0 by stimulation
@@ -177,28 +180,43 @@ for i in range(3):
         
     allsup += [contra_frac_sup]
     allexc += [contra_frac_exc]
-    
+
+# total_n = 0
+# for path in contra_paths:
+
+#     l1 = quality.QC(path=path, use_reg=True, triple=True, use_background_sub=True, baseline_normalization="median_zscore")
+#     total_n += len(l1.good_neurons)
+
 f = plt.figure(figsize = (5,5))
 
 for i in range(3):
     contra_frac_exc = allexc[i]
     contra_frac_sup = allsup[i]
     if i ==0:
-        plt.barh([2-i], [np.mean(contra_frac_exc)], color = 'r', edgecolor = 'black', label = 'Excited')
-        plt.barh([2-i], [-np.mean(contra_frac_sup)], color = 'b', edgecolor = 'black', label = 'Inhibited')
+        plt.barh([i], [np.mean(contra_frac_exc)], color = 'r', edgecolor = 'black', label = 'Excited')
+        plt.barh([i], [-np.mean(contra_frac_sup)], color = 'b', edgecolor = 'black', label = 'Inhibited')
     else:
-        plt.barh([2-i], [np.mean(contra_frac_exc)], color = 'r', edgecolor = 'black')
-        plt.barh([2-i], [-np.mean(contra_frac_sup)], color = 'b', edgecolor = 'black')
+        plt.barh([i], [np.mean(contra_frac_exc)], color = 'r', edgecolor = 'black')
+        plt.barh([i], [-np.mean(contra_frac_sup)], color = 'b', edgecolor = 'black')
     
-    plt.scatter(cat((contra_frac_exc, -1 * np.array(contra_frac_sup))), np.ones(len(cat((contra_frac_exc, contra_frac_sup)))) * (2-i), facecolors='none', edgecolors='grey')
+    plt.scatter(cat((contra_frac_exc, -1 * np.array(contra_frac_sup))), np.ones(len(cat((contra_frac_exc, contra_frac_sup)))) * (i), facecolors='none', edgecolors='grey')
 
 plt.axvline(0)
 plt.yticks([0,1,2], ['Expert', 'Learning', 'Naive'])
-plt.ylabel('Condition')
+plt.ylabel('Stage')
 plt.xlabel('Fraction of neurons with significant dF/F0 change')
+plt.title("Perturbation effect over learning (n = {} neurons)".format(total_n))
 plt.legend()
 plt.savefig(r'F:\data\Fig 3\opto_population_effect_overlearning.pdf')
 plt.show()
+
+
+## Try a violin plot
+
+f = plt.figure(figsize = (5,5))
+plt.violinplot(contra_frac_exc, vert=False)
+plt.violinplot(-contra_frac_sup, vert=False)
+plt.yticks([0,1,2], ['Expert', 'Learning', 'Naive'])
 
 
 #%% Changes at over opto corruption
