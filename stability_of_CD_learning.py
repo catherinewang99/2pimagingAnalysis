@@ -19,6 +19,8 @@ import pandas as pd
 from sklearn.decomposition import PCA
 import stats
 from numpy.linalg import norm
+import seaborn as sns
+from collections import Counter
 cat = np.concatenate
 plt.rcParams['pdf.fonttype'] = '42' 
 
@@ -45,30 +47,36 @@ def cos_sim(a,b):
     return np.dot(a, b)/(norm(a)*norm(b))
 
 # Heatmap function
-def plot_heatmap_across_sess(neuron):
-    r, l = l1.get_trace_matrix(neuron)
+def plot_heatmap_across_sess(sess, neuron, return_arr=False):
+    r, l = sess.get_trace_matrix(neuron)
     r, l = np.array(r), np.array(l)
+        
+    df = pd.DataFrame(r[:,range(sess.delay, sess.response)].T)  
+    corrs = df.corr()
+    
+    df = pd.DataFrame(l[:,range(sess.delay, sess.response)].T)  
+    l_corrs = df.corr()
+    
+    if return_arr:
+        return corrs, l_corrs
     
     f = plt.figure(figsize = (5,5))
-    df = pd.DataFrame(r[:,range(l1.delay, l1.response)].T)  
-    corrs = df.corr()
     plt.imshow(corrs)
     plt.xlabel('R trials')
     plt.title('Correlation of delay activity in R trials')
-    plt.colorbar()    
+    plt.colorbar()   
     
     f = plt.figure(figsize = (5,5))
-    df = pd.DataFrame(l[:,range(l1.delay, l1.response)].T)  
-    corrs = df.corr()
-    plt.imshow(corrs)
+    plt.imshow(l_corrs)
     plt.xlabel('L trials')
     plt.title('Correlation of delay activity in L trials')
-    plt.colorbar()   
-
+    plt.colorbar() 
+    
+    
 import scipy
 import scipy.cluster.hierarchy as sch
 
-def cluster_corr(corr_array, inplace=False):
+def cluster_corr(corr_array, inplace=False, both = False):
     """
     Rearranges the correlation matrix, corr_array, so that groups of highly 
     correlated variables are next to eachother 
@@ -94,6 +102,8 @@ def cluster_corr(corr_array, inplace=False):
         corr_array = corr_array.copy()
     
     if isinstance(corr_array, pd.DataFrame):
+        if both:
+            return corr_array.iloc[idx, :].T.iloc[idx, :], idx_to_cluster_array
         return corr_array.iloc[idx, :].T.iloc[idx, :]
     return corr_array[idx, :][:, idx]
 
@@ -205,6 +215,13 @@ plt.ylabel('Variance')
 plt.xlabel('Weights(abs)')
 
 f = plt.figure(figsize = (5,5))
+plt.scatter(np.abs(avg_weights),np.log(allr))
+plt.ylabel('Variance (log)')
+plt.xlabel('Weights(abs)')
+
+
+
+f = plt.figure(figsize = (5,5))
 plt.scatter((avg_weights),allr)
 plt.ylabel('Variance')
 plt.xlabel('Weights')
@@ -277,7 +294,162 @@ for i in range(90,9,-10):
 f = plt.figure(figsize = (5,5))
 plt.plot(range(9), all_accs, marker='x')
 
+#%% Look at some random neurons
+
+for idx in range(3):
+    rcorr, lcorr = plot_heatmap_across_sess(l1.good_neurons[idx], return_arr=True)
+    f = plt.figure(figsize = (5,5))
+    sns.heatmap(cluster_corr(rcorr))
+    f = plt.figure(figsize = (5,5))
+    sns.heatmap(cluster_corr(lcorr))
+
+#%% Look at the high var neurons: non norm
+idx_highvar = np.where(np.array(allr) > 0.006)[0]
+
+for idx in idx_highvar[0:1]:
+    l1.plot_rasterPSTH_sidebyside(l1.good_neurons[idx])
+    rcorr, lcorr = plot_heatmap_across_sess(l1, l1.good_neurons[idx], return_arr=True)
+    f = plt.figure(figsize = (6,5))
+    sns.heatmap(cluster_corr(rcorr))
+    f = plt.figure(figsize = (6,5))
+    sns.heatmap(cluster_corr(lcorr))
+
+
+# Look at these same neurons in expert session
+# l2 = Mode(expertpath, use_reg=True, triple=True)
+for idx in idx_highvar[0:1]:
+    l2.plot_rasterPSTH_sidebyside(l2.good_neurons[idx])
+    rcorr, lcorr = plot_heatmap_across_sess(l2, l2.good_neurons[idx], return_arr=True)
+    f = plt.figure(figsize = (6,5))
+    sns.heatmap(cluster_corr(rcorr))
+    f = plt.figure(figsize = (6,5))
+    sns.heatmap(cluster_corr(lcorr))
+
+#%% Look at the number of clusters:
+num_clusters_l = []
+num_clusters_r = []
+
+max_clus_size_l = []
+max_clus_size_r = []
+
+av_clus_size_l = []
+av_clus_size_r = []
+
+for idx in range(len(l1.good_neurons)):
+
+    rcorr, lcorr = plot_heatmap_across_sess(l1, l1.good_neurons[idx], return_arr=True)
+    _, idmap_r = cluster_corr(rcorr, both=True)
+    _, idmap_l = cluster_corr(lcorr, both=True)
+
+    num_clusters_r += [len(set(idmap_r))]
+    num_clusters_l += [len(set(idmap_l))]
     
+    av_clus_size_r += [np.average(list(Counter(list(idmap_r)).values()))]
+    av_clus_size_l += [np.average(list(Counter(list(idmap_l)).values()))]
+    
+    max_clus_size_r += [max(list(Counter(list(idmap_r)).values()))]
+    max_clus_size_l += [max(list(Counter(list(idmap_l)).values()))]
+
+
+#%% Characterizing the number and size of clusters
+
+f = plt.figure(figsize = (5,5))
+plt.hist(num_clusters_r, bins=25, alpha=0.5, color='b', label='R trials')
+plt.hist(num_clusters_l, bins=25, alpha=0.5, color='r', label='L trials')
+plt.ylabel('Num')
+plt.xlabel('Number of clusters')
+plt.title('Number of clusters for R/L trials')
+plt.legend()
+
+
+f = plt.figure(figsize = (5,5))
+plt.hist(av_clus_size_r, bins=25, alpha=0.5, color='b', label='R trials')
+plt.hist(av_clus_size_l, bins=25, alpha=0.5, color='r', label='L trials')
+plt.ylabel('Num')
+plt.xlabel('Size of cluster')
+plt.title('Av. size of clusters for R/L trials')
+plt.legend()
+
+f = plt.figure(figsize = (5,5))
+plt.hist(max_clus_size_r, bins=25, alpha=0.5, color='b', label='R trials')
+plt.hist(max_clus_size_l, bins=25, alpha=0.5, color='r', label='L trials')
+plt.ylabel('Num')
+plt.xlabel('Max size of clusters')
+plt.title('Max size of clusters for R/L trials')
+plt.legend()
+
+f = plt.figure(figsize = (5,5))
+plt.scatter(np.log(num_clusters_r),np.log(av_clus_size_r),color='b', label='R trials')
+plt.scatter(np.log(num_clusters_l),np.log(av_clus_size_l),color='r', label='L trials')
+plt.ylabel('Average cluster size (log)')
+plt.xlabel('Number of clusters (log)')
+plt.title('Average cluster size vs number of clusters')
+plt.legend()
+
+f = plt.figure(figsize = (5,5))
+plt.scatter((num_clusters_r),(max_clus_size_r),color='b', label='R trials')
+plt.scatter((num_clusters_l),(max_clus_size_l),color='r', label='L trials')
+plt.ylabel('Max cluster size (log)')
+plt.xlabel('Number of clusters (log)')
+plt.title('Max cluster size vs number of clusters')
+plt.legend()
+
+
+f = plt.figure(figsize = (5,5))
+plt.scatter(abs(avg_weights),(num_clusters_r),color='b')
+plt.scatter(abs(avg_weights),num_clusters_l,color='r')
+plt.ylabel('Number of clusters')
+plt.xlabel('Weight')
+
+#%% Relating the size and number of clusters to the variance measures
+
+f = plt.figure(figsize = (5,5))
+plt.scatter(np.log(allr),(num_clusters_r),color='b')
+plt.scatter(np.log(allr),num_clusters_l,color='r')
+plt.ylabel('Number of clusters')
+plt.xlabel('Variance of weights (log)')
+print(scipy.stats.pearsonr(np.log(allr), num_clusters_r))
+print(scipy.stats.pearsonr(np.log(allr), num_clusters_l))
+
+
+
+f = plt.figure(figsize = (5,5))
+plt.scatter(np.log(allr),(max_clus_size_r),color='b')
+plt.scatter(np.log(allr),(max_clus_size_l),color='r')
+plt.ylabel('Max size of clusters')
+plt.xlabel('Variance of weights (log)')
+print(scipy.stats.pearsonr(np.log(allr), max_clus_size_r))
+print(scipy.stats.pearsonr(np.log(allr), max_clus_size_l))
+
+
+f = plt.figure(figsize = (5,5))
+plt.scatter(np.log(allr),(av_clus_size_r),color='b')
+plt.scatter(np.log(allr),(av_clus_size_l),color='r')
+plt.ylabel('Avg size of clusters')
+plt.xlabel('Variance of weights (log)')
+print(scipy.stats.pearsonr(np.log(allr), av_clus_size_r))
+print(scipy.stats.pearsonr(np.log(allr), av_clus_size_l))
+
+
+
+f = plt.figure(figsize = (5,5))
+plt.scatter(np.log(weighted_var),(max_clus_size_r),color='b')
+plt.scatter(np.log(weighted_var),(max_clus_size_l),color='r')
+plt.ylabel('Max size of clusters')
+plt.xlabel('Variance of weights norm (log)')
+print(scipy.stats.pearsonr(np.log(allr), max_clus_size_r))
+print(scipy.stats.pearsonr(np.log(allr), max_clus_size_l))
+
+
+
+f = plt.figure(figsize = (5,5))
+plt.scatter(np.log(allr),(num_clusters_r),color='b')
+plt.scatter(np.log(allr),num_clusters_l,color='r')
+plt.ylabel('Number of clusters')
+plt.xlabel('Variance of weights (log)')
+print(scipy.stats.pearsonr(np.log(allr), num_clusters_r))
+print(scipy.stats.pearsonr(np.log(allr), num_clusters_l))
+
 
 #%%
 # Investigate high norm var neurons
