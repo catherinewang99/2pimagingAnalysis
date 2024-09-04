@@ -268,6 +268,8 @@ allrs = []
 allmeans = []
 medians = []
 weights = []
+n=25
+
 for i in range(3):
     means = []
     med=[]
@@ -277,14 +279,17 @@ for i in range(3):
         # path = paths[i]
         l1 = Mode(path, use_reg = True, triple=True)
         orthonormal_basis_initial, mean = l1.plot_CD()
+        maxval = max(orthonormal_basis_initial)
+        maxn = np.where(orthonormal_basis_initial == maxval)[0][0]
         r_choice = []
-        for _ in range(10):
+        for _ in range(n-1):
         
             l1 = Mode(path, use_reg = True, triple=True)
             orthonormal_basis, mean = l1.plot_CD()
-            orthonormal_basis_initial = np.vstack((orthonormal_basis_initial, orthonormal_basis))
+            sign = np.sign(orthonormal_basis[maxn])
+            orthonormal_basis_initial = np.vstack((orthonormal_basis_initial, orthonormal_basis * sign))
             
-            r_choice += [stats.pearsonr(orthonormal_basis_initial[0], orthonormal_basis)[0]]
+            r_choice += [scipy.stats.pearsonr(orthonormal_basis_initial[0], orthonormal_basis)[0]]
             
         rs += [np.mean(np.abs(r_choice))]
         means += [np.mean(np.var(orthonormal_basis_initial, axis=0))]
@@ -296,14 +301,123 @@ for i in range(3):
     medians += [med]
     weights += [orthonormal_basis_initial]
     
-f = plt.figure(figsize = (5,5))
-plt.bar([0,1,2], np.mean(allrs, axis=1))
-for i in range(3):
-    plt.scatter(np.ones(len(allrs[i])) * i, allrs[i])
-plt.xticks([0,1,2], ['Naive', 'Learning', 'Expert'])
-plt.ylabel('R2 value')
-plt.ylim(bottom=0.5)
+    
+np.save(r'H:\data\weights.npy', weights)
+np.save(r'H:\data\allrs.npy', allrs)
+np.save(r'H:\data\allmeans.npy', allmeans)
+np.save(r'H:\data\medians.npy', medians)
 
+
+f = plt.figure(figsize = (5,5))
+plt.bar([0,1,2], np.mean(medians, axis=1))
+for i in range(3):
+    plt.scatter(np.ones(len(medians[i])) * i, medians[i])
+plt.xticks([0,1,2], ['Naive', 'Learning', 'Expert'])
+plt.ylabel('Median variance')
+# plt.ylim(bottom=0.4)
+plt.title('Median within session variance across FOVs')
+
+
+#%% Correlate across FOV R2 values with amplitude of modes (decoding acc)
+
+learning_rs = allrs[1]
+
+all_choice_ampl = []
+all_sample_ampl = []
+
+for i in range(3):
+
+    choice_ampl = []
+    sample_ampl = []
+    
+    for path in allpaths[i]:
+        
+        l1 = Mode(path, use_reg = True, triple=True)
+        orthonormal_basis, mean, db, acc_learning = l1.decision_boundary(mode_input='choice', persistence=False)
+        lea = np.mean(acc_learning)
+        lea = lea if lea > 0.5 else 1-lea
+        choice_ampl += [lea]
+        
+        orthonormal_basis, mean, db, acc_learning_sample = l1.decision_boundary(mode_input='stimulus', persistence=False)
+        lea_sample = np.mean(acc_learning_sample)
+        lea_sample = lea_sample if lea_sample > 0.5 else 1-lea_sample
+        sample_ampl += [lea_sample]
+        
+    all_choice_ampl += [choice_ampl]
+    all_sample_ampl += [sample_ampl]
+    
+
+stage = ['Naive', 'Learning', 'Expert']
+f = plt.figure(figsize = (5,5))
+for i in range(3):
+    plt.scatter(all_choice_ampl[i], allrs[i], marker='x', label = stage[i])
+plt.xlabel('Choice amplitude (decoding accuracy)')
+plt.ylabel('Stability of mode (r2 value)')
+plt.title('CD_choice amplitude vs CD_choice stability')
+plt.legend()
+plt.ylim(bottom = 0.45)
+print(scipy.stats.pearsonr(cat(all_choice_ampl), cat(allrs)))
+
+
+f = plt.figure(figsize = (5,5))
+for i in range(3):
+    plt.scatter(all_sample_ampl[i], allrs[i], marker='x', label = stage[i])
+plt.xlabel('Stimulus amplitude (decoding accuracy)')
+plt.ylabel('Stability of mode (r2 value)')
+plt.title('CD_sample amplitude vs CD_choice stability')
+plt.legend()
+plt.ylim(bottom = 0.45)
+print(scipy.stats.pearsonr(cat(all_sample_ampl), cat(allrs)))
+
+
+for i in range(3):
+    f = plt.figure(figsize = (5,5))
+    plt.scatter(all_choice_ampl[i], allrs[i], marker='x', label = stage[i])
+    plt.xlabel('Choice amplitude (decoding accuracy)')
+    plt.ylabel('Stability of mode (r2 value)')
+    plt.title('CD_choice amplitude vs CD_choice stability')
+    plt.legend()
+    print(scipy.stats.pearsonr(all_choice_ampl[i], allrs[i]))
+
+
+#%% Correlate across FOV R2 values with amplitude of modes (decoding acc) LEARNING ONLY
+
+
+choice_ampl = []
+sample_ampl = []
+
+for path in allpaths[1]:
+    
+    l1 = Mode(path, use_reg = True, triple=True)
+    orthonormal_basis, mean, db, acc_learning = l1.decision_boundary(mode_input='choice', persistence=False)
+    lea = np.mean(acc_learning)
+    lea = lea if lea > 0.5 else 1-lea
+    choice_ampl += [lea]
+    
+    orthonormal_basis, mean, db, acc_learning_sample = l1.decision_boundary(mode_input='stimulus', persistence=True)
+    lea_sample = np.mean(acc_learning_sample)
+    lea_sample = lea_sample if lea_sample > 0.5 else 1-lea_sample
+    sample_ampl += [lea_sample]
+    
+
+f = plt.figure(figsize = (5,5))
+plt.scatter(choice_ampl,  allrs[1], marker='x', label = stage[i])
+plt.xlabel('Sample persistence (decoding accuracy)')
+plt.ylabel('Stability of mode (r2 value)')
+plt.title('CD_choice amplitude vs CD_choice stability')
+plt.legend()
+print(scipy.stats.pearsonr(choice_ampl, allrs[1]))
+    
+
+f = plt.figure(figsize = (5,5))
+plt.scatter(sample_ampl,  allrs[1], marker='x', label = stage[i])
+plt.xlabel('Sample persistence (decoding accuracy)')
+plt.ylabel('Stability of mode (r2 value)')
+plt.title('CD_sample persistence vs CD_choice stability')
+plt.legend()
+print(scipy.stats.pearsonr(sample_ampl, allrs[1]))
+    
+    
 
 #%% Plot R2 values of same CD over many pairs of runs to show stability of calculation
 
