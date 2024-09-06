@@ -17,9 +17,11 @@ from matplotlib.pyplot import figure
 import numpy as np
 import pandas as pd
 from sklearn.decomposition import PCA
+from sklearn.metrics import davies_bouldin_score
 import stats
 from numpy.linalg import norm
 import seaborn as sns
+from sklearn.metrics import silhouette_score
 from collections import Counter
 cat = np.concatenate
 plt.rcParams['pdf.fonttype'] = '42' 
@@ -96,16 +98,24 @@ def cluster_corr(corr_array, inplace=False, both = False):
     cluster_distance_threshold = pairwise_distances.max()/2
     idx_to_cluster_array = sch.fcluster(linkage, cluster_distance_threshold, 
                                         criterion='distance')
+    
     idx = np.argsort(idx_to_cluster_array)
+    
+    sil_score = silhouette_score(corr_array, idx_to_cluster_array)
+
+    # sil_score = davies_bouldin_score(corr_array, idx_to_cluster_array)
+
     
     if not inplace:
         corr_array = corr_array.copy()
     
     if isinstance(corr_array, pd.DataFrame):
         if both:
-            return corr_array.iloc[idx, :].T.iloc[idx, :], idx_to_cluster_array
+            return corr_array.iloc[idx, :].T.iloc[idx, :], idx_to_cluster_array, sil_score
         return corr_array.iloc[idx, :].T.iloc[idx, :]
     return corr_array[idx, :][:, idx]
+
+
 
 #%% PATHS 
 
@@ -258,4 +268,45 @@ plt.ylabel('Median max size of clusters')
 plt.xticks(range(3), ['Naive', 'Learning' , 'Expert'])
 plt.title('Maximum size (FOV med.) of clusters per FOVs over learning')
 
+#%% Measures of clusters test
 
+
+num_clusters_l = []
+num_clusters_r = []
+
+max_clus_size_l = []
+max_clus_size_r = []
+
+av_clus_size_l = []
+av_clus_size_r = []
+
+all_sil_r = []
+all_sil_l = []
+
+for idx in range(len(l1.good_neurons)):
+
+    rcorr, lcorr = plot_heatmap_across_sess(l1, l1.good_neurons[idx], return_arr=True)
+    _, idmap_r, sil_r = cluster_corr(rcorr, both=True)
+    _, idmap_l, sil_l = cluster_corr(lcorr, both=True)
+
+    num_clusters_r += [len(set(idmap_r))]
+    num_clusters_l += [len(set(idmap_l))]
+    
+    av_clus_size_r += [np.average(list(Counter(list(idmap_r)).values()))]
+    av_clus_size_l += [np.average(list(Counter(list(idmap_l)).values()))]
+    
+    max_clus_size_r += [max(list(Counter(list(idmap_r)).values()))]
+    max_clus_size_l += [max(list(Counter(list(idmap_l)).values()))]
+    
+    all_sil_r += [sil_r]
+    all_sil_l += [sil_l]
+
+
+#%%
+
+f = plt.figure(figsize = (5,5))
+plt.hist(all_sil_r, bins=25, alpha=0.5, color='b', label='right trials')
+plt.hist(all_sil_l, bins=25, alpha=0.5, color='r', label='left trials')
+plt.legend()
+plt.xlabel('Davies-Bouldin score')
+plt.title('Distribution of Davies-Bouldin scores for clusters across neurons')
