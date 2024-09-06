@@ -24,7 +24,7 @@ import pandas as pd
 from scipy.stats import mannwhitneyu
 from scipy.stats import mstats
 from scipy.ndimage import median_filter
-from .LinRegpval import LinearRegression
+# from .LinRegpval import LinearRegression
 plt.rcParams['pdf.fonttype'] = 42 
 import time 
 import random
@@ -1005,6 +1005,56 @@ class Session:
         """
         plt.plot(self.dff[0, trial][neuron_num], 'b-')
         plt.title("Neuron {}: PSTH for trial {}".format(neuron_num, trial))
+        plt.show()
+        
+    def plot_single_neuron_multi_trial(self, neuron_num, trials):
+        """
+        Assumes all trials are from the same direction
+
+        Parameters
+        ----------
+        neuron_num : TYPE
+            DESCRIPTION.
+        trials : TYPE
+            DESCRIPTION.
+
+        Returns
+        -------
+        None.
+
+        """
+        
+        R = [self.dff[0, trial][neuron_num, :self.time_cutoff] for trial in trials]
+        
+        R_av = np.mean(R, axis = 0)
+        
+        right_err = np.std(R, axis=0) / np.sqrt(len(R))
+                            
+
+        f, axarr = plt.subplots(2, sharex=True, figsize=(10,10))
+
+        axarr[0].matshow(R, cmap='gray', interpolation='nearest', aspect='auto')
+        axarr[0].axis('off')
+        
+        axarr[1].plot(R_av, 'b-')
+        
+        x = range(self.time_cutoff)
+        # x = x[3:]
+        
+
+        axarr[1].fill_between(x, R_av - right_err, 
+                 R_av + right_err,
+                 color=['#b4b2dc'])
+        axarr[1].axvline(self.sample, linestyle = '--')
+        axarr[1].axvline(self.delay, linestyle = '--')
+        axarr[1].axvline(self.response, linestyle = '--')
+        axarr[0].set_title('Trace for neuron {}'.format(neuron_num))
+
+            
+        x = np.arange(-6.8,6,self.fs)[:self.time_cutoff]
+        axarr[1].set_xticks(range(4, self.time_cutoff, 6), [np.round(d) for d in x[4::6]])
+
+            
         plt.show()
         
 

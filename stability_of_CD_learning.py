@@ -176,7 +176,7 @@ allpaths = [[    r'F:\data\BAYLORCW032\python\2023_10_05',
 paths = [naivepath, learningpath, expertpath]
 
 path = learningpath
-n=25
+n=15
 l1 = Mode(path, use_reg = True, triple=True, baseline_normalization="median_zscore")
 orthonormal_basis_initial, mean = l1.plot_CD()
 maxval = max(orthonormal_basis_initial)
@@ -297,7 +297,8 @@ plt.plot(range(9), all_accs, marker='x')
 #%% Look at some random neurons
 
 for idx in range(3):
-    rcorr, lcorr = plot_heatmap_across_sess(l1.good_neurons[idx], return_arr=True)
+    l1.plot_rasterPSTH_sidebyside(l1.good_neurons[idx])
+    rcorr, lcorr = plot_heatmap_across_sess(l1, l1.good_neurons[idx], return_arr=True)
     f = plt.figure(figsize = (5,5))
     sns.heatmap(cluster_corr(rcorr))
     f = plt.figure(figsize = (5,5))
@@ -324,6 +325,36 @@ for idx in idx_highvar[0:1]:
     sns.heatmap(cluster_corr(rcorr))
     f = plt.figure(figsize = (6,5))
     sns.heatmap(cluster_corr(lcorr))
+    
+#%% Investiage the cluster trial averaged activity:
+    
+rcorr, lcorr = plot_heatmap_across_sess(l1, l1.good_neurons[idx_highvar[0]], return_arr=True)
+_, idmap_r = cluster_corr(rcorr, both=True)
+_, idmap_l = cluster_corr(lcorr, both=True)
+
+dict_idmap_r =  dict(Counter(list(idmap_r)))
+dict_idmap_l =  dict(Counter(list(idmap_l)))
+
+l_corr_ctl_trials = np.array([l for l in l1.lick_correct_direction('l') if not l1.stim_ON[l]])
+r_corr_ctl_trials = np.array([l for l in l1.lick_correct_direction('r') if not l1.stim_ON[l]])
+# sort by size of cluster:
+    
+for cl in sorted(dict_idmap_l, key=dict_idmap_l.get, reverse=True):
+    
+    trialidx = np.where(idmap_l == cl)[0]
+    trials = l_corr_ctl_trials[trialidx]
+    l1.plot_single_neuron_multi_trial(l1.good_neurons[idx_highvar[0]], trials)
+
+# look at the time course of the clusters arising
+f = plt.figure(figsize = (8,5))
+
+counter = 5
+for cl in sorted(dict_idmap_l, key=dict_idmap_l.get, reverse=True):
+
+    trialidx = np.where(idmap_l == cl)[0]
+    plt.bar(trialidx, np.ones(len(trialidx)) * counter, alpha=0.5)
+    counter -= 1
+
 
 #%% Look at the number of clusters:
 num_clusters_l = []
@@ -441,7 +472,6 @@ print(scipy.stats.pearsonr(np.log(allr), max_clus_size_r))
 print(scipy.stats.pearsonr(np.log(allr), max_clus_size_l))
 
 
-
 f = plt.figure(figsize = (5,5))
 plt.scatter(np.log(allr),(num_clusters_r),color='b')
 plt.scatter(np.log(allr),num_clusters_l,color='r')
@@ -449,6 +479,33 @@ plt.ylabel('Number of clusters')
 plt.xlabel('Variance of weights (log)')
 print(scipy.stats.pearsonr(np.log(allr), num_clusters_r))
 print(scipy.stats.pearsonr(np.log(allr), num_clusters_l))
+
+
+
+# Number of clusters vs the size of the weight
+
+f = plt.figure(figsize = (5,5))
+plt.scatter(np.abs(avg_weights),(num_clusters_r),color='b')
+plt.scatter(np.abs(avg_weights),num_clusters_l,color='r')
+plt.ylabel('Number of clusters')
+plt.xlabel('Weight value')
+
+
+f = plt.figure(figsize = (5,5))
+plt.scatter(np.abs(avg_weights),(max_clus_size_r),color='b')
+plt.scatter(np.abs(avg_weights),max_clus_size_l,color='r')
+plt.ylabel('Max size of clusters')
+plt.xlabel('Weight value')
+
+
+f = plt.figure(figsize = (5,5))
+plt.scatter(np.abs(avg_weights),(av_clus_size_r),color='b')
+plt.scatter(np.abs(avg_weights),av_clus_size_l,color='r')
+plt.ylabel('Avg size of clusters')
+plt.xlabel('Weight value')
+
+#%% Look at time course of clusters for neurons
+
 
 
 #%%

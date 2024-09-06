@@ -11,7 +11,7 @@ sys.path.append("C:\scripts\Imaging analysis")
 import numpy as np
 import scipy.io as scio
 import matplotlib.pyplot as plt
-import session
+from alm_2p import session
 from matplotlib.pyplot import figure
 # import decon
 from scipy.stats import chisquare
@@ -19,6 +19,7 @@ import pandas as pd
 plt.rcParams['pdf.fonttype'] = '42' 
 import random
 from scipy import stats
+from statsmodels.stats.proportion import proportions_ztest
 
 #%% Individually plotted distributions
 agg_mice_paths = [[[r'F:\data\BAYLORCW032\python\2023_10_08',
@@ -249,7 +250,7 @@ alls1list, alld1, allr1, allns1 = [],[],[],[]
 for paths in all_matched_paths: # For each mouse/FOV
     s1list, d1, r1, ns1 = np.zeros(4),np.zeros(4),np.zeros(4),np.zeros(4)
 
-    s1 = session.Session(paths[1], use_reg=True, triple=True, use_background_sub=False) # Naive
+    s1 = session.Session(paths[0], use_reg=True, triple=True, use_background_sub=False) # Naive
 
     sample_epoch = range(s1.sample, s1.delay)
     delay_epoch = range(s1.delay+int(1.5 * 1/s1.fs), s1.response)
@@ -324,11 +325,36 @@ alld1 = np.mean(alld1, axis=0)
 allr1 = np.mean(allr1, axis=0)
 allns1 = np.mean(allns1, axis=0)
 
+#%% Count total number of neurons
+neuron_count = []
+for paths in agg_matched_paths[0]:
+    l1 = session.Session(paths, use_reg=True, triple=True)
+    neuron_count += [len(l1.good_neurons)]
+    
+    
 #%% Calculate SDR signifiances
-allnums = np.vstack((s1list, d1, r1, ns1))
+# allnums = np.vstack((s1list, d1, r1, ns1))
+allnums = np.vstack((alls1list, alld1, allr1, allns1)) * 3028
 exptotals = np.sum(allnums, axis=0)
-# Calculate significance
+# Calculate significance using binomial/proportion z-test
 
+for i in range(4): # SDR
+    print("####################")
+    for j in range(4): #Where the bucket went
+        # Input data
+        count = allnums[i, j]   # number of successes
+        nobs = np.sum(allnums[i])    # total number of observations
+        value = exptotals[j] / np.sum(exptotals) # hypothesized proportion
+        
+        # Perform one-proportion z-test
+        z_stat, p_value = proportions_ztest(count, nobs, value, alternative='larger')
+        
+        # Output the results
+        print(f"Z-statistic: {z_stat}")
+        print(f"P-value: {p_value}")
+
+
+#%% Use Chi-square for overall comparison of proportions (no greater/less than expected info)
 # Forward probabilities
 for i in range(4):
     res = chisquare(f_obs=allnums[i], f_exp=exptotals / sum(exptotals) * sum(allnums[i]))
@@ -341,51 +367,6 @@ for i in range(4):
     res = chisquare(f_obs=allnums[i], f_exp=exptotals / sum(exptotals) * sum(allnums[i]))
     print(res.pvalue)
 
-#RESULTS
-    
-# // Enter Flows between Nodes, like this:
-# //         Source [AMOUNT] Target
-
-# Sample[8] Sample1
-# Sample[1] Delay1
-# Sample[5] Response1
-# Sample[24] NS1
-
-# Delay[9] Sample1
-# Delay[5] Delay1
-# Delay[6] Response1
-# Delay[41] NS1
-
-# Response[10] Sample1
-# Response[15] Delay1
-# Response[45] Response1
-# Response[110] NS1
-
-# Non-selective[34] Sample1
-# Non-selective[48] Delay1
-# Non-selective[135] Response1
-# Non-selective[1176] NS1
-
-# // Learning expert
-# Sample1[15] Sample2
-# Sample1[3] Delay2
-# Sample1[10] Response2
-# Sample1[20] NS2
-
-# Delay1[20] Sample2
-# Delay1[16] Delay2
-# Delay1[22] Response2
-# Delay1[32] NS2
-
-# Response1[15] Sample2
-# Response1[30] Delay2
-# Response1[92] Response2
-# Response1[99] NS2
-
-# NS1[30] Sample2
-# NS1[83] Delay2
-# NS1[204] Response2
-# NS1[1006] NS2
     
     
     
