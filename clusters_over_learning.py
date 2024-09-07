@@ -21,8 +21,11 @@ from sklearn.metrics import davies_bouldin_score
 import stats
 from numpy.linalg import norm
 import seaborn as sns
+from scipy.cluster.hierarchy import inconsistent
 from sklearn.metrics import silhouette_score
 from collections import Counter
+import diptest
+
 cat = np.concatenate
 plt.rcParams['pdf.fonttype'] = '42' 
 
@@ -100,18 +103,21 @@ def cluster_corr(corr_array, inplace=False, both = False):
                                         criterion='distance')
     
     idx = np.argsort(idx_to_cluster_array)
+    if len(set(idx_to_cluster_array)) == corr_array.shape[0]:
+        sil_score, sil_score1 = 0, 2
+    else:
+        sil_score = silhouette_score(corr_array, idx_to_cluster_array)
     
-    sil_score = silhouette_score(corr_array, idx_to_cluster_array)
-
-    # sil_score = davies_bouldin_score(corr_array, idx_to_cluster_array)
-
+        sil_score1 = davies_bouldin_score(corr_array, idx_to_cluster_array)
+    
+    # sil_score = inconsistent(linkage)
     
     if not inplace:
         corr_array = corr_array.copy()
     
     if isinstance(corr_array, pd.DataFrame):
         if both:
-            return corr_array.iloc[idx, :].T.iloc[idx, :], idx_to_cluster_array, sil_score
+            return corr_array.iloc[idx, :].T.iloc[idx, :], idx_to_cluster_array, (sil_score, sil_score1)
         return corr_array.iloc[idx, :].T.iloc[idx, :]
     return corr_array[idx, :][:, idx]
 
@@ -167,20 +173,24 @@ allpaths = [[    r'F:\data\BAYLORCW032\python\2023_10_05',
 allnums_r = []
 allavgs_r = []
 allmaxs_r = []
+allsils_r = []
 
 allnums_l = []
 allavgs_l = []
 allmaxs_l = []
+allsils_l = []
 
 for i in range(3):
     
     nums_r = []
     avgs_r =[]
     maxs_r = []
+    sils_r = []
     
     nums_l = []
     avgs_l =[]
     maxs_l = []
+    sils_l = []
     
     for path in allpaths[i]:
 
@@ -195,12 +205,15 @@ for i in range(3):
 
         av_clus_size_l = []
         av_clus_size_r = []
+        
+        all_sil_l = []
+        all_sil_r = []
 
         for idx in range(len(l1.good_neurons)):
 
             rcorr, lcorr = plot_heatmap_across_sess(l1, l1.good_neurons[idx], return_arr=True)
-            _, idmap_r = cluster_corr(rcorr, both=True)
-            _, idmap_l = cluster_corr(lcorr, both=True)
+            _, idmap_r, sil_r = cluster_corr(rcorr, both=True)
+            _, idmap_l, sil_l = cluster_corr(lcorr, both=True)
 
             num_clusters_r += [len(set(idmap_r))]
             num_clusters_l += [len(set(idmap_l))]
@@ -211,23 +224,30 @@ for i in range(3):
             max_clus_size_r += [max(list(Counter(list(idmap_r)).values()))]
             max_clus_size_l += [max(list(Counter(list(idmap_l)).values()))]
             
+            all_sil_r += [sil_r[0]]
+            all_sil_l += [sil_l[0]]
+            
             
         nums_r += [np.mean(num_clusters_r)]
         avgs_r += [np.mean(av_clus_size_r)]
         maxs_r += [np.median(max_clus_size_r)]
+        sils_r += [all_sil_r]
         
         nums_l += [np.mean(num_clusters_l)]
         avgs_l += [np.mean(av_clus_size_l)]
         maxs_l += [np.median(max_clus_size_l)]
+        sils_l += [all_sil_l]
 
         
     allnums_r += [nums_r]
     allavgs_r += [avgs_r]
     allmaxs_r += [maxs_r]
+    allsils_r += [sils_r]
     
     allnums_l += [nums_l]
     allavgs_l += [avgs_l]
     allmaxs_l += [maxs_l]
+    allsils_l += [sils_l]
     
 #%% Number of clusters
 f = plt.figure(figsize = (5,5))
@@ -283,6 +303,10 @@ av_clus_size_r = []
 all_sil_r = []
 all_sil_l = []
 
+path = learningpath
+n=15
+l1 = Mode(path, use_reg = True, triple=True, baseline_normalization="median_zscore")
+
 for idx in range(len(l1.good_neurons)):
 
     rcorr, lcorr = plot_heatmap_across_sess(l1, l1.good_neurons[idx], return_arr=True)
@@ -301,12 +325,201 @@ for idx in range(len(l1.good_neurons)):
     all_sil_r += [sil_r]
     all_sil_l += [sil_l]
 
-
-#%%
+all_sil_r = np.array(all_sil_r)
+all_sil_l = np.array(all_sil_l)
+#%% Look at scores across the whole population of neurons
 
 f = plt.figure(figsize = (5,5))
-plt.hist(all_sil_r, bins=25, alpha=0.5, color='b', label='right trials')
-plt.hist(all_sil_l, bins=25, alpha=0.5, color='r', label='left trials')
+plt.hist(all_sil_r[:,0], bins=25, alpha=0.5, color='b', label='right trials')
+plt.hist(all_sil_l[:,0], bins=25, alpha=0.5, color='r', label='left trials')
 plt.legend()
-plt.xlabel('Davies-Bouldin score')
-plt.title('Distribution of Davies-Bouldin scores for clusters across neurons')
+plt.axvline(np.median(all_sil_r[:,0]), color='b')
+plt.axvline(np.mean(all_sil_r[:,0]), color='b', ls='--')
+plt.axvline(np.median(all_sil_l[:,0]), color='r')
+plt.axvline(np.mean(all_sil_l[:,0]), color='r', ls='--')
+# plt.xlabel('Davies-Bouldin score')
+plt.xlabel('Silhouette score')
+plt.title('Distribution of Silhouette scores for clusters across neurons')
+
+print(diptest.diptest(np.array(all_sil_r)))
+print(diptest.diptest(np.array(all_sil_l)))
+
+#%% Look at scores of individual neurons
+idx=225
+l1.plot_rasterPSTH_sidebyside(l1.good_neurons[idx])
+plot_heatmap_across_sess(l1, l1.good_neurons[idx])
+rcorr, lcorr = plot_heatmap_across_sess(l1, l1.good_neurons[idx], return_arr=True)
+_, idmap_r, sil_r = cluster_corr(rcorr, both=True)
+_, idmap_l, sil_l = cluster_corr(lcorr, both=True)
+f = plt.figure(figsize = (6,5))
+sns.heatmap(cluster_corr(rcorr))
+f = plt.figure(figsize = (6,5))
+sns.heatmap(cluster_corr(lcorr))
+print(sil_r, sil_l)
+
+#%% Compare the scores across other measures - number of clusters vs score
+f = plt.figure(figsize = (5,5))
+plt.scatter(all_sil_l[:, 0], num_clusters_l, color='r')
+plt.scatter(all_sil_r[:, 0], num_clusters_r, color='b')
+plt.xlabel('Silhouette scores')
+plt.ylabel('Number of clusters')
+
+f = plt.figure(figsize = (5,5))
+plt.scatter(all_sil_l[:, 0], av_clus_size_l, color='r')
+plt.scatter(all_sil_r[:, 0], av_clus_size_r, color='b')
+plt.xlabel('Silhouette scores')
+plt.ylabel('Avg cluster size')
+
+
+f = plt.figure(figsize = (5,5))
+plt.scatter(all_sil_l[:, 0], max_clus_size_l, color='r')
+plt.scatter(all_sil_r[:, 0], max_clus_size_r, color='b')
+plt.xlabel('Silhouette scores')
+plt.ylabel('Max cluster size')
+
+
+f = plt.figure(figsize = (5,5))
+plt.scatter(all_sil_l[:, 1], num_clusters_l, color='r')
+plt.scatter(all_sil_r[:, 1], num_clusters_r, color='b')
+plt.xlabel('Davies-Bouldin scores')
+plt.ylabel('Number of clusters')
+
+f = plt.figure(figsize = (5,5))
+plt.scatter(all_sil_l[:, 1], av_clus_size_l, color='r')
+plt.scatter(all_sil_r[:, 1], av_clus_size_r, color='b')
+plt.xlabel('Davies-Bouldin scores')
+plt.ylabel('Avg cluster size')
+
+
+f = plt.figure(figsize = (5,5))
+plt.scatter(all_sil_l[:, 1], max_clus_size_l, color='r')
+plt.scatter(all_sil_r[:, 1], max_clus_size_r, color='b')
+plt.xlabel('Davies-Bouldin scores')
+plt.ylabel('Max cluster size')
+
+
+#%% Compare the two scores with each other
+f = plt.figure(figsize = (5,5))
+
+all_sil_r = np.array(all_sil_r)
+all_sil_l = np.array(all_sil_l)
+plt.scatter(all_sil_r[:, 0], all_sil_r[:, 1],color='b')
+plt.scatter(all_sil_l[:, 0], all_sil_l[:, 1],color='r')
+plt.xlabel('Silhouette scores')
+plt.ylabel('Davies-Bouldin scores')
+
+#%% Now compare silh score with variance and weight
+
+f = plt.figure(figsize = (5,5))
+
+plt.scatter(np.log(allr), all_sil_r[:, 0],color='b')
+plt.scatter(np.log(allr), all_sil_l[:, 0],color='r')
+plt.ylabel('Goodness of cluster (silhouette score)')
+plt.xlabel('Variance of weights (log)')
+plt.title('Goodness of trial clustering and variance of CD_choice weights')
+print(scipy.stats.pearsonr(np.log(allr), all_sil_r[:, 0]))
+print(scipy.stats.pearsonr(np.log(allr), all_sil_l[:, 0]))
+
+
+f = plt.figure(figsize = (5,5))
+
+plt.scatter(np.abs(avg_weights), all_sil_r[:, 0],color='b')
+plt.scatter(np.abs(avg_weights), all_sil_l[:, 0],color='r')
+plt.ylabel('Goodness of cluster (silhouette score)')
+plt.xlabel('Weight (abs)')
+plt.title('Goodness of trial clustering and CD_choice weights')
+print(scipy.stats.pearsonr(avg_weights, all_sil_r[:, 0]))
+print(scipy.stats.pearsonr(avg_weights, all_sil_l[:, 0]))
+
+#%% Silh score over learning all neurons
+# Make df object to plot
+
+df = pd.DataFrame()
+df['score'] = cat(allsils_l[0])
+df['Stage'] = 'Naive'
+df['Trial'] = 'Left'
+
+df1 = pd.DataFrame()
+df1['score'] = cat(allsils_l[1])
+df1['Stage'] = 'Learning'
+df1['Trial'] = 'Left'
+
+df2 = pd.DataFrame()
+df2['score'] = cat(allsils_l[2])
+df2['Stage'] = 'Expert'
+df2['Trial'] = 'Left'
+
+all_df = pd.concat((df,df1,df2))
+
+df = pd.DataFrame()
+df['score'] = cat(allsils_r[0])
+df['Stage'] = 'Naive'
+df['Trial'] = 'Right'
+
+df1 = pd.DataFrame()
+df1['score'] = cat(allsils_r[1])
+df1['Stage'] = 'Learning'
+df1['Trial'] = 'Right'
+
+df2 = pd.DataFrame()
+df2['score'] = cat(allsils_r[2])
+df2['Stage'] = 'Expert'
+df2['Trial'] = 'Right'
+
+all_df = pd.concat((all_df, df, df1, df2))
+
+# sns.violinplot(data=all_df, x='Stage', y='score', hue='Trial', split=True, inner="quart")
+# plt.ylim(top=0.25)
+
+sns.violinplot(data=all_df, x='Stage', y='score', hue='Trial', fill=False, inner="quart")
+plt.ylim(top=0.25)
+#%% Silh score over learning av over fov
+
+f = plt.figure(figsize = (5,5))
+plt.bar(np.arange(3)-0.2, [np.mean(cat(s)) for s in allsils_r], 0.4, color='b', alpha=0.5)
+plt.bar(np.arange(3)+0.2, [np.mean(cat(s)) for s in allsils_l], 0.4, color='r', alpha=0.5)
+for i in range(3):
+    plt.scatter(np.ones(len(allsils_r[i])) * i - 0.2, [np.mean((s)) for s in allsils_r[i]], color = 'b')
+    plt.scatter(np.ones(len(allsils_l[i])) * i + 0.2, [np.mean((s)) for s in allsils_l[i]], color = 'r')
+    
+plt.xticks(range(3), ['Naive', 'Learning', 'Expert'])
+plt.ylabel('Av. silhouette score')
+plt.title('Average silhouette score per FOV over learning')
+
+
+#%%Correlate robustness with silh score
+
+# susc = l1.susceptibility()
+
+# Susceptibility
+f = plt.figure(figsize = (5,5))
+plt.scatter(susc, all_sil_r[:,0], color='b')
+plt.scatter(susc, all_sil_l[:, 0], color='r')
+plt.xlabel('Susceptibility')
+plt.ylabel('Silhouette score')
+plt.title('Susceptibility vs silhouette score: all neurons')
+print(scipy.stats.pearsonr(susc, all_sil_r[:, 0]))
+print(scipy.stats.pearsonr(susc, all_sil_l[:, 0]))
+
+#%% Robustness
+# rob = l1.modularity_proportion_per_neuron()
+f = plt.figure(figsize = (5,5))
+# plt.scatter(np.log(np.abs(rob)), all_sil_r[:,0], color='b')
+# plt.scatter(np.log(np.abs(rob)), all_sil_l[:, 0], color='r')
+plt.scatter((rob), all_sil_r[:,0], color='b')
+plt.scatter((rob), all_sil_l[:, 0], color='r')
+plt.xlabel('Log(Abs(Robustness))')
+plt.ylabel('Silhouette score')
+plt.title('Robustness vs silhouette score: all neurons')
+print(scipy.stats.pearsonr(np.log(np.abs(rob)), all_sil_r[:, 0]))
+print(scipy.stats.pearsonr(np.log(np.abs(rob)), all_sil_l[:, 0]))
+#%% Modularity
+# rob = l1.modularity_proportion_per_neuron(period=range(l1.delay, l1.delay + int(1/l1.fs)))
+f = plt.figure(figsize = (5,5))
+plt.scatter(np.log(np.abs(rob)), all_sil_r[:,0], color='b')
+plt.scatter(np.log(np.abs(rob)), all_sil_l[:, 0], color='r')
+plt.xlabel('Modularity (log(abs))')
+plt.ylabel('Silhouette score')
+plt.title('Robustness vs silhouette score: all neurons')
+print(scipy.stats.pearsonr(np.log(np.abs(rob)), all_sil_r[:, 0]))
+print(scipy.stats.pearsonr(np.log(np.abs(rob)), all_sil_l[:, 0]))

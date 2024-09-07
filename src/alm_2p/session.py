@@ -2809,7 +2809,8 @@ class Session:
         plt.show()
 
 
-    def selectivity_optogenetics(self, save=False, p = 0.0001, lickdir = False, return_traces = False, fix_axis = [], selective_neurons = [], downsample=False):
+    def selectivity_optogenetics(self, save=False, p = 0.0001, lickdir = False, return_traces = False, 
+                                 fix_axis = [], selective_neurons = [], downsample=False):
         """Plots overall selectivity trace across opto vs control trials
         
         Uses late delay epoch to calculate selectivity
@@ -3039,6 +3040,43 @@ class Session:
         error = np.mean(erro[period])
         
         return recovery, error
+
+    def modularity_proportion_per_neuron(self, period=None):
+        
+        all_mod = []
+        
+        for n in self.good_neurons:
+                
+            
+            pref, _, _ = self.screen_preference(n, range(self.delay, self.response))
+            
+            if pref: # True if left preferring
+                nonpref, pref = self.get_trace_matrix(n)
+                optonp, optop = self.get_trace_matrix(n, opto=True)
+            else:
+                pref, nonpref = self.get_trace_matrix(n)
+                optop, optonp = self.get_trace_matrix(n, opto=True)
+            
+            sel = np.mean(pref, axis = 0) - np.mean(nonpref, axis = 0)
+            err = np.std(pref, axis=0) / np.sqrt(len(pref)) 
+            err += np.std(nonpref, axis=0) / np.sqrt(len(nonpref))
+            
+            selo = np.mean(optop, axis = 0) - np.mean(optonp, axis = 0)
+            erro = np.std(optop, axis=0) / np.sqrt(len(optop)) 
+            erro += np.std(optonp, axis=0) / np.sqrt(len(optonp))
+            
+            # Add 0.4ms for the time lag factor
+            # period = range( int(self.delay + 0.4*(1/self.fs)), int(self.delay + 1.4*(1/self.fs)))
+            if period is None:
+                period = range(self.response-int(1*(1/self.fs)), self.response) # Use last second of delay
+    
+            recovery = np.mean(selo[period] / sel[period])
+            error = np.mean(erro[period])
+            
+            all_mod += [recovery]
+        
+        return all_mod
+    
 
     def selectivity_derivative(self, p = 0.0001, lickdir = False, period=None, selective_neurons = []):
         """
