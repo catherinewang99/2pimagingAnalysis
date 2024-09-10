@@ -355,23 +355,31 @@ for i in range(len(allsils_r[1])):
 f = plt.figure(figsize = (5,5))
 for i in range(len(allsils_r[1])):
     plt.hist(allsils_l[1][i], alpha = 0.5)
-    
-# Compare to modularity score
+
 mod = []
 seln_idx = []
+sample_ampl = []
 for path in allpaths[1]:
 
-    l1 = Session(path, use_reg = True, triple=True)
+    l1 = Mode(path, use_reg = True, triple=True)
     m, _ = l1.modularity_proportion(p=0.01, period = range(l1.delay, l1.delay + int(1.5 * 1/l1.fs)))
     mod += [m]
     idx = [np.where(l1.good_neurons == n)[0][0] for n in l1.selective_neurons]
     seln_idx += [idx]
+    
+    orthonormal_basis, mean, db, acc_learning_sample = l1.decision_boundary(mode_input='stimulus', persistence=False)
+    lea_sample = np.mean(acc_learning_sample)
+    lea_sample = lea_sample if lea_sample > 0.5 else 1-lea_sample
+    sample_ampl += [lea_sample]
 
-#%%
+    
+#%% Learning sessions only - modularity vs cluster score
 silh_prop = []
+sil_cutoff = 0.35
+
 for i in range(len(allsils_l[1])):
-    left = np.array(allsils_l[1][i]) > 0.3
-    right = np.array(allsils_r[1][i]) > 0.3
+    left = np.array(allsils_l[1][i]) > sil_cutoff
+    right = np.array(allsils_r[1][i]) > sil_cutoff
     total_alln = np.array([left[i] or right[i] for i in range(len(left))])
     total = total_alln[seln_idx[i]]
     silh_prop += [sum(total) / len(seln_idx[i]) * 100]
@@ -379,6 +387,120 @@ for i in range(len(allsils_l[1])):
 f = plt.figure(figsize = (5,5))
 plt.scatter(silh_prop, mod, marker='x')
 plt.xlabel('% of well clustered neurons')
-plt.ylabel('Robustness')
+plt.ylabel('Modularity')
+print(scipy.stats.pearsonr(silh_prop, mod))
 
-#%% Correlate 
+#%% Learning sessions only - sample ampl vs cluster score
+silh_prop = []
+sil_cutoff = 0.35
+for i in range(len(allsils_l[1])):
+    left = np.array(allsils_l[1][i]) > sil_cutoff
+    right = np.array(allsils_r[1][i]) > sil_cutoff
+    total_alln = np.array([left[i] or right[i] for i in range(len(left))])
+    total = total_alln[seln_idx[i]]
+    # total = total_alln
+    silh_prop += [sum(total) / len(seln_idx[i]) * 100]
+
+f = plt.figure(figsize = (5,5))
+plt.scatter(silh_prop, sample_ampl, marker='x')
+plt.xlabel('% of well clustered neurons')
+plt.ylabel('Sample amplitude')
+print(scipy.stats.pearsonr(silh_prop, sample_ampl))
+
+#%% Learning sessions only - sample ampl vs modularity score
+
+
+f = plt.figure(figsize = (5,5))
+plt.scatter(mod, sample_ampl, marker='x')
+plt.xlabel('Modularity')
+plt.ylabel('Sample amplitude')
+print(scipy.stats.pearsonr(mod, sample_ampl))
+
+
+#%% Get all modularity scores and selective neurons over all FOVs    
+# Compare to modularity score
+
+allmods = []
+allseln_idx = []
+for i in range(3):
+    mod = []
+    seln_idx = []
+    for path in allpaths[i]:
+    
+        l1 = Session(path, use_reg = True, triple=True)
+        m, _ = l1.modularity_proportion(p=0.01, period = range(l1.delay, l1.delay + int(1.5 * 1/l1.fs)))
+        mod += [m]
+        idx = [np.where(l1.good_neurons == n)[0][0] for n in l1.selective_neurons]
+        seln_idx += [idx]
+    
+    allmods += [mod]
+    allseln_idx += [seln_idx]
+
+
+# Silh score over learning only sel neurons
+
+# Make df object to plot
+
+df = pd.DataFrame()
+df['score'] = cat([np.array(allsils_l[0][s])[allseln_idx[0][s]] for s in range(len(allsils_l[0]))])
+df['Stage'] = 'Naive'
+df['Trial'] = 'Left'
+
+df1 = pd.DataFrame()
+df1['score'] = cat([np.array(allsils_l[1][s])[allseln_idx[1][s]] for s in range(len(allsils_l[1]))])
+df1['Stage'] = 'Learning'
+df1['Trial'] = 'Left'
+
+df2 = pd.DataFrame()
+df2['score'] = cat([np.array(allsils_l[2][s])[allseln_idx[2][s]] for s in range(len(allsils_l[2]))])
+df2['Stage'] = 'Expert'
+df2['Trial'] = 'Left'
+
+all_df = pd.concat((df,df1,df2))
+
+df = pd.DataFrame()
+df['score'] = cat([np.array(allsils_r[0][s])[allseln_idx[0][s]] for s in range(len(allsils_r[0]))])
+df['Stage'] = 'Naive'
+df['Trial'] = 'Right'
+
+df1 = pd.DataFrame()
+df1['score'] = cat([np.array(allsils_r[1][s])[allseln_idx[1][s]] for s in range(len(allsils_r[1]))])
+df1['Stage'] = 'Learning'
+df1['Trial'] = 'Right'
+
+df2 = pd.DataFrame()
+df2['score'] = cat([np.array(allsils_r[2][s])[allseln_idx[2][s]] for s in range(len(allsils_r[2]))])
+df2['Stage'] = 'Expert'
+df2['Trial'] = 'Right'
+
+all_df = pd.concat((all_df, df, df1, df2))
+
+# sns.violinplot(data=all_df, x='Stage', y='score', hue='Trial', split=True, inner="quart")
+# plt.ylim(top=0.25)
+
+sns.violinplot(data=all_df, x='Stage', y='score', hue='Trial', fill=False, inner="quart")
+# plt.ylim(top=0.25)
+
+
+
+
+#%% Correlate modularity vs cluster score
+f = plt.figure(figsize = (5,5))
+stages = ['Naive', 'Learning', 'Expert']
+# for s in range(3):
+for s in [1]:
+    silh_prop = []
+    sil_cutoff = 0.3
+    for i in range(len(allsils_l[s])):
+        left = np.array(allsils_l[s][i]) > sil_cutoff
+        right = np.array(allsils_r[s][i]) > sil_cutoff
+        total_alln = np.array([left[i] or right[i] for i in range(len(left))])
+        total = total_alln[allseln_idx[s][i]]
+        silh_prop += [sum(total) / len(seln_idx[i]) * 100]
+    
+    plt.scatter(silh_prop, allmods[s], marker='x', label=stages[s])
+plt.xlabel('% of well clustered neurons')
+plt.ylabel('Modularity')
+plt.legend()
+# plt.ylim(bottom=-2)
+print(scipy.stats.pearsonr(silh_prop, mod))

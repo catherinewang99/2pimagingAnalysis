@@ -3039,7 +3039,14 @@ class Session:
         recovery = np.mean(selo[period] / sel[period])
         error = np.mean(erro[period])
         
+        recovery = np.mean(abs(selo[period]) / abs(sel[period]))
+        error = np.mean(erro[period])   
+        
+        # recovery = np.mean((sel[period] - selo[period]) / sel[period])
+        # error = np.mean(erro[period])        
+        
         return recovery, error
+        # return selo[period], sel[period]
 
     def modularity_proportion_per_neuron(self, period=None):
         

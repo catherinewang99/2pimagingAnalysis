@@ -253,7 +253,7 @@ paths = [    r'F:\data\BAYLORCW032\python\2023_10_05',
 for path in paths:
     
     l1 = session.Session(path, use_reg=True, triple=True, 
-                         remove_consec_opto=True)
+                         remove_consec_opto=False)
                          # baseline_normalization="median_zscore")
     # l1 = session.Session(path)
     
@@ -308,7 +308,7 @@ axarr.set_xlabel('Time from Go cue (s)')
 axarr.set_ylabel('Selectivity')
 axarr.set_ylim((-0.2, 0.7))
 
-# plt.savefig(r'F:\data\Fig 3\exp_sel_recovery_updated.pdf')
+plt.savefig(r'F:\data\Fig 3\nai_sel_recovery_updated.pdf')
 plt.show()
 
 
@@ -814,7 +814,7 @@ plt.show()
 #%% Correlate behavior recovery with modularity ALL SESS
     
 all_paths = [[    r'F:\data\BAYLORCW032\python\2023_10_05',
-            # r'F:\data\BAYLORCW034\python\2023_10_12',
+            r'F:\data\BAYLORCW034\python\2023_10_12',
             r'F:\data\BAYLORCW036\python\2023_10_09',
             r'F:\data\BAYLORCW035\python\2023_10_26',
             r'F:\data\BAYLORCW037\python\2023_11_21',
@@ -832,7 +832,7 @@ all_paths = [[    r'F:\data\BAYLORCW032\python\2023_10_05',
         r'H:\data\BAYLORCW046\python\2024_05_31',
             ],
              [r'F:\data\BAYLORCW032\python\2023_10_19',
-            # r'F:\data\BAYLORCW034\python\2023_10_22',
+            r'F:\data\BAYLORCW034\python\2023_10_22',
             r'F:\data\BAYLORCW036\python\2023_10_19',
             r'F:\data\BAYLORCW035\python\2023_12_07',
             r'F:\data\BAYLORCW037\python\2023_12_08',
@@ -852,10 +852,14 @@ all_paths = [[    r'F:\data\BAYLORCW032\python\2023_10_05',
         r'H:\data\BAYLORCW046\python\2024_06_10',
         r'H:\data\BAYLORCW046\python\2024_06_11',
         r'H:\data\BAYLORCW046\python\2024_06_19',
+        r'H:\data\BAYLORCW046\python\2024_06_25',
+        r'H:\data\BAYLORCW046\python\2024_06_24',
+
+
 
         ],
         [r'F:\data\BAYLORCW032\python\2023_10_24',
-            # r'F:\data\BAYLORCW034\python\2023_10_27',
+            r'F:\data\BAYLORCW034\python\2023_10_27',
             r'F:\data\BAYLORCW036\python\2023_10_30',
             r'F:\data\BAYLORCW035\python\2023_12_15',
             r'F:\data\BAYLORCW037\python\2023_12_15',
@@ -869,11 +873,11 @@ all_paths = [[    r'F:\data\BAYLORCW032\python\2023_10_05',
             r'H:\data\BAYLORCW044\python\2024_06_19',
             r'H:\data\BAYLORCW044\python\2024_06_18',
             r'H:\data\BAYLORCW044\python\2024_06_17',
+            r'H:\data\BAYLORCW044\python\2024_06_20',
             
-            r'H:\data\BAYLORCW046\python\2024_06_24',
             r'H:\data\BAYLORCW046\python\2024_06_27',
             r'H:\data\BAYLORCW046\python\2024_06_26',
-            r'H:\data\BAYLORCW046\python\2024_06_25',
+            r'H:\data\BAYLORCW046\python\2024_06_28',
 
 ]]
 
@@ -1137,7 +1141,79 @@ l1 = Mode(path, use_reg = True, triple=True)
 
 l1.plot_sorted_CD_opto()
 
-#%%
+#%% Modularity vs sample amplitude in learning sessions
 
+mod = []
+seln_idx = []
+sample_ampl = []
+for path in allpaths[1]:
+
+    l1 = Mode(path, use_reg = True, triple=True)
+    m, _ = l1.modularity_proportion(p=0.01, period = range(l1.delay, l1.delay + int(1.5 * 1/l1.fs)))
+    mod += [m]
+    idx = [np.where(l1.good_neurons == n)[0][0] for n in l1.selective_neurons]
+    seln_idx += [idx]
+    
+    orthonormal_basis, mean, db, acc_learning_sample = l1.decision_boundary(mode_input='stimulus', persistence=False)
+    lea_sample = np.mean(acc_learning_sample)
+    lea_sample = lea_sample if lea_sample > 0.5 else 1-lea_sample
+    sample_ampl += [lea_sample]
+
+f = plt.figure(figsize = (5,5))
+plt.scatter(mod, sample_ampl, marker='x')
+plt.xlabel('Modularity')
+plt.ylabel('Sample amplitude')
+print(scipy.stats.pearsonr(mod, sample_ampl))
+#%% Robustness vs sample amplitude in learning sessions
+
+mod = []
+seln_idx = []
+sample_ampl = []
+for path in allpaths[1]:
+
+    l1 = Mode(path, use_reg = True, triple=True)
+    m, _ = l1.modularity_proportion(p=0.01)
+    mod += [m]
+    idx = [np.where(l1.good_neurons == n)[0][0] for n in l1.selective_neurons]
+    seln_idx += [idx]
+    
+    orthonormal_basis, mean, db, acc_learning_sample = l1.decision_boundary(mode_input='stimulus', persistence=False)
+    lea_sample = np.mean(acc_learning_sample)
+    lea_sample = lea_sample if lea_sample > 0.5 else 1-lea_sample
+    sample_ampl += [lea_sample]
+
+f = plt.figure(figsize = (5,5))
+plt.scatter(mod, sample_ampl, marker='x')
+plt.xlabel('Robustness')
+plt.ylabel('Sample amplitude')
+print(scipy.stats.pearsonr(mod, sample_ampl))
+
+#%% Modularity vs sample amplitude in all sessions
+
+f = plt.figure(figsize = (5,5))
+stages = ['Naive', 'Learning', 'Expert']
+
+for i in range(3):
+    mod = []
+    seln_idx = []
+    sample_ampl = []
+    for path in allpaths[i]:
+    
+        l1 = Mode(path, use_reg = True, triple=True)
+        m, _ = l1.modularity_proportion(p=0.01, period = range(l1.delay, l1.delay + int(1.5 * 1/l1.fs)))
+        mod += [m]
+        idx = [np.where(l1.good_neurons == n)[0][0] for n in l1.selective_neurons]
+        seln_idx += [idx]
+        
+        orthonormal_basis, mean, db, acc_learning_sample = l1.decision_boundary(mode_input='stimulus', persistence=False)
+        lea_sample = np.mean(acc_learning_sample)
+        lea_sample = lea_sample if lea_sample > 0.5 else 1-lea_sample
+        sample_ampl += [lea_sample]
+    
+    plt.scatter(mod, sample_ampl, marker='x', label=stages[i])
+    print(scipy.stats.pearsonr(mod, sample_ampl))
+
+plt.xlabel('Modularity')
+plt.ylabel('Sample amplitude')
 
 

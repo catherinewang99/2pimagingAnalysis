@@ -131,10 +131,14 @@ all_paths = [[r'F:\data\BAYLORCW032\python\2023_10_05',
             [r'H:\data\BAYLORCW044\python\2024_05_23',
              r'H:\data\BAYLORCW044\python\2024_06_04',
         r'H:\data\BAYLORCW044\python\2024_06_18'],
+            
+        #     [r'H:\data\BAYLORCW044\python\2024_05_24',
+        #      r'H:\data\BAYLORCW044\python\2024_06_05',
+        # r'H:\data\BAYLORCW044\python\2024_06_20'],
 
             [r'H:\data\BAYLORCW046\python\2024_05_29',
              r'H:\data\BAYLORCW046\python\2024_06_07',
-             r'H:\data\BAYLORCW046\python\2024_06_24'],
+             r'H:\data\BAYLORCW046\python\2024_06_28'],
 
 
             [r'H:\data\BAYLORCW046\python\2024_05_30',
@@ -143,8 +147,9 @@ all_paths = [[r'F:\data\BAYLORCW032\python\2023_10_05',
 
             [r'H:\data\BAYLORCW046\python\2024_05_31',
              r'H:\data\BAYLORCW046\python\2024_06_11',
-             r'H:\data\BAYLORCW046\python\2024_06_26'
-             ]]
+             r'H:\data\BAYLORCW046\python\2024_06_26']
+            
+            ]
 
 performance_opto = []
 performance_ctl = []

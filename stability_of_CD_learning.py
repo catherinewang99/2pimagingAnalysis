@@ -21,6 +21,9 @@ import stats
 from numpy.linalg import norm
 import seaborn as sns
 from collections import Counter
+from sklearn.metrics import davies_bouldin_score
+from sklearn.metrics import silhouette_score
+
 cat = np.concatenate
 plt.rcParams['pdf.fonttype'] = '42' 
 
@@ -96,14 +99,23 @@ def cluster_corr(corr_array, inplace=False, both = False):
     cluster_distance_threshold = pairwise_distances.max()/2
     idx_to_cluster_array = sch.fcluster(linkage, cluster_distance_threshold, 
                                         criterion='distance')
+    
     idx = np.argsort(idx_to_cluster_array)
+    if len(set(idx_to_cluster_array)) == corr_array.shape[0]:
+        sil_score, sil_score1 = 0, 2
+    else:
+        sil_score = silhouette_score(corr_array, idx_to_cluster_array)
+    
+        sil_score1 = davies_bouldin_score(corr_array, idx_to_cluster_array)
+    
+    # sil_score = inconsistent(linkage)
     
     if not inplace:
         corr_array = corr_array.copy()
     
     if isinstance(corr_array, pd.DataFrame):
         if both:
-            return corr_array.iloc[idx, :].T.iloc[idx, :], idx_to_cluster_array
+            return corr_array.iloc[idx, :].T.iloc[idx, :], idx_to_cluster_array, (sil_score, sil_score1)
         return corr_array.iloc[idx, :].T.iloc[idx, :]
     return corr_array[idx, :][:, idx]
 
@@ -172,7 +184,9 @@ allpaths = [[    r'F:\data\BAYLORCW032\python\2023_10_05',
             ]]
 
 #%% CW46 sess 3 load data
-
+naivepath, learningpath, expertpath = [r'H:\data\BAYLORCW046\python\2024_05_31',
+                    r'H:\data\BAYLORCW046\python\2024_06_11',
+                  r'H:\data\BAYLORCW046\python\2024_06_26',]
 paths = [naivepath, learningpath, expertpath]
 
 path = learningpath
@@ -295,16 +309,22 @@ f = plt.figure(figsize = (5,5))
 plt.plot(range(9), all_accs, marker='x')
 
 #%% Look at some random neurons
+idx_highvar = np.where(np.array(allr) > 0.006)[0]
 
-for idx in range(3):
+for idx in idx_highvar[0:3]:
+# for idx in range(3):
     l1.plot_rasterPSTH_sidebyside(l1.good_neurons[idx])
     rcorr, lcorr = plot_heatmap_across_sess(l1, l1.good_neurons[idx], return_arr=True)
     f = plt.figure(figsize = (5,5))
     sns.heatmap(cluster_corr(rcorr))
-    f = plt.figure(figsize = (5,5))
+    _, _, scores = cluster_corr(rcorr, both=True)
+    print(scores)
+    f = plt.figure(figsize = (6,5))
     sns.heatmap(cluster_corr(lcorr))
+    _, _, scores = cluster_corr(lcorr, both=True)
+    print(scores)
 
-#%% Look at the high var neurons: non norm
+#%% Look at the high var neurons: non norm over learning
 idx_highvar = np.where(np.array(allr) > 0.006)[0]
 
 for idx in idx_highvar[0:1]:
@@ -312,8 +332,12 @@ for idx in idx_highvar[0:1]:
     rcorr, lcorr = plot_heatmap_across_sess(l1, l1.good_neurons[idx], return_arr=True)
     f = plt.figure(figsize = (6,5))
     sns.heatmap(cluster_corr(rcorr))
+    _, _, scores = cluster_corr(rcorr, both=True)
+    print(scores)
     f = plt.figure(figsize = (6,5))
     sns.heatmap(cluster_corr(lcorr))
+    _, _, scores = cluster_corr(lcorr, both=True)
+    print(scores)
 
 
 # Look at these same neurons in expert session
@@ -323,10 +347,14 @@ for idx in idx_highvar[0:1]:
     rcorr, lcorr = plot_heatmap_across_sess(l2, l2.good_neurons[idx], return_arr=True)
     f = plt.figure(figsize = (6,5))
     sns.heatmap(cluster_corr(rcorr))
+    _, _, scores = cluster_corr(rcorr, both=True)
+    print(scores)
     f = plt.figure(figsize = (6,5))
     sns.heatmap(cluster_corr(lcorr))
+    _, _, scores = cluster_corr(lcorr, both=True)
+    print(scores)
     
-#%% Investiage the cluster trial averaged activity:
+#%% Investiage the clusters' trial averaged activity:
     
 rcorr, lcorr = plot_heatmap_across_sess(l1, l1.good_neurons[idx_highvar[0]], return_arr=True)
 _, idmap_r = cluster_corr(rcorr, both=True)
@@ -371,9 +399,9 @@ av_clus_size_r = []
 all_sil_r = []
 all_sil_l = []
 
-# path = learningpath
-# n=15
-# l1 = Mode(path, use_reg = True, triple=True, baseline_normalization="median_zscore")
+path = learningpath
+n=15
+l1 = Mode(path, use_reg = True, triple=True, baseline_normalization="median_zscore")
 
 for idx in range(len(l1.good_neurons)):
 
@@ -396,6 +424,14 @@ for idx in range(len(l1.good_neurons)):
 all_sil_r = np.array(all_sil_r)
 all_sil_l = np.array(all_sil_l)
 
+#%% Look at single neuron clustering per number of clusters / score
+
+f = plt.figure(figsize = (5,5))
+few_clusters = np.where(np.array(num_clusters_l) < 15)
+plt.scatter(all_sil_l[few_clusters, 0], np.array(num_clusters_l)[few_clusters], color='red')
+few_clusters = np.where(np.array(num_clusters_r) < 15)
+plt.scatter(all_sil_r[few_clusters, 0], np.array(num_clusters_r)[few_clusters], color='blue')
+# plt.hist(all_sil_l[few_clusters, 0], alpha=0.5, label='R trials')
 
 
 #%% Characterizing the number and size of clusters
@@ -625,6 +661,86 @@ plt.xlabel('Weight (abs)')
 plt.title('Goodness of trial clustering and CD_choice weights')
 print(scipy.stats.pearsonr(avg_weights, all_sil_r[:, 0]))
 print(scipy.stats.pearsonr(avg_weights, all_sil_l[:, 0]))
+
+#%% Compare silh score in EXPERT session for variance and weight
+path = expertpath
+n=15
+l1 = Mode(path, use_reg = True, triple=True, baseline_normalization="median_zscore")
+orthonormal_basis_initial, mean = l1.plot_CD()
+maxval = max(orthonormal_basis_initial)
+maxn = np.where(orthonormal_basis_initial == maxval)[0][0]
+
+for _ in range(n-1):
+
+    l1 = Mode(path, use_reg = True, triple=True, baseline_normalization="median_zscore")
+    orthonormal_basis, mean = l1.plot_CD()
+    sign = np.sign(orthonormal_basis[maxn])
+    print("sign: ", sign)
+    orthonormal_basis_initial = np.vstack((orthonormal_basis_initial, orthonormal_basis * sign))
+
+allr = np.var(orthonormal_basis_initial, axis=0)
+avg_weights = np.mean(orthonormal_basis_initial, axis=0)
+
+num_clusters_l = []
+num_clusters_r = []
+
+max_clus_size_l = []
+max_clus_size_r = []
+
+av_clus_size_l = []
+av_clus_size_r = []
+
+all_sil_r = []
+all_sil_l = []
+
+path = expertpath
+n=15
+l1 = Mode(path, use_reg = True, triple=True, baseline_normalization="median_zscore")
+
+for idx in range(len(l1.good_neurons)):
+
+    rcorr, lcorr = plot_heatmap_across_sess(l1, l1.good_neurons[idx], return_arr=True)
+    _, idmap_r, sil_r = cluster_corr(rcorr, both=True)
+    _, idmap_l, sil_l = cluster_corr(lcorr, both=True)
+
+    num_clusters_r += [len(set(idmap_r))]
+    num_clusters_l += [len(set(idmap_l))]
+    
+    av_clus_size_r += [np.average(list(Counter(list(idmap_r)).values()))]
+    av_clus_size_l += [np.average(list(Counter(list(idmap_l)).values()))]
+    
+    max_clus_size_r += [max(list(Counter(list(idmap_r)).values()))]
+    max_clus_size_l += [max(list(Counter(list(idmap_l)).values()))]
+    
+    all_sil_r += [sil_r]
+    all_sil_l += [sil_l]
+
+all_sil_r = np.array(all_sil_r)
+all_sil_l = np.array(all_sil_l)
+
+f = plt.figure(figsize = (5,5))
+
+plt.scatter(np.log(allr), all_sil_r[:, 0],color='b')
+plt.scatter(np.log(allr), all_sil_l[:, 0],color='r')
+plt.ylabel('Goodness of cluster (silhouette score)')
+plt.xlabel('Variance of weights (log)')
+plt.title('Goodness of trial clustering and variance of CD_choice weights: Expert')
+print(scipy.stats.pearsonr(np.log(allr), all_sil_r[:, 0]))
+print(scipy.stats.pearsonr(np.log(allr), all_sil_l[:, 0]))
+
+
+#%% Compare right vs left trial silh scores for neurons
+
+f = plt.figure(figsize = (5,5))
+
+plt.scatter(all_sil_l[:, 0], all_sil_r[:, 0],color='grey')
+plt.ylabel('Right trial score')
+plt.xlabel('Left trial score')
+plt.title('Right vs left trial silhouette scores')
+print(scipy.stats.pearsonr(all_sil_l[:, 0], all_sil_r[:, 0]) )
+
+
+
 #%% Correlate clusters with response to perturbation only sel neurons
 sel_n = l1.get_epoch_selective(range(l1.delay, l1.response), p=0.01)
 idx_seln =[np.where(l1.good_neurons == n)[0][0] for n in sel_n]
@@ -707,6 +823,21 @@ print(scipy.stats.pearsonr(np.log(np.abs(rob)), all_sil_l[:, 0]))
 
 
 
+
+#%% Investigate sample neuron vs clustering neurons
+
+neuron_sample_score, _, _ = l1.get_epoch_tstat(range(l1.sample, l1.delay), l1.good_neurons)
+neuron_sample_score = (neuron_sample_score)
+
+f = plt.figure(figsize = (5,5))
+
+plt.scatter(neuron_sample_score, all_sil_r[:, 0],color='b')
+plt.scatter(neuron_sample_score, all_sil_l[:, 0],color='r')
+plt.ylabel('Goodness of cluster (silhouette score)')
+plt.xlabel('Sample selectivity (t-statistic)')
+plt.title('Goodness of trial clustering and sample selectivity')
+print(scipy.stats.pearsonr(neuron_sample_score, all_sil_r[:, 0]))
+print(scipy.stats.pearsonr(neuron_sample_score, all_sil_l[:, 0]))
 
 #%%
 # Investigate high norm var neurons
