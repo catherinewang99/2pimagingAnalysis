@@ -183,7 +183,7 @@ allpaths = [[    r'F:\data\BAYLORCW032\python\2023_10_05',
             
             ]]
 
-#%% CW46 sess 3 load data
+#%% CW46 sess 3 load data variance and weights
 naivepath, learningpath, expertpath = [r'H:\data\BAYLORCW046\python\2024_05_31',
                     r'H:\data\BAYLORCW046\python\2024_06_11',
                   r'H:\data\BAYLORCW046\python\2024_06_26',]
