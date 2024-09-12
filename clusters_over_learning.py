@@ -51,32 +51,6 @@ def angle_between(v1, v2):
 def cos_sim(a,b):
     return np.dot(a, b)/(norm(a)*norm(b))
 
-# Heatmap function
-def plot_heatmap_across_sess(sess, neuron, return_arr=False):
-    r, l = sess.get_trace_matrix(neuron)
-    r, l = np.array(r), np.array(l)
-        
-    df = pd.DataFrame(r[:,range(sess.delay, sess.response)].T)  
-    corrs = df.corr()
-    
-    df = pd.DataFrame(l[:,range(sess.delay, sess.response)].T)  
-    l_corrs = df.corr()
-    
-    if return_arr:
-        return corrs, l_corrs
-    
-    f = plt.figure(figsize = (5,5))
-    plt.imshow(corrs)
-    plt.xlabel('R trials')
-    plt.title('Correlation of delay activity in R trials')
-    plt.colorbar()   
-    
-    f = plt.figure(figsize = (5,5))
-    plt.imshow(l_corrs)
-    plt.xlabel('L trials')
-    plt.title('Correlation of delay activity in L trials')
-    plt.colorbar() 
-    
     
 import scipy
 import scipy.cluster.hierarchy as sch
@@ -121,7 +95,34 @@ def cluster_corr(corr_array, inplace=False, both = False):
         return corr_array.iloc[idx, :].T.iloc[idx, :]
     return corr_array[idx, :][:, idx]
 
+def filter_idmap(idmap, minsize=15):
+    """
+    Take out all the cluster numbers that have fewer than 15 trials in a cluster,
+    return shortened version of idmap
 
+    Parameters
+    ----------
+    idmap : TYPE
+        DESCRIPTION.
+    minsize : TYPE, optional
+        DESCRIPTION. The default is 15.
+
+    Returns
+    -------
+    idmap_filtered : TYPE
+        DESCRIPTION.
+
+    """
+    all_clusters = list(set(idmap))
+    idmap_filtered = idmap
+    for c in all_clusters:
+        indices = np.where(idmap_filtered == c)[0]
+        if len(indices) < minsize or len(indices) > len(idmap)/2: # Too big or too small
+            
+            idmap_filtered = np.delete(idmap_filtered, indices)   
+            
+
+    return idmap_filtered
 
 #%% PATHS 
 
@@ -180,6 +181,8 @@ allavgs_l = []
 allmaxs_l = []
 allsils_l = []
 
+allprops = []
+
 for i in range(3):
     
     nums_r = []
@@ -191,6 +194,8 @@ for i in range(3):
     avgs_l =[]
     maxs_l = []
     sils_l = []
+    
+    props = []
     
     for path in allpaths[i]:
 
@@ -208,25 +213,36 @@ for i in range(3):
         
         all_sil_l = []
         all_sil_r = []
-
+        
+        counter = 0
         for idx in range(len(l1.good_neurons)):
 
-            rcorr, lcorr = plot_heatmap_across_sess(l1, l1.good_neurons[idx], return_arr=True)
+            rcorr, lcorr = l1.plot_heatmap_across_sess(l1.good_neurons[idx], return_arr=True)
             _, idmap_r, sil_r = cluster_corr(rcorr, both=True)
             _, idmap_l, sil_l = cluster_corr(lcorr, both=True)
-
+            idmap_r = filter_idmap(idmap_r, minsize=15)
+            idmap_l = filter_idmap(idmap_l, minsize=15)
+    
+            if len(idmap_r) != 0 or len(idmap_l) != 0:
+                counter += 1
+    
             num_clusters_r += [len(set(idmap_r))]
             num_clusters_l += [len(set(idmap_l))]
             
-            av_clus_size_r += [np.average(list(Counter(list(idmap_r)).values()))]
-            av_clus_size_l += [np.average(list(Counter(list(idmap_l)).values()))]
+            if len(idmap_r) != 0:
+
+                av_clus_size_r += [np.average(list(Counter(list(idmap_r)).values()))]
+                max_clus_size_r += [max(list(Counter(list(idmap_r)).values()))]
             
-            max_clus_size_r += [max(list(Counter(list(idmap_r)).values()))]
-            max_clus_size_l += [max(list(Counter(list(idmap_l)).values()))]
+            if len(idmap_l) != 0:
+                av_clus_size_l += [np.average(list(Counter(list(idmap_l)).values()))]
+                max_clus_size_l += [max(list(Counter(list(idmap_l)).values()))]
+
             
             all_sil_r += [sil_r[0]]
             all_sil_l += [sil_l[0]]
-            
+        
+        props += [counter/len(l1.good_neurons)]
             
         nums_r += [np.mean(num_clusters_r)]
         avgs_r += [np.mean(av_clus_size_r)]
@@ -249,6 +265,9 @@ for i in range(3):
     allmaxs_l += [maxs_l]
     allsils_l += [sils_l]
     
+    allprops += [props]
+    
+    
 #%% Number of clusters
 f = plt.figure(figsize = (5,5))
 
@@ -260,6 +279,18 @@ for i in range(3):
 plt.ylabel('Average number of clusters')
 plt.xticks(range(3), ['Naive', 'Learning' , 'Expert'])
 plt.title('Average number of clusters per FOVs over learning')
+
+#%% Proportion of neurons clustered
+f = plt.figure(figsize = (5,5))
+
+plt.bar(np.arange(3), np.mean(allprops, axis=1), color = 'grey', label='Right trials', alpha=0.5)
+# plt.bar(np.arange(3)+0.2, np.mean(allprops, axis=1), 0.4, color='r', label='Left trials', alpha=0.5)
+for i in range(3):
+    plt.scatter(np.ones(len(allprops[i])) * i, allprops[i], color= 'b')
+    # plt.scatter(np.ones(len(allprops[i])) * i + 0.2, allprops[i], color ='r')
+plt.ylabel('Proportion of clustered neurons')
+plt.xticks(range(3), ['Naive', 'Learning' , 'Expert'])
+plt.title('Proportion of clustered neurons over learning')
 
 
 #%% Avg size of clusters
@@ -357,6 +388,7 @@ for i in range(len(allsils_r[1])):
     plt.hist(allsils_l[1][i], alpha = 0.5)
 
 mod = []
+rob = []
 seln_idx = []
 sample_ampl = []
 for path in allpaths[1]:
@@ -364,6 +396,8 @@ for path in allpaths[1]:
     l1 = Mode(path, use_reg = True, triple=True)
     m, _ = l1.modularity_proportion(p=0.01, period = range(l1.delay, l1.delay + int(1.5 * 1/l1.fs)))
     mod += [m]
+    m, _ = l1.modularity_proportion(p=0.01, period = range(l1.response - int(1.5 * 1/l1.fs), l1.response))
+    rob += [m]
     idx = [np.where(l1.good_neurons == n)[0][0] for n in l1.selective_neurons]
     seln_idx += [idx]
     
@@ -389,6 +423,25 @@ plt.scatter(silh_prop, mod, marker='x')
 plt.xlabel('% of well clustered neurons')
 plt.ylabel('Modularity')
 print(scipy.stats.pearsonr(silh_prop, mod))
+
+
+#%% Learning sessions only - modularity vs proportion of clustered neurons
+# silh_prop = []
+# sil_cutoff = 0.35
+
+# for i in range(len(allsils_l[1])):
+#     left = np.array(allsils_l[1][i]) > sil_cutoff
+#     right = np.array(allsils_r[1][i]) > sil_cutoff
+#     total_alln = np.array([left[i] or right[i] for i in range(len(left))])
+#     total = total_alln[seln_idx[i]]
+#     silh_prop += [sum(total) / len(seln_idx[i]) * 100]
+
+f = plt.figure(figsize = (5,5))
+plt.scatter(allprops[1], mod, marker='x')
+plt.xlabel('% of well clustered neurons')
+plt.ylabel('Modularity')
+print(scipy.stats.pearsonr(silh_prop, mod))
+
 
 #%% Learning sessions only - sample ampl vs cluster score
 silh_prop = []

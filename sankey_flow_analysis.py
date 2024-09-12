@@ -245,9 +245,13 @@ all_matched_paths = [
 
 # p=0.0005
 p=0.001
-
+retained_sample = []
+recruited_sample = []
 alls1list, alld1, allr1, allns1 = [],[],[],[]
 for paths in all_matched_paths: # For each mouse/FOV
+    ret_s = []
+    recr_s = []
+
     s1list, d1, r1, ns1 = np.zeros(4),np.zeros(4),np.zeros(4),np.zeros(4)
 
     s1 = session.Session(paths[0], use_reg=True, triple=True, use_background_sub=False) # Naive
@@ -266,12 +270,13 @@ for paths in all_matched_paths: # For each mouse/FOV
 
     naive_nonsel = [n for n in s1.good_neurons if n not in naive_sample_sel and n not in naive_delay_sel and n not in naive_response_sel]
 
-    s2 = session.Session(paths[2], use_reg=True, triple=True) # Learning
+    s2 = session.Session(paths[1], use_reg=True, triple=True) # Learning
     
     for n in naive_sample_sel:
-        if s2.is_selective(s2.good_neurons[np.where(s1.good_neurons ==n)[0][0]], sample_epoch, p=p):
+        if s2.is_selective(s2.good_neurons[np.where(s1.good_neurons == n)[0][0]], sample_epoch, p=p):
             s1list[0] += 1
-        elif s2.is_selective(s2.good_neurons[np.where(s1.good_neurons ==n)[0][0]], delay_epoch, p=p):
+            ret_s += [(n, s2.good_neurons[np.where(s1.good_neurons == n)[0][0]])]
+        elif s2.is_selective(s2.good_neurons[np.where(s1.good_neurons == n)[0][0]], delay_epoch, p=p):
             s1list[1] += 1
         elif s2.is_selective(s2.good_neurons[np.where(s1.good_neurons ==n)[0][0]], response_epoch, p=p):
             s1list[2] += 1
@@ -305,6 +310,7 @@ for paths in all_matched_paths: # For each mouse/FOV
     for n in naive_nonsel:
         if s2.is_selective(s2.good_neurons[np.where(s1.good_neurons ==n)[0][0]], sample_epoch, p=p):
             ns1[0] += 1
+            recr_s += [(n, s2.good_neurons[np.where(s1.good_neurons ==n)[0][0]])]
         elif s2.is_selective(s2.good_neurons[np.where(s1.good_neurons ==n)[0][0]], delay_epoch, p=p):
             ns1[1] += 1
         elif s2.is_selective(s2.good_neurons[np.where(s1.good_neurons ==n)[0][0]], response_epoch, p=p):
@@ -318,6 +324,9 @@ for paths in all_matched_paths: # For each mouse/FOV
     alld1 += [d1]
     allr1 += [r1] 
     allns1 += [ns1]
+    
+    retained_sample += [ret_s]
+    recruited_sample += [recr_s]
     
 
 alls1list = np.mean(alls1list, axis=0) 
@@ -368,8 +377,26 @@ for i in range(4):
     print(res.pvalue)
 
     
+#%% Look at specific neurons    
+# retained_sample,recruited_sample
+naivepaths = agg_matched_paths[0]
+
+learnpaths = agg_matched_paths[1]
+
+for i in range(len(retained_sample)):
     
+    if len(retained_sample[i]) != 0:
+        
+        for nai,lea in retained_sample[i]:
+            
+            s1 = session.Session(all_matched_paths[i][0])
+            s2 = session.Session(all_matched_paths[i][1])
+            
+            s1.plot_rasterPSTH_sidebyside(nai)
+            s1.plot_rasterPSTH_sidebyside(lea)
     
+
+
 #%% Get number to make SANKEY diagram contra ipsi
 
 

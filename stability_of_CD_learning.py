@@ -49,32 +49,6 @@ def angle_between(v1, v2):
 def cos_sim(a,b):
     return np.dot(a, b)/(norm(a)*norm(b))
 
-# Heatmap function
-def plot_heatmap_across_sess(sess, neuron, return_arr=False):
-    r, l = sess.get_trace_matrix(neuron)
-    r, l = np.array(r), np.array(l)
-        
-    df = pd.DataFrame(r[:,range(sess.delay, sess.response)].T)  
-    corrs = df.corr()
-    
-    df = pd.DataFrame(l[:,range(sess.delay, sess.response)].T)  
-    l_corrs = df.corr()
-    
-    if return_arr:
-        return corrs, l_corrs
-    
-    f = plt.figure(figsize = (5,5))
-    plt.imshow(corrs)
-    plt.xlabel('R trials')
-    plt.title('Correlation of delay activity in R trials')
-    plt.colorbar()   
-    
-    f = plt.figure(figsize = (5,5))
-    plt.imshow(l_corrs)
-    plt.xlabel('L trials')
-    plt.title('Correlation of delay activity in L trials')
-    plt.colorbar() 
-    
     
 import scipy
 import scipy.cluster.hierarchy as sch

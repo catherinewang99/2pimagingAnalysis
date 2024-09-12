@@ -50,33 +50,7 @@ def angle_between(v1, v2):
 def cos_sim(a,b):
     return np.dot(a, b)/(norm(a)*norm(b))
 
-# Heatmap function
-def plot_heatmap_across_sess(sess, neuron, return_arr=False):
-    r, l = sess.get_trace_matrix(neuron)
-    r, l = np.array(r), np.array(l)
-        
-    df = pd.DataFrame(r[:,range(sess.delay, sess.response)].T)  
-    corrs = df.corr()
-    
-    df = pd.DataFrame(l[:,range(sess.delay, sess.response)].T)  
-    l_corrs = df.corr()
-    
-    if return_arr:
-        return corrs, l_corrs
-    
-    f = plt.figure(figsize = (5,5))
-    plt.imshow(corrs)
-    plt.xlabel('R trials')
-    plt.title('Correlation of delay activity in R trials')
-    plt.colorbar()   
-    
-    f = plt.figure(figsize = (5,5))
-    plt.imshow(l_corrs)
-    plt.xlabel('L trials')
-    plt.title('Correlation of delay activity in L trials')
-    plt.colorbar() 
-    
-    
+
 import scipy
 import scipy.cluster.hierarchy as sch
 
@@ -121,6 +95,68 @@ def cluster_corr(corr_array, method = 'complete', inplace=False, both = False):
         return corr_array.iloc[idx, :].T.iloc[idx, :]
     return corr_array[idx, :][:, idx]
 
+def reliability_score(corr):
+    """
+    Return the reliability score for a neuron across r OR l trials
+
+    Returns
+    -------
+    Single number.
+
+    """
+    _, idmap, _ = cluster_corr(corr, method='complete', both=True)
+    n = len(idmap)
+    idx = np.argsort(idmap)
+    sorted_idmap = idmap[idx]
+    
+    _, idmap_new, _ = cluster_corr(corr, method='ward', both=True)
+    sorted_idmap_new = idmap_new[idx]
+    
+    matrix = np.zeros((n, n))
+    for i in range(n):
+        for j in range(n):
+            if sorted_idmap[i] == sorted_idmap[j]:
+                if sorted_idmap_new[i] == sorted_idmap_new[j]:
+                    matrix[i,j] = 1
+    
+    # plt.imshow(matrix)
+    # plt.colorbar()
+    # plt.show()
+    
+    score = (np.sum(matrix) - n) / 2
+    total_possible = n * n / 2
+    
+    proportion_clustered = score / total_possible
+    return proportion_clustered
+
+def filter_idmap(idmap, minsize=15):
+    """
+    Take out all the cluster numbers that have fewer than 15 trials in a cluster,
+    return shortened version of idmap
+
+    Parameters
+    ----------
+    idmap : TYPE
+        DESCRIPTION.
+    minsize : TYPE, optional
+        DESCRIPTION. The default is 15.
+
+    Returns
+    -------
+    idmap_filtered : TYPE
+        DESCRIPTION.
+
+    """
+    all_clusters = list(set(idmap))
+    idmap_filtered = idmap
+    for c in all_clusters:
+        indices = np.where(idmap_filtered == c)[0]
+        if len(indices) < minsize or len(indices) > len(idmap)/2: # Too big or too small
+            
+            idmap_filtered = np.delete(idmap_filtered, indices)   
+            
+
+    return idmap_filtered
 
 #%% Get clusters CW46 FOV 3
 naivepath, learningpath, expertpath = [r'H:\data\BAYLORCW046\python\2024_05_31',
@@ -139,24 +175,31 @@ av_clus_size_r = []
 all_sil_r = []
 all_sil_l = []
 
-path = learningpath
-n=15
+path = expertpath
+sizelim = 15
 l1 = Mode(path, use_reg = True, triple=True, baseline_normalization="median_zscore")
 
 for idx in range(len(l1.good_neurons)):
 
-    rcorr, lcorr = plot_heatmap_across_sess(l1, l1.good_neurons[idx], return_arr=True)
+    rcorr, lcorr = l1.plot_heatmap_across_sess(l1.good_neurons[idx], return_arr=True)
     _, idmap_r, sil_r = cluster_corr(rcorr, both=True)
     _, idmap_l, sil_l = cluster_corr(lcorr, both=True)
+    
+    idmap_r = filter_idmap(idmap_r, minsize=sizelim)
+    idmap_l = filter_idmap(idmap_l, minsize=sizelim)
 
     num_clusters_r += [len(set(idmap_r))]
     num_clusters_l += [len(set(idmap_l))]
     
-    av_clus_size_r += [np.average(list(Counter(list(idmap_r)).values()))]
-    av_clus_size_l += [np.average(list(Counter(list(idmap_l)).values()))]
-    
-    max_clus_size_r += [max(list(Counter(list(idmap_r)).values()))]
-    max_clus_size_l += [max(list(Counter(list(idmap_l)).values()))]
+    if len(idmap_r) != 0:
+
+        av_clus_size_r += [np.average(list(Counter(list(idmap_r)).values()))]
+        max_clus_size_r += [max(list(Counter(list(idmap_r)).values()))]
+
+    if len(idmap_l) != 0:
+        av_clus_size_l += [np.average(list(Counter(list(idmap_l)).values()))]
+        
+        max_clus_size_l += [max(list(Counter(list(idmap_l)).values()))]
     
     all_sil_r += [sil_r]
     all_sil_l += [sil_l]
@@ -199,7 +242,7 @@ idx=10
 idx=101
 idx = 89
 l1.plot_rasterPSTH_sidebyside(l1.good_neurons[idx])
-rcorr, lcorr = plot_heatmap_across_sess(l1, l1.good_neurons[idx], return_arr=True)
+rcorr, lcorr = l1.plot_heatmap_across_sess(l1.good_neurons[idx], return_arr=True)
 
 method = 'complete'
 corr = rcorr
@@ -239,34 +282,11 @@ idx = 89
 idx=101
 all_proportions_l = []
 for good_n in l1.good_neurons:
-    rcorr, lcorr = plot_heatmap_across_sess(l1, good_n, return_arr=True)
+    rcorr, lcorr = l1.plot_heatmap_across_sess(good_n, return_arr=True)
     
-    corr = lcorr
-    _, idmap, _ = cluster_corr(corr, method='complete', both=True)
-    n = len(idmap)
-    idx = np.argsort(idmap)
-    sorted_idmap = idmap[idx]
-    
-    _, idmap_new, _ = cluster_corr(corr, method='ward', both=True)
-    sorted_idmap_new = idmap_new[idx]
-    
-    matrix = np.zeros((n, n))
-    for i in range(n):
-        for j in range(n):
-            if sorted_idmap[i] == sorted_idmap[j]:
-                if sorted_idmap_new[i] == sorted_idmap_new[j]:
-                    matrix[i,j] = 1
-    
-    # plt.imshow(matrix)
-    # plt.colorbar()
-    # plt.show()
-    
-    score = (np.sum(matrix) - n) / 2
-    total_possible = n * n / 2
-    
-    proportion_clustered = score / total_possible
+    proportion_clustered = reliability_score(rcorr)
     all_proportions_l += [proportion_clustered]
-#%% Look at distribution of proportions
+#%% Look at distribution of proportions in one session
 
 f = plt.figure(figsize = (5,5))
 # plt.hist(all_proportions)
@@ -301,3 +321,214 @@ print(scipy.stats.pearsonr(np.log(all_proportions_l), np.log(all_proportions)))
 
 
 
+
+#%% Run over ALL sessions
+
+allnums_r = []
+allavgs_r = []
+allmaxs_r = []
+allrel_r = []
+
+allnums_l = []
+allavgs_l = []
+allmaxs_l = []
+allrel_l = []
+
+for i in range(3):
+    
+    nums_r = []
+    avgs_r =[]
+    maxs_r = []
+    rel_r = []
+    
+    nums_l = []
+    avgs_l =[]
+    maxs_l = []
+    rel_l = []
+    
+    for path in allpaths[i]:
+
+        l1 = Session(path, use_reg = True, triple=True)
+        
+        # per neuron measurements
+        num_clusters_l = []
+        num_clusters_r = []
+
+        max_clus_size_l = []
+        max_clus_size_r = []
+
+        av_clus_size_l = []
+        av_clus_size_r = []
+        
+        all_rel_l = []
+        all_rel_r = []
+
+        for idx in range(len(l1.good_neurons)):
+            
+            rcorr, lcorr = l1.plot_heatmap_across_sess(l1.good_neurons[idx], return_arr=True)
+
+            _, idmap_r, sil_r = cluster_corr(rcorr, both=True)
+            _, idmap_l, sil_l = cluster_corr(lcorr, both=True)
+
+            num_clusters_r += [len(set(idmap_r))]
+            num_clusters_l += [len(set(idmap_l))]
+            
+            av_clus_size_r += [np.average(list(Counter(list(idmap_r)).values()))]
+            av_clus_size_l += [np.average(list(Counter(list(idmap_l)).values()))]
+            
+            max_clus_size_r += [max(list(Counter(list(idmap_r)).values()))]
+            max_clus_size_l += [max(list(Counter(list(idmap_l)).values()))]
+            
+            all_rel_r += [reliability_score(rcorr)]
+            all_rel_l += [reliability_score(lcorr)]
+            
+            
+        nums_r += [np.mean(num_clusters_r)]
+        avgs_r += [np.mean(av_clus_size_r)]
+        maxs_r += [np.median(max_clus_size_r)]
+        rel_r += [all_rel_r]
+        
+        nums_l += [np.mean(num_clusters_l)]
+        avgs_l += [np.mean(av_clus_size_l)]
+        maxs_l += [np.median(max_clus_size_l)]
+        rel_l += [all_rel_l]
+
+        
+    allnums_r += [nums_r]
+    allavgs_r += [avgs_r]
+    allmaxs_r += [maxs_r]
+    allrel_r += [rel_r]
+    
+    allnums_l += [nums_l]
+    allavgs_l += [avgs_l]
+    allmaxs_l += [maxs_l]
+    allrel_l += [rel_l]
+
+#%% Violin plot
+
+# Make df object to plot
+
+df = pd.DataFrame()
+df['score'] = cat(allrel_l[0])
+df['Stage'] = 'Naive'
+df['Trial'] = 'Left'
+
+df1 = pd.DataFrame()
+df1['score'] = cat(allrel_l[1])
+df1['Stage'] = 'Learning'
+df1['Trial'] = 'Left'
+
+df2 = pd.DataFrame()
+df2['score'] = cat(allrel_l[2])
+df2['Stage'] = 'Expert'
+df2['Trial'] = 'Left'
+
+all_df = pd.concat((df,df1,df2))
+
+df = pd.DataFrame()
+df['score'] = cat(allrel_r[0])
+df['Stage'] = 'Naive'
+df['Trial'] = 'Right'
+
+df1 = pd.DataFrame()
+df1['score'] = cat(allrel_r[1])
+df1['Stage'] = 'Learning'
+df1['Trial'] = 'Right'
+
+df2 = pd.DataFrame()
+df2['score'] = cat(allrel_r[2])
+df2['Stage'] = 'Expert'
+df2['Trial'] = 'Right'
+
+all_df = pd.concat((all_df, df, df1, df2))
+
+# sns.violinplot(data=all_df, x='Stage', y='score', hue='Trial', split=True, inner="quart")
+# plt.ylim(top=0.25)
+
+sns.violinplot(data=all_df, x='Stage', y='score', hue='Trial', fill=False, inner="quart")
+# plt.ylim(top=0.25)
+
+#%% Median reliability score
+f = plt.figure(figsize = (5,5))
+plt.bar(np.arange(3)-0.2, [np.median(cat(s)) for s in allrel_r], 0.4, color='b', alpha=0.5)
+plt.bar(np.arange(3)+0.2, [np.median(cat(s)) for s in allrel_l], 0.4, color='r', alpha=0.5)
+for i in range(3):
+    plt.scatter(np.ones(len(allrel_r[i])) * i - 0.2, [np.median((s)) for s in allrel_r[i]], color = 'b')
+    plt.scatter(np.ones(len(allrel_l[i])) * i + 0.2, [np.median((s)) for s in allrel_l[i]], color = 'r')
+    
+plt.xticks(range(3), ['Naive', 'Learning', 'Expert'])
+plt.ylabel('Med. reliability score')
+plt.title('Median reliability score per FOV over learning')
+
+#%% Get modularity and sample ampl from learning sess
+
+mod = []
+rob = []
+seln_idx = []
+sample_ampl = []
+for path in allpaths[1]:
+
+    l1 = Mode(path, use_reg = True, triple=True)
+    m, _ = l1.modularity_proportion(p=0.01, period = range(l1.delay, l1.delay + int(1.5 * 1/l1.fs)))
+    mod += [m]
+    r, _ = l1.modularity_proportion(p=0.01, period = range(l1.response - int(1.5 * 1/l1.fs), l1.response))
+    rob += [r]
+    idx = [np.where(l1.good_neurons == n)[0][0] for n in l1.selective_neurons]
+    seln_idx += [idx]
+    
+    orthonormal_basis, mean, db, acc_learning_sample = l1.decision_boundary(mode_input='stimulus', persistence=False)
+    lea_sample = np.mean(acc_learning_sample)
+    lea_sample = lea_sample if lea_sample > 0.5 else 1-lea_sample
+    sample_ampl += [lea_sample]
+
+    
+#%% Learning sessions only - modularity vs reliability score
+# silh_prop = []
+# sil_cutoff = 0.35
+
+# for i in range(len(allsils_l[1])):
+#     left = np.array(allsils_l[1][i]) > sil_cutoff
+#     right = np.array(allsils_r[1][i]) > sil_cutoff
+#     total_alln = np.array([left[i] or right[i] for i in range(len(left))])
+#     total = total_alln[seln_idx[i]]
+#     silh_prop += [sum(total) / len(seln_idx[i]) * 100]
+
+f = plt.figure(figsize = (5,5))
+plt.scatter([np.median((s)) for s in allrel_r[1]], mod, marker='x', color='blue')
+plt.scatter([np.median((s)) for s in allrel_l[1]], mod, marker='x', color='red')
+plt.xlabel('Med. reliability score')
+plt.ylabel('Modularity')
+print(scipy.stats.pearsonr([np.median((s)) for s in allrel_l[1]], mod))
+
+f = plt.figure(figsize = (5,5))
+plt.scatter([np.median((s)) for s in allrel_r[1]], rob, marker='x', color='blue')
+plt.scatter([np.median((s)) for s in allrel_l[1]], rob, marker='x', color='red')
+plt.xlabel('Med. reliability score')
+plt.ylabel('Robustness')
+print(scipy.stats.pearsonr([np.median((s)) for s in allrel_l[1]], rob))
+
+f = plt.figure(figsize = (5,5))
+plt.scatter([np.median((s)) for s in allrel_r[1]], sample_ampl, marker='x', color='blue')
+plt.scatter([np.median((s)) for s in allrel_l[1]], sample_ampl, marker='x', color='red')
+plt.xlabel('Med. reliability score')
+plt.ylabel('Sample amplitude')
+print(scipy.stats.pearsonr([np.median((s)) for s in allrel_l[1]], sample_ampl))
+print(scipy.stats.pearsonr([np.median((s)) for s in allrel_r[1]], sample_ampl))
+
+
+#%% Learning sessions only - sample ampl vs cluster score
+silh_prop = []
+sil_cutoff = 0.35
+for i in range(len(allsils_l[1])):
+    left = np.array(allsils_l[1][i]) > sil_cutoff
+    right = np.array(allsils_r[1][i]) > sil_cutoff
+    total_alln = np.array([left[i] or right[i] for i in range(len(left))])
+    total = total_alln[seln_idx[i]]
+    # total = total_alln
+    silh_prop += [sum(total) / len(seln_idx[i]) * 100]
+
+f = plt.figure(figsize = (5,5))
+plt.scatter(silh_prop, sample_ampl, marker='x')
+plt.xlabel('% of well clustered neurons')
+plt.ylabel('Sample amplitude')
+print(scipy.stats.pearsonr(silh_prop, sample_ampl))

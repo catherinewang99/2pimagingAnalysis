@@ -131,33 +131,10 @@ plt.savefig('F:\data\Fig 2\CD_delay_behavior_corrAGG.pdf')
 plt.show()
 
 #%% Decoding analysis for all mice applied across training stages
-allpaths = [[r'F:\data\BAYLORCW032\python\2023_10_08',
-          r'F:\data\BAYLORCW032\python\2023_10_16',
-          r'F:\data\BAYLORCW032\python\2023_10_25',
-          r'F:\data\BAYLORCW032\python\cellreg\layer{}\1008_1016_1025pairs_proc.npy'],
-         
-           # [ r'F:\data\BAYLORCW034\python\2023_10_12',
-           #    r'F:\data\BAYLORCW034\python\2023_10_22',
-           #    r'F:\data\BAYLORCW034\python\2023_10_27',
-           #    r'F:\data\BAYLORCW034\python\cellreg\layer{}\1012_1022_1027pairs_proc.npy'],
-         
-         [r'F:\data\BAYLORCW036\python\2023_10_09',
-            r'F:\data\BAYLORCW036\python\2023_10_19',
-            r'F:\data\BAYLORCW036\python\2023_10_30',
-            r'F:\data\BAYLORCW036\python\cellreg\layer{}\1009_1019_1030pairs_proc.npy'],
-         
-         [r'F:\data\BAYLORCW037\python\2023_11_21',
-                     r'F:\data\BAYLORCW037\python\2023_12_08',
-                     r'F:\data\BAYLORCW037\python\2023_12_15',],
-         
-         [r'F:\data\BAYLORCW035\python\2023_10_26',
-                     r'F:\data\BAYLORCW035\python\2023_12_07',
-                     r'F:\data\BAYLORCW035\python\2023_12_15',]
-        ]
 
 
 modes = ['choice', 'action', 'stimulus']
-pers=True
+pers=False
 for i in range(3):
     mode_input = modes[i]
     allaccs = []
@@ -166,15 +143,15 @@ for i in range(3):
     counter = 1
     for paths in all_matched_paths:
         
-        l1 = Mode(paths[0], use_reg=True, triple=True) #Learning
-        orthonormal_basis, mean, db, acc_naive = l1.decision_boundary(mode_input=mode_input, persistence=pers)
+        l1 = Mode(paths[2], use_reg=True, triple=True) #Learning
+        orthonormal_basis, mean, db, acc_expert = l1.decision_boundary(mode_input=mode_input, persistence=pers)
     
         
         l1 = Mode(paths[1], use_reg=True, triple=True) #Expert
         acc_learning= l1.decision_boundary_appliedCD(mode_input, orthonormal_basis, mean, db, persistence=pers)
     
-        l1 = Mode(paths[2], use_reg=True, triple=True) # Naive
-        acc_expert = l1.decision_boundary_appliedCD(mode_input, orthonormal_basis, mean, db, persistence=pers)
+        l1 = Mode(paths[0], use_reg=True, triple=True) # Naive
+        acc_naive = l1.decision_boundary_appliedCD(mode_input, orthonormal_basis, mean, db, persistence=pers)
         
         nai = np.mean(acc_naive)
         nai = nai if nai > 0.5 else 1-nai
@@ -200,7 +177,7 @@ for i in range(3):
     plt.ylim(bottom=0.4, top =1)
     plt.axhline(0.5, ls='--', color='black')
     plt.title(mode_input)
-    plt.savefig(r'F:\data\Fig 2\CD_{}_allAGG_decoding_NLE_trainedonnaive.pdf'.format(mode_input))
+    plt.savefig(r'F:\data\Fig 2\CD_{}_allAGG_decoding_NLE.pdf'.format(mode_input))
     plt.show()
     
     stats.ttest_ind(np.array(allaccs)[:, 0], np.array(allaccs)[:, 1])

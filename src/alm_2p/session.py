@@ -2500,6 +2500,51 @@ class Session:
             plt.savefig(save)
         plt.show()
         
+    def plot_heatmap_across_sess(self, neuron, return_arr=False):
+        """
+        Plot the right and left control trials as correlation heatmaps
+
+        Parameters
+        ----------
+        sess : TYPE
+            DESCRIPTION.
+        neuron : TYPE
+            DESCRIPTION.
+        return_arr : TYPE, optional
+            DESCRIPTION. The default is False.
+
+        Returns
+        -------
+        corrs : TYPE
+            DESCRIPTION.
+        l_corrs : TYPE
+            DESCRIPTION.
+
+        """
+        r, l = self.get_trace_matrix(neuron)
+        r, l = np.array(r), np.array(l)
+            
+        df = pd.DataFrame(r[:,range(self.delay, self.response)].T)  
+        corrs = df.corr()
+        
+        df = pd.DataFrame(l[:,range(self.delay, self.response)].T)  
+        l_corrs = df.corr()
+        
+        if return_arr:
+            return corrs, l_corrs
+        
+        f = plt.figure(figsize = (5,5))
+        plt.imshow(corrs)
+        plt.xlabel('R trials')
+        plt.title('Correlation of delay activity in R trials')
+        plt.colorbar()   
+        
+        f = plt.figure(figsize = (5,5))
+        plt.imshow(l_corrs)
+        plt.xlabel('L trials')
+        plt.title('Correlation of delay activity in L trials')
+        plt.colorbar() 
+            
 
 ### EPHYS PLOTS TO MY DATA ###
 
@@ -2961,7 +3006,7 @@ class Session:
 
             
 
-    def modularity_proportion(self, p = 0.0001, lickdir=False, trials=None, period=None):
+    def modularity_proportion(self, p = 0.0001, lickdir=False, trials=None, period=None, method=None):
         """Returns the modularity as a proportion of control trial activity
         
         Uses method from Chen et al 2021 to calculate recovery during the 
@@ -3030,6 +3075,11 @@ class Session:
         selo = np.mean(optop, axis = 0) - np.mean(optonp, axis = 0)
         erro = np.std(optop, axis=0) / np.sqrt(len(optop)) 
         erro += np.std(optonp, axis=0) / np.sqrt(len(optonp))
+        
+        if method != None:
+            
+            fraction = np.mean(selo[range(self.response-int(1*(1/self.fs)), self.response)/selo[range(self.delay, self.delay+int(1*(1/self.fs)))]])
+            return fraction, 0
         
         # Add 0.4ms for the time lag factor
         # period = range( int(self.delay + 0.4*(1/self.fs)), int(self.delay + 1.4*(1/self.fs)))
