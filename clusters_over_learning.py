@@ -117,7 +117,7 @@ def filter_idmap(idmap, minsize=15):
     idmap_filtered = idmap
     for c in all_clusters:
         indices = np.where(idmap_filtered == c)[0]
-        if len(indices) < minsize or len(indices) > len(idmap)/2: # Too big or too small
+        if len(indices) < minsize:# or len(indices) > len(idmap)/2: # Too big or too small
             
             idmap_filtered = np.delete(idmap_filtered, indices)   
             
@@ -215,17 +215,22 @@ for i in range(3):
         all_sil_r = []
         
         counter = 0
-        for idx in range(len(l1.good_neurons)):
+        sel_n = l1.get_epoch_selective(range(l1.delay, l1.response), p=0.005)
+        if len(sel_n) == 0:
+            continue
+        for n in sel_n:
 
-            rcorr, lcorr = l1.plot_heatmap_across_sess(l1.good_neurons[idx], return_arr=True)
+            rcorr, lcorr = l1.plot_heatmap_across_sess(n, return_arr=True)
             _, idmap_r, sil_r = cluster_corr(rcorr, both=True)
             _, idmap_l, sil_l = cluster_corr(lcorr, both=True)
-            idmap_r = filter_idmap(idmap_r, minsize=15)
-            idmap_l = filter_idmap(idmap_l, minsize=15)
+            idmap_r = filter_idmap(idmap_r, minsize=len(rcorr)/10)
+            idmap_l = filter_idmap(idmap_l, minsize=len(lcorr)/10)
+
     
-            if len(idmap_r) != 0 or len(idmap_l) != 0:
+
+
+            if len(set(idmap_r)) > 1 or len(set(idmap_l)) > 1: #only count if more than one cluster
                 counter += 1
-    
             num_clusters_r += [len(set(idmap_r))]
             num_clusters_l += [len(set(idmap_l))]
             
@@ -242,7 +247,7 @@ for i in range(3):
             all_sil_r += [sil_r[0]]
             all_sil_l += [sil_l[0]]
         
-        props += [counter/len(l1.good_neurons)]
+        props += [counter/len(sel_n)]
             
         nums_r += [np.mean(num_clusters_r)]
         avgs_r += [np.mean(av_clus_size_r)]
@@ -271,8 +276,8 @@ for i in range(3):
 #%% Number of clusters
 f = plt.figure(figsize = (5,5))
 
-plt.bar(np.arange(3)-0.2, np.mean(allnums_r, axis=1), 0.4, color = 'b', label='Right trials', alpha=0.5)
-plt.bar(np.arange(3)+0.2, np.mean(allnums_l, axis=1), 0.4, color='r', label='Left trials', alpha=0.5)
+plt.bar(np.arange(3)-0.2, [np.mean(r) for r in allnums_r], 0.4, color = 'b', label='Right trials', alpha=0.5)
+plt.bar(np.arange(3)+0.2, [np.mean(l) for l in allnums_l], 0.4, color='r', label='Left trials', alpha=0.5)
 for i in range(3):
     plt.scatter(np.ones(len(allnums_r[i])) * i - 0.2, allnums_r[i], color= 'b')
     plt.scatter(np.ones(len(allnums_l[i])) * i + 0.2, allnums_l[i], color ='r')
@@ -283,7 +288,7 @@ plt.title('Average number of clusters per FOVs over learning')
 #%% Proportion of neurons clustered
 f = plt.figure(figsize = (5,5))
 
-plt.bar(np.arange(3), np.mean(allprops, axis=1), color = 'grey', label='Right trials', alpha=0.5)
+plt.bar(np.arange(3), [np.mean(r) for r in allprops], color = 'grey', label='Right trials', alpha=0.5)
 # plt.bar(np.arange(3)+0.2, np.mean(allprops, axis=1), 0.4, color='r', label='Left trials', alpha=0.5)
 for i in range(3):
     plt.scatter(np.ones(len(allprops[i])) * i, allprops[i], color= 'b')
@@ -296,8 +301,8 @@ plt.title('Proportion of clustered neurons over learning')
 #%% Avg size of clusters
 f = plt.figure(figsize = (5,5))
 
-plt.bar(np.arange(3)-0.2, np.mean(allavgs_r, axis=1), 0.4, color = 'b', label='Right trials', alpha=0.5)
-plt.bar(np.arange(3)+0.2, np.mean(allavgs_l, axis=1), 0.4, color='r', label='Left trials', alpha=0.5)
+plt.bar(np.arange(3)-0.2, [np.mean(r) for r in allavgs_r], 0.4, color = 'b', label='Right trials', alpha=0.5)
+plt.bar(np.arange(3)+0.2, [np.mean(r) for r in allavgs_l], 0.4, color='r', label='Left trials', alpha=0.5)
 for i in range(3):
     plt.scatter(np.ones(len(allavgs_r[i])) * i - 0.2, allavgs_r[i], color= 'b')
     plt.scatter(np.ones(len(allavgs_l[i])) * i + 0.2, allavgs_l[i], color ='r')
@@ -391,7 +396,7 @@ mod = []
 rob = []
 seln_idx = []
 sample_ampl = []
-for path in allpaths[1]:
+for path in allpaths[2]:
 
     l1 = Mode(path, use_reg = True, triple=True)
     m, _ = l1.modularity_proportion(p=0.01, period = range(l1.delay, l1.delay + int(1.5 * 1/l1.fs)))
@@ -437,11 +442,19 @@ print(scipy.stats.pearsonr(silh_prop, mod))
 #     silh_prop += [sum(total) / len(seln_idx[i]) * 100]
 
 f = plt.figure(figsize = (5,5))
-plt.scatter(allprops[1], mod, marker='x')
+plt.scatter(allprops[2], mod, marker='x')
 plt.xlabel('% of well clustered neurons')
 plt.ylabel('Modularity')
-print(scipy.stats.pearsonr(silh_prop, mod))
+plt.title('Proportion of clustered neurons in FOV vs modularity')
+print(scipy.stats.pearsonr(allprops[2], mod))
 
+f = plt.figure(figsize = (5,5))
+plt.scatter(allprops[2], rob, marker='x')
+plt.xlabel('% of well clustered neurons')
+plt.ylabel('Robustness')
+plt.ylim(top=0.9)
+plt.title('Proportion of clustered neurons in FOV vs robustness')
+print(scipy.stats.pearsonr(allprops[2], rob))
 
 #%% Learning sessions only - sample ampl vs cluster score
 silh_prop = []

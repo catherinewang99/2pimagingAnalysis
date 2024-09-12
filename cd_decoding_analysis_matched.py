@@ -138,8 +138,6 @@ pers=False
 for i in range(3):
     mode_input = modes[i]
     allaccs = []
-    if i != 2:
-        continue
     counter = 1
     for paths in all_matched_paths:
         
@@ -164,15 +162,19 @@ for i in range(3):
         # plt.scatter([0,1,2], [nai, lea, exp], label=counter)
         counter += 1
     
+    allaccs = np.array(allaccs)
+    
     fig = plt.figure(figsize=(5,5))
     
-        
     plt.bar([0,1,2], np.mean(allaccs, axis=0))
-    plt.errorbar([0,1,2], np.mean(allaccs, axis=0),
-                 stats.sem(allaccs, axis=0),
-                 color = 'r')
-    for i in range(len(allaccs)):
-        plt.scatter([0,1,2], allaccs[i])
+    # plt.errorbar([0,1,2], np.mean(allaccs, axis=0),
+    #              stats.sem(allaccs, axis=0),
+    #              color = 'r')
+    for i in range(len(allaccs)): # For each FOV
+        plt.plot([0, 1], [allaccs[i,0], allaccs[i,1]], color='lightgrey')
+        plt.plot([1, 2], [allaccs[i,1], allaccs[i,2]], color='lightgrey')
+        plt.scatter([0,1,2], allaccs[i], facecolors='white', edgecolors='black')
+
     plt.xticks([0,1,2], ['Naive', 'Learning', 'Expert'])
     plt.ylim(bottom=0.4, top =1)
     plt.axhline(0.5, ls='--', color='black')

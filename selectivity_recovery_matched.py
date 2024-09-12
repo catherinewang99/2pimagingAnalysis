@@ -208,35 +208,35 @@ paths = [    r'F:\data\BAYLORCW032\python\2023_10_05',
             r'H:\data\BAYLORCW046\python\2024_05_31',
             ]
 
-# paths = [r'F:\data\BAYLORCW032\python\2023_10_19',
-#             # r'F:\data\BAYLORCW034\python\2023_10_22',
-#             r'F:\data\BAYLORCW036\python\2023_10_19',
-#             r'F:\data\BAYLORCW035\python\2023_12_07',
-#             r'F:\data\BAYLORCW037\python\2023_12_08',
+paths = [r'F:\data\BAYLORCW032\python\2023_10_19',
+            # r'F:\data\BAYLORCW034\python\2023_10_22',
+            r'F:\data\BAYLORCW036\python\2023_10_19',
+            r'F:\data\BAYLORCW035\python\2023_12_07',
+            r'F:\data\BAYLORCW037\python\2023_12_08',
             
-#             r'H:\data\BAYLORCW044\python\2024_06_06',
-#             r'H:\data\BAYLORCW044\python\2024_06_04',
+            r'H:\data\BAYLORCW044\python\2024_06_06',
+            r'H:\data\BAYLORCW044\python\2024_06_04',
 
-#             r'H:\data\BAYLORCW046\python\2024_06_07',
-#             r'H:\data\BAYLORCW046\python\2024_06_10',
-#             r'H:\data\BAYLORCW046\python\2024_06_11',
-#             ]
+            r'H:\data\BAYLORCW046\python\2024_06_07',
+            r'H:\data\BAYLORCW046\python\2024_06_10',
+            r'H:\data\BAYLORCW046\python\2024_06_11',
+            ]
 
 
-# paths = [r'F:\data\BAYLORCW032\python\2023_10_24',
-#             # r'F:\data\BAYLORCW034\python\2023_10_27',
-#             r'F:\data\BAYLORCW036\python\2023_10_30',
-#             r'F:\data\BAYLORCW035\python\2023_12_15',
-#             r'F:\data\BAYLORCW037\python\2023_12_15',
+paths = [r'F:\data\BAYLORCW032\python\2023_10_24',
+            # r'F:\data\BAYLORCW034\python\2023_10_27',
+            r'F:\data\BAYLORCW036\python\2023_10_30',
+            r'F:\data\BAYLORCW035\python\2023_12_15',
+            r'F:\data\BAYLORCW037\python\2023_12_15',
             
-#             r'H:\data\BAYLORCW044\python\2024_06_19',
-#             r'H:\data\BAYLORCW044\python\2024_06_18',
+            r'H:\data\BAYLORCW044\python\2024_06_19',
+            r'H:\data\BAYLORCW044\python\2024_06_18',
             
-#             r'H:\data\BAYLORCW046\python\2024_06_24',
-#             r'H:\data\BAYLORCW046\python\2024_06_27',
-#             r'H:\data\BAYLORCW046\python\2024_06_26',
+            r'H:\data\BAYLORCW046\python\2024_06_24',
+            r'H:\data\BAYLORCW046\python\2024_06_27',
+            r'H:\data\BAYLORCW046\python\2024_06_26',
             
-#             ]
+            ]
 
 
 
@@ -254,11 +254,10 @@ for path in paths:
     
     l1 = session.Session(path, use_reg=True, triple=True, 
                          remove_consec_opto=False)
-                         # baseline_normalization="median_zscore")
-    # l1 = session.Session(path)
-    
-    
-    pref_, nonpref_, optop_, optonp_ = l1.selectivity_optogenetics(p=0.01, 
+                         # baseline_normalization="median_zscore")    
+    adjusted_p = 0.01 / np.sqrt(len(l1.good_neurons))
+    pref_, nonpref_, optop_, optonp_ = l1.selectivity_optogenetics(p=adjusted_p, 
+                                                                   exclude_unselective=True,
                                                                    lickdir=False, 
                                                                    return_traces=True,
                                                                    downsample='04' in path)
@@ -267,22 +266,27 @@ for path in paths:
         
         continue
     
-    pref = np.vstack((pref, np.mean(pref_,axis=0)))
-    nonpref = np.vstack((nonpref, np.mean(nonpref_, axis=0)))
-    optop = np.vstack((optop, np.mean(optop_,axis=0)))
-    optonp = np.vstack((optonp, np.mean(optonp_,axis=0)))
+    num_neurons_selective = len(l1.selective_neurons)
+    fov_selectivity = np.mean(pref_[range(l1.delay, l1.response)])
     
-    num_neurons += len(l1.selective_neurons)
+    if num_neurons_selective > 5 and fov_selectivity > 0.3:
+    
+        pref = np.vstack((pref, np.mean(pref_,axis=0)))
+        nonpref = np.vstack((nonpref, np.mean(nonpref_, axis=0)))
+        optop = np.vstack((optop, np.mean(optop_,axis=0)))
+        optonp = np.vstack((optonp, np.mean(optonp_,axis=0)))
+        
+        num_neurons += len(l1.selective_neurons)
     
 pref, nonpref, optop, optonp = pref[1:], nonpref[1:], optop[1:], optonp[1:]
 
 sel = np.mean(pref, axis = 0) - np.mean(nonpref, axis = 0)
-err = np.std(pref, axis=0) / np.sqrt(num_neurons) 
-err += np.std(nonpref, axis=0) / np.sqrt(num_neurons)
+err = np.std(pref, axis=0) / np.sqrt(len(pref)*2) 
+err += np.std(nonpref, axis=0) / np.sqrt(len(pref)*2)
 
 selo = np.mean(optop, axis = 0) - np.mean(optonp, axis = 0)
-erro = np.std(optop, axis=0) / np.sqrt(num_neurons) 
-erro += np.std(optonp, axis=0) / np.sqrt(num_neurons)  
+erro = np.std(optop, axis=0) / np.sqrt(len(pref)*2) 
+erro += np.std(optonp, axis=0) / np.sqrt(len(pref)*2)  
 
 f, axarr = plt.subplots(1,1, sharex='col', figsize=(5,5))  
 x = np.arange(-6.97,4,1/6)[:pref.shape[1]]
@@ -306,9 +310,9 @@ axarr.hlines(y=max(cat((selo, sel))), xmin=-3, xmax=-2, linewidth=10, color='red
 axarr.set_title('Optogenetic effect on selectivity (n = {} neurons)'.format(num_neurons))                  
 axarr.set_xlabel('Time from Go cue (s)')
 axarr.set_ylabel('Selectivity')
-axarr.set_ylim((-0.2, 0.7))
+# axarr.set_ylim((-0.2, 0.7))
 
-plt.savefig(r'F:\data\Fig 3\nai_sel_recovery_updated.pdf')
+# plt.savefig(r'F:\data\Fig 3\exp_sel_recovery_updated.pdf')
 plt.show()
 
 
@@ -1000,6 +1004,49 @@ all_paths = [[    r'F:\data\BAYLORCW032\python\2023_10_05',
             r'H:\data\BAYLORCW046\python\2024_06_25',
 
         ]]
+# all_paths = [[    r'F:\data\BAYLORCW032\python\2023_10_05',
+#             # r'F:\data\BAYLORCW034\python\2023_10_12',
+#             r'F:\data\BAYLORCW036\python\2023_10_09',
+#             r'F:\data\BAYLORCW035\python\2023_10_26',
+#             r'F:\data\BAYLORCW037\python\2023_11_21',
+            
+#             r'H:\data\BAYLORCW044\python\2024_05_22',
+#             r'H:\data\BAYLORCW044\python\2024_05_23',
+            
+#             r'H:\data\BAYLORCW046\python\2024_05_29',
+#             r'H:\data\BAYLORCW046\python\2024_05_30',
+#             r'H:\data\BAYLORCW046\python\2024_05_31',
+#             ],
+
+#              [r'F:\data\BAYLORCW032\python\2023_10_19',
+#             # r'F:\data\BAYLORCW034\python\2023_10_22',
+#             r'F:\data\BAYLORCW036\python\2023_10_19',
+#             r'F:\data\BAYLORCW035\python\2023_12_07',
+#             r'F:\data\BAYLORCW037\python\2023_12_08',
+            
+#             r'H:\data\BAYLORCW044\python\2024_06_06',
+#             r'H:\data\BAYLORCW044\python\2024_06_04',
+
+#             r'H:\data\BAYLORCW046\python\2024_06_07',
+#             r'H:\data\BAYLORCW046\python\2024_06_10',
+#             r'H:\data\BAYLORCW046\python\2024_06_11',
+#             ],
+
+
+#              [r'F:\data\BAYLORCW032\python\2023_10_24',
+#             # r'F:\data\BAYLORCW034\python\2023_10_27',
+#             r'F:\data\BAYLORCW036\python\2023_10_30',
+#             r'F:\data\BAYLORCW035\python\2023_12_15',
+#             r'F:\data\BAYLORCW037\python\2023_12_15',
+            
+#             r'H:\data\BAYLORCW044\python\2024_06_19',
+#             r'H:\data\BAYLORCW044\python\2024_06_18',
+            
+#             r'H:\data\BAYLORCW046\python\2024_06_24',
+#             r'H:\data\BAYLORCW046\python\2024_06_27',
+#             r'H:\data\BAYLORCW046\python\2024_06_26',
+            
+#             ]]
 
 
 all_deltas = []
@@ -1014,7 +1061,7 @@ for paths in all_paths:
     for path in paths:
 
         l1 = session.Session(path)
-        temp, _ = l1.modularity_proportion(p=p) # Robustness
+        temp, _ = l1.modularity_proportion(p=p, method=1) # Robustness
         
         if temp is None: # No selective neurons
             continue
@@ -1041,12 +1088,11 @@ for i in range(3):
 
 plt.xlabel('Modularity, unperturbed hemisphere')
 plt.ylabel('Robustness')
-# plt.ylabel('Behvioral recovery, (delta correct, control-photoinhib.)')
 plt.legend()
 plt.title('Pearsons correlation: {}, p-val: {}'.format(stats.pearsonr(cat(all_mod), cat(all_deltas))[0], 
                                                        stats.pearsonr(cat(all_mod), cat(all_deltas))[1]))
 
-plt.savefig(r'F:\data\Fig 3\corr_modularity_robustness_ALL.pdf')
+# plt.savefig(r'F:\data\Fig 3\corr_modularity_robustness_ALL.pdf')
 plt.show()
 
 

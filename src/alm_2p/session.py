@@ -1482,7 +1482,7 @@ class Session:
         
      
     
-    def screen_preference(self, neuron_num, epoch, samplesize = 10, lickdir=False):
+    def screen_preference(self, neuron_num, epoch, bootstrap=False, samplesize = 25, lickdir=False):
         """Determine if a neuron is left or right preferring
                 
         Iterate 30 times over different test batches to get a high confidence
@@ -1518,28 +1518,47 @@ class Session:
             raise Exception("There are fewer than 15 trials R/L: {} R trials and {} L trials".format(len(l_trials), len(r_trials)))
             # samplesize = 5
         
-        pref = 0
-        for _ in range(30): # Perform 30 times
+        if bootstrap:
+            pref = 0
+            for _ in range(30): # Perform 30 times
+                # Pick 20 random trials as screen for left and right
+                screen_l = np.random.choice(l_trials, size = samplesize, replace = False)
+                screen_r = np.random.choice(r_trials, size = samplesize, replace = False)
             
-            # Pick 20 random trials as screen for left and right
-            screen_l = np.random.choice(l_trials, size = samplesize, replace = False)
-            screen_r = np.random.choice(r_trials, size = samplesize, replace = False)
-        
-            # Remainder of trials are left for plotting in left and right separately
-            test_l = [t for t in l_trials if t not in screen_l]
-            test_r = [t for t in r_trials if t not in screen_r]
-            
-            # Compare late delay epoch for preference
-            avg_l = np.mean([np.mean(L[i][epoch]) for i in screen_l])
-            avg_r = np.mean([np.mean(R[i][epoch]) for i in screen_r])
-    
-            pref += avg_l > avg_r
-        
-        choice = True if pref/30 > 0.5 else False
-        # return avg_l > avg_r, test_l, test_r
-        return choice, l_trials, r_trials
+                # Remainder of trials are left for plotting in left and right separately
+                test_l = [t for t in l_trials if t not in screen_l]
+                test_r = [t for t in r_trials if t not in screen_r]
+                
+                # Compare late delay epoch for preference
+                avg_l = np.mean([np.mean(L[i][epoch]) for i in screen_l])
+                avg_r = np.mean([np.mean(R[i][epoch]) for i in screen_r])
 
-    def plot_selectivity(self, neuron_num, plot=True, epoch=[], opto=False):
+                pref += avg_l > avg_r
+                
+            choice = True if pref/30 > 0.5 else False
+
+            return choice, l_trials, r_trials
+            
+            
+        # Pick 20 random trials as screen for left and right
+        screen_l = np.random.choice(l_trials, size = samplesize, replace = False)
+        screen_r = np.random.choice(r_trials, size = samplesize, replace = False)
+    
+        # Remainder of trials are left for plotting in left and right separately
+        test_l = [t for t in l_trials if t not in screen_l]
+        test_r = [t for t in r_trials if t not in screen_r]
+        
+        # Compare late delay epoch for preference
+        avg_l = np.mean([np.mean(L[i][epoch]) for i in screen_l])
+        avg_r = np.mean([np.mean(R[i][epoch]) for i in screen_r])
+
+            # pref += avg_l > avg_r
+        
+        # choice = True if pref/30 > 0.5 else False
+        return avg_l > avg_r, test_l, test_r
+        # return choice, l_trials, r_trials
+
+    def plot_selectivity(self, neuron_num, plot=True, epoch=[], opto=False, downsample=False):
         
         """Plots a single line representing selectivity of given neuron over all trials
         
@@ -1587,9 +1606,13 @@ class Session:
             plt.title('Selectivity of neuron {}: {} selective'.format(neuron_num, direction))
             plt.show()
         
-        return sel
+        if downsample or 'CW04' in self.path:
+            return self.dodownsample([sel])
+        else:
+            return sel
     
-    def contra_ipsi_pop(self, epoch, return_sel = False, lickdir = False, selective_n = [], p=0.0001, trials = None):
+    def contra_ipsi_pop(self, epoch, return_sel = False, lickdir = False, 
+                        selective_n = [], p=0.0001, trials = None, bootstrap=False):
         
         """Finds neurons that are left and right preferring 
         
@@ -1624,7 +1647,7 @@ class Session:
             Error margin
         """
         # Returns the neuron ids for contra and ipsi populations
-        n = self.get_epoch_selective(epoch, p=0.01) if self.sample in epoch else self.get_epoch_selective(epoch, p=p)
+        n = self.get_epoch_selective(epoch, p=p) if self.sample in epoch else self.get_epoch_selective(epoch, p=p)
         selective_neurons = n if len(selective_n) == 0 else selective_n
         
         contra_neurons = []
@@ -1642,7 +1665,7 @@ class Session:
                 
                 R, L = self.get_trace_matrix(neuron_num, lickdir=lickdir)
 
-                pref_choice, test_l, test_r = self.screen_preference(neuron_num, epoch, lickdir=lickdir) 
+                pref_choice, test_l, test_r = self.screen_preference(neuron_num, epoch, lickdir=lickdir, bootstrap=bootstrap) 
                 
                 if trials is not None: # Filter out non behavior state trials
                 
@@ -2854,7 +2877,8 @@ class Session:
         plt.show()
 
 
-    def selectivity_optogenetics(self, save=False, p = 0.0001, lickdir = False, return_traces = False, 
+    def selectivity_optogenetics(self, save=False, p = 0.0001, lickdir = False, 
+                                 return_traces = False, exclude_unselective=False,
                                  fix_axis = [], selective_neurons = [], downsample=False):
         """Plots overall selectivity trace across opto vs control trials
         
@@ -2877,12 +2901,29 @@ class Session:
 
         # x = np.arange(-5.97,4,self.fs)[:self.time_cutoff] if 'CW03' not in self.path else np.arange(-6.97,4,self.fs)[:self.time_cutoff]
         x = np.arange(-6.97,4,self.fs)[:self.time_cutoff]
-
+        # Late delay selective neurons
+        delay_neurons = self.get_epoch_selective(range(self.response-int(1.5*(1/self.fs)),p=p))
+        control_sel = []
+        opto_sel = []
+                      
+        for n in delay_neurons:
+            L_pref, testl, testr = self.screen_preference(n, range(self.response-int(1.5*(1/self.fs)),p=p))
+            if L_pref:
+                nonpref, pref = self.get_trace_matrix(n, lickdr=lickdir)
+                optonp, optop = self.get_trace_matrix(n, opto=True, both=False, lickdr=lickdir)
+            else:
+                pref, nonpref = self.get_trace_matrix(n, lickdr=lickdir)
+                optop, optonp = self.get_trace_matrix(n, opto=True, both=False, lickdr=lickdir)
+                
+            
+                
+                
         # Get late delay selective neurons
         contra_neurons, ipsi_neurons, contra_trace, ipsi_trace = self.contra_ipsi_pop(range(self.response-int(1.5*(1/self.fs)), self.response), 
                                                                                       p=p, 
-                                                                                      lickdir=lickdir,
+                                                                                      lickdir=False, #only use control
                                                                                       selective_n=selective_neurons) 
+        
         
         if len(contra_neurons) == 0 and len(ipsi_neurons) == 0:
             
@@ -2890,8 +2931,7 @@ class Session:
             return None, None, None, None
             
         elif len(contra_neurons) == 0:
-            
-            
+
             nonpref, pref = cat(ipsi_trace['r']), cat(ipsi_trace['l'])
             optonp, optop = self.get_trace_matrix_multiple(ipsi_neurons, opto=True, both=False, lickdir=lickdir)
             # errnp, errpref = self.get_trace_matrix_multiple(ipsi_neurons, opto=True, error=True)
@@ -2911,8 +2951,8 @@ class Session:
             
             # errnp, errpref = self.get_trace_matrix_multiple(ipsi_neurons, opto=True, error=True)
             # errpref1, errnp1 = self.get_trace_matrix_multiple(contra_neurons, opto=True, error=True)
-            # errpref, errnp = cat((errpref, errpref1)), cat((errnp, errnp1))
-
+            # errpref, errnp = cat((errpref, errpref1)), cat((errnp, errnp1))            
+            
             
         sel = np.mean(pref, axis = 0) - np.mean(nonpref, axis = 0)
         err = np.std(pref, axis=0) / np.sqrt(len(pref)) 
@@ -3078,8 +3118,11 @@ class Session:
         
         if method != None:
             
-            fraction = np.mean(selo[range(self.response-int(1*(1/self.fs)), self.response)/selo[range(self.delay, self.delay+int(1*(1/self.fs)))]])
-            return fraction, 0
+            # For calculations of robustness
+            
+            fraction_opto = np.mean(selo[range(self.response-int(1*(1/self.fs)), self.response)] / selo[range(self.delay, self.delay+int(1*(1/self.fs)))])
+            fraction = np.mean(sel[range(self.response-int(1*(1/self.fs)), self.response)] / sel[range(self.delay, self.delay+int(1*(1/self.fs)))])
+            return fraction_opto / fraction, 0
         
         # Add 0.4ms for the time lag factor
         # period = range( int(self.delay + 0.4*(1/self.fs)), int(self.delay + 1.4*(1/self.fs)))
@@ -3475,7 +3518,7 @@ class Session:
             return stim_neurons, choice_neurons, action_neurons, outcome_neurons
 
 
-    def stim_choice_outcome_selectivity(self, save=False, y_axis = 0, action=False, states = None, plot=True, downsample=False):
+    def stim_choice_outcome_selectivity(self, save=False, p=0.01, y_axis = 0, action=False, states = None, plot=True, downsample=False):
         """Plots selectivity traces of stim/lick/reward/action cells using Susu's method
         
         Susu method called from single_neuron_sel method
@@ -3493,18 +3536,20 @@ class Session:
             if given, plot only using trials from the given state
 
         """
-        stim_neurons, choice_neurons, action_neurons, outcome_neurons = self.single_neuron_sel('Susu method', plot=False)
+        stim_neurons, choice_neurons, action_neurons, outcome_neurons = self.single_neuron_sel('Susu method', plot=False, p=p)
         
         stim_sel, outcome_sel, choice_sel = [], [], []
         
         
-        epochs = [range(self.sample,self.delay), range(self.delay,self.response), range(self.response,self.time_cutoff)]
+        epochs = [range(self.sample,self.delay), range(self.delay+int(2*1/self.fs),self.response), range(self.response,self.time_cutoff)]
         x = np.arange(-5.97,4,self.fs)[:self.time_cutoff] if 'CW03' not in self.path else np.arange(-6.97,4,self.fs)[:self.time_cutoff]
         titles = ['Stimulus selective', 'Choice selective', 'Outcome selective']
         
         
             
-        nonpref, pref = self.contra_ipsi_pop(epochs[0], return_sel=True, selective_n = stim_neurons, trials=states)
+        nonpref, pref = self.contra_ipsi_pop(epochs[0], return_sel=True, 
+                                             selective_n = stim_neurons, 
+                                             trials=states, bootstrap = True)
         if any(isinstance(x, np.float64) for x in nonpref):
             nonpref = pd.DataFrame(np.array(nonpref)).dropna().to_numpy()[:, 0]
         if any(isinstance(x, np.float64) for x in pref):
@@ -3518,7 +3563,9 @@ class Session:
         
         ################## ACTION #####################
         if action:
-            nonpref, pref = self.contra_ipsi_pop(range(self.response, self.response+int(1*1/self.fs)), return_sel=True, selective_n = action_neurons, trials=states)
+            nonpref, pref = self.contra_ipsi_pop(range(self.response, self.response+int(1*1/self.fs)), 
+                                                 return_sel=True, selective_n = action_neurons, 
+                                                 trials=states, bootstrap = True)
             err = np.std(pref, axis=0) / np.sqrt(len(pref)) 
             err += np.std(nonpref, axis=0) / np.sqrt(len(nonpref))
             sel = np.mean(pref, axis=0) - np.mean(nonpref, axis=0)
@@ -3548,7 +3595,9 @@ class Session:
         #######################################
         
 
-        nonpref, pref = self.contra_ipsi_pop(epochs[1], return_sel=True, selective_n = choice_neurons, trials=states)
+        nonpref, pref = self.contra_ipsi_pop(epochs[1], return_sel=True, 
+                                             selective_n = choice_neurons, 
+                                             trials=states, bootstrap = True)
         if any(isinstance(x, np.float64) for x in nonpref):
             nonpref = pd.DataFrame(np.array(nonpref)).dropna().to_numpy()[:, 0]
         if any(isinstance(x, np.float64) for x in pref):
@@ -3573,7 +3622,9 @@ class Session:
         
         #######################################
 
-        nonpref, pref = self.contra_ipsi_pop(epochs[2], return_sel=True, selective_n = outcome_neurons, trials=states)
+        nonpref, pref = self.contra_ipsi_pop(epochs[2], return_sel=True, 
+                                             selective_n = outcome_neurons, 
+                                             trials=states, bootstrap = True)
         if any(isinstance(x, np.float64) for x in nonpref):
             nonpref = pd.DataFrame(np.array(nonpref)).dropna().to_numpy()[:, 0]
         if any(isinstance(x, np.float64) for x in pref):
@@ -3594,7 +3645,10 @@ class Session:
             axarr[2].set_title(titles[2])
             
         ################## ACTION #####################
-        nonpref, pref = self.contra_ipsi_pop(range(self.response, self.response+int(1*1/self.fs)), return_sel=True, selective_n = action_neurons, trials=states)
+        nonpref, pref = self.contra_ipsi_pop(range(self.response, self.response+int(1*1/self.fs)), 
+                                             return_sel=True, 
+                                             selective_n = action_neurons, 
+                                             trials=states, bootstrap = True)
         if any(isinstance(x, np.float64) for x in nonpref):
             nonpref = pd.DataFrame(np.array(nonpref)).dropna().to_numpy()[:, 0]
         if any(isinstance(x, np.float64) for x in pref):
@@ -3651,6 +3705,23 @@ class Session:
             
             a,b=action_sel
             a,b = self.dodownsample(a), self.dodownsample(b)
+            action_sel=a,b
+            
+        else:
+            a,b=stim_sel
+            a,b = np.array(a), np.array(b)
+            stim_sel=a,b
+            
+            a,b=choice_sel
+            a,b = np.array(a), np.array(b)
+            choice_sel=a,b
+            
+            a,b=outcome_sel
+            a,b = np.array(a), np.array(b)
+            outcome_sel=a,b
+            
+            a,b=action_sel
+            a,b = np.array(a), np.array(b)
             action_sel=a,b
             
         return stim_neurons, choice_neurons, outcome_neurons, action_neurons, stim_sel, choice_sel, outcome_sel, action_sel

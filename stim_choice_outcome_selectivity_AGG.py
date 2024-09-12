@@ -17,7 +17,145 @@ from scipy.stats import chisquare
 import pandas as pd
 plt.rcParams['pdf.fonttype'] = '42' 
 
-#%% Plot all at once
+#%% Plot all at once av over neurons
+agg_matched_paths = [[    
+            r'F:\data\BAYLORCW032\python\2023_10_05',
+            # r'F:\data\BAYLORCW034\python\2023_10_12',
+            r'F:\data\BAYLORCW036\python\2023_10_09',
+            r'F:\data\BAYLORCW035\python\2023_10_26',
+            r'F:\data\BAYLORCW037\python\2023_11_21',
+            
+
+        r'H:\data\BAYLORCW044\python\2024_05_22',
+        r'H:\data\BAYLORCW044\python\2024_05_23',
+        
+        r'H:\data\BAYLORCW046\python\2024_05_29',
+        r'H:\data\BAYLORCW046\python\2024_05_30',
+        r'H:\data\BAYLORCW046\python\2024_05_31',
+            ],
+             [r'F:\data\BAYLORCW032\python\2023_10_19',
+            # r'F:\data\BAYLORCW034\python\2023_10_22',
+            r'F:\data\BAYLORCW036\python\2023_10_19',
+            r'F:\data\BAYLORCW035\python\2023_12_07',
+            r'F:\data\BAYLORCW037\python\2023_12_08',
+
+            
+        r'H:\data\BAYLORCW044\python\2024_06_06',
+        r'H:\data\BAYLORCW044\python\2024_06_04',
+
+        r'H:\data\BAYLORCW046\python\2024_06_07',
+        r'H:\data\BAYLORCW046\python\2024_06_10',
+        r'H:\data\BAYLORCW046\python\2024_06_11',
+
+        ],
+        [r'F:\data\BAYLORCW032\python\2023_10_24',
+            # r'F:\data\BAYLORCW034\python\2023_10_27',
+            r'F:\data\BAYLORCW036\python\2023_10_30',
+            r'F:\data\BAYLORCW035\python\2023_12_15',
+            r'F:\data\BAYLORCW037\python\2023_12_15',
+            
+            
+            r'H:\data\BAYLORCW044\python\2024_06_19',
+            r'H:\data\BAYLORCW044\python\2024_06_18',
+            
+            r'H:\data\BAYLORCW046\python\2024_06_24',
+            r'H:\data\BAYLORCW046\python\2024_06_27',
+            r'H:\data\BAYLORCW046\python\2024_06_26',
+
+        ]]
+
+
+f, axarr = plt.subplots(3,3, sharey='row', sharex = True, figsize=(18,18))
+# plt.setp(axarr, ylim=(-0.2,1.2))
+
+for j in range(3):
+    
+    stimnonpref, stimpref = np.zeros(61), np.zeros(61)
+    choicenonpref, choicepref = np.zeros(61), np.zeros(61)
+    actionnonpref, actionpref = np.zeros(61), np.zeros(61)
+    
+    for path in agg_matched_paths[j]:
+        l1 = session.Session(path, use_reg=True, triple=True)
+        _, _, _, numoutcome, stim_sel, choice_sel, outcome_sel, action_sel = l1.stim_choice_outcome_selectivity(plot=False, p=0.01,
+                                                                                                                downsample='04' in path)
+        snp, sp = stim_sel
+        if len(snp) != 0:
+            stimnonpref = np.vstack((stimnonpref, snp))
+            stimpref = np.vstack((stimpref, sp))
+        
+        snp, sp = choice_sel
+        if len(snp) != 0:
+
+            choicenonpref = np.vstack((choicenonpref, snp))
+            choicepref = np.vstack((choicepref, sp))
+         
+        snp, sp = action_sel
+        if len(snp) != 0:
+    
+            actionnonpref = np.vstack((actionnonpref, snp))
+            actionpref = np.vstack((actionpref, sp))
+            
+        print(len(stimpref), len(choicepref), len(actionpref))
+
+    x = np.arange(-6.97,4,1/6)[:61]
+    titles = ['Stimulus selective', 'Choice selective', 'Outcome selective', 'Action selective']
+    
+    stimnonpref, stimpref = stimnonpref[1:,:], stimpref[1:,:]
+    choicenonpref, choicepref = choicenonpref[1:,:], choicepref[1:,:]
+    actionnonpref, actionpref = actionnonpref[1:,:], actionpref[1:,:]
+    
+    err = np.std(stimpref, axis=0) / np.sqrt(len(stimpref)) 
+    err += np.std(stimnonpref, axis=0) / np.sqrt(len(stimnonpref))
+    sel = np.mean(stimpref, axis=0) - np.mean(stimnonpref, axis=0) 
+    axarr[0,j].plot(x, sel, color='green')
+            
+    axarr[0,j].fill_between(x, sel - err, 
+              sel + err,
+              color='lightgreen')
+    
+    axarr[0,j].set_title(titles[0])
+
+    err = np.std(choicepref, axis=0) / np.sqrt(len(choicepref)) 
+    err += np.std(choicenonpref, axis=0) / np.sqrt(len(choicenonpref))
+    sel = np.mean(choicepref, axis=0) - np.mean(choicenonpref, axis=0) 
+    axarr[1,j].plot(x, sel, color='purple')
+            
+    axarr[1,j].fill_between(x, sel - err, 
+              sel + err,
+              color='violet')
+    axarr[1,j].set_title(titles[1])
+    
+    
+    err = np.std(actionpref, axis=0) / np.sqrt(len(actionpref)) 
+    err += np.std(actionnonpref, axis=0) / np.sqrt(len(actionnonpref))
+    sel = np.mean(actionpref, axis=0) - np.mean(actionnonpref, axis=0) 
+    axarr[2,j].plot(x, sel, color='goldenrod')
+            
+    axarr[2,j].fill_between(x, sel - err, 
+              sel + err,
+              color='wheat')
+    
+    axarr[2,j].set_title(titles[3])
+    
+    
+for i in range(3):
+    for j in range(3):
+        axarr[j,i].axvline(0, color = 'grey', alpha=0.5, ls = '--')
+        axarr[j,i].axvline(-4.3, color = 'grey', alpha=0.5, ls = '--')
+        axarr[j,i].axvline(-3, color = 'grey', alpha=0.5, ls = '--')        
+        axarr[j,i].axhline(0, color = 'grey', alpha=0.5, ls = '--')
+        
+        
+axarr[0,0].set_ylabel('Selectivity')
+axarr[2,1].set_xlabel('Time from Go cue (s)')
+
+
+
+plt.savefig(r'F:\data\Fig 2\NLE_all_selectivityagg_new.pdf')
+plt.show()
+
+
+#%% Plot all at once av over FOV
 agg_matched_paths = [[    
             r'F:\data\BAYLORCW032\python\2023_10_05',
             # r'F:\data\BAYLORCW034\python\2023_10_12',
