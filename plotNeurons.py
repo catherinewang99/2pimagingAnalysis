@@ -11,8 +11,8 @@ sys.path.append("C:\scripts\Imaging analysis")
 import numpy as np
 import scipy.io as scio
 import matplotlib.pyplot as plt
-import session
 from matplotlib.pyplot import figure
+from alm_2p import session
 
 
 
@@ -100,9 +100,86 @@ for i in l1.good_neurons[:10]:
 #     l1.plot_rasterPSTH_sidebyside(n)
 # #     l1.plot_raster_and_PSTH(n, bias= True)
 
-        
+#%% LEARNING
+naivepath, learningpath, expertpath = [r'H:\data\BAYLORCW046\python\2024_05_29',
+ r'H:\data\BAYLORCW046\python\2024_06_07',
+ r'H:\data\BAYLORCW046\python\2024_06_24']
 
-l1.plot_raster_and_PSTH(523)
+naivepath, learningpath, expertpath = [r'H:\data\BAYLORCW044\python\2024_05_23',
+                   r'H:\data\BAYLORCW044\python\2024_06_04',
+                  r'H:\data\BAYLORCW044\python\2024_06_18',]
+
+s1 = session.Session(naivepath, use_reg=True, triple=True)
+s2 = session.Session(learningpath, use_reg=True, triple=True)
+s3 = session.Session(expertpath, use_reg=True, triple=True)
+#%%
+sample_sel = s1.get_epoch_selective(range(s1.response, s1.time_cutoff), p=0.000001)
+sample_sel_idx = [np.where(s1.good_neurons == i)[0][0] for i in sample_sel]
+
+#%%
+stages = ['naive', 'learning', 'expert']
+for idx, sess in enumerate([s1,s2,s3]):
+    sess.plot_rasterPSTH_sidebyside(sess.good_neurons[sample_sel_idx[5]], save=r'F:\data\Fig 1\example neurons\action_{}_{}.pdf'.format(stages[idx], sample_sel_idx[5]))
+    # sess.plot_raster_and_PSTH(sess.good_neurons[sample_sel_idx[0]])
     
+#%% Perturbation
+path = r'H:\data\BAYLORCW044\python\2024_06_06'
+
+s1 = session.Session(path)#, use_reg=True, triple=True)
+#%%
+sel_n = s1.get_epoch_selective(range(s1.delay, s1.response), p=0.0001)
+for n in sel_n:
+    s1.plot_rasterPSTH_sidebyside(n)
+
+
+#%%
+agg_mice_paths = [
     
+            [r'F:\data\BAYLORCW032\python\2023_10_05',
+              r'F:\data\BAYLORCW032\python\2023_10_19',
+              r'F:\data\BAYLORCW032\python\2023_10_24',
+          ],
+         
+           # [ r'F:\data\BAYLORCW034\python\2023_10_12',
+           #    r'F:\data\BAYLORCW034\python\2023_10_22',
+           #    r'F:\data\BAYLORCW034\python\2023_10_27',
+           #    r'F:\data\BAYLORCW034\python\cellreg\layer{}\1012_1022_1027pairs_proc.npy'],
+         
+            [r'F:\data\BAYLORCW036\python\2023_10_09',
+            r'F:\data\BAYLORCW036\python\2023_10_19',
+            r'F:\data\BAYLORCW036\python\2023_10_30',
+           ],
+         
+         [r'F:\data\BAYLORCW037\python\2023_11_21',
+            r'F:\data\BAYLORCW037\python\2023_12_08',
+            r'F:\data\BAYLORCW037\python\2023_12_15',],
+         
+         [r'F:\data\BAYLORCW035\python\2023_10_26',
+            r'F:\data\BAYLORCW035\python\2023_12_07',
+            r'F:\data\BAYLORCW035\python\2023_12_15',],
+         
+         [r'H:\data\BAYLORCW044\python\2024_05_22',
+          r'H:\data\BAYLORCW044\python\2024_06_06',
+        r'H:\data\BAYLORCW044\python\2024_06_19'],
+
+         
+            [r'H:\data\BAYLORCW044\python\2024_05_23',
+             r'H:\data\BAYLORCW044\python\2024_06_04',
+        r'H:\data\BAYLORCW044\python\2024_06_18'],
+
+            [r'H:\data\BAYLORCW046\python\2024_05_29',
+             r'H:\data\BAYLORCW046\python\2024_06_07',
+             r'H:\data\BAYLORCW046\python\2024_06_24'],
+
+
+            [r'H:\data\BAYLORCW046\python\2024_05_30',
+             r'H:\data\BAYLORCW046\python\2024_06_10',
+             r'H:\data\BAYLORCW046\python\2024_06_27'],
+
+            [r'H:\data\BAYLORCW046\python\2024_05_31',
+             r'H:\data\BAYLORCW046\python\2024_06_11',
+             r'H:\data\BAYLORCW046\python\2024_06_26'
+             ]
+         
+        ]
     

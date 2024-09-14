@@ -139,6 +139,8 @@ for i in range(3):
     mode_input = modes[i]
     allaccs = []
     counter = 1
+    if i != 0:
+        continue
     for paths in all_matched_paths:
         
         l1 = Mode(paths[2], use_reg=True, triple=True) #Learning

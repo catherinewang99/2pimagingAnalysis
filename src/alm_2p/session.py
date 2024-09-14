@@ -138,6 +138,10 @@ class Session:
             self.npil = None
             counter = 0
             for layer_pth in os.listdir(path):
+                # if use_background_sub and 'mod_layer_1.mat' not in os.listdir(path):
+                #     print('No background subtracted dataset, use regular instead.')
+                #     condition = 'mod_layer' in layer_pth and '.mat' in layer_pth if use_background_sub else 'layer' in layer_pth and '.mat' in layer_pth and len(layer_pth) < 12
+                # else:
                 condition = 'mod_layer' in layer_pth and '.mat' in layer_pth if use_background_sub else 'layer' in layer_pth and '.mat' in layer_pth and len(layer_pth) < 12
                 if condition:
 
@@ -791,7 +795,10 @@ class Session:
         
         return idx
     
-    def get_trace_matrix(self, neuron_num, error=False, bias_trials = [], rtrials=[],ltrials=[], non_bias=False, both=False, lickdir=False, trialtype = False, opto=False):
+    def get_trace_matrix(self, neuron_num, error=False, bias_trials = [], 
+                         rtrials=[], ltrials=[], non_bias=False, both=False, 
+                         lickdir=False, trialtype = False, opto=False,
+                         remove_trial = [], return_trials = False):
         
         """Returns matrices of dF/F0 traces over right/left trials of a single neuron
         
@@ -822,6 +829,10 @@ class Session:
         opto : bool, optional
             If True, returns only the optogenetic stimulation trials. Otherwise,
             only returns the control trials. (default False)
+        remove_trial : list, optional
+            If provided, remove these trials from the list
+        return_trials : bool, optional
+            If true, return trials as well as traces
             
         Returns
         -------
@@ -879,6 +890,10 @@ class Session:
             right_trials = [r for r in right_trials if self.stim_ON[r]]
             left_trials = [r for r in left_trials if self.stim_ON[r]]
             
+        if len(remove_trial) != 0:
+            right_trials = [b for b in right_trials if b not in remove_trial]
+            left_trials = [b for b in left_trials if b not in remove_trial]
+            
         R_av_dff = []
         for i in right_trials:
             # R_av_dff += [self.normalize_by_baseline(self.dff[0, i][neuron_num, :self.time_cutoff])]
@@ -889,10 +904,14 @@ class Session:
             # L_av_dff += [self.normalize_by_baseline(self.dff[0, i][neuron_num, :self.time_cutoff])]
             L_av_dff += [self.dff[0, i][neuron_num, :self.time_cutoff]]
             
-            
+        if return_trials:
+            return R_av_dff, L_av_dff, right_trials, left_trials
         return R_av_dff, L_av_dff
     
-    def get_trace_matrix_multiple(self, neuron_nums, error=False, bias_trials = [], rtrials=[],ltrials=[], non_bias=False, both=False, lickdir=False, trialtype = False, opto=False):
+    def get_trace_matrix_multiple(self, neuron_nums, error=False, bias_trials = [], 
+                                  rtrials=[], ltrials=[], non_bias=False, 
+                                  both=False, lickdir=False, trialtype = False, 
+                                  opto=False, remove_trial=[]):
         
        
         """Returns matrices of dF/F0 traces averaged over right/left trials of multiple neurons
@@ -945,7 +964,8 @@ class Session:
                                                        both=both, 
                                                        lickdir=lickdir,
                                                        trialtype=trialtype,
-                                                       opto=opto)
+                                                       opto=opto,
+                                                       remove_trial = remove_trial)
  
             
             R += [np.mean(R_av_dff, axis = 0)]
@@ -1257,8 +1277,8 @@ class Session:
         # overall_mean = np.mean(cat([cat(i) for i in self.dff[0]])).copy()
         # std = np.std(cat([cat(i) for i in self.dff[0]])).copy()
 
-        overall_mean = np.mean(cat([cat(self.dff[0, i]) for i in self.i_good_trials])).copy()
-        std = np.std(cat([cat(self.dff[0, i]) for i in self.i_good_trials])).copy()
+        overall_mean = np.mean(cat([cat(self.dff[0, i][:, self.sample-int(1/self.fs):]) for i in self.i_good_trials])).copy()
+        std = np.std(cat([cat(self.dff[0, i][:, self.sample-int(1/self.fs):]) for i in self.i_good_trials])).copy()
         
         # for i in range(self.num_trials):
         for i in self.i_good_trials:
@@ -1272,6 +1292,8 @@ class Session:
             for i in self.i_good_trials:
                 for j in range(5):
                     self.background[0, i][j] = (self.background[0, i][j] - overall_mean) / std
+                    
+                    
     def is_selective(self, neuron, epoch, p = 0.0001, bias=False, lickdir = False):
         right, left = self.get_trace_matrix(neuron)
         if lickdir:
@@ -1482,7 +1504,8 @@ class Session:
         
      
     
-    def screen_preference(self, neuron_num, epoch, bootstrap=False, samplesize = 25, lickdir=False):
+    def screen_preference(self, neuron_num, epoch, bootstrap=False, samplesize = 25, 
+                          lickdir=False, return_remove=False):
         """Determine if a neuron is left or right preferring
                 
         Iterate 30 times over different test batches to get a high confidence
@@ -1496,6 +1519,8 @@ class Session:
             Timesteps over which to evaluate the preference
         samplesize : int, optional
             Number of trials to use in the test batch (default 10)
+        return_remove : bool, optional
+            Return trials to mreove (train trials)
             
         Returns
         -------
@@ -1509,7 +1534,7 @@ class Session:
         
         # All trials where the mouse licked left or right AND non stim
         
-        R, L = self.get_trace_matrix(neuron_num, lickdir=lickdir)
+        R, L, r_trial_num, l_trial_num = self.get_trace_matrix(neuron_num, lickdir=lickdir, return_trials=True)
         l_trials = range(len(L))  
         r_trials = range(len(R))
         
@@ -1553,6 +1578,10 @@ class Session:
         avg_r = np.mean([np.mean(R[i][epoch]) for i in screen_r])
 
             # pref += avg_l > avg_r
+        if return_remove:
+            r_trial_num = r_trial_num[screen_r]
+            l_trial_num = l_trial_num[screen_l]
+            return avg_l > avg_r, l_trial_num, r_trial_num
         
         # choice = True if pref/30 > 0.5 else False
         return avg_l > avg_r, test_l, test_r
@@ -2902,82 +2931,102 @@ class Session:
         # x = np.arange(-5.97,4,self.fs)[:self.time_cutoff] if 'CW03' not in self.path else np.arange(-6.97,4,self.fs)[:self.time_cutoff]
         x = np.arange(-6.97,4,self.fs)[:self.time_cutoff]
         # Late delay selective neurons
-        delay_neurons = self.get_epoch_selective(range(self.response-int(1.5*(1/self.fs)),p=p))
+        delay_neurons = self.get_epoch_selective(range(self.response-int(1*(1/self.fs)), self.response), p=p)
         control_sel = []
         opto_sel = []
                       
+        if len(delay_neurons) == 0:
+            return None, None
         for n in delay_neurons:
-            L_pref, testl, testr = self.screen_preference(n, range(self.response-int(1.5*(1/self.fs)),p=p))
+            L_pref, screenl, screenr = self.screen_preference(n, range(self.delay, self.response))
+            all_exclude_trials = cat((screenl, screenr))
             if L_pref:
-                nonpref, pref = self.get_trace_matrix(n, lickdr=lickdir)
-                optonp, optop = self.get_trace_matrix(n, opto=True, both=False, lickdr=lickdir)
+                nonpref, pref = self.get_trace_matrix(n, lickdir=lickdir, trialtype=True, remove_trial=all_exclude_trials)
+                optonp, optop = self.get_trace_matrix(n, opto=True, both=False, lickdir=lickdir, remove_trial=all_exclude_trials)
             else:
-                pref, nonpref = self.get_trace_matrix(n, lickdr=lickdir)
-                optop, optonp = self.get_trace_matrix(n, opto=True, both=False, lickdr=lickdir)
+                pref, nonpref = self.get_trace_matrix(n, lickdir=lickdir, trialtype=True, remove_trial=all_exclude_trials)
+                optop, optonp = self.get_trace_matrix(n, opto=True, both=False, lickdir=lickdir, remove_trial=all_exclude_trials)
                 
             
-                
-                
-        # Get late delay selective neurons
-        contra_neurons, ipsi_neurons, contra_trace, ipsi_trace = self.contra_ipsi_pop(range(self.response-int(1.5*(1/self.fs)), self.response), 
-                                                                                      p=p, 
-                                                                                      lickdir=False, #only use control
-                                                                                      selective_n=selective_neurons) 
-        
-        
-        if len(contra_neurons) == 0 and len(ipsi_neurons) == 0:
+            control_sel += [np.mean(pref, axis=0)-np.mean(nonpref,axis=0)]
+            opto_sel += [np.mean(optop, axis=0)-np.mean(optonp, axis=0)]
             
-            print("No selective neurons :^(") 
-            return None, None, None, None
+        if exclude_unselective:
+            keep_n = [c for c in range(len(control_sel)) if np.mean(np.array(control_sel[c])[range(self.response-int(1.5*(1/self.fs)), self.response)]) > 0.3]
+            control_sel = np.array(control_sel)[keep_n]
+            opto_sel = np.array(opto_sel)[keep_n]
             
-        elif len(contra_neurons) == 0:
+        sel = np.mean(control_sel, axis=0)
+        selo = np.mean(opto_sel, axis=0)
 
-            nonpref, pref = cat(ipsi_trace['r']), cat(ipsi_trace['l'])
-            optonp, optop = self.get_trace_matrix_multiple(ipsi_neurons, opto=True, both=False, lickdir=lickdir)
-            # errnp, errpref = self.get_trace_matrix_multiple(ipsi_neurons, opto=True, error=True)
-            
-        elif len(ipsi_neurons) == 0:
-            
-            nonpref, pref = cat(contra_trace['l']), cat(contra_trace['r'])
-            optop, optonp = self.get_trace_matrix_multiple(contra_neurons, opto=True, both=False, lickdir=lickdir)
-            # errpref, errnp = self.get_trace_matrix_multiple(contra_neurons, opto=True, error=True)
-
-        else:
-            
-            nonpref, pref = cat((cat(ipsi_trace['r']), cat(contra_trace['l']))), cat((cat(ipsi_trace['l']), cat(contra_trace['r'])))
-            optonp, optop = self.get_trace_matrix_multiple(ipsi_neurons, opto=True, both=False, lickdir=lickdir)
-            optop1, optonp1 = self.get_trace_matrix_multiple(contra_neurons, opto = True, both=False, lickdir=lickdir)
-            optonp, optop = cat((optonp, optonp1)), cat((optop, optop1))
-            
-            # errnp, errpref = self.get_trace_matrix_multiple(ipsi_neurons, opto=True, error=True)
-            # errpref1, errnp1 = self.get_trace_matrix_multiple(contra_neurons, opto=True, error=True)
-            # errpref, errnp = cat((errpref, errpref1)), cat((errnp, errnp1))            
-            
-            
-        sel = np.mean(pref, axis = 0) - np.mean(nonpref, axis = 0)
-        err = np.std(pref, axis=0) / np.sqrt(len(pref)) 
-        err += np.std(nonpref, axis=0) / np.sqrt(len(nonpref))
-        
-        selo = np.mean(optop, axis = 0) - np.mean(optonp, axis = 0)
-        erro = np.std(optop, axis=0) / np.sqrt(len(optop)) 
-        erro += np.std(optonp, axis=0) / np.sqrt(len(optonp))  
+        err = np.std(control_sel, axis=0) / np.sqrt(len(delay_neurons))
+        erro = np.std(opto_sel, axis=0) / np.sqrt(len(delay_neurons))
         
         if return_traces:
             
             if downsample:
 
-                pref, nonpref = self.dodownsample(pref), self.dodownsample(nonpref)
-                optop, optonp = self.dodownsample(optop), self.dodownsample(optonp)
+                control_sel, opto_sel = self.dodownsample(control_sel), self.dodownsample(opto_sel)
                 
-            return pref, nonpref, optop, optonp
-
-        if 'CW03' in self.path:
+            return control_sel, opto_sel
             
-            # sel = sel[5:]
-            # selo = selo[5:]
-            # err = err[5:]
-            # erro = erro[5:]
-            x = np.arange(-6.97,4,self.fs)[:self.time_cutoff]
+        if False:
+                
+            # Get late delay selective neurons
+            contra_neurons, ipsi_neurons, contra_trace, ipsi_trace = self.contra_ipsi_pop(range(self.response-int(1.5*(1/self.fs)), self.response), 
+                                                                                          p=p, 
+                                                                                          lickdir=False, #only use control
+                                                                                          selective_n=selective_neurons) 
+            
+            
+            if len(contra_neurons) == 0 and len(ipsi_neurons) == 0:
+                
+                print("No selective neurons :^(") 
+                return None, None, None, None
+                
+            elif len(contra_neurons) == 0:
+    
+                nonpref, pref = cat(ipsi_trace['r']), cat(ipsi_trace['l'])
+                optonp, optop = self.get_trace_matrix_multiple(ipsi_neurons, opto=True, both=False, lickdir=lickdir)
+                # errnp, errpref = self.get_trace_matrix_multiple(ipsi_neurons, opto=True, error=True)
+                
+            elif len(ipsi_neurons) == 0:
+                
+                nonpref, pref = cat(contra_trace['l']), cat(contra_trace['r'])
+                optop, optonp = self.get_trace_matrix_multiple(contra_neurons, opto=True, both=False, lickdir=lickdir)
+                # errpref, errnp = self.get_trace_matrix_multiple(contra_neurons, opto=True, error=True)
+    
+            else:
+                
+                nonpref, pref = cat((cat(ipsi_trace['r']), cat(contra_trace['l']))), cat((cat(ipsi_trace['l']), cat(contra_trace['r'])))
+                optonp, optop = self.get_trace_matrix_multiple(ipsi_neurons, opto=True, both=False, lickdir=lickdir)
+                optop1, optonp1 = self.get_trace_matrix_multiple(contra_neurons, opto = True, both=False, lickdir=lickdir)
+                optonp, optop = cat((optonp, optonp1)), cat((optop, optop1))
+                
+                # errnp, errpref = self.get_trace_matrix_multiple(ipsi_neurons, opto=True, error=True)
+                # errpref1, errnp1 = self.get_trace_matrix_multiple(contra_neurons, opto=True, error=True)
+                # errpref, errnp = cat((errpref, errpref1)), cat((errnp, errnp1))            
+                
+                
+            sel = np.mean(pref, axis = 0) - np.mean(nonpref, axis = 0)
+            err = np.std(pref, axis=0) / np.sqrt(len(pref)) 
+            err += np.std(nonpref, axis=0) / np.sqrt(len(nonpref))
+            
+            selo = np.mean(optop, axis = 0) - np.mean(optonp, axis = 0)
+            erro = np.std(optop, axis=0) / np.sqrt(len(optop)) 
+            erro += np.std(optonp, axis=0) / np.sqrt(len(optonp))  
+            
+            if return_traces:
+                
+                if downsample:
+    
+                    pref, nonpref = self.dodownsample(pref), self.dodownsample(nonpref)
+                    optop, optonp = self.dodownsample(optop), self.dodownsample(optonp)
+                    
+                return pref, nonpref, optop, optonp
+
+        #PLOT BELOW
+        x = np.arange(-6.97,4,self.fs)[:self.time_cutoff]
             
         f, axarr = plt.subplots(1,1, sharex='col', figsize=(5,5))
         
@@ -3044,9 +3093,8 @@ class Session:
 
         plt.show()
 
-            
 
-    def modularity_proportion(self, p = 0.0001, lickdir=False, trials=None, period=None, method=None):
+    def modularity_proportion(self, p = 0.0001, lickdir=False, exclude_unselective=False, trials=None, period=None, method=None):
         """Returns the modularity as a proportion of control trial activity
         
         Uses method from Chen et al 2021 to calculate recovery during the 
@@ -3071,51 +3119,55 @@ class Session:
         error : int
             
         """
+        if False:
+            # Get late delay selective neurons using second half of delay
+            contra_neurons, ipsi_neurons, contra_trace, ipsi_trace = self.contra_ipsi_pop(range(self.response-int(1.5*(1/self.fs)),self.response), 
+                                                                                          p=p,
+                                                                                          lickdir=lickdir) 
+            
+            if len(contra_neurons) == 0 and len(ipsi_neurons) == 0:
+                
+                # raise Exception("No selective neurons :^(") 
+                # NO SELECTIVE NEURONS
+                return None, None
+                
+            elif len(contra_neurons) == 0:
+                
+                
+                nonpref, pref = cat(ipsi_trace['r']), cat(ipsi_trace['l'])
+                optonp, optop = self.get_trace_matrix_multiple(ipsi_neurons, opto=True, both=False, lickdir=lickdir)
+                # errnp, errpref = self.get_trace_matrix_multiple(ipsi_neurons, opto=True, error=True)
+                
+            elif len(ipsi_neurons) == 0:
+                
+                nonpref, pref = cat(contra_trace['l']), cat(contra_trace['r'])
+                optop, optonp = self.get_trace_matrix_multiple(contra_neurons, opto=True, both=False, lickdir=lickdir)
+                # errpref, errnp = self.get_trace_matrix_multiple(contra_neurons, opto=True, error=True)
+    
+            else:
+                
+                nonpref, pref = cat((cat(ipsi_trace['r']), cat(contra_trace['l']))), cat((cat(ipsi_trace['l']), cat(contra_trace['r'])))
+                optonp, optop = self.get_trace_matrix_multiple(ipsi_neurons, opto=True, both=False, lickdir=lickdir)
+                optop1, optonp1 = self.get_trace_matrix_multiple(contra_neurons, opto = True, both=False, lickdir=lickdir)
+                optonp, optop = cat((optonp, optonp1)), cat((optop, optop1))
+                
+                # errnp, errpref = self.get_trace_matrix_multiple(ipsi_neurons, opto=True, error=True)
+                # errpref1, errnp1 = self.get_trace_matrix_multiple(contra_neurons, opto=True, error=True)
+                # errpref, errnp = cat((errpref, errpref1)), cat((errnp, errnp1))
+    
+                
+            sel = np.mean(pref, axis = 0) - np.mean(nonpref, axis = 0)
+            err = np.std(pref, axis=0) / np.sqrt(len(pref)) 
+            err += np.std(nonpref, axis=0) / np.sqrt(len(nonpref))
+            
+            selo = np.mean(optop, axis = 0) - np.mean(optonp, axis = 0)
+            erro = np.std(optop, axis=0) / np.sqrt(len(optop)) 
+            erro += np.std(optonp, axis=0) / np.sqrt(len(optonp))
         
-        # Get late delay selective neurons using second half of delay
-        contra_neurons, ipsi_neurons, contra_trace, ipsi_trace = self.contra_ipsi_pop(range(self.response-int(1.5*(1/self.fs)),self.response), 
-                                                                                      p=p,
-                                                                                      lickdir=lickdir) 
-        
-        if len(contra_neurons) == 0 and len(ipsi_neurons) == 0:
-            
-            # raise Exception("No selective neurons :^(") 
-            # NO SELECTIVE NEURONS
-            return None, None
-            
-        elif len(contra_neurons) == 0:
-            
-            
-            nonpref, pref = cat(ipsi_trace['r']), cat(ipsi_trace['l'])
-            optonp, optop = self.get_trace_matrix_multiple(ipsi_neurons, opto=True, both=False, lickdir=lickdir)
-            # errnp, errpref = self.get_trace_matrix_multiple(ipsi_neurons, opto=True, error=True)
-            
-        elif len(ipsi_neurons) == 0:
-            
-            nonpref, pref = cat(contra_trace['l']), cat(contra_trace['r'])
-            optop, optonp = self.get_trace_matrix_multiple(contra_neurons, opto=True, both=False, lickdir=lickdir)
-            # errpref, errnp = self.get_trace_matrix_multiple(contra_neurons, opto=True, error=True)
+        sel, selo = self.selectivity_optogenetics(p = p, lickdir=lickdir, 
+                                                  exclude_unselective=exclude_unselective,
+                                                  return_traces=True)
 
-        else:
-            
-            nonpref, pref = cat((cat(ipsi_trace['r']), cat(contra_trace['l']))), cat((cat(ipsi_trace['l']), cat(contra_trace['r'])))
-            optonp, optop = self.get_trace_matrix_multiple(ipsi_neurons, opto=True, both=False, lickdir=lickdir)
-            optop1, optonp1 = self.get_trace_matrix_multiple(contra_neurons, opto = True, both=False, lickdir=lickdir)
-            optonp, optop = cat((optonp, optonp1)), cat((optop, optop1))
-            
-            # errnp, errpref = self.get_trace_matrix_multiple(ipsi_neurons, opto=True, error=True)
-            # errpref1, errnp1 = self.get_trace_matrix_multiple(contra_neurons, opto=True, error=True)
-            # errpref, errnp = cat((errpref, errpref1)), cat((errnp, errnp1))
-
-            
-        sel = np.mean(pref, axis = 0) - np.mean(nonpref, axis = 0)
-        err = np.std(pref, axis=0) / np.sqrt(len(pref)) 
-        err += np.std(nonpref, axis=0) / np.sqrt(len(nonpref))
-        
-        selo = np.mean(optop, axis = 0) - np.mean(optonp, axis = 0)
-        erro = np.std(optop, axis=0) / np.sqrt(len(optop)) 
-        erro += np.std(optonp, axis=0) / np.sqrt(len(optonp))
-        
         if method != None:
             
             # For calculations of robustness
@@ -3129,18 +3181,22 @@ class Session:
         if period is None:
             period = range(self.response-int(1*(1/self.fs)), self.response) # Use last second of delay
 
-        recovery = np.mean(selo[period] / sel[period])
-        error = np.mean(erro[period])
+        sel = np.mean(sel, axis=0)
+        selo = np.mean(selo, axis=0)
         
-        recovery = np.mean(abs(selo[period]) / abs(sel[period]))
-        error = np.mean(erro[period])   
+        recovery = np.mean((selo/sel)[period])
+        error = np.std((selo/sel)[period]) / np.sqrt(len(sel))
+        
+        # recovery = np.mean(abs(selo[period]) / abs(sel[period]))
+        # error = np.mean(erro[period])   
         
         # recovery = np.mean((sel[period] - selo[period]) / sel[period])
         # error = np.mean(erro[period])        
         
         return recovery, error
         # return selo[period], sel[period]
-
+        
+        
     def modularity_proportion_per_neuron(self, period=None):
         
         all_mod = []
@@ -3546,22 +3602,37 @@ class Session:
         titles = ['Stimulus selective', 'Choice selective', 'Outcome selective']
         
         
+        ################## STIMULUS #####################
+        all_pref, all_nonpref = [], []
+        for n in stim_neurons:
+            L_pref, screenl, screenr = self.screen_preference(n, epochs[0], bootstrap=True)
+
+            if L_pref:
+                nonpref, pref = self.get_trace_matrix(n, lickdir=False, trialtype=True)#, remove_trial=all_exclude_trials)
+            else:
+                pref, nonpref = self.get_trace_matrix(n, lickdir=False, trialtype=True)#, remove_trial=all_exclude_trials)
+                
+            all_pref += [np.mean(pref, axis=0)]
+            all_nonpref += [np.mean(nonpref, axis=0)]
             
-        nonpref, pref = self.contra_ipsi_pop(epochs[0], return_sel=True, 
-                                             selective_n = stim_neurons, 
-                                             trials=states, bootstrap = True)
-        if any(isinstance(x, np.float64) for x in nonpref):
-            nonpref = pd.DataFrame(np.array(nonpref)).dropna().to_numpy()[:, 0]
-        if any(isinstance(x, np.float64) for x in pref):
-            pref = pd.DataFrame(np.array(pref)).dropna().to_numpy()[:, 0]
+        stim_sel = all_nonpref, all_pref
+
+            
+        # nonpref, pref = self.contra_ipsi_pop(epochs[0], return_sel=True, 
+        #                                      selective_n = stim_neurons, 
+        #                                      trials=states, bootstrap = True)
+        # if any(isinstance(x, np.float64) for x in nonpref):
+        #     nonpref = pd.DataFrame(np.array(nonpref)).dropna().to_numpy()[:, 0]
+        # if any(isinstance(x, np.float64) for x in pref):
+        #     pref = pd.DataFrame(np.array(pref)).dropna().to_numpy()[:, 0]
         
         
-        err = np.std(pref, axis=0) / np.sqrt(len(pref)) 
-        err += np.std(nonpref, axis=0) / np.sqrt(len(nonpref))
-        sel = np.mean(pref, axis=0) - np.mean(nonpref, axis=0) 
-        stim_sel = nonpref, pref
+        # err = np.std(pref, axis=0) / np.sqrt(len(pref)) 
+        # err += np.std(nonpref, axis=0) / np.sqrt(len(nonpref))
+        # sel = np.mean(pref, axis=0) - np.mean(nonpref, axis=0) 
+        # stim_sel = nonpref, pref
         
-        ################## ACTION #####################
+        ################## ACTION (extra) #####################
         if action:
             nonpref, pref = self.contra_ipsi_pop(range(self.response, self.response+int(1*1/self.fs)), 
                                                  return_sel=True, selective_n = action_neurons, 
@@ -3580,8 +3651,8 @@ class Session:
             f, axarr = plt.subplots(1,4, sharey='row', figsize=(15,5))
 
 
-        if type(sel) != np.ndarray:
-            print("Empty selectivity vec: {}".format(sel))
+        if len(all_pref) ==0:
+            print("Empty selectivity vec: {}".format(all_pref))
         elif plot:
             axarr[0].plot(x, sel, color='green')
                     
@@ -3592,24 +3663,38 @@ class Session:
             axarr[0].set_title(titles[0])
             
 
-        #######################################
+        ################## CHOICE #####################
         
 
-        nonpref, pref = self.contra_ipsi_pop(epochs[1], return_sel=True, 
-                                             selective_n = choice_neurons, 
-                                             trials=states, bootstrap = True)
-        if any(isinstance(x, np.float64) for x in nonpref):
-            nonpref = pd.DataFrame(np.array(nonpref)).dropna().to_numpy()[:, 0]
-        if any(isinstance(x, np.float64) for x in pref):
-            pref = pd.DataFrame(np.array(pref)).dropna().to_numpy()[:, 0]
+        # nonpref, pref = self.contra_ipsi_pop(epochs[1], return_sel=True, 
+        #                                      selective_n = choice_neurons, 
+        #                                      trials=states, bootstrap = True)
+        # if any(isinstance(x, np.float64) for x in nonpref):
+        #     nonpref = pd.DataFrame(np.array(nonpref)).dropna().to_numpy()[:, 0]
+        # if any(isinstance(x, np.float64) for x in pref):
+        #     pref = pd.DataFrame(np.array(pref)).dropna().to_numpy()[:, 0]
         
-        err = np.std(pref, axis=0) / np.sqrt(len(pref)) 
-        err += np.std(nonpref, axis=0) / np.sqrt(len(nonpref))
-        sel = np.mean(pref, axis=0) - np.mean(nonpref, axis=0)
-        choice_sel = nonpref, pref
+        # err = np.std(pref, axis=0) / np.sqrt(len(pref)) 
+        # err += np.std(nonpref, axis=0) / np.sqrt(len(nonpref))
+        # sel = np.mean(pref, axis=0) - np.mean(nonpref, axis=0)
+        # choice_sel = nonpref, pref
         
-        if type(sel) != np.ndarray:
-            print("Empty selectivity vec: {}".format(sel))
+        all_pref, all_nonpref = [], []
+        for n in choice_neurons:
+            L_pref, screenl, screenr = self.screen_preference(n, epochs[1], bootstrap=True)
+            if L_pref:
+                nonpref, pref = self.get_trace_matrix(n, lickdir=True, trialtype=False)#, remove_trial=all_exclude_trials)
+            else:
+                pref, nonpref = self.get_trace_matrix(n, lickdir=True, trialtype=False)#, remove_trial=all_exclude_trials)
+                
+            all_pref += [np.mean(pref, axis=0)]
+            all_nonpref += [np.mean(nonpref, axis=0)]
+            
+        choice_sel = all_nonpref, all_pref
+        
+        
+        if len(all_pref) ==0:
+            print("Empty selectivity vec: {}".format(all_pref))
         elif plot:
 
             
@@ -3620,20 +3705,33 @@ class Session:
                       color='violet')
             axarr[1].set_title(titles[1])
         
-        #######################################
+        ################## OUTCOME #####################
 
-        nonpref, pref = self.contra_ipsi_pop(epochs[2], return_sel=True, 
-                                             selective_n = outcome_neurons, 
-                                             trials=states, bootstrap = True)
-        if any(isinstance(x, np.float64) for x in nonpref):
-            nonpref = pd.DataFrame(np.array(nonpref)).dropna().to_numpy()[:, 0]
-        if any(isinstance(x, np.float64) for x in pref):
-            pref = pd.DataFrame(np.array(pref)).dropna().to_numpy()[:, 0]
+        # nonpref, pref = self.contra_ipsi_pop(epochs[2], return_sel=True, 
+        #                                      selective_n = outcome_neurons, 
+        #                                      trials=states, bootstrap = True)
+        # if any(isinstance(x, np.float64) for x in nonpref):
+        #     nonpref = pd.DataFrame(np.array(nonpref)).dropna().to_numpy()[:, 0]
+        # if any(isinstance(x, np.float64) for x in pref):
+        #     pref = pd.DataFrame(np.array(pref)).dropna().to_numpy()[:, 0]
         
-        err = np.std(pref, axis=0) / np.sqrt(len(pref)) 
-        err += np.std(nonpref, axis=0) / np.sqrt(len(nonpref))
-        sel = np.mean(pref, axis=0) - np.mean(nonpref, axis=0)
-        outcome_sel = nonpref, pref
+        # err = np.std(pref, axis=0) / np.sqrt(len(pref)) 
+        # err += np.std(nonpref, axis=0) / np.sqrt(len(nonpref))
+        # sel = np.mean(pref, axis=0) - np.mean(nonpref, axis=0)
+        # outcome_sel = nonpref, pref
+        
+        all_pref, all_nonpref = [], []
+        for n in outcome_neurons:
+            L_pref, screenl, screenr = self.screen_preference(n, epochs[2], bootstrap=True)
+            if L_pref:
+                nonpref, pref = self.get_trace_matrix(n, lickdir=True, trialtype=False)#, remove_trial=all_exclude_trials)
+            else:
+                pref, nonpref = self.get_trace_matrix(n, lickdir=True, trialtype=False)#, remove_trial=all_exclude_trials)
+                
+            all_pref += [np.mean(pref, axis=0)]
+            all_nonpref += [np.mean(nonpref, axis=0)]
+            
+        outcome_sel = all_nonpref, all_pref
         
         if plot:
             axarr[2].plot(x, sel, color='dodgerblue')
@@ -3645,22 +3743,35 @@ class Session:
             axarr[2].set_title(titles[2])
             
         ################## ACTION #####################
-        nonpref, pref = self.contra_ipsi_pop(range(self.response, self.response+int(1*1/self.fs)), 
-                                             return_sel=True, 
-                                             selective_n = action_neurons, 
-                                             trials=states, bootstrap = True)
-        if any(isinstance(x, np.float64) for x in nonpref):
-            nonpref = pd.DataFrame(np.array(nonpref)).dropna().to_numpy()[:, 0]
-        if any(isinstance(x, np.float64) for x in pref):
-            pref = pd.DataFrame(np.array(pref)).dropna().to_numpy()[:, 0]
+        # nonpref, pref = self.contra_ipsi_pop(range(self.response, self.response+int(1*1/self.fs)), 
+        #                                      return_sel=True, 
+        #                                      selective_n = action_neurons, 
+        #                                      trials=states, bootstrap = True)
+        # if any(isinstance(x, np.float64) for x in nonpref):
+        #     nonpref = pd.DataFrame(np.array(nonpref)).dropna().to_numpy()[:, 0]
+        # if any(isinstance(x, np.float64) for x in pref):
+        #     pref = pd.DataFrame(np.array(pref)).dropna().to_numpy()[:, 0]
         
-        err = np.std(pref, axis=0) / np.sqrt(len(pref)) 
-        err += np.std(nonpref, axis=0) / np.sqrt(len(nonpref))
-        sel = np.mean(pref, axis=0) - np.mean(nonpref, axis=0)
-        action_sel = nonpref, pref
+        # err = np.std(pref, axis=0) / np.sqrt(len(pref)) 
+        # err += np.std(nonpref, axis=0) / np.sqrt(len(nonpref))
+        # sel = np.mean(pref, axis=0) - np.mean(nonpref, axis=0)
+        # action_sel = nonpref, pref
         
-        if type(sel) != np.ndarray:
-            print("Empty selectivity vec: {}".format(sel))
+        all_pref, all_nonpref = [], []
+        for n in action_neurons:
+            L_pref, screenl, screenr = self.screen_preference(n, epochs[2], bootstrap=True)
+            if L_pref:
+                nonpref, pref = self.get_trace_matrix(n, lickdir=True, trialtype=False)#, remove_trial=all_exclude_trials)
+            else:
+                pref, nonpref = self.get_trace_matrix(n, lickdir=True, trialtype=False)#, remove_trial=all_exclude_trials)
+                
+            all_pref += [np.mean(pref, axis=0)]
+            all_nonpref += [np.mean(nonpref, axis=0)]
+            
+        action_sel = all_nonpref, all_pref
+        
+        if len(all_pref) ==0:
+            print("Empty selectivity vec: {}".format(all_pref))
         elif plot:
             axarr[3].plot(x, sel, color='goldenrod')
                     

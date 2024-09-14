@@ -179,8 +179,7 @@ for path in paths:
     l1.selectivity_optogenetics(p=0.05)
     
 #%% AGG all sesssions matched neurons
-pref, nonpref, optop, optonp = np.zeros(61), np.zeros(61), np.zeros(61), np.zeros(61)
-num_neurons = 0
+
 # NEW DATASET
 
 paths = [ r'H:\data\BAYLORCW044\python\2024_05_22',
@@ -223,20 +222,20 @@ paths = [r'F:\data\BAYLORCW032\python\2023_10_19',
             ]
 
 
-paths = [r'F:\data\BAYLORCW032\python\2023_10_24',
-            # r'F:\data\BAYLORCW034\python\2023_10_27',
-            r'F:\data\BAYLORCW036\python\2023_10_30',
-            r'F:\data\BAYLORCW035\python\2023_12_15',
-            r'F:\data\BAYLORCW037\python\2023_12_15',
+# paths = [r'F:\data\BAYLORCW032\python\2023_10_24',
+#             # r'F:\data\BAYLORCW034\python\2023_10_27',
+#             r'F:\data\BAYLORCW036\python\2023_10_30',
+#             r'F:\data\BAYLORCW035\python\2023_12_15',
+#             r'F:\data\BAYLORCW037\python\2023_12_15',
             
-            r'H:\data\BAYLORCW044\python\2024_06_19',
-            r'H:\data\BAYLORCW044\python\2024_06_18',
+#             r'H:\data\BAYLORCW044\python\2024_06_19',
+#             r'H:\data\BAYLORCW044\python\2024_06_18',
             
-            r'H:\data\BAYLORCW046\python\2024_06_24',
-            r'H:\data\BAYLORCW046\python\2024_06_27',
-            r'H:\data\BAYLORCW046\python\2024_06_26',
+#             r'H:\data\BAYLORCW046\python\2024_06_24',
+#             r'H:\data\BAYLORCW046\python\2024_06_27',
+#             r'H:\data\BAYLORCW046\python\2024_06_26',
             
-            ]
+#             ]
 
 
 
@@ -250,46 +249,61 @@ paths = [r'F:\data\BAYLORCW032\python\2023_10_24',
 # paths = [r'F:\data\BAYLORCW032\python\2023_10_16',
 #             r'F:\data\BAYLORCW035\python\2023_10_27',
 #             r'F:\data\BAYLORCW036\python\2023_10_17',]
+
+# pref, nonpref, optop, optonp = np.zeros(61), np.zeros(61), np.zeros(61), np.zeros(61)
+all_control_sel, all_opto_sel = np.zeros(61), np.zeros(61)
+num_neurons = 0
+by_FOV = True
 for path in paths:
     
     l1 = session.Session(path, use_reg=True, triple=True, 
-                         remove_consec_opto=False)
-                         # baseline_normalization="median_zscore")    
-    adjusted_p = 0.01 / np.sqrt(len(l1.good_neurons))
-    pref_, nonpref_, optop_, optonp_ = l1.selectivity_optogenetics(p=adjusted_p, 
-                                                                   exclude_unselective=True,
-                                                                   lickdir=False, 
-                                                                   return_traces=True,
-                                                                   downsample='04' in path)
+                         use_background_sub=True,
+                         remove_consec_opto=False,
+                         baseline_normalization="median_zscore")    
+    adjusted_p = 0.05 / np.sqrt(len(l1.good_neurons))
     
-    if pref_ is None: # no selective neurons
+    control_sel, opto_sel = l1.selectivity_optogenetics(p=adjusted_p, 
+                                                        exclude_unselective=True,
+                                                        lickdir=False, 
+                                                        return_traces=True,
+                                                        downsample='04' in path)
+    
+    if control_sel is None or len(control_sel) == 0 or np.sum(control_sel) == 0: # no selective neurons
         
         continue
     
-    num_neurons_selective = len(l1.selective_neurons)
-    fov_selectivity = np.mean(pref_[range(l1.delay, l1.response)])
+    num_neurons_selective = len(control_sel)
+    fov_selectivity = np.mean(np.mean(control_sel, axis=0)[range(28, 40)])
     
-    if num_neurons_selective > 5 and fov_selectivity > 0.3:
+    print(num_neurons_selective, fov_selectivity)
     
-        pref = np.vstack((pref, np.mean(pref_,axis=0)))
-        nonpref = np.vstack((nonpref, np.mean(nonpref_, axis=0)))
-        optop = np.vstack((optop, np.mean(optop_,axis=0)))
-        optonp = np.vstack((optonp, np.mean(optonp_,axis=0)))
-        
-        num_neurons += len(l1.selective_neurons)
+    if num_neurons_selective > 3 and fov_selectivity > 0.3:
+    # if True:
+        if by_FOV:
+            all_control_sel = np.vstack((all_control_sel, np.mean(control_sel, axis=0)))
+            all_opto_sel = np.vstack((all_opto_sel, np.mean(opto_sel, axis=0)))
+        else:
+            all_control_sel = np.vstack((all_control_sel, control_sel))
+            all_opto_sel = np.vstack((all_opto_sel, opto_sel))
+        num_neurons += num_neurons_selective
     
-pref, nonpref, optop, optonp = pref[1:], nonpref[1:], optop[1:], optonp[1:]
+all_control_sel, all_opto_sel = all_control_sel[1:], all_opto_sel[1:]
 
-sel = np.mean(pref, axis = 0) - np.mean(nonpref, axis = 0)
-err = np.std(pref, axis=0) / np.sqrt(len(pref)*2) 
-err += np.std(nonpref, axis=0) / np.sqrt(len(pref)*2)
+# sel = np.mean(pref, axis = 0) - np.mean(nonpref, axis = 0)
+# err = np.std(pref, axis=0) / np.sqrt(len(pref)*2) 
+# err += np.std(nonpref, axis=0) / np.sqrt(len(pref)*2)
 
-selo = np.mean(optop, axis = 0) - np.mean(optonp, axis = 0)
-erro = np.std(optop, axis=0) / np.sqrt(len(pref)*2) 
-erro += np.std(optonp, axis=0) / np.sqrt(len(pref)*2)  
+# selo = np.mean(optop, axis = 0) - np.mean(optonp, axis = 0)
+# erro = np.std(optop, axis=0) / np.sqrt(len(pref)*2) 
+# erro += np.std(optonp, axis=0) / np.sqrt(len(pref)*2)  
+
+sel = np.mean(all_control_sel, axis=0)
+err = np.std(all_control_sel, axis=0) / np.sqrt(len(all_control_sel))
+selo = np.mean(all_opto_sel, axis=0)
+erro = np.std(all_opto_sel, axis=0) / np.sqrt(len(all_opto_sel))
 
 f, axarr = plt.subplots(1,1, sharex='col', figsize=(5,5))  
-x = np.arange(-6.97,4,1/6)[:pref.shape[1]]
+x = np.arange(-6.97,4,1/6)[:sel.shape[0]]
 axarr.plot(x, sel, 'black')
         
 axarr.fill_between(x, sel - err, 
@@ -312,7 +326,7 @@ axarr.set_xlabel('Time from Go cue (s)')
 axarr.set_ylabel('Selectivity')
 # axarr.set_ylim((-0.2, 0.7))
 
-# plt.savefig(r'F:\data\Fig 3\exp_sel_recovery_updated.pdf')
+# plt.savefig(r'F:\data\Fig 3\lea_sel_recovery_updated.pdf')
 plt.show()
 
 
@@ -637,15 +651,62 @@ all_paths = [[    r'F:\data\BAYLORCW032\python\2023_10_05',
 
 naive_sel_recovery,learning_sel_recovery,expert_sel_recovery = [],[],[]
 all_recovery = []
-for paths in all_paths: # For each stage of training
+for st, paths in enumerate(all_paths): # For each stage of training
     recovery = []
     for path in paths: # For each mouse
         
-        l1 = session.Session(path, use_reg=True, triple=True, remove_consec_opto=True)
-        # l1 = session.Session(path)
-        temp, _ = l1.modularity_proportion(p=0.01, lickdir=True)
-        # if temp > 0 and temp < 1: # Exclude values based on Chen et al method guidelines
-        if True:
+        l1 = session.Session(path, use_reg=True, triple=True, 
+                             use_background_sub=True,
+                             remove_consec_opto=False,
+                             baseline_normalization="median_zscore")   
+
+        
+        
+    
+        adjusted_p = 0.05 / np.sqrt(len(l1.good_neurons))
+        
+        control_sel, opto_sel = l1.selectivity_optogenetics(p=adjusted_p, 
+                                                            # exclude_unselective=st > 0,
+                                                            exclude_unselective=False,
+                                                            lickdir=False, 
+                                                            return_traces=True,
+                                                            downsample='04' in path)
+        
+        l1.selectivity_optogenetics(p=adjusted_p, 
+                                    # exclude_unselective=st > 0,
+                                    exclude_unselective=False,
+                                    lickdir=False, 
+                                    return_traces=False,
+                                    downsample='04' in path)
+
+        if control_sel is None or len(control_sel) == 0 or np.sum(control_sel) == 0: # no selective neurons
+            
+            continue
+        
+        temp, _ = l1.modularity_proportion(p=adjusted_p, 
+                                           exclude_unselective=False,
+                                           # exclude_unselective=st > 0,
+                                           lickdir=False)
+        
+        num_neurons_selective = len(control_sel)
+        fov_selectivity = np.mean(np.mean(control_sel, axis=0)[range(28, 40)])
+        
+        print(num_neurons_selective, fov_selectivity)
+        
+        if num_neurons_selective > 3 and fov_selectivity > 0.3 or st == 0:
+
+            if by_FOV:
+                all_control_sel = np.vstack((all_control_sel, np.mean(control_sel, axis=0)))
+                all_opto_sel = np.vstack((all_opto_sel, np.mean(opto_sel, axis=0)))
+            else:
+                all_control_sel = np.vstack((all_control_sel, control_sel))
+                all_opto_sel = np.vstack((all_opto_sel, opto_sel))
+            num_neurons += num_neurons_selective
+            
+            
+            
+        if temp > 0 and temp < 1: # Exclude values based on Chen et al method guidelines
+        # if True:
             recovery += [temp]
     
     all_recovery += [recovery]
@@ -658,7 +719,7 @@ plt.scatter(np.ones(len(all_recovery[2]))+1, all_recovery[2])
 
 plt.xticks(range(3), ['Naive', 'Learning', 'Expert'])
 plt.ylabel('Modularity')
-# plt.savefig(r'F:\data\Fig 3\updated_modularity_bargraph.pdf')
+plt.savefig(r'F:\data\Fig 3\updated_modularity_bargraph_updated.pdf')
 
 plt.show()
 

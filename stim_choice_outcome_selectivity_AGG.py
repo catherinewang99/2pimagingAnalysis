@@ -76,26 +76,28 @@ for j in range(3):
     
     for path in agg_matched_paths[j]:
         l1 = session.Session(path, use_reg=True, triple=True)
-        _, _, _, numoutcome, stim_sel, choice_sel, outcome_sel, action_sel = l1.stim_choice_outcome_selectivity(plot=False, p=0.01,
+        # adjusted_p = 0.05 / np.sqrt(len(l1.good_neurons))
+        adjusted_p = 0.01
+        _, _, _, numoutcome, stim_sel, choice_sel, outcome_sel, action_sel = l1.stim_choice_outcome_selectivity(plot=False, p=adjusted_p,
                                                                                                                 downsample='04' in path)
         snp, sp = stim_sel
-        if len(snp) != 0:
+        if len(snp) != 0 and np.sum(snp) != 0:
             stimnonpref = np.vstack((stimnonpref, snp))
             stimpref = np.vstack((stimpref, sp))
         
         snp, sp = choice_sel
-        if len(snp) != 0:
+        if len(snp) != 0 and np.sum(snp) != 0:
 
             choicenonpref = np.vstack((choicenonpref, snp))
             choicepref = np.vstack((choicepref, sp))
          
         snp, sp = action_sel
-        if len(snp) != 0:
+        if len(snp) != 0 and np.sum(snp) != 0:
     
             actionnonpref = np.vstack((actionnonpref, snp))
             actionpref = np.vstack((actionpref, sp))
             
-        print(len(stimpref), len(choicepref), len(actionpref))
+    print(len(stimpref), len(choicepref), len(actionpref))
 
     x = np.arange(-6.97,4,1/6)[:61]
     titles = ['Stimulus selective', 'Choice selective', 'Outcome selective', 'Action selective']
@@ -104,9 +106,8 @@ for j in range(3):
     choicenonpref, choicepref = choicenonpref[1:,:], choicepref[1:,:]
     actionnonpref, actionpref = actionnonpref[1:,:], actionpref[1:,:]
     
-    err = np.std(stimpref, axis=0) / np.sqrt(len(stimpref)) 
-    err += np.std(stimnonpref, axis=0) / np.sqrt(len(stimnonpref))
-    sel = np.mean(stimpref, axis=0) - np.mean(stimnonpref, axis=0) 
+    err = np.std((stimpref - stimnonpref), axis=0) / np.sqrt(len(stimpref)) 
+    sel = np.mean((stimpref - stimnonpref), axis=0)
     axarr[0,j].plot(x, sel, color='green')
             
     axarr[0,j].fill_between(x, sel - err, 
@@ -114,10 +115,12 @@ for j in range(3):
               color='lightgreen')
     
     axarr[0,j].set_title(titles[0])
-
-    err = np.std(choicepref, axis=0) / np.sqrt(len(choicepref)) 
-    err += np.std(choicenonpref, axis=0) / np.sqrt(len(choicenonpref))
-    sel = np.mean(choicepref, axis=0) - np.mean(choicenonpref, axis=0) 
+    
+    err = np.std((choicepref - choicenonpref), axis=0) / np.sqrt(len(choicepref)) 
+    sel = np.mean((choicepref - choicenonpref), axis=0)
+    # err = np.std(choicepref, axis=0) / np.sqrt(len(choicepref)) 
+    # err += np.std(choicenonpref, axis=0) / np.sqrt(len(choicenonpref))
+    # sel = np.mean(choicepref, axis=0) - np.mean(choicenonpref, axis=0) 
     axarr[1,j].plot(x, sel, color='purple')
             
     axarr[1,j].fill_between(x, sel - err, 
@@ -125,10 +128,11 @@ for j in range(3):
               color='violet')
     axarr[1,j].set_title(titles[1])
     
-    
-    err = np.std(actionpref, axis=0) / np.sqrt(len(actionpref)) 
-    err += np.std(actionnonpref, axis=0) / np.sqrt(len(actionnonpref))
-    sel = np.mean(actionpref, axis=0) - np.mean(actionnonpref, axis=0) 
+    err = np.std((actionpref - actionnonpref), axis=0) / np.sqrt(len(actionpref)) 
+    sel = np.mean((actionpref - actionnonpref), axis=0)
+    # err = np.std(actionpref, axis=0) / np.sqrt(len(actionpref)) 
+    # err += np.std(actionnonpref, axis=0) / np.sqrt(len(actionnonpref))
+    # sel = np.mean(actionpref, axis=0) - np.mean(actionnonpref, axis=0) 
     axarr[2,j].plot(x, sel, color='goldenrod')
             
     axarr[2,j].fill_between(x, sel - err, 
@@ -151,7 +155,7 @@ axarr[2,1].set_xlabel('Time from Go cue (s)')
 
 
 
-plt.savefig(r'F:\data\Fig 2\NLE_all_selectivityagg_new.pdf')
+plt.savefig(r'F:\data\Fig 2\NLE_all_selectivityagg_new_p01.pdf')
 plt.show()
 
 

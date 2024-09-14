@@ -163,7 +163,7 @@ naivepath, learningpath, expertpath = [r'H:\data\BAYLORCW046\python\2024_05_31',
                   r'H:\data\BAYLORCW046\python\2024_06_26',]
 paths = [naivepath, learningpath, expertpath]
 
-path = learningpath
+path = expertpath
 n=15
 l1 = Mode(path, use_reg = True, triple=True, baseline_normalization="median_zscore")
 orthonormal_basis_initial, mean = l1.plot_CD()
@@ -180,6 +180,7 @@ for _ in range(n-1):
 
 allr = np.var(orthonormal_basis_initial, axis=0)
 avg_weights = np.mean(orthonormal_basis_initial, axis=0)
+
 
 #%% Single neuron analysis
 

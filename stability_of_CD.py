@@ -22,6 +22,9 @@ import pandas as pd
 from sklearn.decomposition import PCA
 import stats
 from numpy.linalg import norm
+# from scipy.stats import norm
+from sklearn import preprocessing
+
 cat = np.concatenate
 plt.rcParams['pdf.fonttype'] = '42' 
 
@@ -45,7 +48,7 @@ def angle_between(v1, v2):
     return np.arccos(np.clip(np.dot(v1_u, v2_u), -1.0, 1.0))
 
 def cos_sim(a,b):
-    return np.dot(a, b)/(norm(a)*norm(b))
+    return np.dot(a, b)/(np.linalg.norm(a)*np.linalg.norm(b))
 #%% PATHS
 
 paths = [[r'F:\data\BAYLORCW032\python\2023_10_08',
@@ -80,9 +83,9 @@ naivepath, learningpath, expertpath = [r'H:\data\BAYLORCW044\python\2024_05_23',
                    r'H:\data\BAYLORCW044\python\2024_06_04',
                   r'H:\data\BAYLORCW044\python\2024_06_18',]
 
-naivepath, learningpath, expertpath = [r'H:\data\BAYLORCW046\python\2024_05_31',
-                    r'H:\data\BAYLORCW046\python\2024_06_11',
-                  r'H:\data\BAYLORCW046\python\2024_06_26',]
+# naivepath, learningpath, expertpath = [r'H:\data\BAYLORCW046\python\2024_05_31',
+#                     r'H:\data\BAYLORCW046\python\2024_06_11',
+#                   r'H:\data\BAYLORCW046\python\2024_06_26',]
 
 # naivepath, learningpath, expertpath =[r'F:\data\BAYLORCW035\python\2023_10_12',
 #             r'F:\data\BAYLORCW035\python\2023_10_26',
@@ -202,15 +205,15 @@ l1.plot_appliedCD(orthonormal_basis, mean,  save = r'F:\data\Fig 2\CDstim_naive_
 
 path = expertpath
 l1 = Mode(path, use_reg = True, triple=True)
-orthonormal_basis, mean = l1.plot_CD(mode_input='action', save = r'F:\data\Fig 2\CDaction_expert_CW46.pdf')
+orthonormal_basis, mean = l1.plot_CD(mode_input='action')#, save = r'F:\data\Fig 2\CDaction_expert_CW46.pdf')
 
 path = learningpath
 l1 = Mode(path, use_reg = True, triple=True)
-l1.plot_appliedCD(orthonormal_basis, mean, save = r'F:\data\Fig 2\CDaction_learning_CW46.pdf')
+l1.plot_appliedCD(orthonormal_basis, mean)#, save = r'F:\data\Fig 2\CDaction_learning_CW46.pdf')
 
 path = naivepath
 l1 = Mode(path, use_reg = True, triple=True)
-l1.plot_appliedCD(orthonormal_basis, mean, save = r'F:\data\Fig 2\CDaction_naive_CW46.pdf')
+l1.plot_appliedCD(orthonormal_basis, mean)#, save = r'F:\data\Fig 2\CDaction_naive_CW46.pdf')
 
 #%% Use Full method
 
@@ -558,6 +561,66 @@ for paths in agg_mice_paths:
     plt.ylabel('Final delay CD values')
     plt.show()
     r_delay += [stats.pearsonr(orthonormal_basis_initial_choice, orthonormal_basis_choice)[0]]
+    
+#%% Stability represented by a few example neurons over few example trials
+naivepath, learningpath, expertpath = [r'H:\data\BAYLORCW046\python\2024_05_31',
+                    r'H:\data\BAYLORCW046\python\2024_06_11',
+                  r'H:\data\BAYLORCW046\python\2024_06_26',]
+
+path = learningpath
+l1 = Mode(path, use_reg = True, triple=True, baseline_normalization="median_zscore")
+path = expertpath
+l2 = Mode(path, use_reg = True, triple=True, baseline_normalization="median_zscore")
+
+# learning_delay_sel = l1.get_epoch_selective(range(l1.delay+30, l1.response), p=0.001)
+# expert_delay_sel = l2.get_epoch_selective(range(l2.delay+30, l2.response), p=0.001)
+# learning_delay_sel_idx = [np.where(l1.good_neurons == i)[0][0] for i in learning_delay_sel]
+# expert_delay_sel_idx = [np.where(l2.good_neurons == i)[0][0] for i in expert_delay_sel]
+
+# idx_highvar = [i for i in expert_delay_sel_idx if i in learning_delay_sel_idx]
+
+idx_highvar = np.where(np.array(allr) > 0.003)[0] # high variance neurons
+idx_highvar = np.where(np.array(avg_weights) > 0.1)[0] # high weight neurons
+
+trials = [160, 161, 165, 166, 169]
+trials = np.random.choice(np.where(l1.L_correct)[0], 5, replace=False)
+# trials = np.where(l1.R_correct)[0][15:]
+agg_traces_all = []
+for trial in trials:
+    agg_traces = []
+    for idx in idx_highvar[0:20]:
+        agg_traces += [np.array(l1.dff[0,trial][l1.good_neurons[idx], l1.delay:l1.response])]
+
+        # mean = np.mean(l1.dff[0,trial][l1.good_neurons[idx], :l1.time_cutoff])
+        # std = np.std(l1.dff[0,trial][l1.good_neurons[idx], :l1.time_cutoff])
+        # agg_traces += [np.array(l1.dff[0,trial][l1.good_neurons[idx], :l1.time_cutoff]) - mean / std]
+    agg_traces_all += [agg_traces]
+    
+
+
+# trials = [195, 196, 200, 201, 203]
+trialsexp = np.random.choice(np.where(l2.L_correct)[0], 5, replace=False)
+# trialsexp = np.where(l2.R_correct)[0][15:]
+agg_traces_all_exp = []
+for trial in trialsexp:
+    agg_traces = []
+    for idx in idx_highvar[0:20]:
+        agg_traces += [np.array(l2.dff[0,trial][l1.good_neurons[idx], l1.delay:l1.response])]
+
+        # mean = np.mean(l1.dff[0,trial][l1.good_neurons[idx], :l1.time_cutoff])
+        # std = np.std(l1.dff[0,trial][l1.good_neurons[idx], :l1.time_cutoff])
+        # agg_traces += [np.array(l1.dff[0,trial][l1.good_neurons[idx], :l1.time_cutoff]) - mean / std]
+    agg_traces_all_exp += [agg_traces]
+        
+f, ax = plt.subplots(4, 2, figsize = (5,5))
+for i in range(4):
+    ax[i, 0].matshow(agg_traces_all[i], cmap='gray', interpolation='nearest', aspect='auto')
+    ax[i, 0].axis('off')
+for i in range(4):
+    ax[i, 1].matshow(agg_traces_all_exp[i], cmap='gray', interpolation='nearest', aspect='auto')
+    ax[i, 1].axis('off')
+
+
 #%% Plot the R squared values of each FOV
 # r_stimr1, r_delayr1 = r_stim, r_delay
 
