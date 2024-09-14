@@ -260,6 +260,7 @@ for path in paths:
                          use_background_sub=True,
                          remove_consec_opto=False,
                          baseline_normalization="median_zscore")    
+    
     adjusted_p = 0.05 / np.sqrt(len(l1.good_neurons))
     
     control_sel, opto_sel = l1.selectivity_optogenetics(p=adjusted_p, 
@@ -666,8 +667,8 @@ for st, paths in enumerate(all_paths): # For each stage of training
         adjusted_p = 0.05 / np.sqrt(len(l1.good_neurons))
         
         control_sel, opto_sel = l1.selectivity_optogenetics(p=adjusted_p, 
-                                                            # exclude_unselective=st > 0,
-                                                            exclude_unselective=False,
+                                                            exclude_unselective=st > 0,
+                                                            # exclude_unselective=False,
                                                             lickdir=False, 
                                                             return_traces=True,
                                                             downsample='04' in path)
@@ -684,8 +685,8 @@ for st, paths in enumerate(all_paths): # For each stage of training
             continue
         
         temp, _ = l1.modularity_proportion(p=adjusted_p, 
-                                           exclude_unselective=False,
-                                           # exclude_unselective=st > 0,
+                                           # exclude_unselective=False,
+                                            exclude_unselective=st > 0,
                                            lickdir=False)
         
         num_neurons_selective = len(control_sel)
@@ -705,9 +706,9 @@ for st, paths in enumerate(all_paths): # For each stage of training
             
             
             
-        if temp > 0 and temp < 1: # Exclude values based on Chen et al method guidelines
-        # if True:
-            recovery += [temp]
+            # if temp > 0 and temp < 1: # Exclude values based on Chen et al method guidelines
+            if True:
+                recovery += [temp]
     
     all_recovery += [recovery]
         
@@ -719,6 +720,7 @@ plt.scatter(np.ones(len(all_recovery[2]))+1, all_recovery[2])
 
 plt.xticks(range(3), ['Naive', 'Learning', 'Expert'])
 plt.ylabel('Modularity')
+plt.ylim(0,1.1)
 plt.savefig(r'F:\data\Fig 3\updated_modularity_bargraph_updated.pdf')
 
 plt.show()

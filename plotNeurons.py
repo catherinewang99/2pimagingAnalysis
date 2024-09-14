@@ -123,8 +123,7 @@ for idx, sess in enumerate([s1,s2,s3]):
     # sess.plot_raster_and_PSTH(sess.good_neurons[sample_sel_idx[0]])
     
 #%% Perturbation
-path = r'H:\data\BAYLORCW044\python\2024_06_06'
-
+path = r'H:\data\BAYLORCW046\python\2024_06_26'
 s1 = session.Session(path)#, use_reg=True, triple=True)
 #%%
 sel_n = s1.get_epoch_selective(range(s1.delay, s1.response), p=0.0001)

@@ -3179,7 +3179,7 @@ class Session:
         # Add 0.4ms for the time lag factor
         # period = range( int(self.delay + 0.4*(1/self.fs)), int(self.delay + 1.4*(1/self.fs)))
         if period is None:
-            period = range(self.response-int(1*(1/self.fs)), self.response) # Use last second of delay
+            period = range(self.response-int(0.5*(1/self.fs)), self.response) # Use last second of delay
 
         sel = np.mean(sel, axis=0)
         selo = np.mean(selo, axis=0)
