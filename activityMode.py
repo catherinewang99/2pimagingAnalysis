@@ -24,11 +24,52 @@ class Mode(Session):
     
     def __init__(self, path, lickdir=True, use_reg=False, triple=False, filter_reg= True, 
                  layer_num='all', responsive_neurons = [], use_selective= False, use_background_sub=False,
-                 baseline_normalization = "dff_avg"):
+                 baseline_normalization = "dff_avg", proportion_train = 0.5,
+                 train_test_trials = []):
+        """
+        Child object of Session that allows for activity mode calculations 
+        Mostly adds new functions and also train test split of trials 
+
+        Parameters
+        ----------
+        path : TYPE
+            DESCRIPTION.
+        lickdir : TYPE, optional
+            DESCRIPTION. The default is True.
+        use_reg : TYPE, optional
+            DESCRIPTION. The default is False.
+        triple : TYPE, optional
+            DESCRIPTION. The default is False.
+        filter_reg : TYPE, optional
+            DESCRIPTION. The default is True.
+        layer_num : TYPE, optional
+            DESCRIPTION. The default is 'all'.
+        responsive_neurons : TYPE, optional
+            DESCRIPTION. The default is [].
+        use_selective : TYPE, optional
+            DESCRIPTION. The default is False.
+        use_background_sub : TYPE, optional
+            DESCRIPTION. The default is False.
+        baseline_normalization : TYPE, optional
+            DESCRIPTION. The default is "dff_avg".
+        proportion_train : TYPE, optional
+            DESCRIPTION. The default is 0.5.
+        train_test_trials : list, optional
+            Contains R train L train R test L test. The default is [], meaning
+            sort in house. Indices are only for control, i good non stim, and 
+            no early lick trials. Give an index in range(len(R_control_trials)),
+            or example. two lists of four lists (correct error)
+
+        Returns
+        -------
+        None.
+
+        """
         # Inherit all parameters and functions of session.py
         super().__init__(path, layer_num=layer_num, use_reg=use_reg, triple=triple, 
                          filter_reg=filter_reg, use_background_sub=use_background_sub,
                          baseline_normalization=baseline_normalization) 
+        
         self.lickdir = lickdir
         self.z_score_baseline()
         
@@ -46,55 +87,71 @@ class Mode(Session):
         # built this section so we can split trials into train/test and track at the same time 
         # for error bar creation in some subsequent graphs
         
-        #control trials
-        numr, numl = sum([self.R_correct[i] for i in self.i_good_non_stim_trials if not self.early_lick[i]]), sum([self.L_correct[i] for i in self.i_good_non_stim_trials if not self.early_lick[i]])
-        r_trials = np.random.permutation(numr)
-        l_trials = np.random.permutation(numl)
-        
-        self.r_train_idx, self.l_train_idx = r_trials[:int(numr/2)], l_trials[:int(numl/2)]
-        self.r_test_idx, self.l_test_idx = r_trials[int(numr/2):], l_trials[int(numl/2):]
+        ### SORT CONTROL TRIALS:
+        # First method: in house
+        if len(train_test_trials) == 0:
+            numr = sum([self.R_correct[i] for i in self.i_good_non_stim_trials if not self.early_lick[i]])
+            numl = sum([self.L_correct[i] for i in self.i_good_non_stim_trials if not self.early_lick[i]])
+            r_trials = np.random.permutation(numr) # shuffle the indices
+            l_trials = np.random.permutation(numl)
+            
+            self.proportion_train = proportion_train
+            self.proportion_test = 1 - proportion_train
+            
+            self.r_train_idx, self.l_train_idx = r_trials[:int(numr*self.proportion_train)], l_trials[:int(numl*self.proportion_train)]
+            self.r_test_idx, self.l_test_idx = r_trials[int(numr*self.proportion_test):], l_trials[int(numl*self.proportion_test):]
+            
+            numr = sum([self.R_wrong[i] for i in self.i_good_non_stim_trials if not self.early_lick[i]])
+            numl = sum([self.L_wrong[i] for i in self.i_good_non_stim_trials if not self.early_lick[i]])
+            r_trials = np.random.permutation(numr) # shuffle the indices
+            l_trials = np.random.permutation(numl)
+            
+            self.r_train_err_idx, self.l_train_err_idx = r_trials[:int(numr*self.proportion_train)], l_trials[:int(numl*self.proportion_train)]
+            self.r_test_err_idx, self.l_test_err_idx = r_trials[int(numr*self.proportion_test):], l_trials[int(numl*self.proportion_test):]
+          
+            
+        # Second method: read in from outside
+        else:
+            self.r_train_idx, self.l_train_idx, self.r_test_idx, self.l_test_idx = train_test_trials[0]
+            self.r_train_err_idx, self.l_train_err_idx, self.r_test_err_idx, self.l_test_err_idx = train_test_trials[1]
+            
 
-        #opto trials
+        ### SORT OPTO TRIALS:
         # Sort by trial type
         if not lickdir:
-            numr, numl = sum([self.R_correct[i] + self.R_wrong[i] for i in self.i_good_trials if self.stim_ON[i] and not self.early_lick[i]]), sum([self.L_correct[i] + self.L_wrong[i] for i in self.i_good_trials if self.stim_ON[i] and not self.early_lick[i]])
+            numr = sum([self.R_correct[i] + self.R_wrong[i] for i in self.i_good_trials if self.stim_ON[i] and not self.early_lick[i]]) 
+            numl = sum([self.L_correct[i] + self.L_wrong[i] for i in self.i_good_trials if self.stim_ON[i] and not self.early_lick[i]])
             r_trials = np.random.permutation(numr)
             l_trials = np.random.permutation(numl)
             
         # Sort by lick dir
         else:
             print('Sort by lick dir')
-            # numr, numl = sum([self.R_correct[i] + self.L_wrong[i] for i in self.i_good_trials if self.stim_ON[i] and not self.early_lick[i]]), sum([self.L_correct[i] + self.R_wrong[i] for i in self.i_good_trials if self.stim_ON[i] and not self.early_lick[i]])
-            # r_trials = np.random.permutation(sum([self.R_correct[i] + self.L_wrong[i] for i in self.i_good_trials if self.stim_ON[i] and not self.early_lick[i]]))
-            # l_trials = np.random.permutation(sum([self.L_correct[i] + self.R_wrong[i] for i in self.i_good_trials if self.stim_ON[i] and not self.early_lick[i]]))
-            # r_opto, l_opto = self.get_trace_matrix(0, opto=True, lickdir=lickdir)
-            # numr, numl = np.array(r_opto).shape[0], np.array(l_opto).shape[0]
-            
-            numr, numl = sum([self.R_correct[i] + self.L_wrong[i] for i in self.i_good_trials if self.stim_ON[i] and not self.early_lick[i]]), sum([self.L_correct[i] + self.R_wrong[i] for i in self.i_good_trials if self.stim_ON[i] and not self.early_lick[i]])
+
+            numr = sum([self.R_correct[i] + self.L_wrong[i] for i in self.i_good_trials if self.stim_ON[i] and not self.early_lick[i]])
+            numl = sum([self.L_correct[i] + self.R_wrong[i] for i in self.i_good_trials if self.stim_ON[i] and not self.early_lick[i]])
 
             r_trials = np.random.permutation(numr)
             l_trials = np.random.permutation(numl)
             
-        self.r_train_opto_idx, self.l_train_opto_idx = r_trials[:int(numr/2)], l_trials[:int(numl/2)]
-        self.r_test_opto_idx, self.l_test_opto_idx = r_trials[int(numr/2):], l_trials[int(numl/2):]
+        self.r_train_opto_idx, self.l_train_opto_idx = r_trials[:int(numr*self.proportion_train)], l_trials[:int(numl*self.proportion_train)]
+        self.r_test_opto_idx, self.l_test_opto_idx = r_trials[int(numr*self.proportion_test):], l_trials[int(numl*self.proportion_test):]
+        
+        
+        ## ASSIGN NEURAL ACTIVITY PER train_idx / test_idx
         
         counter = 0
-        
         for n in self.good_neurons:
-        # for n in range(self.num_neurons):
+
             r, l = self.get_trace_matrix(n)
             r_err, l_err = self.get_trace_matrix(n, error=True)
             r_opto, l_opto = self.get_trace_matrix(n, opto=True, lickdir=lickdir)
             r_opto_err, l_opto_err = self.get_trace_matrix(n, error=True, opto=True, lickdir=lickdir)
             
-          
+            # Splits neural data according to existing indices (sorted above)
             r_train, l_train, r_test, l_test = self.train_test_split_data_ctl(r, l)
-            r_err_train, l_err_train, r_err_test, l_err_test = self.train_test_split_data(r_err, l_err)
-            
-            # print(self.r_test_opto_idx)
-            # print(np.array(r_opto).shape)
-            r_opto_train, l_opto_train, r_opto_test, l_opto_test = self.train_test_split_data_opto(r_opto, l_opto)
-            # r_opto_err_train, l_opto_err_train, r_opto_err_test, l_opto_err_test = self.train_test_split_data_opto(r_opto_err, l_opto_err)
+            r_err_train, l_err_train, r_err_test, l_err_test = self.train_test_split_data_err(r_err, l_err) # Sorts similarly but indices not saved
+            r_opto_train, l_opto_train, r_opto_test, l_opto_test = self.train_test_split_data_opto(r_opto, l_opto) # Always includes error trials
             
             if counter == 0:
                 self.PSTH_r_train_correct = np.reshape(r_train, (1,-1))
@@ -103,8 +160,7 @@ class Mode(Session):
                 self.PSTH_l_train_error = np.reshape(l_err_train, (1,-1))
                 self.PSTH_r_train_opto = np.reshape(r_opto_train, (1,-1))
                 self.PSTH_l_train_opto = np.reshape(l_opto_train, (1,-1))
-                # self.PSTH_r_train_opto_err = np.reshape(r_opto_err_train, (1,-1))
-                # self.PSTH_l_train_opto_err = np.reshape(l_opto_err_train, (1,-1))
+      
 
                 self.PSTH_r_test_correct = np.reshape(r_test, (1,-1))
                 self.PSTH_l_test_correct = np.reshape(l_test, (1,-1))
@@ -112,8 +168,7 @@ class Mode(Session):
                 self.PSTH_l_test_error = np.reshape(l_err_test, (1,-1))
                 self.PSTH_r_test_opto = np.reshape(r_opto_test, (1,-1))
                 self.PSTH_l_test_opto = np.reshape(l_opto_test, (1,-1))
-                # self.PSTH_r_test_opto_err = np.reshape(r_opto_err_test, (1,-1))
-                # self.PSTH_l_test_opto_err = np.reshape(l_opto_err_test, (1,-1))
+                
             else:
                 self.PSTH_r_train_correct = np.concatenate((self.PSTH_r_train_correct, np.reshape(r_train, (1,-1))), axis = 0)
                 self.PSTH_l_train_correct = np.concatenate((self.PSTH_l_train_correct, np.reshape(l_train, (1,-1))), axis = 0)
@@ -121,8 +176,7 @@ class Mode(Session):
                 self.PSTH_l_train_error = np.concatenate((self.PSTH_l_train_error, np.reshape(l_err_train, (1,-1))), axis = 0)
                 self.PSTH_r_train_opto = np.concatenate((self.PSTH_r_train_opto, np.reshape(r_opto_train, (1,-1))), axis = 0)
                 self.PSTH_l_train_opto = np.concatenate((self.PSTH_l_train_opto, np.reshape(l_opto_train, (1,-1))), axis = 0)
-                # self.PSTH_r_train_opto_err = np.concatenate((self.PSTH_r_train_opto_err, np.reshape(r_opto_err_train, (1,-1))), axis = 0)
-                # self.PSTH_l_train_opto_err = np.concatenate((self.PSTH_l_train_opto_err, np.reshape(l_opto_err_train, (1,-1))), axis = 0)
+                
                 
                 self.PSTH_r_test_correct = np.concatenate((self.PSTH_r_test_correct, np.reshape(r_test, (1,-1))), axis = 0)
                 self.PSTH_l_test_correct = np.concatenate((self.PSTH_l_test_correct, np.reshape(l_test, (1,-1))), axis = 0)
@@ -130,14 +184,11 @@ class Mode(Session):
                 self.PSTH_l_test_error = np.concatenate((self.PSTH_l_test_error, np.reshape(l_err_test, (1,-1))), axis = 0)
                 self.PSTH_r_test_opto = np.concatenate((self.PSTH_r_test_opto, np.reshape(r_opto_test, (1,-1))), axis = 0)
                 self.PSTH_l_test_opto = np.concatenate((self.PSTH_l_test_opto, np.reshape(l_opto_test, (1,-1))), axis = 0)
-                # self.PSTH_r_test_opto_err = np.concatenate((self.PSTH_r_test_opto_err, np.reshape(r_opto_err_test, (1,-1))), axis = 0)
-                # self.PSTH_l_test_opto_err = np.concatenate((self.PSTH_l_test_opto_err, np.reshape(l_opto_err_test, (1,-1))), axis = 0)
+                
             counter += 1
             
         self.T_cue_aligned_sel = np.arange(self.time_cutoff)
-        
-        # self.start_t = 3
-    
+            
         time_epochs = [self.sample, self.delay, self.response]
         self.time_epochs = time_epochs
 
@@ -341,13 +392,7 @@ class Mode(Session):
     
     def train_test_split_data_ctl(self, r, l):
         
-        # Splits data into train and test sets (50/50 split)
-        
-        # r_idx, l_idx = np.random.permutation(np.arange(len(r))), np.random.permutation(np.arange(len(l)))
-        
-        # r_train_idx, l_train_idx = r_idx[:round(len(r) / 2)], l_idx[:round(len(l) / 2)]
-        
-        # r_test_idx, l_test_idx = r_idx[round(len(r) / 2):], l_idx[round(len(l) / 2):]
+        # Splits data into train and test sets according to exisiting indices
         
         r_train_idx, l_train_idx, r_test_idx, l_test_idx = self.r_train_idx, self.l_train_idx, self.r_test_idx, self.l_test_idx
         
@@ -358,35 +403,21 @@ class Mode(Session):
     
     def train_test_split_data_opto(self, r, l):
         
-        # Splits data into train and test sets (50/50 split)
-        
-        # r_idx, l_idx = np.random.permutation(np.arange(len(r))), np.random.permutation(np.arange(len(l)))
-        
-        # r_train_idx, l_train_idx = r_idx[:round(len(r) / 2)], l_idx[:round(len(l) / 2)]
-        
-        # r_test_idx, l_test_idx = r_idx[round(len(r) / 2):], l_idx[round(len(l) / 2):]
+        # Splits data into train and test sets according to exisiting indices
         
         r_train_idx, l_train_idx, r_test_idx, l_test_idx = self.r_train_opto_idx, self.l_train_opto_idx, self.r_test_opto_idx, self.l_test_opto_idx
-        
-        # print(self.r_train_opto_idx)
-        # print(r_train_idx)
+    
         r_train = np.mean(np.array(r)[r_train_idx], axis = 0)
         l_train =  np.mean(np.array(l)[l_train_idx], axis = 0)
         r_test, l_test = np.mean(np.array(r)[r_test_idx], axis = 0), np.mean(np.array(l)[l_test_idx], axis = 0)
         
         return r_train, l_train, r_test, l_test    
     
-    def train_test_split_data(self, r, l):
+    def train_test_split_data_err(self, r, l):
         
         # Splits data into train and test sets (50/50 split)
         
-        r_idx, l_idx = np.random.permutation(np.arange(len(r))), np.random.permutation(np.arange(len(l)))
-        
-        r_train_idx, l_train_idx = r_idx[:round(len(r) / 2)], l_idx[:round(len(l) / 2)]
-        
-        r_test_idx, l_test_idx = r_idx[round(len(r) / 2):], l_idx[round(len(l) / 2):]
-        
-        # r_train_idx, l_train_idx, r_test_idx, l_test_idx = self.r_train_idx, self.l_train_idx, self.r_test_idx, self.l_test_idx
+        r_train_idx, l_train_idx, r_test_idx, l_test_idx = self.r_train_err_idx, self.l_train_err_idx, self.r_test_err_idx, self.l_test_err_idx
         
         r_train, l_train = np.mean(np.array(r)[r_train_idx], axis = 0), np.mean(np.array(l)[l_train_idx], axis = 0)
         r_test, l_test = np.mean(np.array(r)[r_test_idx], axis = 0), np.mean(np.array(l)[l_test_idx], axis = 0)

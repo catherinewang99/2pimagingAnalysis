@@ -11,6 +11,7 @@ choice, stim, and action
 
 import sys
 sys.path.append("C:\scripts\Imaging analysis")
+sys.path.append("Users/catherinewang/Desktop/Imaging analysis/2pimagingAnalysis/src")
 import numpy as np
 import scipy.io as scio
 import matplotlib.pyplot as plt
@@ -83,9 +84,15 @@ naivepath, learningpath, expertpath = [r'H:\data\BAYLORCW044\python\2024_05_23',
                    r'H:\data\BAYLORCW044\python\2024_06_04',
                   r'H:\data\BAYLORCW044\python\2024_06_18',]
 
-# naivepath, learningpath, expertpath = [r'H:\data\BAYLORCW046\python\2024_05_31',
-#                     r'H:\data\BAYLORCW046\python\2024_06_11',
-#                   r'H:\data\BAYLORCW046\python\2024_06_26',]
+naivepath, learningpath, expertpath = [r'H:\data\BAYLORCW046\python\2024_05_31',
+                    r'H:\data\BAYLORCW046\python\2024_06_11',
+                  r'H:\data\BAYLORCW046\python\2024_06_26',]
+
+
+naivepath, learningpath, expertpath = [r'H:\data\BAYLORCW046\python\2024_05_31',
+                    r'/Users/catherinewang/Desktop/Imaging analysis/CW46/2024_06_11',
+                  r'H:\data\BAYLORCW046\python\2024_06_26',]
+
 
 # naivepath, learningpath, expertpath =[r'F:\data\BAYLORCW035\python\2023_10_12',
 #             r'F:\data\BAYLORCW035\python\2023_10_26',
@@ -562,6 +569,53 @@ for paths in agg_mice_paths:
     plt.show()
     r_delay += [stats.pearsonr(orthonormal_basis_initial_choice, orthonormal_basis_choice)[0]]
     
+#%% Stability of learning vs expert by showing runs on 10% train set sizes
+
+path = learningpath
+l1 = Mode(path, use_reg = True, triple=True, 
+          baseline_normalization="median_zscore",
+          proportion_train = 0.1)
+orthonormal_basis_initial_choice, mean = l1.plot_CD(mode_input = 'choice')
+l1 = Mode(path, use_reg = True, triple=True, 
+          baseline_normalization="median_zscore",
+          proportion_train = 0.1)
+orthonormal_basis_initial_choice, mean = l1.plot_CD(mode_input = 'choice')
+
+
+path = expertpath
+l2 = Mode(path, use_reg = True, triple=True, 
+          baseline_normalization="median_zscore",
+          proportion_train = 0.1)
+
+orthonormal_basis_initial_choice, mean = l2.plot_CD(mode_input = 'choice')
+l2 = Mode(path, use_reg = True, triple=True, 
+          baseline_normalization="median_zscore",
+          proportion_train = 0.1)
+orthonormal_basis_initial_choice, mean = l2.plot_CD(mode_input = 'choice')
+
+#%% Run over the 10 different possible splits for train set size
+
+numr = sum([l1.R_correct[i] for i in l1.i_good_non_stim_trials if not l1.early_lick[i]])
+numl = sum([l1.L_correct[i] for i in l1.i_good_non_stim_trials if not l1.early_lick[i]])
+r_trials = np.random.permutation(numr) # shuffle the indices
+l_trials = np.random.permutation(numl)
+numr_err = sum([l1.R_wrong[i] for i in l1.i_good_non_stim_trials if not l1.early_lick[i]])
+numl_err = sum([l1.L_wrong[i] for i in l1.i_good_non_stim_trials if not l1.early_lick[i]])
+r_trials_err = np.random.permutation(numr_err) # shuffle the indices
+l_trials_err = np.random.permutation(numl_err)
+
+for i in range(10):
+    r_train_idx, l_train_idx = r_trials[i*10?? # FIXME :int(numr/10)], l_trials[:int(numl/10)]
+    r_test_idx, l_test_idx = r_trials[int(numr/10):], l_trials[int(numl/10):]
+    r_train_err_idx, l_train_err_idx = r_trials_err[:int(numr_err/10)], l_trials_err[:int(numl_err/10)]
+    r_test_err_idx, l_test_err_idx = r_trials_err[int(numr_err/10):], l_trials_err[int(numl_err/10):]
+
+        
+    l1 = Mode(path, use_reg = True, triple=True, 
+              baseline_normalization="median_zscore",
+              train_test_trials = [])
+
+
 #%% Stability represented by a few example neurons over few example trials
 naivepath, learningpath, expertpath = [r'H:\data\BAYLORCW046\python\2024_05_31',
                     r'H:\data\BAYLORCW046\python\2024_06_11',
