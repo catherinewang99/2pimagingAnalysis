@@ -99,7 +99,7 @@ class Mode(Session):
             self.proportion_test = 1 - proportion_train
             
             self.r_train_idx, self.l_train_idx = r_trials[:int(numr*self.proportion_train)], l_trials[:int(numl*self.proportion_train)]
-            self.r_test_idx, self.l_test_idx = r_trials[int(numr*self.proportion_test):], l_trials[int(numl*self.proportion_test):]
+            self.r_test_idx, self.l_test_idx = r_trials[int(numr*self.proportion_train):], l_trials[int(numl*self.proportion_train):]
             
             numr = sum([self.R_wrong[i] for i in self.i_good_non_stim_trials if not self.early_lick[i]])
             numl = sum([self.L_wrong[i] for i in self.i_good_non_stim_trials if not self.early_lick[i]])
@@ -107,7 +107,7 @@ class Mode(Session):
             l_trials = np.random.permutation(numl)
             
             self.r_train_err_idx, self.l_train_err_idx = r_trials[:int(numr*self.proportion_train)], l_trials[:int(numl*self.proportion_train)]
-            self.r_test_err_idx, self.l_test_err_idx = r_trials[int(numr*self.proportion_test):], l_trials[int(numl*self.proportion_test):]
+            self.r_test_err_idx, self.l_test_err_idx = r_trials[int(numr*self.proportion_train):], l_trials[int(numl*self.proportion_train):]
           
             
         # Second method: read in from outside
@@ -135,7 +135,7 @@ class Mode(Session):
             l_trials = np.random.permutation(numl)
             
         self.r_train_opto_idx, self.l_train_opto_idx = r_trials[:int(numr*self.proportion_train)], l_trials[:int(numl*self.proportion_train)]
-        self.r_test_opto_idx, self.l_test_opto_idx = r_trials[int(numr*self.proportion_test):], l_trials[int(numl*self.proportion_test):]
+        self.r_test_opto_idx, self.l_test_opto_idx = r_trials[int(numr*self.proportion_train):], l_trials[int(numl*self.proportion_train):]
         
         
         ## ASSIGN NEURAL ACTIVITY PER train_idx / test_idx
