@@ -725,6 +725,21 @@ plt.savefig(r'F:\data\Fig 3\updated_modularity_bargraph_updated.pdf')
 
 plt.show()
 
+
+#only show learning and expert
+
+plt.bar(range(2), [np.mean(a) for a in all_recovery[1:]])
+# plt.scatter(np.zeros(len(all_recovery[0])), all_recovery[0])
+plt.scatter(np.ones(len(all_recovery[1]))-1, all_recovery[1])
+plt.scatter(np.ones(len(all_recovery[2])), all_recovery[2])
+
+plt.xticks(range(2), ['Learning', 'Expert'])
+plt.ylabel('Modularity')
+plt.ylim(bottom=0)
+plt.savefig(r'F:\data\Fig 3\updated_modularity_bargraph_leaexp.pdf')
+
+plt.show()
+
 # Add t-test:
 
 tstat, p_val = scipy.stats.ttest_ind(all_recovery[1], all_recovery[2], equal_var=False, permutations = np.inf, alternative='less')

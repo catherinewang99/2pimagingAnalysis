@@ -570,7 +570,9 @@ for paths in agg_mice_paths:
     r_delay += [stats.pearsonr(orthonormal_basis_initial_choice, orthonormal_basis_choice)[0]]
     
 #%% Stability of learning vs expert by showing runs on 10% train set sizes
-
+naivepath, learningpath, expertpath = [r'H:\data\BAYLORCW046\python\2024_05_31',
+                    r'H:\data\BAYLORCW046\python\2024_06_11',
+                  r'H:\data\BAYLORCW046\python\2024_06_26',]
 path = learningpath
 l1 = Mode(path, use_reg = True, triple=True, 
           baseline_normalization="median_zscore",
@@ -593,6 +595,9 @@ l2 = Mode(path, use_reg = True, triple=True,
           proportion_train = 0.1)
 orthonormal_basis_initial_choice, mean = l2.plot_CD(mode_input = 'choice')
 
+
+
+#Plot the autocorrelogram
 #%% Run over the 10 different possible splits for train set size
 
 numr = sum([l1.R_correct[i] for i in l1.i_good_non_stim_trials if not l1.early_lick[i]])
