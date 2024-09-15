@@ -573,31 +573,74 @@ for paths in agg_mice_paths:
 naivepath, learningpath, expertpath = [r'H:\data\BAYLORCW046\python\2024_05_31',
                     r'H:\data\BAYLORCW046\python\2024_06_11',
                   r'H:\data\BAYLORCW046\python\2024_06_26',]
+##LEARNING
 path = learningpath
 l1 = Mode(path, use_reg = True, triple=True, 
           baseline_normalization="median_zscore",
           proportion_train = 0.1)
-orthonormal_basis_initial_choice, mean = l1.plot_CD(mode_input = 'choice')
+projR, projL = l1.plot_CD(mode_input = 'choice', plot=False, auto_corr_return=True)
 l1 = Mode(path, use_reg = True, triple=True, 
           baseline_normalization="median_zscore",
           proportion_train = 0.1)
-orthonormal_basis_initial_choice, mean = l1.plot_CD(mode_input = 'choice')
+projR1, projL1 = l1.plot_CD(mode_input = 'choice', plot=False, auto_corr_return=True)
 
 
+#Plot the autocorrelogram
+f = plt.figure(figsize=(5,5))
+allproj = np.vstack((projR, projL))
+allproj1 = np.vstack((projR1, projL1))
+corrs = np.corrcoef(allproj, allproj1)
+
+plt.imshow(corrs)
+plt.axhline(l1.sample, color = 'white', ls='--', linewidth = 0.5)
+plt.axvline(l1.sample, color = 'white', ls='--', linewidth = 0.5)
+
+plt.axhline(l1.delay, color = 'white', ls='--', linewidth = 0.5)
+plt.axvline(l1.delay, color = 'white', ls='--', linewidth = 0.5)
+
+plt.axhline(l1.response, color = 'white', ls='--', linewidth = 0.5)
+plt.axvline(l1.response, color = 'white', ls='--', linewidth = 0.5)
+
+plt.xticks([l1.sample, l1.delay, l1.response], [-4.3, -3, 0])    
+plt.yticks([l1.sample, l1.delay, l1.response], [-4.3, -3, 0])    
+plt.colorbar()
+
+
+##EXPERT
 path = expertpath
 l2 = Mode(path, use_reg = True, triple=True, 
           baseline_normalization="median_zscore",
           proportion_train = 0.1)
 
-orthonormal_basis_initial_choice, mean = l2.plot_CD(mode_input = 'choice')
+projR, projL = l2.plot_CD(mode_input = 'choice', plot=False, auto_corr_return=True)
 l2 = Mode(path, use_reg = True, triple=True, 
           baseline_normalization="median_zscore",
           proportion_train = 0.1)
-orthonormal_basis_initial_choice, mean = l2.plot_CD(mode_input = 'choice')
+projR, projL = l2.plot_CD(mode_input = 'choice', plot=False, auto_corr_return=True)
 
-
-
+allproj = np.vstack((projR, projL))
+allproj1 = np.vstack((projR1, projL1))
+corrs = np.corrcoef(allproj, allproj1)
 #Plot the autocorrelogram
+f = plt.figure(figsize=(5,5))
+allproj = np.vstack((projR, projL))
+allproj1 = np.vstack((projR1, projL1))
+corrs = np.corrcoef(allproj, allproj1)
+
+plt.imshow(corrs)
+plt.axhline(l1.sample, color = 'white', ls='--', linewidth = 0.5)
+plt.axvline(l1.sample, color = 'white', ls='--', linewidth = 0.5)
+
+plt.axhline(l1.delay, color = 'white', ls='--', linewidth = 0.5)
+plt.axvline(l1.delay, color = 'white', ls='--', linewidth = 0.5)
+
+plt.axhline(l1.response, color = 'white', ls='--', linewidth = 0.5)
+plt.axvline(l1.response, color = 'white', ls='--', linewidth = 0.5)
+
+plt.xticks([l1.sample, l1.delay, l1.response], [-4.3, -3, 0])    
+plt.yticks([l1.sample, l1.delay, l1.response], [-4.3, -3, 0])    
+plt.colorbar()
+
 #%% Run over the 10 different possible splits for train set size
 
 numr = sum([l1.R_correct[i] for i in l1.i_good_non_stim_trials if not l1.early_lick[i]])
