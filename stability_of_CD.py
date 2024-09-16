@@ -655,12 +655,14 @@ numl_err = sum([l1.L_wrong[i] for i in l1.i_good_non_stim_trials if not l1.early
 r_trials_err = np.random.permutation(numr_err) # shuffle the indices
 l_trials_err = np.random.permutation(numl_err)
 
-for i in range(10):
-    r_train_idx, l_train_idx = r_trials[i*10?? # FIXME :int(numr/10)], l_trials[:int(numl/10)]
+splits = 10
+for i in range(splits):
+    r_train_idx, l_train_idx = r_trials[i:(i+1)/splits * numr], l_trials[i:(i+1)/splits * numl] #Take a portion of the trials for train
     r_test_idx, l_test_idx = r_trials[int(numr/10):], l_trials[int(numl/10):]
-    r_train_err_idx, l_train_err_idx = r_trials_err[:int(numr_err/10)], l_trials_err[:int(numl_err/10)]
+    r_train_err_idx, l_train_err_idx = r_trials_err[i:(i+1)/splits * numr_err], l_trials_err[i:(i+1)/splits * numl_err]
     r_test_err_idx, l_test_err_idx = r_trials_err[int(numr_err/10):], l_trials_err[int(numl_err/10):]
 
+    train_test_trials[0] = r_train_idx, l_train_idx, r_test_idx, l_test_idx 
         
     l1 = Mode(path, use_reg = True, triple=True, 
               baseline_normalization="median_zscore",
