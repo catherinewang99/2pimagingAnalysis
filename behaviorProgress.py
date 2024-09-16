@@ -18,33 +18,6 @@ plt.rcParams['pdf.fonttype'] = '42'
 
 
 #%% Plot behavior in opto trials over learning with left/right info
-import session
-
-paths = [r'F:\data\BAYLORCW032\python\2023_10_08',
-          r'F:\data\BAYLORCW032\python\2023_10_16',
-          r'F:\data\BAYLORCW032\python\2023_10_25',]
-
-paths = [r'F:\data\BAYLORCW032\python\2023_10_05',
-          r'F:\data\BAYLORCW032\python\2023_10_19',
-          r'F:\data\BAYLORCW032\python\2023_10_24',]
-
-
-# paths = [    r'F:\data\BAYLORCW034\python\2023_10_12',
-#             r'F:\data\BAYLORCW034\python\2023_10_22',
-#             r'F:\data\BAYLORCW034\python\2023_10_27',
-#             r'F:\data\BAYLORCW034\python\2023_11_22']
-
-paths = [r'F:\data\BAYLORCW036\python\2023_10_09',
-            r'F:\data\BAYLORCW036\python\2023_10_19',
-            r'F:\data\BAYLORCW036\python\2023_10_30',]
-
-paths = [r'F:\data\BAYLORCW035\python\2023_10_12',
-            r'F:\data\BAYLORCW035\python\2023_10_26',
-            r'F:\data\BAYLORCW035\python\2023_12_16',]
-
-paths = [r'F:\data\BAYLORCW037\python\2023_11_21',
-            r'F:\data\BAYLORCW037\python\2023_11_28',
-            r'F:\data\BAYLORCW037\python\2023_12_15',]
 
 all_paths = [[r'F:\data\BAYLORCW032\python\2023_10_05',
           r'F:\data\BAYLORCW032\python\2023_10_19',
@@ -54,6 +27,10 @@ all_paths = [[r'F:\data\BAYLORCW032\python\2023_10_05',
              [r'F:\data\BAYLORCW036\python\2023_10_09',
             r'F:\data\BAYLORCW036\python\2023_10_19',
             r'F:\data\BAYLORCW036\python\2023_10_30',],
+             
+             [ r'F:\data\BAYLORCW034\python\2023_10_12',
+            r'F:\data\BAYLORCW034\python\2023_10_22',
+            r'F:\data\BAYLORCW034\python\2023_10_27'],
 
         [r'F:\data\BAYLORCW035\python\2023_10_12',
             r'F:\data\BAYLORCW035\python\2023_10_26',
@@ -61,7 +38,34 @@ all_paths = [[r'F:\data\BAYLORCW032\python\2023_10_05',
 
         [r'F:\data\BAYLORCW037\python\2023_11_21',
             r'F:\data\BAYLORCW037\python\2023_11_28',
-            r'F:\data\BAYLORCW037\python\2023_12_15',]]
+            r'F:\data\BAYLORCW037\python\2023_12_15',],
+        
+         [r'H:\data\BAYLORCW044\python\2024_05_22',
+          r'H:\data\BAYLORCW044\python\2024_06_06',
+        r'H:\data\BAYLORCW044\python\2024_06_19'],
+         
+            [r'H:\data\BAYLORCW044\python\2024_05_23',
+             r'H:\data\BAYLORCW044\python\2024_06_04',
+        r'H:\data\BAYLORCW044\python\2024_06_18'],
+            
+        #     [r'H:\data\BAYLORCW044\python\2024_05_24',
+        #      r'H:\data\BAYLORCW044\python\2024_06_05',
+        # r'H:\data\BAYLORCW044\python\2024_06_20'],
+
+            [r'H:\data\BAYLORCW046\python\2024_05_29',
+             r'H:\data\BAYLORCW046\python\2024_06_07',
+             r'H:\data\BAYLORCW046\python\2024_06_28'],
+
+
+            [r'H:\data\BAYLORCW046\python\2024_05_30',
+             r'H:\data\BAYLORCW046\python\2024_06_10',
+             r'H:\data\BAYLORCW046\python\2024_06_27'],
+
+            [r'H:\data\BAYLORCW046\python\2024_05_31',
+             r'H:\data\BAYLORCW046\python\2024_06_11',
+             r'H:\data\BAYLORCW046\python\2024_06_26']
+            
+            ]
 
 performance_opto = []
 performance_ctl = []
@@ -78,13 +82,17 @@ for paths in all_paths:
         
         perf_right, perf_left, perf_all = l1.performance_in_trials(stim_trials)
         opt += [perf_all]
+
+        perf_rightctl, perf_leftctl, perf_all = l1.performance_in_trials(control_trials)
+        ctl += [perf_all]
+      
+        plt.plot([counter - 0.2, counter + 0.2], [perf_all, perf_right], color='blue', alpha=0.3)
+        plt.plot([counter - 0.2, counter + 0.2], [perf_all, perf_left], color='red', alpha=0.3)
+        # plt.scatter(counter - 0.2, perf_rightctl, c='b', marker='o')
+        # plt.scatter(counter - 0.2, perf_leftctl, c='r', marker='o')
+        plt.scatter(counter - 0.2, perf_all, facecolors='white', edgecolors='black')
         plt.scatter(counter + 0.2, perf_right, c='b', marker='x')
         plt.scatter(counter + 0.2, perf_left, c='r', marker='x')
-       
-        perf_rightctl, perf_left, perf_all = l1.performance_in_trials(control_trials)
-        ctl += [perf_all]
-        plt.scatter(counter - 0.2, perf_rightctl, c='b', marker='o')
-        plt.scatter(counter - 0.2, perf_left, c='r', marker='o')
         
     performance_opto += [opt]
     performance_ctl += [ctl]
@@ -96,10 +104,10 @@ plt.bar(np.arange(3)+0.2, np.mean(performance_opto, axis=0), 0.4, fill=False)
 
 plt.bar(np.arange(3)-0.2, np.mean(performance_ctl, axis=0), 0.4, fill=False)
 
-# plt.xticks(range(len(paths)), ["Naive", "Learning", "Expert"])
+plt.xticks(range(len(paths)), ["Naive", "Learning", "Expert"])
 # plt.ylim([0.4,1])
 plt.legend()
-plt.savefig(r'F:\data\Fig 1\beh_opto.pdf')
+plt.savefig(r'F:\data\Fig 1\beh_opto_LR_updated_ctl.pdf')
 plt.show()
 
 #%% Plot behavior in opto trials over learning NO left/right info

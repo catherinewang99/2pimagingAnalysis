@@ -86,17 +86,19 @@ class Mode(Session):
         # Construct train and test sets for control and opto trials
         # built this section so we can split trials into train/test and track at the same time 
         # for error bar creation in some subsequent graphs
-        
+
+        self.proportion_train = proportion_train
+        self.proportion_test = 1 - proportion_train
+            
         ### SORT CONTROL TRIALS:
         # First method: in house
         if len(train_test_trials) == 0:
+            print("in house train test sorting")
             numr = sum([self.R_correct[i] for i in self.i_good_non_stim_trials if not self.early_lick[i]])
             numl = sum([self.L_correct[i] for i in self.i_good_non_stim_trials if not self.early_lick[i]])
             r_trials = np.random.permutation(numr) # shuffle the indices
             l_trials = np.random.permutation(numl)
             
-            self.proportion_train = proportion_train
-            self.proportion_test = 1 - proportion_train
             
             self.r_train_idx, self.l_train_idx = r_trials[:int(numr*self.proportion_train)], l_trials[:int(numl*self.proportion_train)]
             self.r_test_idx, self.l_test_idx = r_trials[int(numr*self.proportion_train):], l_trials[int(numl*self.proportion_train):]

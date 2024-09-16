@@ -121,7 +121,7 @@ class Session:
                     if filter_reg:
                         self.good_neurons = np.load(os.path.join(path,'layer{}_triple_registered_filtered_neurons.npy'.format(layer_num-1)))
                     else:
-                        self.good_neurons = np.load('layer{}_triple_registered_neurons.npy'.format(layer_num-1))
+                        self.good_neurons = np.load(os.path.join(path, 'layer{}_triple_registered_neurons.npy'.format(layer_num-1)))
                 else:
                     if filter_reg:
                         self.good_neurons = np.load(os.path.join(path,'layer{}_registered_filtered_neurons.npy'.format(layer_num-1)))

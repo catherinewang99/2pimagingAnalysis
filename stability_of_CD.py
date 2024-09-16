@@ -569,7 +569,7 @@ for paths in agg_mice_paths:
     plt.show()
     r_delay += [stats.pearsonr(orthonormal_basis_initial_choice, orthonormal_basis_choice)[0]]
     
-#%% Stability of learning vs expert by showing runs on 10% train set sizes
+#%% Stability of learning vs expert by showing runs on 10% train set sizes non separated
 naivepath, learningpath, expertpath = [r'H:\data\BAYLORCW046\python\2024_05_31',
                     r'H:\data\BAYLORCW046\python\2024_06_11',
                   r'H:\data\BAYLORCW046\python\2024_06_26',]
@@ -593,7 +593,7 @@ allproj1 = np.vstack((projR1, projL1))
 corrs = np.corrcoef(allproj, allproj1)
 corrs = np.corrcoef(allproj, allproj1, rowvar=False)
 corrs = corrs[:l1.time_cutoff, :l1.time_cutoff]
-plt.imshow(corrs, vmin=-0.1, vmax=1)
+plt.imshow(corrs, vmin=0, vmax=0.8)
 plt.axhline(l1.sample, color = 'white', ls='--', linewidth = 0.5)
 plt.axvline(l1.sample, color = 'white', ls='--', linewidth = 0.5)
 
@@ -630,7 +630,7 @@ allproj = np.vstack((projR, projL))
 allproj1 = np.vstack((projR1, projL1))
 corrs = np.corrcoef(allproj, allproj1, rowvar=False)
 corrs = corrs[:l2.time_cutoff, :l2.time_cutoff]
-plt.imshow(corrs, vmin=-0.1, vmax=1)
+plt.imshow(corrs, vmin=0, vmax=0.8)
 plt.axhline(l1.sample, color = 'white', ls='--', linewidth = 0.5)
 plt.axvline(l1.sample, color = 'white', ls='--', linewidth = 0.5)
 
@@ -643,9 +643,158 @@ plt.axvline(l1.response, color = 'white', ls='--', linewidth = 0.5)
 plt.xticks([l1.sample, l1.delay, l1.response], [-4.3, -3, 0])    
 plt.yticks([l1.sample, l1.delay, l1.response], [-4.3, -3, 0])    
 plt.colorbar()
+#%% Stability of learning vs expert by showing runs on 50% train set sizes but independent
+naivepath, learningpath, expertpath = [r'H:\data\BAYLORCW046\python\2024_05_31',
+                    r'H:\data\BAYLORCW046\python\2024_06_11',
+                  r'H:\data\BAYLORCW046\python\2024_06_26',]
 
+split = 1/5
+splitnum = int(1/split)
+ctl=True
+##LEARNING
+
+path = learningpath
+l1 = Mode(path, use_reg = True, triple=True)
+numr = sum([l1.R_correct[i] for i in l1.i_good_non_stim_trials if not l1.early_lick[i]])
+numl = sum([l1.L_correct[i] for i in l1.i_good_non_stim_trials if not l1.early_lick[i]])
+numr = numr-numr%splitnum if numr%splitnum else numr
+numl = numl-numl%splitnum if numl%splitnum else numl
+r_trials = np.random.permutation(numr) # shuffle the indices
+l_trials = np.random.permutation(numl)
+numr_err = sum([l1.R_wrong[i] for i in l1.i_good_non_stim_trials if not l1.early_lick[i]])
+numl_err = sum([l1.L_wrong[i] for i in l1.i_good_non_stim_trials if not l1.early_lick[i]])
+numr_err = numr_err-numr_err%splitnum if numr_err%splitnum else numr_err
+numl_err = numl_err-numl_err%splitnum if numl_err%splitnum else numl_err
+r_trials_err = np.random.permutation(numr_err) # shuffle the indices
+l_trials_err = np.random.permutation(numl_err)
+
+# First half
+r_train_idx, l_train_idx = r_trials[:int(split * numr)], l_trials[:int(split * numl)] #Take a portion of the trials for train
+r_test_idx, l_test_idx = r_trials[int(split * numr):], l_trials[int(split * numl):]
+
+r_train_err_idx, l_train_err_idx = r_trials_err[:int(split* numr_err)], l_trials_err[:int(split * numl_err)]
+r_test_err_idx, l_test_err_idx = r_trials_err[int(split* numr_err):], l_trials_err[int(split * numl_err):]
+
+train_test_trials = (r_train_idx, l_train_idx, r_test_idx, l_test_idx)
+train_test_trials_err = (r_train_err_idx, l_train_err_idx, r_test_err_idx, l_test_err_idx)
+
+l1 = Mode(path, use_reg = True, triple=True, 
+          baseline_normalization="median_zscore",
+          train_test_trials = [train_test_trials, train_test_trials_err])
+projR, projL = l1.plot_CD(mode_input = 'choice', plot=False, auto_corr_return=True, ctl=ctl)
+l1.plot_CD(ctl=ctl)
+
+
+#second half
+r_train_idx, l_train_idx = r_trials[int((1-split) * numr):], l_trials[int((1-split) * numl):] #Take a portion of the trials for train
+r_test_idx, l_test_idx = r_trials[:int((1-split) * numr)], l_trials[:int((1-split) * numl)]
+
+r_train_err_idx, l_train_err_idx = r_trials_err[int((1-split) * numr_err):], l_trials_err[int((1-split) * numl_err):]
+r_test_err_idx, l_test_err_idx = r_trials_err[:int((1-split) * numr_err)], l_trials_err[:int((1-split) * numl_err)]
+
+train_test_trials = (r_train_idx, l_train_idx, r_test_idx, l_test_idx)
+train_test_trials_err = (r_train_err_idx, l_train_err_idx, r_test_err_idx, l_test_err_idx)
+
+l1 = Mode(path, use_reg = True, triple=True, 
+          baseline_normalization="median_zscore",
+          train_test_trials = [train_test_trials, train_test_trials_err])
+projR1, projL1 = l1.plot_CD(mode_input = 'choice', plot=False, auto_corr_return=True, ctl=ctl)
+l1.plot_CD(ctl=ctl)
+
+#Plot the autocorrelogram
+f = plt.figure(figsize=(5,5))
+allproj = np.vstack((projR, projL))
+allproj1 = np.vstack((projR1, projL1))
+corrs = np.corrcoef(allproj, allproj1, rowvar=False)
+corrs = corrs[:l1.time_cutoff, :l1.time_cutoff]
+plt.imshow(corrs, vmin=0, vmax=0.8)
+plt.axhline(l1.sample, color = 'white', ls='--', linewidth = 0.5)
+plt.axvline(l1.sample, color = 'white', ls='--', linewidth = 0.5)
+
+plt.axhline(l1.delay, color = 'white', ls='--', linewidth = 0.5)
+plt.axvline(l1.delay, color = 'white', ls='--', linewidth = 0.5)
+
+plt.axhline(l1.response, color = 'white', ls='--', linewidth = 0.5)
+plt.axvline(l1.response, color = 'white', ls='--', linewidth = 0.5)
+
+plt.xticks([l1.sample, l1.delay, l1.response], [-4.3, -3, 0])    
+plt.yticks([l1.sample, l1.delay, l1.response], [-4.3, -3, 0])    
+plt.colorbar()
+plt.show()
+
+##EXPERT
+
+path = expertpath
+l1 = Mode(path, use_reg = True, triple=True)
+numr = sum([l1.R_correct[i] for i in l1.i_good_non_stim_trials if not l1.early_lick[i]])
+numl = sum([l1.L_correct[i] for i in l1.i_good_non_stim_trials if not l1.early_lick[i]])
+numr = numr-numr%splitnum if numr%splitnum else numr
+numl = numl-numl%splitnum if numl%splitnum else numl
+r_trials = np.random.permutation(numr) # shuffle the indices
+l_trials = np.random.permutation(numl)
+numr_err = sum([l1.R_wrong[i] for i in l1.i_good_non_stim_trials if not l1.early_lick[i]])
+numl_err = sum([l1.L_wrong[i] for i in l1.i_good_non_stim_trials if not l1.early_lick[i]])
+numr_err = numr_err-numr_err%splitnum if numr_err%splitnum else numr_err
+numl_err = numl_err-numl_err%splitnum if numl_err%splitnum else numl_err
+r_trials_err = np.random.permutation(numr_err) # shuffle the indices
+l_trials_err = np.random.permutation(numl_err)
+
+# First half
+r_train_idx, l_train_idx = r_trials[:int(split * numr)], l_trials[:int(split * numl)] #Take a portion of the trials for train
+r_test_idx, l_test_idx = r_trials[int(split * numr):], l_trials[int(split * numl):]
+
+r_train_err_idx, l_train_err_idx = r_trials_err[:int(split* numr_err)], l_trials_err[:int(split * numl_err)]
+r_test_err_idx, l_test_err_idx = r_trials_err[int(split* numr_err):], l_trials_err[int(split * numl_err):]
+
+train_test_trials = (r_train_idx, l_train_idx, r_test_idx, l_test_idx)
+train_test_trials_err = (r_train_err_idx, l_train_err_idx, r_test_err_idx, l_test_err_idx)
+
+l1 = Mode(path, use_reg = True, triple=True, 
+          baseline_normalization="median_zscore",
+          train_test_trials = [train_test_trials, train_test_trials_err])
+projR, projL = l1.plot_CD(mode_input = 'choice', plot=False, auto_corr_return=True, ctl=ctl)
+l1.plot_CD(ctl=ctl)
+
+
+#second half
+r_train_idx, l_train_idx = r_trials[int((1-split) * numr):], l_trials[int((1-split) * numl):] #Take a portion of the trials for train
+r_test_idx, l_test_idx = r_trials[:int((1-split) * numr)], l_trials[:int((1-split) * numl)]
+
+r_train_err_idx, l_train_err_idx = r_trials_err[int((1-split) * numr_err):], l_trials_err[int((1-split) * numl_err):]
+r_test_err_idx, l_test_err_idx = r_trials_err[:int((1-split) * numr_err)], l_trials_err[:int((1-split) * numl_err)]
+
+train_test_trials = (r_train_idx, l_train_idx, r_test_idx, l_test_idx)
+train_test_trials_err = (r_train_err_idx, l_train_err_idx, r_test_err_idx, l_test_err_idx)
+
+l1 = Mode(path, use_reg = True, triple=True, 
+          baseline_normalization="median_zscore",
+          train_test_trials = [train_test_trials, train_test_trials_err])
+projR1, projL1 = l1.plot_CD(mode_input = 'choice', plot=False, auto_corr_return=True, ctl=ctl)
+l1.plot_CD(ctl=ctl)
+
+
+#Plot the autocorrelogram
+f = plt.figure(figsize=(5,5))
+allproj = np.vstack((projR, projL))
+allproj1 = np.vstack((projR1, projL1))
+corrs = np.corrcoef(allproj, allproj1, rowvar=False)
+corrs = corrs[:l2.time_cutoff, :l2.time_cutoff]
+plt.imshow(corrs, vmin=0, vmax=0.8)
+plt.axhline(l1.sample, color = 'white', ls='--', linewidth = 0.5)
+plt.axvline(l1.sample, color = 'white', ls='--', linewidth = 0.5)
+
+plt.axhline(l1.delay, color = 'white', ls='--', linewidth = 0.5)
+plt.axvline(l1.delay, color = 'white', ls='--', linewidth = 0.5)
+
+plt.axhline(l1.response, color = 'white', ls='--', linewidth = 0.5)
+plt.axvline(l1.response, color = 'white', ls='--', linewidth = 0.5)
+
+plt.xticks([l1.sample, l1.delay, l1.response], [-4.3, -3, 0])    
+plt.yticks([l1.sample, l1.delay, l1.response], [-4.3, -3, 0])    
+plt.colorbar()
 #%% Run over the 10 different possible splits for train set size
-
+path = learningpath
+l1 = Mode(path, use_reg = True, triple=True)
 numr = sum([l1.R_correct[i] for i in l1.i_good_non_stim_trials if not l1.early_lick[i]])
 numl = sum([l1.L_correct[i] for i in l1.i_good_non_stim_trials if not l1.early_lick[i]])
 r_trials = np.random.permutation(numr) # shuffle the indices
@@ -656,19 +805,82 @@ r_trials_err = np.random.permutation(numr_err) # shuffle the indices
 l_trials_err = np.random.permutation(numl_err)
 
 splits = 10
-for i in range(splits):
-    r_train_idx, l_train_idx = r_trials[i:(i+1)/splits * numr], l_trials[i:(i+1)/splits * numl] #Take a portion of the trials for train
-    r_test_idx, l_test_idx = r_trials[int(numr/10):], l_trials[int(numl/10):]
-    r_train_err_idx, l_train_err_idx = r_trials_err[i:(i+1)/splits * numr_err], l_trials_err[i:(i+1)/splits * numl_err]
-    r_test_err_idx, l_test_err_idx = r_trials_err[int(numr_err/10):], l_trials_err[int(numl_err/10):]
+all_weights_learn = []
+for i in range(splits-1):
+    r_train_idx, l_train_idx = r_trials[int(i/splits*numr):int((i+1)/splits * numr)], l_trials[int(i/splits*numl):int((i+1)/splits * numl)] #Take a portion of the trials for train
+    rtest = [n for n in range(numr) if n not in range(int(i/splits*numr), int((i+1)/splits * numr))]
+    ltest = [n for n in range(numl) if n not in range(int(i/splits*numl), int((i+1)/splits * numl))]
+    r_test_idx, l_test_idx = r_trials[rtest], l_trials[ltest]
+    
+    r_train_err_idx, l_train_err_idx = r_trials_err[int(i/splits*numr_err):int((i+1)/splits * numr_err)], l_trials_err[int(i/splits*numl_err):int((i+1)/splits * numl_err)]
+    rtest = [n for n in range(numr_err) if n not in range(int(i/splits*numr_err), int((i+1)/splits * numr_err))]
+    ltest = [n for n in range(numl_err) if n not in range(int(i/splits*numl_err), int((i+1)/splits * numl_err))]
+    r_test_err_idx, l_test_err_idx = r_trials_err[rtest], l_trials_err[ltest]
 
-    train_test_trials[0] = r_train_idx, l_train_idx, r_test_idx, l_test_idx 
+    train_test_trials = (r_train_idx, l_train_idx, r_test_idx, l_test_idx)
+    train_test_trials_err = (r_train_err_idx, l_train_err_idx, r_test_err_idx, l_test_err_idx)
         
     l1 = Mode(path, use_reg = True, triple=True, 
               baseline_normalization="median_zscore",
-              train_test_trials = [])
+              train_test_trials = [train_test_trials, train_test_trials_err])
+    orthonormal_basis_initial_choice, mean = l1.plot_CD(mode_input = 'choice')
+    all_weights_learn += [orthonormal_basis_initial_choice]
 
 
+
+
+#%% learning sess
+path = expertpath
+l1 = Mode(path, use_reg = True, triple=True)
+numr = sum([l1.R_correct[i] for i in l1.i_good_non_stim_trials if not l1.early_lick[i]])
+numl = sum([l1.L_correct[i] for i in l1.i_good_non_stim_trials if not l1.early_lick[i]])
+r_trials = np.random.permutation(numr) # shuffle the indices
+l_trials = np.random.permutation(numl)
+numr_err = sum([l1.R_wrong[i] for i in l1.i_good_non_stim_trials if not l1.early_lick[i]])
+numl_err = sum([l1.L_wrong[i] for i in l1.i_good_non_stim_trials if not l1.early_lick[i]])
+r_trials_err = np.random.permutation(numr_err) # shuffle the indices
+l_trials_err = np.random.permutation(numl_err)
+
+splits = 10
+all_weights = []
+for i in range(splits-1):
+    r_train_idx, l_train_idx = r_trials[int(i/splits*numr):int((i+1)/splits * numr)], l_trials[int(i/splits*numl):int((i+1)/splits * numl)] #Take a portion of the trials for train
+    rtest = [n for n in range(numr) if n not in range(int(i/splits*numr), int((i+1)/splits * numr))]
+    ltest = [n for n in range(numl) if n not in range(int(i/splits*numl), int((i+1)/splits * numl))]
+    r_test_idx, l_test_idx = r_trials[rtest], l_trials[ltest]
+    
+    r_train_err_idx, l_train_err_idx = r_trials_err[int(i/splits*numr_err):int((i+1)/splits * numr_err)], l_trials_err[int(i/splits*numl_err):int((i+1)/splits * numl_err)]
+    rtest = [n for n in range(numr_err) if n not in range(int(i/splits*numr_err), int((i+1)/splits * numr_err))]
+    ltest = [n for n in range(numl_err) if n not in range(int(i/splits*numl_err), int((i+1)/splits * numl_err))]
+    r_test_err_idx, l_test_err_idx = r_trials_err[rtest], l_trials_err[ltest]
+
+    train_test_trials = (r_train_idx, l_train_idx, r_test_idx, l_test_idx)
+    train_test_trials_err = (r_train_err_idx, l_train_err_idx, r_test_err_idx, l_test_err_idx)
+        
+    l1 = Mode(path, use_reg = True, triple=True, 
+              baseline_normalization="median_zscore",
+              train_test_trials = [train_test_trials, train_test_trials_err])
+    orthonormal_basis_initial_choice, mean = l1.plot_CD(mode_input = 'choice')
+    all_weights += [orthonormal_basis_initial_choice]
+    
+#%% Pairwise dot products
+alldotslearn, alldotsexp = [], []
+for i in range(splits-2):
+    for j in range(i+1, splits-1):
+        
+        alldotslearn += [np.dot(all_weights_learn[i], all_weights_learn[j])]
+        alldotsexp += [np.dot(all_weights[i], all_weights[j])]
+                
+f = plt.figure(figsize=(5,5))
+plt.bar([0,1], [np.mean(np.abs(alldotslearn)), np.mean(np.abs(alldotsexp))])
+plt.scatter(np.zeros(len(alldotslearn)), np.abs(alldotslearn))
+plt.scatter(np.ones(len(alldotsexp)), np.abs(alldotsexp))
+plt.ylabel('Dot product')
+plt.title('Pairwise dot product of runs over 10% independent train sets')
+plt.xticks([0,1], ['Learning', 'Expert'])
+# f = plt.figure(figsize=(5,5))
+# plt.bar([0,1], [np.mean(np.var(all_weights_learn, axis=0)), np.mean(np.var(all_weights, axis=0))])
+    
 #%% Stability represented by a few example neurons over few example trials
 naivepath, learningpath, expertpath = [r'H:\data\BAYLORCW046\python\2024_05_31',
                     r'H:\data\BAYLORCW046\python\2024_06_11',

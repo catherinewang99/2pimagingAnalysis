@@ -216,26 +216,27 @@ paths = [r'F:\data\BAYLORCW032\python\2023_10_19',
             r'H:\data\BAYLORCW044\python\2024_06_06',
             r'H:\data\BAYLORCW044\python\2024_06_04',
 
-            r'H:\data\BAYLORCW046\python\2024_06_07',
+            # r'H:\data\BAYLORCW046\python\2024_06_07',
+            r'H:\data\BAYLORCW046\python\2024_06_24',
             r'H:\data\BAYLORCW046\python\2024_06_10',
             r'H:\data\BAYLORCW046\python\2024_06_11',
             ]
 
 
-# paths = [r'F:\data\BAYLORCW032\python\2023_10_24',
-#             # r'F:\data\BAYLORCW034\python\2023_10_27',
-#             r'F:\data\BAYLORCW036\python\2023_10_30',
-#             r'F:\data\BAYLORCW035\python\2023_12_15',
-#             r'F:\data\BAYLORCW037\python\2023_12_15',
+paths = [r'F:\data\BAYLORCW032\python\2023_10_24',
+            # r'F:\data\BAYLORCW034\python\2023_10_27',
+            r'F:\data\BAYLORCW036\python\2023_10_30',
+            r'F:\data\BAYLORCW035\python\2023_12_15',
+            r'F:\data\BAYLORCW037\python\2023_12_15',
             
-#             r'H:\data\BAYLORCW044\python\2024_06_19',
-#             r'H:\data\BAYLORCW044\python\2024_06_18',
+            r'H:\data\BAYLORCW044\python\2024_06_19',
+            r'H:\data\BAYLORCW044\python\2024_06_18',
             
-#             r'H:\data\BAYLORCW046\python\2024_06_24',
-#             r'H:\data\BAYLORCW046\python\2024_06_27',
-#             r'H:\data\BAYLORCW046\python\2024_06_26',
+            r'H:\data\BAYLORCW046\python\2024_06_28',
+            r'H:\data\BAYLORCW046\python\2024_06_27',
+            r'H:\data\BAYLORCW046\python\2024_06_26',
             
-#             ]
+            ]
 
 
 
@@ -262,6 +263,7 @@ for path in paths:
                          baseline_normalization="median_zscore")    
     
     adjusted_p = 0.05 / np.sqrt(len(l1.good_neurons))
+    adjusted_p = 0.01
     
     control_sel, opto_sel = l1.selectivity_optogenetics(p=adjusted_p, 
                                                         exclude_unselective=True,
@@ -629,7 +631,8 @@ all_paths = [[    r'F:\data\BAYLORCW032\python\2023_10_05',
             r'H:\data\BAYLORCW044\python\2024_06_06',
             r'H:\data\BAYLORCW044\python\2024_06_04',
 
-            r'H:\data\BAYLORCW046\python\2024_06_07',
+            # r'H:\data\BAYLORCW046\python\2024_06_07', #sub out for below
+            r'H:\data\BAYLORCW046\python\2024_06_24',
             r'H:\data\BAYLORCW046\python\2024_06_10',
             r'H:\data\BAYLORCW046\python\2024_06_11',
             ],
@@ -644,7 +647,7 @@ all_paths = [[    r'F:\data\BAYLORCW032\python\2023_10_05',
             r'H:\data\BAYLORCW044\python\2024_06_19',
             r'H:\data\BAYLORCW044\python\2024_06_18',
             
-            r'H:\data\BAYLORCW046\python\2024_06_24',
+            r'H:\data\BAYLORCW046\python\2024_06_28',
             r'H:\data\BAYLORCW046\python\2024_06_27',
             r'H:\data\BAYLORCW046\python\2024_06_26',
             
@@ -665,6 +668,7 @@ for st, paths in enumerate(all_paths): # For each stage of training
         
     
         adjusted_p = 0.05 / np.sqrt(len(l1.good_neurons))
+        adjusted_p = 0.01
         
         control_sel, opto_sel = l1.selectivity_optogenetics(p=adjusted_p, 
                                                             exclude_unselective=st > 0,
@@ -721,7 +725,7 @@ plt.scatter(np.ones(len(all_recovery[2]))+1, all_recovery[2])
 plt.xticks(range(3), ['Naive', 'Learning', 'Expert'])
 plt.ylabel('Modularity')
 plt.ylim(0,1.1)
-plt.savefig(r'F:\data\Fig 3\updated_modularity_bargraph_updated.pdf')
+# plt.savefig(r'F:\data\Fig 3\updated_modularity_bargraph_updated.pdf')
 
 plt.show()
 
@@ -736,7 +740,7 @@ plt.scatter(np.ones(len(all_recovery[2])), all_recovery[2])
 plt.xticks(range(2), ['Learning', 'Expert'])
 plt.ylabel('Modularity')
 plt.ylim(bottom=0)
-plt.savefig(r'F:\data\Fig 3\updated_modularity_bargraph_leaexp.pdf')
+# plt.savefig(r'F:\data\Fig 3\updated_modularity_bargraph_leaexp.pdf')
 
 plt.show()
 
