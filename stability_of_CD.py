@@ -579,19 +579,21 @@ l1 = Mode(path, use_reg = True, triple=True,
           baseline_normalization="median_zscore",
           proportion_train = 0.1)
 projR, projL = l1.plot_CD(mode_input = 'choice', plot=False, auto_corr_return=True)
+l1.plot_CD()
 l1 = Mode(path, use_reg = True, triple=True, 
           baseline_normalization="median_zscore",
           proportion_train = 0.1)
 projR1, projL1 = l1.plot_CD(mode_input = 'choice', plot=False, auto_corr_return=True)
-
+l1.plot_CD()
 
 #Plot the autocorrelogram
 f = plt.figure(figsize=(5,5))
 allproj = np.vstack((projR, projL))
 allproj1 = np.vstack((projR1, projL1))
 corrs = np.corrcoef(allproj, allproj1)
-
-plt.imshow(corrs)
+corrs = np.corrcoef(allproj, allproj1, rowvar=False)
+corrs = corrs[:l1.time_cutoff, :l1.time_cutoff]
+plt.imshow(corrs, vmin=-0.1, vmax=1)
 plt.axhline(l1.sample, color = 'white', ls='--', linewidth = 0.5)
 plt.axvline(l1.sample, color = 'white', ls='--', linewidth = 0.5)
 
@@ -604,7 +606,7 @@ plt.axvline(l1.response, color = 'white', ls='--', linewidth = 0.5)
 plt.xticks([l1.sample, l1.delay, l1.response], [-4.3, -3, 0])    
 plt.yticks([l1.sample, l1.delay, l1.response], [-4.3, -3, 0])    
 plt.colorbar()
-
+plt.show()
 
 ##EXPERT
 path = expertpath
@@ -613,21 +615,22 @@ l2 = Mode(path, use_reg = True, triple=True,
           proportion_train = 0.1)
 
 projR, projL = l2.plot_CD(mode_input = 'choice', plot=False, auto_corr_return=True)
+l2.plot_CD()
+
 l2 = Mode(path, use_reg = True, triple=True, 
           baseline_normalization="median_zscore",
           proportion_train = 0.1)
-projR, projL = l2.plot_CD(mode_input = 'choice', plot=False, auto_corr_return=True)
+projR1, projL1 = l2.plot_CD(mode_input = 'choice', plot=False, auto_corr_return=True)
+l2.plot_CD()
 
-allproj = np.vstack((projR, projL))
-allproj1 = np.vstack((projR1, projL1))
-corrs = np.corrcoef(allproj, allproj1)
+
 #Plot the autocorrelogram
 f = plt.figure(figsize=(5,5))
 allproj = np.vstack((projR, projL))
 allproj1 = np.vstack((projR1, projL1))
-corrs = np.corrcoef(allproj, allproj1)
-
-plt.imshow(corrs)
+corrs = np.corrcoef(allproj, allproj1, rowvar=False)
+corrs = corrs[:l2.time_cutoff, :l2.time_cutoff]
+plt.imshow(corrs, vmin=-0.1, vmax=1)
 plt.axhline(l1.sample, color = 'white', ls='--', linewidth = 0.5)
 plt.axvline(l1.sample, color = 'white', ls='--', linewidth = 0.5)
 
