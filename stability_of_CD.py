@@ -643,14 +643,19 @@ plt.axvline(l1.response, color = 'white', ls='--', linewidth = 0.5)
 plt.xticks([l1.sample, l1.delay, l1.response], [-4.3, -3, 0])    
 plt.yticks([l1.sample, l1.delay, l1.response], [-4.3, -3, 0])    
 plt.colorbar()
-#%% Stability of learning vs expert by showing runs on 50% train set sizes but independent
+#%% Stability of learning vs expert by showing runs on 20% train set sizes but independent
 naivepath, learningpath, expertpath = [r'H:\data\BAYLORCW046\python\2024_05_31',
                     r'H:\data\BAYLORCW046\python\2024_06_11',
                   r'H:\data\BAYLORCW046\python\2024_06_26',]
-
-split = 1/5
+naivepath, learningpath, expertpath = [r'H:\data\BAYLORCW044\python\2024_05_22',
+  r'H:\data\BAYLORCW044\python\2024_06_06',
+r'H:\data\BAYLORCW044\python\2024_06_19']
+split = 1/10
 splitnum = int(1/split)
 ctl=True
+save=True
+vmin=0 
+vmax=0.9
 ##LEARNING
 
 path = learningpath
@@ -682,7 +687,10 @@ l1 = Mode(path, use_reg = True, triple=True,
           baseline_normalization="median_zscore",
           train_test_trials = [train_test_trials, train_test_trials_err])
 projR, projL = l1.plot_CD(mode_input = 'choice', plot=False, auto_corr_return=True, ctl=ctl)
-l1.plot_CD(ctl=ctl)
+if save:
+    l1.plot_CD(ctl=ctl, save=r'H:\Fig 5\CDchoice_20perc_learning_run1.pdf')
+else:
+    l1.plot_CD(ctl=ctl)
 
 
 #second half
@@ -699,7 +707,11 @@ l1 = Mode(path, use_reg = True, triple=True,
           baseline_normalization="median_zscore",
           train_test_trials = [train_test_trials, train_test_trials_err])
 projR1, projL1 = l1.plot_CD(mode_input = 'choice', plot=False, auto_corr_return=True, ctl=ctl)
-l1.plot_CD(ctl=ctl)
+if save:
+    l1.plot_CD(ctl=ctl, save=r'H:\Fig 5\CDchoice_20perc_learning_run2.pdf')
+else:
+    l1.plot_CD(ctl=ctl)
+
 
 #Plot the autocorrelogram
 f = plt.figure(figsize=(5,5))
@@ -707,7 +719,7 @@ allproj = np.vstack((projR, projL))
 allproj1 = np.vstack((projR1, projL1))
 corrs = np.corrcoef(allproj, allproj1, rowvar=False)
 corrs = corrs[:l1.time_cutoff, :l1.time_cutoff]
-plt.imshow(corrs, vmin=0, vmax=0.8)
+plt.imshow(corrs, vmin=vmin, vmax=vmax)
 plt.axhline(l1.sample, color = 'white', ls='--', linewidth = 0.5)
 plt.axvline(l1.sample, color = 'white', ls='--', linewidth = 0.5)
 
@@ -720,6 +732,8 @@ plt.axvline(l1.response, color = 'white', ls='--', linewidth = 0.5)
 plt.xticks([l1.sample, l1.delay, l1.response], [-4.3, -3, 0])    
 plt.yticks([l1.sample, l1.delay, l1.response], [-4.3, -3, 0])    
 plt.colorbar()
+if save:
+    plt.savefig(r'H:\Fig 5\CDchoice_20perc_learning_CORR.pdf')
 plt.show()
 
 ##EXPERT
@@ -753,7 +767,10 @@ l1 = Mode(path, use_reg = True, triple=True,
           baseline_normalization="median_zscore",
           train_test_trials = [train_test_trials, train_test_trials_err])
 projR, projL = l1.plot_CD(mode_input = 'choice', plot=False, auto_corr_return=True, ctl=ctl)
-l1.plot_CD(ctl=ctl)
+if save:
+    l1.plot_CD(ctl=ctl, save=r'H:\Fig 5\CDchoice_20perc_expert_run1.pdf')
+else:
+    l1.plot_CD(ctl=ctl)
 
 
 #second half
@@ -770,7 +787,11 @@ l1 = Mode(path, use_reg = True, triple=True,
           baseline_normalization="median_zscore",
           train_test_trials = [train_test_trials, train_test_trials_err])
 projR1, projL1 = l1.plot_CD(mode_input = 'choice', plot=False, auto_corr_return=True, ctl=ctl)
-l1.plot_CD(ctl=ctl)
+if save:
+
+    l1.plot_CD(ctl=ctl, save=r'H:\Fig 5\CDchoice_20perc_expert_run2.pdf')
+else:
+    l1.plot_CD(ctl=ctl)
 
 
 #Plot the autocorrelogram
@@ -779,7 +800,7 @@ allproj = np.vstack((projR, projL))
 allproj1 = np.vstack((projR1, projL1))
 corrs = np.corrcoef(allproj, allproj1, rowvar=False)
 corrs = corrs[:l2.time_cutoff, :l2.time_cutoff]
-plt.imshow(corrs, vmin=0, vmax=0.8)
+plt.imshow(corrs, vmin=vmin, vmax=vmax)
 plt.axhline(l1.sample, color = 'white', ls='--', linewidth = 0.5)
 plt.axvline(l1.sample, color = 'white', ls='--', linewidth = 0.5)
 
@@ -792,6 +813,11 @@ plt.axvline(l1.response, color = 'white', ls='--', linewidth = 0.5)
 plt.xticks([l1.sample, l1.delay, l1.response], [-4.3, -3, 0])    
 plt.yticks([l1.sample, l1.delay, l1.response], [-4.3, -3, 0])    
 plt.colorbar()
+if save:
+    plt.savefig(r'H:\Fig 5\CDchoice_20perc_expert_CORR.pdf')
+    
+    
+
 #%% Run over the 10 different possible splits for train set size
 path = learningpath
 l1 = Mode(path, use_reg = True, triple=True)

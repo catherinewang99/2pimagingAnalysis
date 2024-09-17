@@ -205,6 +205,103 @@ plt.ylabel('Performance (%)')
 plt.savefig(r'F:\data\Fig 1\updated_beh_opto.pdf')
 plt.show()
     
+#%% Plot the delta of behavior recovery from learning to expert
+all_paths = [[r'F:\data\BAYLORCW032\python\2023_10_05',
+          r'F:\data\BAYLORCW032\python\2023_10_19',
+          r'F:\data\BAYLORCW032\python\2023_10_24',],
+
+
+             [r'F:\data\BAYLORCW036\python\2023_10_09',
+            r'F:\data\BAYLORCW036\python\2023_10_19',
+            r'F:\data\BAYLORCW036\python\2023_10_30',],
+             
+             [ r'F:\data\BAYLORCW034\python\2023_10_12',
+            r'F:\data\BAYLORCW034\python\2023_10_22',
+            r'F:\data\BAYLORCW034\python\2023_10_27'],
+
+        [r'F:\data\BAYLORCW035\python\2023_10_12',
+            r'F:\data\BAYLORCW035\python\2023_10_26',
+            r'F:\data\BAYLORCW035\python\2023_12_16',],
+
+        [r'F:\data\BAYLORCW037\python\2023_11_21',
+            r'F:\data\BAYLORCW037\python\2023_11_28',
+            r'F:\data\BAYLORCW037\python\2023_12_15',],
+        
+         [r'H:\data\BAYLORCW044\python\2024_05_22',
+          r'H:\data\BAYLORCW044\python\2024_06_06',
+        r'H:\data\BAYLORCW044\python\2024_06_19'],
+         
+            [r'H:\data\BAYLORCW044\python\2024_05_23',
+             r'H:\data\BAYLORCW044\python\2024_06_04',
+        r'H:\data\BAYLORCW044\python\2024_06_18'],
+            
+        #     [r'H:\data\BAYLORCW044\python\2024_05_24',
+        #      r'H:\data\BAYLORCW044\python\2024_06_05',
+        # r'H:\data\BAYLORCW044\python\2024_06_20'],
+
+            [r'H:\data\BAYLORCW046\python\2024_05_29',
+             r'H:\data\BAYLORCW046\python\2024_06_07',
+             r'H:\data\BAYLORCW046\python\2024_06_28'],
+
+
+            [r'H:\data\BAYLORCW046\python\2024_05_30',
+             r'H:\data\BAYLORCW046\python\2024_06_10',
+             r'H:\data\BAYLORCW046\python\2024_06_27'],
+
+            [r'H:\data\BAYLORCW046\python\2024_05_31',
+             r'H:\data\BAYLORCW046\python\2024_06_11',
+             r'H:\data\BAYLORCW046\python\2024_06_26']
+            
+            ]
+
+performance_opto = []
+performance_ctl = []
+fig = plt.figure()
+for paths in all_paths:
+    counter = -1
+
+    opt, ctl = [],[]
+    for path in paths[1:]: # Only look at learning expert
+        counter += 1
+        l1 = session.Session(path)
+        stim_trials = np.where(l1.stim_ON)[0]
+        control_trials = np.where(~l1.stim_ON)[0]
+        
+        perf_right, perf_left, perf_all = l1.performance_in_trials(stim_trials)
+        opt += [perf_all]
+        # plt.scatter(counter + 0.2, perf_right, c='b', marker='x')
+        # plt.scatter(counter + 0.2, perf_left, c='r', marker='x')
+       
+        perf_rightctl, perf_left, perf_all_c = l1.performance_in_trials(control_trials)
+        ctl += [perf_all_c]
+        # plt.scatter(counter - 0.2, perf_rightctl, c='b', marker='o')
+        # plt.scatter(counter - 0.2, perf_left, c='r', marker='o')
+        plt.plot([counter - 0.2, counter + 0.2], [perf_all_c, perf_all], color='grey')
+        
+        
+    performance_opto += [opt]
+    performance_ctl += [ctl]
+
+
+    plt.scatter(np.arange(3)+0.2, opt)
+    plt.scatter(np.arange(3)-0.2, ctl)
+    
+    
+plt.bar(np.arange(3)+0.2, np.mean(performance_opto, axis=0), 0.4, fill=False)
+
+plt.bar(np.arange(3)-0.2, np.mean(performance_ctl, axis=0), 0.4, fill=False)
+
+plt.xticks(range(3), ["Naive", "Learning", "Expert"])
+plt.axhline(0.5, ls='--')
+plt.ylim([0.15,1])
+plt.yticks(ticks=plt.yticks()[0][1:], labels=(100 * np.array(plt.yticks()[0][1:])).astype(int)) #Multiply all ticks by 100
+plt.ylabel('Performance (%)')
+# plt.legend()
+plt.savefig(r'F:\data\Fig 1\updated_beh_opto.pdf')
+plt.show()
+    
+
+
 #%% Plot learning progression
 
 # b = behavior.Behavior('F:\data\Behavior data\BAYLORCW028\python_behavior', behavior_only=True)
@@ -218,9 +315,9 @@ plt.show()
 # # b.learning_progression(imaging=True)
 # b.learning_progression(window=200, save =r'F:\data\Fig 1\CW37.pdf')
 
-# b = behavior.Behavior('F:\data\Behavior data\BAYLORCW021\python_behavior', behavior_only=True)
-# b.learning_progression_no_EL(imaging=True)
-# b.learning_progression_no_EL(window = 200,save=True)
+b = behavior.Behavior('F:\data\Behavior data\BAYLORCW021\python_behavior', behavior_only=True)
+b.learning_progression_no_EL(imaging=True)
+b.learning_progression_no_EL(window = 150,save=True)
 
 # b = behavior.Behavior('F:\data\Behavior data\BAYLORCW021\python_behavior', behavior_only=True)
 # b.learning_progression(window = 100)
@@ -244,9 +341,9 @@ plt.show()
 # b.learning_progression(window = 50, include_delay=False, color_background=[3,4,5,6,7,8,9,13,14,15,16,17,18])
 # b.plot_performance_over_sessions(all=True, color_background=[3,4,5,6,7,8,9,13,14,15,16,17,18])
 
-b = behavior.Behavior(r'H:\data\Behavior data\BAYLORCW042\python_behavior', behavior_only=True)
-b.learning_progression(window = 50, include_delay=False, color_background=[2,3,4,5,6,7,8,10,11,12,14,15,16,17,18])
-b.plot_performance_over_sessions(all=True, color_background=[2,3,4,5,6,7,8,10,11,12,14,15,16,17,18])
+# b = behavior.Behavior(r'H:\data\Behavior data\BAYLORCW042\python_behavior', behavior_only=True)
+# b.learning_progression(window = 50, include_delay=False, color_background=[2,3,4,5,6,7,8,10,11,12,14,15,16,17,18])
+# b.plot_performance_over_sessions(all=True, color_background=[2,3,4,5,6,7,8,10,11,12,14,15,16,17,18])
 
 # b = behavior.Behavior(r'H:\data\Behavior data\BAYLORCW044\python_behavior', behavior_only=True)
 # b.learning_progression(window = 50)
