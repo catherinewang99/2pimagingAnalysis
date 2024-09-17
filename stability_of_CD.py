@@ -648,14 +648,17 @@ naivepath, learningpath, expertpath = [r'H:\data\BAYLORCW046\python\2024_05_31',
                     r'H:\data\BAYLORCW046\python\2024_06_11',
                   r'H:\data\BAYLORCW046\python\2024_06_26',]
 naivepath, learningpath, expertpath = [r'H:\data\BAYLORCW044\python\2024_05_22',
-  r'H:\data\BAYLORCW044\python\2024_06_06',
-r'H:\data\BAYLORCW044\python\2024_06_19']
-split = 1/10
+                                      r'H:\data\BAYLORCW044\python\2024_06_06',
+                                    r'H:\data\BAYLORCW044\python\2024_06_19']
+naivepath, learningpath, expertpath =[r'H:\data\BAYLORCW046\python\2024_05_30',
+                                     r'H:\data\BAYLORCW046\python\2024_06_10',
+                                     r'H:\data\BAYLORCW046\python\2024_06_27']
+split = 1/4
 splitnum = int(1/split)
 ctl=True
 save=True
 vmin=0 
-vmax=0.9
+vmax=0.8
 ##LEARNING
 
 path = learningpath

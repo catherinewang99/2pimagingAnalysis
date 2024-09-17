@@ -53,7 +53,7 @@ all_paths = [[r'F:\data\BAYLORCW032\python\2023_10_05',
         # r'H:\data\BAYLORCW044\python\2024_06_20'],
 
             [r'H:\data\BAYLORCW046\python\2024_05_29',
-             r'H:\data\BAYLORCW046\python\2024_06_07',
+             r'H:\data\BAYLORCW046\python\2024_06_24',
              r'H:\data\BAYLORCW046\python\2024_06_28'],
 
 
@@ -215,9 +215,9 @@ all_paths = [[r'F:\data\BAYLORCW032\python\2023_10_05',
             r'F:\data\BAYLORCW036\python\2023_10_19',
             r'F:\data\BAYLORCW036\python\2023_10_30',],
              
-             [ r'F:\data\BAYLORCW034\python\2023_10_12',
-            r'F:\data\BAYLORCW034\python\2023_10_22',
-            r'F:\data\BAYLORCW034\python\2023_10_27'],
+            #  [ r'F:\data\BAYLORCW034\python\2023_10_12',
+            # r'F:\data\BAYLORCW034\python\2023_10_22',
+            # r'F:\data\BAYLORCW034\python\2023_10_27'],
 
         [r'F:\data\BAYLORCW035\python\2023_10_12',
             r'F:\data\BAYLORCW035\python\2023_10_26',
@@ -236,11 +236,11 @@ all_paths = [[r'F:\data\BAYLORCW032\python\2023_10_05',
         r'H:\data\BAYLORCW044\python\2024_06_18'],
             
         #     [r'H:\data\BAYLORCW044\python\2024_05_24',
-        #      r'H:\data\BAYLORCW044\python\2024_06_05',
+        #       r'H:\data\BAYLORCW044\python\2024_06_05',
         # r'H:\data\BAYLORCW044\python\2024_06_20'],
 
             [r'H:\data\BAYLORCW046\python\2024_05_29',
-             r'H:\data\BAYLORCW046\python\2024_06_07',
+             r'H:\data\BAYLORCW046\python\2024_06_24',
              r'H:\data\BAYLORCW046\python\2024_06_28'],
 
 
@@ -254,39 +254,48 @@ all_paths = [[r'F:\data\BAYLORCW032\python\2023_10_05',
             
             ]
 
-performance_opto = []
-performance_ctl = []
-fig = plt.figure()
+all_deltas = []
+all_deltas_r, all_deltas_l = [], []
 for paths in all_paths:
     counter = -1
 
-    opt, ctl = [],[]
+    deltas = []
+    dl, dr = [], []
     for path in paths[1:]: # Only look at learning expert
         counter += 1
         l1 = session.Session(path)
         stim_trials = np.where(l1.stim_ON)[0]
         control_trials = np.where(~l1.stim_ON)[0]
         
+        stim_trials = [c for c in stim_trials if c in l1.i_good_trials]
+        control_trials = [c for c in control_trials if c in l1.i_good_trials]
+        
         perf_right, perf_left, perf_all = l1.performance_in_trials(stim_trials)
-        opt += [perf_all]
-        # plt.scatter(counter + 0.2, perf_right, c='b', marker='x')
-        # plt.scatter(counter + 0.2, perf_left, c='r', marker='x')
-       
-        perf_rightctl, perf_left, perf_all_c = l1.performance_in_trials(control_trials)
-        ctl += [perf_all_c]
-        # plt.scatter(counter - 0.2, perf_rightctl, c='b', marker='o')
-        # plt.scatter(counter - 0.2, perf_left, c='r', marker='o')
-        plt.plot([counter - 0.2, counter + 0.2], [perf_all_c, perf_all], color='grey')
+        perf_rightctl, perf_leftctl, perf_all_c = l1.performance_in_trials(control_trials)
+        
+        deltas += [perf_all_c - perf_all]
+        dr += [perf_rightctl - perf_right]
+        dl += [perf_leftctl - perf_left]
         
         
-    performance_opto += [opt]
-    performance_ctl += [ctl]
+    all_deltas += [deltas]
+    all_deltas_r += [dr]
+    all_deltas_l += [dl]
 
+#%% Plot deltas
 
-    plt.scatter(np.arange(3)+0.2, opt)
-    plt.scatter(np.arange(3)-0.2, ctl)
+all_deltas = np.array(all_deltas)
+
+plt.bar([0,1], np.mean(all_deltas, axis=0))
+plt.scatter(np.zeros(len(all_deltas)), all_deltas[:, 0])
+plt.scatter(np.ones(len(all_deltas)), all_deltas[:, 1])
+for i in range(len(all_deltas)):
+    plt.plot([0,1], [all_deltas[i, 0], all_deltas[i, 1]], color='grey', alpha=0.5)
+
+#%%
     
-    
+fig = plt.figure()
+
 plt.bar(np.arange(3)+0.2, np.mean(performance_opto, axis=0), 0.4, fill=False)
 
 plt.bar(np.arange(3)-0.2, np.mean(performance_ctl, axis=0), 0.4, fill=False)
@@ -542,8 +551,12 @@ plt.show()
 # b = behavior.Behavior('H:\\data\\BAYLORCW043\\python\\2024_06_13', single=True)
 # b.plot_single_session(save=True)
 
-b = behavior.Behavior('H:\\data\\BAYLORCW046\\python\\2024_06_27', single=True)
+b = behavior.Behavior('H:\\data\\BAYLORCW046\\python\\2024_06_26', single=True)
 b.plot_single_session(save=True)
+
+# b = behavior.Behavior(r'F:\data\BAYLORCW036\python\2023_10_16', single=True)
+# b.plot_single_session(save=True)
+
 
 # b = behavior.Behavior('H:\\data\\BAYLORCW041\\python\\2024_05_15', single=True)
 # b.plot_single_session(save=True)

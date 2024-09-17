@@ -1587,7 +1587,8 @@ class Session:
         return avg_l > avg_r, test_l, test_r
         # return choice, l_trials, r_trials
 
-    def plot_selectivity(self, neuron_num, plot=True, epoch=[], opto=False, downsample=False):
+    def plot_selectivity(self, neuron_num, plot=True, epoch=[], opto=False, 
+                         downsample=False, bootstrap = False):
         
         """Plots a single line representing selectivity of given neuron over all trials
         
@@ -1611,9 +1612,12 @@ class Session:
             epoch = range(self.delay, self.response)
         
         R, L = self.get_trace_matrix(neuron_num)
-        pref, l, r = self.screen_preference(neuron_num, epoch)
-        left_trace = [L[i] for i in l]
-        right_trace = [R[i] for i in r]
+        pref, l, r = self.screen_preference(neuron_num, epoch, bootstrap=bootstrap)
+        if bootstrap:
+            left_trace, right_trace = L, R
+        else:
+            left_trace = [L[i] for i in l]
+            right_trace = [R[i] for i in r]
 
         if pref: # prefers left
             sel = np.mean(left_trace, axis = 0) - np.mean(right_trace, axis=0)
