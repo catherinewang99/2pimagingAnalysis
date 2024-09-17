@@ -915,16 +915,18 @@ exp_neurons = [18,503,434,38,331,130]
 
 #%%
 trials = [160, 161, 165, 166, 169]
-trials = np.random.choice(np.where(l1.L_correct)[0], 5, replace=False)
+# trials = np.random.choice(np.where(l1.L_correct)[0], 5, replace=False)
 trials = np.where(l1.L_correct)[0]
-# trials = np.where(l1.R_correct)[0][15:]
+trials_learn = np.random.permutation(trials)[:57]#[:int(len(trials)/2)] # randomly shuffle and take half
 agg_traces_all = []
+neuron_av_learn = []
 # for trial in trials:
-#     agg_traces = []
 for idx in learn_neurons:
-    for trial in trials:
+    agg_traces = []
+    for trial in trials_learn:
         agg_traces_all += [np.array(l1.dff[0,trial][idx, :l1.time_cutoff])]
-
+        agg_traces += [np.array(l1.dff[0,trial][idx, :l1.time_cutoff])]
+    neuron_av_learn += [np.mean(agg_traces, axis=0)]
     # mean = np.mean(l1.dff[0,trial][l1.good_neurons[idx], :l1.time_cutoff])
     # std = np.std(l1.dff[0,trial][l1.good_neurons[idx], :l1.time_cutoff])
     # agg_traces += [np.array(l1.dff[0,trial][l1.good_neurons[idx], :l1.time_cutoff]) - mean / std]
@@ -933,16 +935,21 @@ for idx in learn_neurons:
 
 
 # trials = [195, 196, 200, 201, 203]
-trialsexp = np.random.choice(np.where(l2.L_correct)[0], 5, replace=False)
+# trialsexp = np.random.choice(np.where(l2.L_correct)[0], 5, replace=False)
 trials = np.where(l2.L_correct)[0]
+trials = np.random.permutation(trials)[:57]#[:int(len(trials)/2)] # randomly shuffle and take half
+
 # trialsexp = np.where(l2.R_correct)[0][15:]
 agg_traces_all_exp = []
+neuron_av_exp = []
 # for trial in trials:
 #     agg_traces = []
 for idx in exp_neurons:
+    agg_traces = []
     for trial in trials:
         agg_traces_all_exp += [np.array(l2.dff[0,trial][idx,:l2.time_cutoff])]
-
+        agg_traces += [np.array(l1.dff[0,trial][idx, :l1.time_cutoff])]
+    neuron_av_exp += [np.mean(agg_traces, axis=0)]
     # mean = np.mean(l1.dff[0,trial][l1.good_neurons[idx], :l1.time_cutoff])
     # std = np.std(l1.dff[0,trial][l1.good_neurons[idx], :l1.time_cutoff])
     # agg_traces += [np.array(l1.dff[0,trial][l1.good_neurons[idx], :l1.time_cutoff]) - mean / std]
@@ -960,11 +967,25 @@ for j in range(2):
     ax[j].axvline(l1.sample, color='white', ls='--')
     ax[j].axvline(l1.delay, color='white', ls='--')
     ax[j].axvline(l1.response, color='white', ls='--')
-    for t in range(0,len(agg_traces_all),138):
-        ax[j].axhline(t, color='white')
-        
+    for t in range(0,len(agg_traces_all),len(trials_learn)):
+        ax[0].axhline(t, color='white')
+    for t in range(0,len(agg_traces_all_exp), len(trials)):
+        ax[1].axhline(t, color='white')
+           
 # Then, plot the averaged traces for these five neurons below:
-
+f, ax = plt.subplots(1, 2, figsize = (10,3))
+for i in range(len(learn_neurons)):
+    ax[0].plot(np.mean(agg_traces_all[i*57:(i+1)*57], axis=0), label='Neuron {}'.format(i+1))
+    # ax[0].plot(np.mean(agg_traces_all[i*57:(i+1)*57], axis=0))
+    
+for i in range(len(exp_neurons)):
+    ax[1].plot(np.mean(agg_traces_all_exp[i*57:(i+1)*57], axis=0), label='Neuron {}'.format(i+1))
+for j in range(2):
+    ax[j].axvline(l1.sample, color='grey', ls='--')
+    ax[j].axvline(l1.delay, color='grey', ls='--')
+    ax[j].axvline(l1.response, color='grey', ls='--')
+    
+plt.legend()
 
 #%% Plot the R squared values of each FOV
 # r_stimr1, r_delayr1 = r_stim, r_delay
