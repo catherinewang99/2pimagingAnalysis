@@ -891,53 +891,79 @@ l1 = Mode(path, use_reg = True, triple=True, baseline_normalization="median_zsco
 path = expertpath
 l2 = Mode(path, use_reg = True, triple=True, baseline_normalization="median_zscore")
 
-# learning_delay_sel = l1.get_epoch_selective(range(l1.delay+30, l1.response), p=0.001)
-# expert_delay_sel = l2.get_epoch_selective(range(l2.delay+30, l2.response), p=0.001)
-# learning_delay_sel_idx = [np.where(l1.good_neurons == i)[0][0] for i in learning_delay_sel]
-# expert_delay_sel_idx = [np.where(l2.good_neurons == i)[0][0] for i in expert_delay_sel]
+p=0.001
+learning_delay_sel = l1.get_epoch_selective(range(l1.delay+30, l1.response), p=0.001)
+expert_delay_sel = l2.get_epoch_selective(range(l2.delay+30, l2.response), p=0.001)
+learning_delay_sel_idx = [np.where(l1.good_neurons == i)[0][0] for i in learning_delay_sel]
+expert_delay_sel_idx = [np.where(l2.good_neurons == i)[0][0] for i in expert_delay_sel]
 
-# idx_highvar = [i for i in expert_delay_sel_idx if i in learning_delay_sel_idx]
+shared_delay_idx = [n for n in cat((learning_delay_sel_idx, expert_delay_sel_idx)) if n in learning_delay_sel_idx and n in expert_delay_sel_idx]
 
+#%% What do delay neurons look like:
+for idx in shared_delay_idx:
+    l1.plot_rasterPSTH_sidebyside(l1.good_neurons[idx])
+    l2.plot_rasterPSTH_sidebyside(l2.good_neurons[idx])
+
+#%%
 idx_highvar = np.where(np.array(allr) > 0.003)[0] # high variance neurons
 idx_highvar = np.where(np.array(avg_weights) > 0.1)[0] # high weight neurons
+#%% BY INSPECTION (all left prferring)
+learn_neurons = [4,385,380,8,87,118]
+exp_neurons = [18,503,434,38,331,130]
 
+
+
+#%%
 trials = [160, 161, 165, 166, 169]
 trials = np.random.choice(np.where(l1.L_correct)[0], 5, replace=False)
+trials = np.where(l1.L_correct)[0]
 # trials = np.where(l1.R_correct)[0][15:]
 agg_traces_all = []
-for trial in trials:
-    agg_traces = []
-    for idx in idx_highvar[0:20]:
-        agg_traces += [np.array(l1.dff[0,trial][l1.good_neurons[idx], l1.delay:l1.response])]
+# for trial in trials:
+#     agg_traces = []
+for idx in learn_neurons:
+    for trial in trials:
+        agg_traces_all += [np.array(l1.dff[0,trial][idx, :l1.time_cutoff])]
 
-        # mean = np.mean(l1.dff[0,trial][l1.good_neurons[idx], :l1.time_cutoff])
-        # std = np.std(l1.dff[0,trial][l1.good_neurons[idx], :l1.time_cutoff])
-        # agg_traces += [np.array(l1.dff[0,trial][l1.good_neurons[idx], :l1.time_cutoff]) - mean / std]
-    agg_traces_all += [agg_traces]
+    # mean = np.mean(l1.dff[0,trial][l1.good_neurons[idx], :l1.time_cutoff])
+    # std = np.std(l1.dff[0,trial][l1.good_neurons[idx], :l1.time_cutoff])
+    # agg_traces += [np.array(l1.dff[0,trial][l1.good_neurons[idx], :l1.time_cutoff]) - mean / std]
+    # agg_traces_all += [agg_traces]
     
 
 
 # trials = [195, 196, 200, 201, 203]
 trialsexp = np.random.choice(np.where(l2.L_correct)[0], 5, replace=False)
+trials = np.where(l2.L_correct)[0]
 # trialsexp = np.where(l2.R_correct)[0][15:]
 agg_traces_all_exp = []
-for trial in trialsexp:
-    agg_traces = []
-    for idx in idx_highvar[0:20]:
-        agg_traces += [np.array(l2.dff[0,trial][l1.good_neurons[idx], l1.delay:l1.response])]
+# for trial in trials:
+#     agg_traces = []
+for idx in exp_neurons:
+    for trial in trials:
+        agg_traces_all_exp += [np.array(l2.dff[0,trial][idx,:l2.time_cutoff])]
 
-        # mean = np.mean(l1.dff[0,trial][l1.good_neurons[idx], :l1.time_cutoff])
-        # std = np.std(l1.dff[0,trial][l1.good_neurons[idx], :l1.time_cutoff])
-        # agg_traces += [np.array(l1.dff[0,trial][l1.good_neurons[idx], :l1.time_cutoff]) - mean / std]
-    agg_traces_all_exp += [agg_traces]
+    # mean = np.mean(l1.dff[0,trial][l1.good_neurons[idx], :l1.time_cutoff])
+    # std = np.std(l1.dff[0,trial][l1.good_neurons[idx], :l1.time_cutoff])
+    # agg_traces += [np.array(l1.dff[0,trial][l1.good_neurons[idx], :l1.time_cutoff]) - mean / std]
+    # agg_traces_all_exp += [agg_traces]
         
-f, ax = plt.subplots(4, 2, figsize = (5,5))
-for i in range(4):
-    ax[i, 0].matshow(agg_traces_all[i], cmap='gray', interpolation='nearest', aspect='auto')
-    ax[i, 0].axis('off')
-for i in range(4):
-    ax[i, 1].matshow(agg_traces_all_exp[i], cmap='gray', interpolation='nearest', aspect='auto')
-    ax[i, 1].axis('off')
+# for i in range(len(trials)):
+f, ax = plt.subplots(1, 2, figsize = (10,5))
+# ax[0].matshow(agg_traces_all[i], cmap='gray', interpolation='nearest', aspect='auto')
+ax[0].matshow(agg_traces_all, vmin=0, vmax=3, aspect='auto') #interpolation='nearest', a
+ax[0].axis('off')
+# ax[1].matshow(agg_traces_all_exp[i], cmap='gray', interpolation='nearest', aspect='auto')
+ax[1].matshow(agg_traces_all_exp, vmin=0, vmax=3, aspect='auto')
+ax[1].axis('off')
+for j in range(2):
+    ax[j].axvline(l1.sample, color='white', ls='--')
+    ax[j].axvline(l1.delay, color='white', ls='--')
+    ax[j].axvline(l1.response, color='white', ls='--')
+    for t in range(0,len(agg_traces_all),138):
+        ax[j].axhline(t, color='white')
+        
+# Then, plot the averaged traces for these five neurons below:
 
 
 #%% Plot the R squared values of each FOV

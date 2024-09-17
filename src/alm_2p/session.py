@@ -2435,7 +2435,7 @@ class Session:
         plt.show()
         
 
-    def plot_rasterPSTH_sidebyside(self, neuron_num, bias=False, fixaxis = False, save=[]):
+    def plot_rasterPSTH_sidebyside(self, neuron_num, bias=False, fixaxis = False, save=[], vvals = []):
         """Plot heatmap then averaged L/R trace for a single neuron comparing control and opto trials
                                 
         Parameters
@@ -3193,6 +3193,8 @@ class Session:
         # recovery = np.mean((sel[period] - selo[period]) / sel[period])
         # error = np.mean(erro[period])        
         
+        # Correct for negative  selo value:
+
         return recovery, error
         # return selo[period], sel[period]
         

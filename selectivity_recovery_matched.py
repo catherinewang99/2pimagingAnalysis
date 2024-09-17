@@ -207,36 +207,36 @@ paths = [    r'F:\data\BAYLORCW032\python\2023_10_05',
             r'H:\data\BAYLORCW046\python\2024_05_31',
             ]
 
-paths = [r'F:\data\BAYLORCW032\python\2023_10_19',
-            # r'F:\data\BAYLORCW034\python\2023_10_22',
-            r'F:\data\BAYLORCW036\python\2023_10_19',
-            r'F:\data\BAYLORCW035\python\2023_12_07',
-            r'F:\data\BAYLORCW037\python\2023_12_08',
+# paths = [r'F:\data\BAYLORCW032\python\2023_10_19',
+#             # r'F:\data\BAYLORCW034\python\2023_10_22',
+#             r'F:\data\BAYLORCW036\python\2023_10_19',
+#             r'F:\data\BAYLORCW035\python\2023_12_07',
+#             r'F:\data\BAYLORCW037\python\2023_12_08',
             
-            r'H:\data\BAYLORCW044\python\2024_06_06',
-            r'H:\data\BAYLORCW044\python\2024_06_04',
+#             r'H:\data\BAYLORCW044\python\2024_06_06',
+#             r'H:\data\BAYLORCW044\python\2024_06_04',
 
-            # r'H:\data\BAYLORCW046\python\2024_06_07',
-            r'H:\data\BAYLORCW046\python\2024_06_24',
-            r'H:\data\BAYLORCW046\python\2024_06_10',
-            r'H:\data\BAYLORCW046\python\2024_06_11',
-            ]
+#             # r'H:\data\BAYLORCW046\python\2024_06_07',
+#             r'H:\data\BAYLORCW046\python\2024_06_24',
+#             r'H:\data\BAYLORCW046\python\2024_06_10',
+#             r'H:\data\BAYLORCW046\python\2024_06_11',
+#             ]
 
 
-paths = [r'F:\data\BAYLORCW032\python\2023_10_24',
-            # r'F:\data\BAYLORCW034\python\2023_10_27',
-            r'F:\data\BAYLORCW036\python\2023_10_30',
-            r'F:\data\BAYLORCW035\python\2023_12_15',
-            r'F:\data\BAYLORCW037\python\2023_12_15',
+# paths = [r'F:\data\BAYLORCW032\python\2023_10_24',
+#             # r'F:\data\BAYLORCW034\python\2023_10_27',
+#             r'F:\data\BAYLORCW036\python\2023_10_30',
+#             r'F:\data\BAYLORCW035\python\2023_12_15',
+#             r'F:\data\BAYLORCW037\python\2023_12_15',
             
-            r'H:\data\BAYLORCW044\python\2024_06_19',
-            r'H:\data\BAYLORCW044\python\2024_06_18',
+#             r'H:\data\BAYLORCW044\python\2024_06_19',
+#             r'H:\data\BAYLORCW044\python\2024_06_18',
             
-            r'H:\data\BAYLORCW046\python\2024_06_28',
-            r'H:\data\BAYLORCW046\python\2024_06_27',
-            r'H:\data\BAYLORCW046\python\2024_06_26',
+#             r'H:\data\BAYLORCW046\python\2024_06_28',
+#             r'H:\data\BAYLORCW046\python\2024_06_27',
+#             r'H:\data\BAYLORCW046\python\2024_06_26',
             
-            ]
+#             ]
 
 
 
@@ -263,10 +263,11 @@ for path in paths:
                          baseline_normalization="median_zscore")    
     
     adjusted_p = 0.05 / np.sqrt(len(l1.good_neurons))
-    adjusted_p = 0.01
+    # adjusted_p = 0.01
     
     control_sel, opto_sel = l1.selectivity_optogenetics(p=adjusted_p, 
-                                                        exclude_unselective=True,
+                                                        # exclude_unselective=True,
+                                                        exclude_unselective=False,
                                                         lickdir=False, 
                                                         return_traces=True,
                                                         downsample='04' in path)
@@ -280,8 +281,8 @@ for path in paths:
     
     print(num_neurons_selective, fov_selectivity)
     
-    if num_neurons_selective > 3 and fov_selectivity > 0.3:
-    # if True:
+    # if num_neurons_selective > 3 and fov_selectivity > 0.3:
+    if True:
         if by_FOV:
             all_control_sel = np.vstack((all_control_sel, np.mean(control_sel, axis=0)))
             all_opto_sel = np.vstack((all_opto_sel, np.mean(opto_sel, axis=0)))
@@ -327,9 +328,9 @@ axarr.hlines(y=max(cat((selo, sel))), xmin=-3, xmax=-2, linewidth=10, color='red
 axarr.set_title('Optogenetic effect on selectivity (n = {} neurons)'.format(num_neurons))                  
 axarr.set_xlabel('Time from Go cue (s)')
 axarr.set_ylabel('Selectivity')
-# axarr.set_ylim((-0.2, 0.7))
+axarr.set_ylim((-0.2, 1.1))
 
-# plt.savefig(r'F:\data\Fig 3\lea_sel_recovery_updated.pdf')
+plt.savefig(r'F:\data\Fig 3\nai_sel_recovery_updatedsess.pdf')
 plt.show()
 
 
@@ -678,14 +679,14 @@ for st, paths in enumerate(all_paths): # For each stage of training
                                                             downsample='04' in path)
         
         l1.selectivity_optogenetics(p=adjusted_p, 
-                                    # exclude_unselective=st > 0,
-                                    exclude_unselective=False,
+                                    exclude_unselective=st > 0,
+                                    # exclude_unselective=False,
                                     lickdir=False, 
                                     return_traces=False,
                                     downsample='04' in path)
 
         if control_sel is None or len(control_sel) == 0 or np.sum(control_sel) == 0: # no selective neurons
-            
+            print(path)
             continue
         
         temp, _ = l1.modularity_proportion(p=adjusted_p, 
@@ -698,7 +699,8 @@ for st, paths in enumerate(all_paths): # For each stage of training
         
         print(num_neurons_selective, fov_selectivity)
         
-        if num_neurons_selective > 3 and fov_selectivity > 0.3 or st == 0:
+        # if num_neurons_selective > 3 and fov_selectivity > 0.3 or st == 0:
+        if True:
 
             if by_FOV:
                 all_control_sel = np.vstack((all_control_sel, np.mean(control_sel, axis=0)))
@@ -718,13 +720,16 @@ for st, paths in enumerate(all_paths): # For each stage of training
         
 
 plt.bar(range(3), [np.mean(a) for a in all_recovery])
-plt.scatter(np.zeros(len(all_recovery[0])), all_recovery[0])
-plt.scatter(np.ones(len(all_recovery[1])), all_recovery[1])
-plt.scatter(np.ones(len(all_recovery[2]))+1, all_recovery[2])
+plt.scatter(np.zeros(len(all_recovery[0])), all_recovery[0], color='navajowhite')
+plt.scatter(np.ones(len(all_recovery[1])), all_recovery[1], color='khaki')
+plt.scatter(np.ones(len(all_recovery[2]))+1, all_recovery[2], color='lightskyblue')
 
 plt.xticks(range(3), ['Naive', 'Learning', 'Expert'])
-plt.ylabel('Modularity')
-plt.ylim(0,1.1)
+plt.ylabel('Robustness')
+# for i in range(len(all_recovery[0])):
+#     plt.plot([0,1], [all_recovery[0][i], all_recovery[1][i]], color='grey', alpha=0.3)
+#     plt.plot([1,2], [all_recovery[1][i], all_recovery[2][i]], color='grey', alpha=0.3)
+# plt.ylim(0,1.1)
 # plt.savefig(r'F:\data\Fig 3\updated_modularity_bargraph_updated.pdf')
 
 plt.show()
@@ -739,7 +744,7 @@ plt.scatter(np.ones(len(all_recovery[2])), all_recovery[2])
 
 plt.xticks(range(2), ['Learning', 'Expert'])
 plt.ylabel('Modularity')
-plt.ylim(bottom=0)
+# plt.ylim(bottom=0)
 # plt.savefig(r'F:\data\Fig 3\updated_modularity_bargraph_leaexp.pdf')
 
 plt.show()
@@ -846,6 +851,50 @@ all_paths = [[    r'F:\data\BAYLORCW032\python\2023_10_05',
             r'F:\data\BAYLORCW036\python\2023_10_30',
             r'F:\data\BAYLORCW035\python\2023_12_15',
             r'F:\data\BAYLORCW037\python\2023_12_15',]]
+all_paths = [[    r'F:\data\BAYLORCW032\python\2023_10_05',
+            # r'F:\data\BAYLORCW034\python\2023_10_12',
+            r'F:\data\BAYLORCW036\python\2023_10_09',
+            r'F:\data\BAYLORCW035\python\2023_10_26',
+            r'F:\data\BAYLORCW037\python\2023_11_21',
+            
+            r'H:\data\BAYLORCW044\python\2024_05_22',
+            r'H:\data\BAYLORCW044\python\2024_05_23',
+            
+            r'H:\data\BAYLORCW046\python\2024_05_29',
+            r'H:\data\BAYLORCW046\python\2024_05_30',
+            r'H:\data\BAYLORCW046\python\2024_05_31',
+            ],
+
+             [r'F:\data\BAYLORCW032\python\2023_10_19',
+            # r'F:\data\BAYLORCW034\python\2023_10_22',
+            r'F:\data\BAYLORCW036\python\2023_10_19',
+            r'F:\data\BAYLORCW035\python\2023_12_07',
+            r'F:\data\BAYLORCW037\python\2023_12_08',
+            
+            r'H:\data\BAYLORCW044\python\2024_06_06',
+            r'H:\data\BAYLORCW044\python\2024_06_04',
+
+            # r'H:\data\BAYLORCW046\python\2024_06_07', #sub out for below
+            r'H:\data\BAYLORCW046\python\2024_06_24',
+            r'H:\data\BAYLORCW046\python\2024_06_10',
+            r'H:\data\BAYLORCW046\python\2024_06_11',
+            ],
+
+
+             [r'F:\data\BAYLORCW032\python\2023_10_24',
+            # r'F:\data\BAYLORCW034\python\2023_10_27',
+            r'F:\data\BAYLORCW036\python\2023_10_30',
+            r'F:\data\BAYLORCW035\python\2023_12_15',
+            r'F:\data\BAYLORCW037\python\2023_12_15',
+            
+            r'H:\data\BAYLORCW044\python\2024_06_19',
+            r'H:\data\BAYLORCW044\python\2024_06_18',
+            
+            r'H:\data\BAYLORCW046\python\2024_06_28',
+            r'H:\data\BAYLORCW046\python\2024_06_27',
+            r'H:\data\BAYLORCW046\python\2024_06_26',
+            
+            ]]
 
 all_deltas = []
 all_mod = []
@@ -857,24 +906,61 @@ for paths in all_paths:
 
     for path in paths:
 
-        l1 = session.Session(path, use_reg=True, triple=True, remove_consec_opto=True)
-        temp, _ = l1.modularity_proportion(p=0.01, lickdir=True)
+        l1 = session.Session(path, use_reg=True, triple=True, 
+                             use_background_sub=True,
+                             remove_consec_opto=False,
+                             baseline_normalization="median_zscore")   
 
-        if temp > 0 and temp < 1: # Exclude values based on Chen et al method guidelines
+    
+        adjusted_p = 0.05 / np.sqrt(len(l1.good_neurons))
+        # adjusted_p = 0.01
+        
+        control_sel, opto_sel = l1.selectivity_optogenetics(p=adjusted_p, 
+                                                            exclude_unselective=st > 0,
+                                                            # exclude_unselective=False,
+                                                            lickdir=False, 
+                                                            return_traces=True,
+                                                            downsample='04' in path)
+        
+        # l1.selectivity_optogenetics(p=adjusted_p, 
+        #                             exclude_unselective=st > 0,
+        #                             # exclude_unselective=False,
+        #                             lickdir=False, 
+        #                             return_traces=False,
+        #                             downsample='04' in path)
 
-            stim_trials = np.where(l1.stim_ON)[0]
-            control_trials = np.where(~l1.stim_ON)[0]
+        if control_sel is None or len(control_sel) == 0 or np.sum(control_sel) == 0: # no selective neurons
+            print(path)
+            continue
+        
+        temp, _ = l1.modularity_proportion(p=adjusted_p, 
+                                           # exclude_unselective=False,
+                                            exclude_unselective=st > 0,
+                                           lickdir=False)
+        
+        num_neurons_selective = len(control_sel)
+        fov_selectivity = np.mean(np.mean(control_sel, axis=0)[range(28, 40)])
+        
+        print(num_neurons_selective, fov_selectivity)
+        
+        if num_neurons_selective > 3 and fov_selectivity > 0.3 or st == 0:
             
-            _, _, perf_all = l1.performance_in_trials(stim_trials)
-            _, _, perf_all_c = l1.performance_in_trials(control_trials)
             
-            if perf_all_c < 0.5: #Skip low performance sessions
-                continue
-            
-            modularity += [temp]
+            # if temp > 0 and temp < 1: # Exclude values based on Chen et al method guidelines
+            if temp > 0:
 
-            deltas += [perf_all / perf_all_c]
-            # deltas += [perf_all_c - perf_all]
+                stim_trials = np.where(l1.stim_ON)[0]
+                control_trials = np.where(~l1.stim_ON)[0]
+                
+                _, _, perf_all = l1.performance_in_trials(stim_trials)
+                _, _, perf_all_c = l1.performance_in_trials(control_trials)
+
+                if perf_all_c < 0.5: #Skip low performance sessions
+                    continue
+                
+                modularity += [temp]
+                deltas += [perf_all / perf_all_c]
+
 
     all_deltas += [deltas]
     all_mod += [modularity]
@@ -894,7 +980,7 @@ plt.legend()
 plt.title('Pearsons correlation: {}, p-val: {}'.format(stats.pearsonr(cat(all_mod), cat(all_deltas))[0], 
                                                        stats.pearsonr(cat(all_mod), cat(all_deltas))[1]))
 
-plt.savefig(r'F:\data\Fig 3\corr_behaviordiff_modularity_matched.pdf')
+plt.savefig(r'F:\data\Fig 3\corr_behaviordiff_modularity_matched_updated.pdf')
 plt.show()
 
 #%% Correlate behavior recovery with modularity ALL SESS
