@@ -105,9 +105,14 @@ naivepath, learningpath, expertpath = [r'H:\data\BAYLORCW046\python\2024_05_29',
  r'H:\data\BAYLORCW046\python\2024_06_07',
  r'H:\data\BAYLORCW046\python\2024_06_24']
 
-naivepath, learningpath, expertpath = [r'H:\data\BAYLORCW044\python\2024_05_23',
-                   r'H:\data\BAYLORCW044\python\2024_06_04',
-                  r'H:\data\BAYLORCW044\python\2024_06_18',]
+# naivepath, learningpath, expertpath = [r'H:\data\BAYLORCW044\python\2024_05_23',
+#                    r'H:\data\BAYLORCW044\python\2024_06_04',
+#                   r'H:\data\BAYLORCW044\python\2024_06_18',]
+
+naivepath, learningpath, expertpath = [r'H:\data\BAYLORCW046\python\2024_05_31',
+             r'H:\data\BAYLORCW046\python\2024_06_11',
+             r'H:\data\BAYLORCW046\python\2024_06_26'
+             ]
 
 s1 = session.Session(naivepath, use_reg=True, triple=True)
 s2 = session.Session(learningpath, use_reg=True, triple=True)
@@ -124,13 +129,18 @@ for idx, sess in enumerate([s1,s2,s3]):
     
 #%% Perturbation
 path = r'H:\data\BAYLORCW046\python\2024_06_26'
-s1 = session.Session(path)#, use_reg=True, triple=True)
+s1 = session.Session(path, use_reg=True, triple=True)
 #%%
-sel_n = s1.get_epoch_selective(range(s1.delay, s1.response), p=0.0001)
-for n in sel_n:
-    s1.plot_rasterPSTH_sidebyside(n)
-
-
+neurons = [434, 404, 443, 19, 38,59]
+idx = [np.where(s1.good_neurons == n)[0][0] for n in neurons]
+# sel_n = s1.get_epoch_selective(range(s1.delay, s1.response), p=0.0001)
+for n in idx:
+    s1.plot_rasterPSTH_sidebyside(s1.good_neurons[n])
+#%%
+path = r'H:\data\BAYLORCW046\python\2024_06_11'
+s1 = session.Session(path, use_reg=True, triple=True)
+for n in idx:
+    s1.plot_rasterPSTH_sidebyside(s1.good_neurons[n])
 #%%
 agg_mice_paths = [
     

@@ -851,7 +851,7 @@ all_paths = [[    r'F:\data\BAYLORCW032\python\2023_10_05',
             r'F:\data\BAYLORCW036\python\2023_10_30',
             r'F:\data\BAYLORCW035\python\2023_12_15',
             r'F:\data\BAYLORCW037\python\2023_12_15',]]
-all_paths = [[    r'F:\data\BAYLORCW032\python\2023_10_05',
+all_paths = [[r'F:\data\BAYLORCW032\python\2023_10_05',
             # r'F:\data\BAYLORCW034\python\2023_10_12',
             r'F:\data\BAYLORCW036\python\2023_10_09',
             r'F:\data\BAYLORCW035\python\2023_10_26',
@@ -896,27 +896,99 @@ all_paths = [[    r'F:\data\BAYLORCW032\python\2023_10_05',
             
             ]]
 
+# all_paths = [[    r'F:\data\BAYLORCW032\python\2023_10_05',
+#             # r'F:\data\BAYLORCW034\python\2023_10_12',
+#             r'F:\data\BAYLORCW036\python\2023_10_09',
+#             r'F:\data\BAYLORCW035\python\2023_10_26',
+#             r'F:\data\BAYLORCW037\python\2023_11_21',
+            
+#             r'F:\data\BAYLORCW036\python\2023_10_16',
+#             r'F:\data\BAYLORCW035\python\2023_10_12',
+#         r'F:\data\BAYLORCW035\python\2023_11_02',
+
+#         r'H:\data\BAYLORCW044\python\2024_05_22',
+#         r'H:\data\BAYLORCW044\python\2024_05_23',
+#         r'H:\data\BAYLORCW044\python\2024_05_24',
+        
+#         r'H:\data\BAYLORCW046\python\2024_05_29',
+#         r'H:\data\BAYLORCW046\python\2024_05_30',
+#         r'H:\data\BAYLORCW046\python\2024_05_31',
+#             ],
+#              [r'F:\data\BAYLORCW032\python\2023_10_19',
+#             # r'F:\data\BAYLORCW034\python\2023_10_22',
+#             r'F:\data\BAYLORCW036\python\2023_10_19',
+#             r'F:\data\BAYLORCW035\python\2023_12_07',
+#             r'F:\data\BAYLORCW037\python\2023_12_08',
+
+#         r'F:\data\BAYLORCW032\python\2023_10_18',
+#         r'F:\data\BAYLORCW035\python\2023_10_25',
+#             r'F:\data\BAYLORCW035\python\2023_11_27',
+#             r'F:\data\BAYLORCW035\python\2023_11_29',
+#             r'F:\data\BAYLORCW037\python\2023_11_28',
+            
+#         r'H:\data\BAYLORCW044\python\2024_06_06',
+#         r'H:\data\BAYLORCW044\python\2024_06_04',
+#         r'H:\data\BAYLORCW044\python\2024_06_03',
+#         r'H:\data\BAYLORCW044\python\2024_06_12',
+
+#         r'H:\data\BAYLORCW046\python\2024_06_07',
+#         r'H:\data\BAYLORCW046\python\2024_06_10',
+#         r'H:\data\BAYLORCW046\python\2024_06_11',
+#         r'H:\data\BAYLORCW046\python\2024_06_19',
+#         r'H:\data\BAYLORCW046\python\2024_06_25',
+#         r'H:\data\BAYLORCW046\python\2024_06_24',
+
+
+
+#         ],
+#         [r'F:\data\BAYLORCW032\python\2023_10_24',
+#             # r'F:\data\BAYLORCW034\python\2023_10_27',
+#             r'F:\data\BAYLORCW036\python\2023_10_30',
+#             r'F:\data\BAYLORCW035\python\2023_12_15',
+#             r'F:\data\BAYLORCW037\python\2023_12_15',
+            
+#             r'F:\data\BAYLORCW036\python\2023_10_28',
+#         r'F:\data\BAYLORCW035\python\2023_12_12',
+#             r'F:\data\BAYLORCW035\python\2023_12_14',
+#             r'F:\data\BAYLORCW035\python\2023_12_16',
+#             r'F:\data\BAYLORCW037\python\2023_12_13',
+            
+#             r'H:\data\BAYLORCW044\python\2024_06_19',
+#             r'H:\data\BAYLORCW044\python\2024_06_18',
+#             r'H:\data\BAYLORCW044\python\2024_06_17',
+#             r'H:\data\BAYLORCW044\python\2024_06_20',
+            
+#             r'H:\data\BAYLORCW046\python\2024_06_27',
+#             r'H:\data\BAYLORCW046\python\2024_06_26',
+#             r'H:\data\BAYLORCW046\python\2024_06_28',
+
+# ]]
+
 all_deltas = []
 all_mod = []
 
-for paths in all_paths:
+for paths in all_paths[1:]:
 
     deltas = []
     modularity = []
 
     for path in paths:
 
-        l1 = session.Session(path, use_reg=True, triple=True, 
-                             use_background_sub=True,
+        # l1 = session.Session(path, use_reg=True, triple=True, 
+        #                      use_background_sub=True,
+        #                      remove_consec_opto=False,
+        #                      baseline_normalization="median_zscore")   
+        
+        l1 = session.Session(path, use_background_sub=True,
                              remove_consec_opto=False,
-                             baseline_normalization="median_zscore")   
+                             baseline_normalization="median_zscore") 
 
     
         adjusted_p = 0.05 / np.sqrt(len(l1.good_neurons))
-        # adjusted_p = 0.01
+        adjusted_p = 0.01
         
         control_sel, opto_sel = l1.selectivity_optogenetics(p=adjusted_p, 
-                                                            exclude_unselective=st > 0,
+                                                            exclude_unselective=True,
                                                             # exclude_unselective=False,
                                                             lickdir=False, 
                                                             return_traces=True,
@@ -935,7 +1007,7 @@ for paths in all_paths:
         
         temp, _ = l1.modularity_proportion(p=adjusted_p, 
                                            # exclude_unselective=False,
-                                            exclude_unselective=st > 0,
+                                            exclude_unselective=True,
                                            lickdir=False)
         
         num_neurons_selective = len(control_sel)
@@ -943,7 +1015,7 @@ for paths in all_paths:
         
         print(num_neurons_selective, fov_selectivity)
         
-        # if num_neurons_selective > 3 and fov_selectivity > 0.3 or st == 0:
+        # if num_neurons_selective > 3 and fov_selectivity > 0.3:
         if True:
             
             # if temp > 0 and temp < 1: # Exclude values based on Chen et al method guidelines
@@ -952,15 +1024,19 @@ for paths in all_paths:
 
                 stim_trials = np.where(l1.stim_ON)[0]
                 control_trials = np.where(~l1.stim_ON)[0]
+                stim_trials = [c for c in stim_trials if c in l1.i_good_trials]
+                stim_trials = [c for c in stim_trials if ~l1.early_lick[c]]
+                control_trials = [c for c in control_trials if c in l1.i_good_trials]
+                control_trials = [c for c in control_trials if ~l1.early_lick[c]]
                 
                 _, _, perf_all = l1.performance_in_trials(stim_trials)
                 _, _, perf_all_c = l1.performance_in_trials(control_trials)
 
-                # if perf_all_c < 0.5: #Skip low performance sessions
-                #     continue
+                if perf_all_c < 0.5 or perf_all / perf_all_c > 1: #Skip low performance sessions
+                    continue
                 
                 modularity += [temp]
-                deltas += [perf_all_c - perf_all]
+                deltas += [perf_all - perf_all_c]
 
 
     all_deltas += [deltas]
@@ -974,7 +1050,7 @@ ls = ['Naive', 'Learning', 'Expert']
 for i in range(3):
     plt.scatter(all_mod[i], all_deltas[i], label = ls[i])
 
-plt.xlabel('Modularity, unperturbed hemisphere')
+plt.xlabel('Robustness, unperturbed hemisphere')
 plt.ylabel('Behvioral recovery, (correct, control - photoinhib.)')
 # plt.ylabel('Behvioral recovery, (delta correct, control-photoinhib.)')
 plt.legend()
@@ -983,6 +1059,26 @@ plt.title('Pearsons correlation: {}, p-val: {}'.format(stats.pearsonr(cat(all_mo
 
 # plt.savefig(r'F:\data\Fig 3\corr_behaviordiff_modularity_matched_updated.pdf')
 plt.show()
+
+#%% Plot only first few
+fig = plt.figure(figsize=(7,6))
+
+ls = ['Learning', 'Expert']
+
+for i in range(2):
+    plt.scatter(all_mod[i][:], all_deltas[i][:], label = ls[i])
+
+plt.xlabel('Robustness, unperturbed hemisphere')
+plt.ylabel('Behvioral recovery, (correct, control - photoinhib.)')
+# plt.ylabel('Behvioral recovery, (delta correct, control-photoinhib.)')
+plt.legend()
+plt.title('Pearsons correlation: {}, p-val: {}'.format(stats.pearsonr(cat(all_mod), cat(all_deltas))[0], 
+                                                       stats.pearsonr(cat(all_mod), cat(all_deltas))[1]))
+
+# plt.savefig(r'F:\data\Fig 3\corr_behaviordiff_modularity_matched_updated.pdf')
+plt.show()
+print(stats.pearsonr((all_mod[0]), (all_deltas[0]))[0], stats.pearsonr((all_mod[0]), (all_deltas[0]))[1])
+print(stats.pearsonr((all_mod[1]), (all_deltas[1]))[0], stats.pearsonr((all_mod[1]), (all_deltas[1]))[1])
 
 #%% Correlate behavior recovery with modularity ALL SESS
     

@@ -1504,7 +1504,7 @@ class Session:
         
      
     
-    def screen_preference(self, neuron_num, epoch, bootstrap=False, samplesize = 25, 
+    def screen_preference(self, neuron_num, epoch, bootstrap=False, samplesize = 20, 
                           lickdir=False, return_remove=False):
         """Determine if a neuron is left or right preferring
                 
@@ -1539,9 +1539,9 @@ class Session:
         r_trials = range(len(R))
         
         # Skip neuron if less than 15
-        if len(l_trials) < 15 or len(r_trials) < 15:
-            raise Exception("There are fewer than 15 trials R/L: {} R trials and {} L trials".format(len(l_trials), len(r_trials)))
-            # samplesize = 5
+        if len(l_trials) < samplesize or len(r_trials) < samplesize:
+            print("There are fewer than 15 trials R/L: {} R trials and {} L trials".format(len(l_trials), len(r_trials)))
+            samplesize = 5
         
         if bootstrap:
             pref = 0
@@ -1588,7 +1588,7 @@ class Session:
         # return choice, l_trials, r_trials
 
     def plot_selectivity(self, neuron_num, plot=True, epoch=[], opto=False, 
-                         downsample=False, bootstrap = False):
+                         downsample=False, bootstrap = False, trialtype = False):
         
         """Plots a single line representing selectivity of given neuron over all trials
         
@@ -1612,12 +1612,17 @@ class Session:
             epoch = range(self.delay, self.response)
         
         R, L = self.get_trace_matrix(neuron_num)
-        pref, l, r = self.screen_preference(neuron_num, epoch, bootstrap=bootstrap)
+        pref, l, r = self.screen_preference(neuron_num, epoch, 
+                                            bootstrap=bootstrap,
+                                            return_remove=False)
         if bootstrap:
+            R, L = self.get_trace_matrix(neuron_num, trialtype=trialtype)
             left_trace, right_trace = L, R
         else:
-            left_trace = [L[i] for i in l]
-            right_trace = [R[i] for i in r]
+            
+            R, L = self.get_trace_matrix(neuron_num, trialtype=trialtype)
+            # left_trace = [L[i] for i in l]
+            # right_trace = [R[i] for i in r]
 
         if pref: # prefers left
             sel = np.mean(left_trace, axis = 0) - np.mean(right_trace, axis=0)

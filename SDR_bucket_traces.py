@@ -21,7 +21,7 @@ plt.rcParams['pdf.fonttype'] = '42'
 import random
 from scipy import stats
 from statsmodels.stats.proportion import proportions_ztest
-
+cat = np.concatenate
 #%% Paths
 
 agg_matched_paths = [[    
@@ -70,37 +70,87 @@ agg_matched_paths = [[
 
         ]]
 
-#%% Get sample selective neurons
-by_FOV = True
-for paths in [agg_matched_paths[0]]:
+#%% Get all selective neurons
+by_FOV = False
+all_sample_sel = []
+all_delay_sel = []
+all_response_sel = []
+for paths in [agg_matched_paths[2]]:
     sample_sel = []
+    delay_sel = []
+    response_sel = []
     for path in paths:
-        s1 = session.Session(path, use_reg=True, triple=True, use_background_sub=False) # Naive
+        s1 = session.Session(path, use_reg=True, triple=True,
+                             use_background_sub=False,
+                             baseline_normalization="median_zscore")   
         
         sample_epoch = range(s1.sample, s1.delay)
-        delay_epoch = range(s1.delay+int(1.5 * 1/s1.fs), s1.response)
+        delay_epoch = range(s1.delay+int(1.5 * 1/s1.fs), s1.response) 
         response_epoch = range(s1.response, s1.response + int(2*1/s1.fs))
-        adj_p = 0.01
-        naive_sample_sel = s1.get_epoch_selective(sample_epoch, p=adj_p)
+        adj_p = 0.05 / len(s1.good_neurons)
+        adj_p = 0.05
+        naive_sample_sel_old = s1.get_epoch_selective(sample_epoch, p=adj_p)
         
-        # naive_delay_sel = s1.get_epoch_selective(delay_epoch, p=p)
-        # naive_delay_sel = [n for n in naive_delay_sel if n not in naive_sample_sel]
+        naive_delay_sel_old = s1.get_epoch_selective(delay_epoch, p=adj_p)
+        naive_delay_sel = [n for n in naive_delay_sel_old if n not in naive_sample_sel_old]
         
-        # naive_response_sel = s1.get_epoch_selective(response_epoch, p=p)
-        # naive_response_sel = [n for n in naive_response_sel if n not in naive_sample_sel and n not in naive_delay_sel]
+        naive_response_sel_old = s1.get_epoch_selective(response_epoch, p=adj_p)
+        naive_response_sel = [n for n in naive_response_sel_old if n not in naive_sample_sel_old and n not in naive_delay_sel_old]
         
+        naive_sample_sel = [n for n in naive_sample_sel_old if n not in naive_delay_sel_old and n not in naive_response_sel_old]
+
         # naive_nonsel = [n for n in s1.good_neurons if n not in naive_sample_sel and n not in naive_delay_sel and n not in naive_response_sel]
         
         all_n_sample = []
         for n in naive_sample_sel:
             if by_FOV:
-                all_n_sample += [s1.plot_selectivity(n, plot=False)]
+                all_n_sample += [s1.plot_selectivity(n, epoch=sample_epoch, plot=False, bootstrap = True, trialtype=True)]
             else:
-                sample_sel += [s1.plot_selectivity(n, plot=False)]
+                sample_sel += [s1.plot_selectivity(n, epoch=sample_epoch, plot=False, bootstrap = True, trialtype=True)]
+                
+        all_n_delay = []
+        for n in naive_delay_sel:
+            if by_FOV:
+                all_n_delay += [s1.plot_selectivity(n, epoch=delay_epoch, plot=False, bootstrap = True, trialtype=False)]
+            else:
+                delay_sel += [s1.plot_selectivity(n, epoch=delay_epoch, plot=False, bootstrap = True, trialtype=False)]
+                 
+        all_n_response = []
+        for n in naive_response_sel:
+            if by_FOV:
+                all_n_response += [s1.plot_selectivity(n, epoch=response_epoch, plot=False, bootstrap = True, trialtype=False)]
+            else:
+                response_sel += [s1.plot_selectivity(n, epoch=response_epoch, plot=False, bootstrap = True, trialtype=False)]
+                
         if by_FOV:
-            sample_sel += [np.mean(all_n_sample, axis=0)]
-            
+            if len(all_n_sample) != 0:
+                sample_sel += [np.mean(all_n_sample, axis=0)]
+            if len(all_n_delay) != 0:
+                delay_sel += [np.mean(all_n_delay, axis=0)]
+            if len(all_n_response) != 0:
+                response_sel += [np.mean(all_n_response, axis=0)]
+
+    sample_sel = [cat(s) for s in sample_sel if s.shape[0]==1] # reshape each neuron/fov
+    delay_sel = [cat(s) for s in delay_sel if s.shape[0]==1] # reshape each neuron
+    response_sel = [cat(s) for s in response_sel if s.shape[0]==1] # reshape each neuron
         
+    all_sample_sel += [sample_sel]
+    all_delay_sel += [delay_sel]
+    all_response_sel += [response_sel]
+
+# if by_FOV:
+#     all_sample_sel = [cat(s) for s in all_sample_sel if s.shape[0]==1] # reshape each fov
+#     all_delay_sel = [cat(s) for s in all_delay_sel if s.shape[0]==1] # reshape each fov
+#     all_response_sel = [cat(s) for s in all_response_sel if s.shape[0]==1] # reshape each fov
+#%% FIX post
+for i in range(3):
+    # for j in range(len(all_sample_sel[i])):
+    all_sample_sel[i] = [cat(s) for s in all_sample_sel[i] if len(s.shape)==2]
+    all_delay_sel[i] = [cat(s) for s in all_sample_sel[i] if len(s.shape)==2]
+    all_response_sel[i] = [cat(s) for s in all_sample_sel[i] if len(s.shape)==2]
+    
+    # all_sample_sel[i] = [s for s in all_sample_sel[i] if ~np.isnan(s)]
+
 #%% Plot selectivity trace
 x = np.arange(-6.97,4,1/6)[:61]
 
@@ -120,5 +170,66 @@ plt.axhline(0, ls='--', color='grey')
 # plt.set_title(titles[0])
     
     
+#%% PLOT ALL
+
+f, axarr = plt.subplots(3,3, sharey='row', sharex = True, figsize=(18,18))
+# plt.setp(axarr, ylim=(-0.2,1.2))
+
+# for j in range(3):
+for j in [0]:
+    
+    x = np.arange(-6.97,4,1/6)[:61]
+    titles = ['Stimulus selective', 'Choice selective', 'Outcome selective', 'Action selective']
+
+    
+    sel = np.mean(all_sample_sel[j], axis=0)
+    err = np.std(all_sample_sel[j], axis=0) / np.sqrt(len(all_sample_sel[j]))
+    
+    axarr[0,j].plot(x, sel, color='green')
+            
+    axarr[0,j].fill_between(x, sel - err, 
+              sel + err,
+              color='lightgreen')
+    
+    axarr[0,j].set_title(titles[0])
+
+    sel = np.mean(all_delay_sel[j], axis=0)
+    err = np.std(all_delay_sel[j], axis=0) / np.sqrt(len(all_delay_sel[j]))
+    
+    axarr[1,j].plot(x, sel, color='purple')
+            
+    axarr[1,j].fill_between(x, sel - err, 
+              sel + err,
+              color='violet')
+    axarr[1,j].set_title(titles[1])
+    
+    sel = np.mean(all_response_sel[j], axis=0)
+    err = np.std(all_response_sel[j], axis=0) / np.sqrt(len(all_response_sel[j]))
+    
+    axarr[2,j].plot(x, sel, color='goldenrod')
+            
+    axarr[2,j].fill_between(x, sel - err, 
+              sel + err,
+              color='wheat')
+    
+    axarr[2,j].set_title(titles[3])
+    
+    
+for i in range(3):
+    for j in range(3):
+        axarr[j,i].axvline(0, color = 'grey', alpha=0.5, ls = '--')
+        axarr[j,i].axvline(-4.3, color = 'grey', alpha=0.5, ls = '--')
+        axarr[j,i].axvline(-3, color = 'grey', alpha=0.5, ls = '--')        
+        axarr[j,i].axhline(0, color = 'grey', alpha=0.5, ls = '--')
+        
+        
+axarr[0,0].set_ylabel('Selectivity')
+axarr[2,1].set_xlabel('Time from Go cue (s)')
+
+
+
+# plt.savefig(r'F:\data\Fig 2\SDR_by_bucket_expert.pdf')
+plt.show()
+
 
         
