@@ -143,14 +143,14 @@ for i in range(3):
         continue
     for paths in all_matched_paths:
         
-        l1 = Mode(paths[2], use_reg=True, triple=True) #Learning
+        l1 = Mode(paths[0], use_reg=True, triple=True) #Learning
         orthonormal_basis, mean, db, acc_expert = l1.decision_boundary(mode_input=mode_input, persistence=pers)
     
         
         l1 = Mode(paths[1], use_reg=True, triple=True) #Expert
         acc_learning= l1.decision_boundary_appliedCD(mode_input, orthonormal_basis, mean, db, persistence=pers)
     
-        l1 = Mode(paths[0], use_reg=True, triple=True) # Naive
+        l1 = Mode(paths[2], use_reg=True, triple=True) # Naive
         acc_naive = l1.decision_boundary_appliedCD(mode_input, orthonormal_basis, mean, db, persistence=pers)
         
         nai = np.mean(acc_naive)

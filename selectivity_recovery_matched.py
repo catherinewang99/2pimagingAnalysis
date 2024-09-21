@@ -669,7 +669,7 @@ for st, paths in enumerate(all_paths): # For each stage of training
         
     
         adjusted_p = 0.05 / np.sqrt(len(l1.good_neurons))
-        adjusted_p = 0.01
+        # adjusted_p = 0.01
         
         control_sel, opto_sel = l1.selectivity_optogenetics(p=adjusted_p, 
                                                             exclude_unselective=st > 0,
@@ -699,8 +699,8 @@ for st, paths in enumerate(all_paths): # For each stage of training
         
         print(num_neurons_selective, fov_selectivity)
         
-        # if num_neurons_selective > 3 and fov_selectivity > 0.3 or st == 0:
-        if True:
+        if num_neurons_selective > 3 and fov_selectivity > 0.3 or st == 0:
+        # if True:
 
             if by_FOV:
                 all_control_sel = np.vstack((all_control_sel, np.mean(control_sel, axis=0)))
@@ -741,7 +741,8 @@ plt.bar(range(2), [np.mean(a) for a in all_recovery[1:]])
 # plt.scatter(np.zeros(len(all_recovery[0])), all_recovery[0])
 plt.scatter(np.ones(len(all_recovery[1]))-1, all_recovery[1])
 plt.scatter(np.ones(len(all_recovery[2])), all_recovery[2])
-
+for i in range(len(all_recovery[1])):
+    plt.plot([0,1], [all_recovery[1][i], all_recovery[2][i]], color='grey', alpha=0.3)
 plt.xticks(range(2), ['Learning', 'Expert'])
 plt.ylabel('Modularity')
 # plt.ylim(bottom=0)
@@ -984,7 +985,7 @@ for paths in all_paths[1:]:
                              baseline_normalization="median_zscore") 
 
     
-        adjusted_p = 0.05 / np.sqrt(len(l1.good_neurons))
+        # adjusted_p = 0.05 / np.sqrt(len(l1.good_neurons))
         adjusted_p = 0.01
         
         control_sel, opto_sel = l1.selectivity_optogenetics(p=adjusted_p, 
@@ -1059,6 +1060,98 @@ plt.title('Pearsons correlation: {}, p-val: {}'.format(stats.pearsonr(cat(all_mo
 
 # plt.savefig(r'F:\data\Fig 3\corr_behaviordiff_modularity_matched_updated.pdf')
 plt.show()
+#%% Plot using previous calculations
+
+robustness = np.array(all_recovery[1:])
+robustness = all_recovery[1:]
+#%%
+
+comb_deltas = [[0.25991828866542954,
+  # -0.10974754492891847,
+  0.25143672384526033,
+  -0.040446413608178355,
+  0.08840105141227828,
+  0.3998064712712779,
+  0.3792390259441073,
+  0.011909693681845579,
+  0.0676638086069663],
+ [0.10368558462698452,
+  0.17703423665335816,
+  -0.0749101480648876,
+  -0.10563080495356036,
+  0.07627252252252248,
+  0.10954672511276276,
+  0.26868853586410846,
+  0.23441575750652122,
+  0.12969162035523596]]
+
+all_proportions = [[0.9160794362588085,
+  # 1.0418342719227676,
+  0.7905027932960893,
+  0.8628725891291643,
+  0.9269066117012842,
+  0.898062015503876,
+  0.9961636828644501,
+  0.7371814092953524,
+  1.0238048780487805],
+ [1.016112389872212,
+  0.7683653765426915,
+  0.9354550330770606,
+  0.9914068745003998,
+  1.0181086519114688,
+  0.9529633771316746,
+  0.8993243243243243,
+  0.9794403198172472,
+  0.9178245335450576]]
+#%%
+# all_deltas
+plt.scatter(cat(robustness), cat(all_proportions))
+plt.scatter(cat(robustness), cat(comb_deltas))
+plt.scatter(cat(robustness), cat(all_deltas))
+# stats.pearsonr(cat(robustness), cat(all_deltas))
+
+plt.scatter(cat(robustness), cat(comb_deltas))
+# plt.xlim(top=1)
+stats.pearsonr(cat(robustness), cat(comb_deltas))
+
+#drop low values of robustness
+robustness_filt = []
+deltas_filt = []
+for i in range(2):
+    a,b = [],[]
+    for j in range(len(robustness[i])):
+        if robustness[i][j] < 1.2:  #and comb_deltas[i][j] < 0.2:
+            a += [robustness[i][j]]
+            b += [all_proportions[i][j]]
+    robustness_filt += [a]
+    deltas_filt += [b]
+    
+plt.scatter(cat(robustness_filt), cat(deltas_filt))
+stats.pearsonr(cat(robustness_filt), cat(deltas_filt))
+#%%
+
+fig = plt.figure(figsize=(7,6))
+
+ls = ['Learning', 'Expert']
+for i in range(2):
+    plt.scatter(robustness_filt[i], deltas_filt[i], label = ls[i], s=100)
+plt.xlabel('Robustness, unperturbed hemisphere')
+plt.ylabel('Behvioral recovery, (correct, control - photoinhib.)')
+plt.legend()
+# plt.savefig(r'F:\data\Fig 3\corr_behaviordiff_robustness_matched_updated.pdf')
+
+#%%
+fig = plt.figure(figsize=(7,6))
+
+ls = ['Learning', 'Expert']
+for i in range(2):
+    plt.scatter(robustness_filt[i], deltas_filt[i], label = ls[i])
+plt.xlabel('Robustness, unperturbed hemisphere')
+plt.ylabel('Behvioral recovery, (correct, control - photoinhib.)')
+plt.legend()
+
+# plt.scatter(cat(all_proportions), cat(robustness))
+# stats.pearsonr(cat(all_proportions), cat(robustness))
 
 #%% Plot only first few
 fig = plt.figure(figsize=(7,6))

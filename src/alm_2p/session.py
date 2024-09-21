@@ -1588,66 +1588,77 @@ class Session:
         # return choice, l_trials, r_trials
 
     def plot_selectivity(self, neuron_num, plot=True, epoch=[], opto=False, 
-                         downsample=False, bootstrap = False, trialtype = False):
-        
-        """Plots a single line representing selectivity of given neuron over all trials
-        
-        Evaluates the selectivity using preference in delay epoch
-        
-        Parameters
-        ----------
-        neuron_num : int
-            Neuron to plot
-        plot : bool, optional
-            Whether to plot or not (default True)
-        epoch : list, optional
-            Timesteps to evaluate preference and selectivity over (default empty list)
+                             downsample=False, bootstrap = False, trialtype = False,
+                             lickdir=False, return_pref_np = False):
             
-        Returns
-        -------
-        list
-            Selectivity calculated and plotted
-        """
-        if len(epoch) == 0:
-            epoch = range(self.delay, self.response)
-        
-        R, L = self.get_trace_matrix(neuron_num)
-        pref, l, r = self.screen_preference(neuron_num, epoch, 
-                                            bootstrap=bootstrap,
-                                            return_remove=False)
-        if bootstrap:
-            R, L = self.get_trace_matrix(neuron_num, trialtype=trialtype)
-            left_trace, right_trace = L, R
-        else:
+            """Plots a single line representing selectivity of given neuron over all trials
             
-            R, L = self.get_trace_matrix(neuron_num, trialtype=trialtype)
-            # left_trace = [L[i] for i in l]
-            # right_trace = [R[i] for i in r]
-
-        if pref: # prefers left
-            sel = np.mean(left_trace, axis = 0) - np.mean(right_trace, axis=0)
+            Evaluates the selectivity using preference in delay epoch
             
-            if opto: 
-                right_trace, left_trace = self.get_trace_matrix(neuron_num, opto=True)
-                sel = np.mean(left_trace, axis = 0) - np.mean(right_trace, axis=0)
-        else:
-            sel = np.mean(right_trace, axis = 0) - np.mean(left_trace, axis=0)
-            
-            if opto: 
-                right_trace, left_trace = self.get_trace_matrix(neuron_num, opto=True)
-                sel = np.mean(right_trace, axis = 0) - np.mean(left_trace, axis=0)
+            Parameters
+            ----------
+            neuron_num : int
+                Neuron to plot
+            plot : bool, optional
+                Whether to plot or not (default True)
+            epoch : list, optional
+                Timesteps to evaluate preference and selectivity over (default empty list)
                 
-        if plot:
-            direction = 'Left' if pref else 'Right'
-            plt.plot(range(self.time_cutoff), sel, 'b-')
-            plt.axhline(y=0)
-            plt.title('Selectivity of neuron {}: {} selective'.format(neuron_num, direction))
-            plt.show()
-        
-        if downsample or 'CW04' in self.path:
-            return self.dodownsample([sel])
-        else:
-            return sel
+            Returns
+            -------
+            list
+                Selectivity calculated and plotted
+            """
+            if len(epoch) == 0:
+                epoch = range(self.delay, self.response)
+            
+            R, L = self.get_trace_matrix(neuron_num)
+            pref, l, r = self.screen_preference(neuron_num, epoch, 
+                                                bootstrap=bootstrap,
+                                                return_remove=False)
+            if bootstrap:
+                R, L = self.get_trace_matrix(neuron_num, lickdir=lickdir, trialtype=trialtype)
+                left_trace, right_trace = L, R
+            else:
+                
+                R, L = self.get_trace_matrix(neuron_num, lickdir=lickdir, trialtype=trialtype)
+                # left_trace = [L[i] for i in l]
+                # right_trace = [R[i] for i in r]
+    
+            if pref: # prefers left
+                sel = np.mean(left_trace, axis = 0) - np.mean(right_trace, axis=0)
+                pref = np.mean(left_trace, axis = 0)
+                nonpref = np.mean(right_trace, axis=0)
+    
+                if opto: 
+                    right_trace, left_trace = self.get_trace_matrix(neuron_num, opto=True)
+                    sel = np.mean(left_trace, axis = 0) - np.mean(right_trace, axis=0)
+            else:
+                sel = np.mean(right_trace, axis = 0) - np.mean(left_trace, axis=0)
+                pref = np.mean(right_trace, axis = 0)
+                nonpref = np.mean(left_trace, axis=0)
+                if opto: 
+                    right_trace, left_trace = self.get_trace_matrix(neuron_num, opto=True)
+                    sel = np.mean(right_trace, axis = 0) - np.mean(left_trace, axis=0)
+                    
+            if plot:
+                direction = 'Left' if pref else 'Right'
+                plt.plot(range(self.time_cutoff), sel, 'b-')
+                plt.axhline(y=0)
+                plt.title('Selectivity of neuron {}: {} selective'.format(neuron_num, direction))
+                plt.show()
+            
+    
+            if return_pref_np:
+                if downsample or 'CW04' in self.path:
+                    return self.dodownsample([pref]), self.dodownsample([nonpref])
+                else:
+                    return pref, nonpref
+    
+            if downsample or 'CW04' in self.path:
+                return self.dodownsample([sel])
+            else:
+                return sel
     
     def contra_ipsi_pop(self, epoch, return_sel = False, lickdir = False, 
                         selective_n = [], p=0.0001, trials = None, bootstrap=False):

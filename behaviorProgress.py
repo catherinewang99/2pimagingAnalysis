@@ -273,13 +273,13 @@ agg_paths = [[    r'F:\data\BAYLORCW032\python\2023_10_05',
             r'F:\data\BAYLORCW035\python\2023_12_07',
             r'F:\data\BAYLORCW037\python\2023_12_08',
             
-            # r'H:\data\BAYLORCW044\python\2024_06_06',
+            r'H:\data\BAYLORCW044\python\2024_06_06',
             r'H:\data\BAYLORCW044\python\2024_06_04',
 
             # r'H:\data\BAYLORCW046\python\2024_06_07', #sub out for below
-            # r'H:\data\BAYLORCW046\python\2024_06_24',
-            r'H:\data\BAYLORCW046\python\2024_06_10',
-            # r'H:\data\BAYLORCW046\python\2024_06_11',
+            r'H:\data\BAYLORCW046\python\2024_06_24',
+            # r'H:\data\BAYLORCW046\python\2024_06_10',
+            r'H:\data\BAYLORCW046\python\2024_06_11',
             ],
 
 
@@ -289,12 +289,12 @@ agg_paths = [[    r'F:\data\BAYLORCW032\python\2023_10_05',
             r'F:\data\BAYLORCW035\python\2023_12_15',
             r'F:\data\BAYLORCW037\python\2023_12_15',
             
-            # r'H:\data\BAYLORCW044\python\2024_06_19',
+            r'H:\data\BAYLORCW044\python\2024_06_19',
             r'H:\data\BAYLORCW044\python\2024_06_18',
             
-            # r'H:\data\BAYLORCW046\python\2024_06_28',
-            r'H:\data\BAYLORCW046\python\2024_06_27',
-            # r'H:\data\BAYLORCW046\python\2024_06_26',
+            r'H:\data\BAYLORCW046\python\2024_06_28',
+            # r'H:\data\BAYLORCW046\python\2024_06_27',
+            r'H:\data\BAYLORCW046\python\2024_06_26',
             
             ]]
 
@@ -367,10 +367,12 @@ agg_paths = [[    r'F:\data\BAYLORCW032\python\2023_10_05',
 # ]]
 
 all_deltas = []
+all_proportions =[]
 all_deltas_r, all_deltas_l = [], []
 for paths in agg_paths[1:]: # per stage
     deltas = []
     dl, dr = [], []
+    prop = []
     for path in paths: 
 
         l1 = session.Session(path, remove_consec_opto=True)
@@ -378,14 +380,15 @@ for paths in agg_paths[1:]: # per stage
         control_trials = np.where(~l1.stim_ON)[0]
         
         stim_trials = [c for c in stim_trials if c in l1.i_good_trials]
-        stim_trials = [c for c in stim_trials if ~l1.early_lick[c]]
+        # stim_trials = [c for c in stim_trials if ~l1.early_lick[c]]
         control_trials = [c for c in control_trials if c in l1.i_good_trials]
-        control_trials = [c for c in control_trials if ~l1.early_lick[c]]
+        # control_trials = [c for c in control_trials if ~l1.early_lick[c]]
         
         perf_right, perf_left, perf_all = l1.performance_in_trials(stim_trials)
         perf_rightctl, perf_leftctl, perf_all_c = l1.performance_in_trials(control_trials)
         
         deltas += [perf_all_c - perf_all]
+        prop += [perf_all/perf_all_c]
         dr += [perf_rightctl - perf_right]
         dl += [perf_leftctl - perf_left]
         
@@ -393,6 +396,18 @@ for paths in agg_paths[1:]: # per stage
     all_deltas += [deltas]
     all_deltas_r += [dr]
     all_deltas_l += [dl]
+    all_proportions += [prop]
+    
+    
+#%% Plot combined deltas
+
+# all_deltas = np.array(comb_deltas)
+plt.bar([0,1], np.mean(all_deltas, axis=1))
+plt.scatter(np.zeros(len(all_deltas[0])), all_deltas[0, :])
+plt.scatter(np.ones(len(all_deltas[1])), all_deltas[1, :])
+for i in range(len(all_deltas[0])):
+    plt.plot([0,1], [all_deltas[0, i], all_deltas[1, i]], color='grey', alpha=0.5)
+# plt.savefig(r'F:\data\Fig 1\updated_beh_opto_deltacomb.pdf')
 
 #%% Deltas combo right and left
 all_deltas = np.array(all_deltas)
@@ -407,16 +422,16 @@ for j in range(2):
         all_deltas_new += [new_delta]
     comb_deltas += [all_deltas_new]
     
-#%% Plot deltas
+#%% Plot combined deltas
 
-all_deltas = np.array(all_deltas)
-
-plt.bar([0,1], np.mean(all_deltas, axis=1))
-plt.scatter(np.zeros(len(all_deltas[0])), all_deltas[0, :])
-plt.scatter(np.ones(len(all_deltas[1])), all_deltas[1, :])
-for i in range(len(all_deltas[0])):
-    plt.plot([0,1], [all_deltas[0, i], all_deltas[1, i]], color='grey', alpha=0.5)
-# plt.savefig(r'F:\data\Fig 1\updated_beh_opto_delta.pdf')
+# all_deltas = np.array(comb_deltas)
+comb_deltas = np.array(comb_deltas)
+plt.bar([0,1], np.mean(comb_deltas, axis=1))
+plt.scatter(np.zeros(len(comb_deltas[0])), comb_deltas[0, :])
+plt.scatter(np.ones(len(comb_deltas[1])), comb_deltas[1, :])
+for i in range(len(comb_deltas[0])):
+    plt.plot([0,1], [comb_deltas[0, i], comb_deltas[1, i]], color='grey', alpha=0.5)
+plt.savefig(r'F:\data\Fig 1\updated_beh_opto_deltacomb.pdf')
 
 #%%
     
@@ -677,14 +692,14 @@ plt.show()
 # b = behavior.Behavior('H:\\data\\BAYLORCW043\\python\\2024_06_13', single=True)
 # b.plot_single_session(save=True)
 
-# b = behavior.Behavior('H:\\data\\BAYLORCW046\\python\\2024_06_26', single=True)
-# b.plot_single_session(save=True)
-
-# b = behavior.Behavior('H:\\data\\BAYLORCW044\\python\\2024_06_03', single=True)
-# b.plot_single_session(save=True)
-
-b = behavior.Behavior(r'F:\data\BAYLORCW036\python\2023_10_30', single=True)
+b = behavior.Behavior('H:\\data\\BAYLORCW046\\python\\2024_06_10', single=True)
 b.plot_single_session(save=True)
+
+b = behavior.Behavior('H:\\data\\BAYLORCW044\\python\\2024_06_04', single=True)
+b.plot_single_session(save=True)
+
+# b = behavior.Behavior(r'F:\data\BAYLORCW036\python\2023_10_30', single=True)
+# b.plot_single_session(save=True)
 
 
 # b = behavior.Behavior('H:\\data\\BAYLORCW041\\python\\2024_05_15', single=True)
