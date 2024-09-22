@@ -656,7 +656,7 @@ all_paths = [[    r'F:\data\BAYLORCW032\python\2023_10_05',
 
 naive_sel_recovery,learning_sel_recovery,expert_sel_recovery = [],[],[]
 all_recovery = []
-for st, paths in enumerate(all_paths): # For each stage of training
+for st, paths in enumerate(all_paths[1:]): # For each stage of training
     recovery = []
     for path in paths: # For each mouse
         
@@ -669,11 +669,11 @@ for st, paths in enumerate(all_paths): # For each stage of training
         
     
         adjusted_p = 0.05 / np.sqrt(len(l1.good_neurons))
-        # adjusted_p = 0.01
+        adjusted_p = 0.01
         
         control_sel, opto_sel = l1.selectivity_optogenetics(p=adjusted_p, 
-                                                            exclude_unselective=st > 0,
-                                                            # exclude_unselective=False,
+                                                            # exclude_unselective=st > 0,
+                                                            exclude_unselective=True,
                                                             lickdir=False, 
                                                             return_traces=True,
                                                             downsample='04' in path)
@@ -690,17 +690,19 @@ for st, paths in enumerate(all_paths): # For each stage of training
             continue
         
         temp, _ = l1.modularity_proportion(p=adjusted_p, 
-                                           # exclude_unselective=False,
-                                            exclude_unselective=st > 0,
-                                           lickdir=False)
+                                            exclude_unselective=True,
+                                            # exclude_unselective=st > 0,
+                                            period = range(l1.delay+int(1/l1.fs), l1.response),
+                                           lickdir=False,
+                                           bootstrap=True)
         
         num_neurons_selective = len(control_sel)
         fov_selectivity = np.mean(np.mean(control_sel, axis=0)[range(28, 40)])
         
         print(num_neurons_selective, fov_selectivity)
         
-        if num_neurons_selective > 3 and fov_selectivity > 0.3 or st == 0:
-        # if True:
+        # if num_neurons_selective > 3 and fov_selectivity > 0.3 or st == 0:
+        if True:
 
             if by_FOV:
                 all_control_sel = np.vstack((all_control_sel, np.mean(control_sel, axis=0)))
@@ -915,7 +917,7 @@ all_paths = [[r'F:\data\BAYLORCW032\python\2023_10_05',
 #         r'H:\data\BAYLORCW046\python\2024_05_30',
 #         r'H:\data\BAYLORCW046\python\2024_05_31',
 #             ],
-#              [r'F:\data\BAYLORCW032\python\2023_10_19',
+#               [r'F:\data\BAYLORCW032\python\2023_10_19',
 #             # r'F:\data\BAYLORCW034\python\2023_10_22',
 #             r'F:\data\BAYLORCW036\python\2023_10_19',
 #             r'F:\data\BAYLORCW035\python\2023_12_07',
@@ -935,7 +937,7 @@ all_paths = [[r'F:\data\BAYLORCW032\python\2023_10_05',
 #         r'H:\data\BAYLORCW046\python\2024_06_07',
 #         r'H:\data\BAYLORCW046\python\2024_06_10',
 #         r'H:\data\BAYLORCW046\python\2024_06_11',
-#         r'H:\data\BAYLORCW046\python\2024_06_19',
+#         # r'H:\data\BAYLORCW046\python\2024_06_19',
 #         r'H:\data\BAYLORCW046\python\2024_06_25',
 #         r'H:\data\BAYLORCW046\python\2024_06_24',
 
@@ -968,11 +970,14 @@ all_paths = [[r'F:\data\BAYLORCW032\python\2023_10_05',
 all_deltas = []
 all_mod = []
 
-for paths in all_paths[1:]:
+all_stats = []
+
+for st, paths in enumerate(all_paths):
 
     deltas = []
     modularity = []
-
+    stats_ = []
+    
     for path in paths:
 
         # l1 = session.Session(path, use_reg=True, triple=True, 
@@ -989,7 +994,7 @@ for paths in all_paths[1:]:
         adjusted_p = 0.01
         
         control_sel, opto_sel = l1.selectivity_optogenetics(p=adjusted_p, 
-                                                            exclude_unselective=True,
+                                                            exclude_unselective=st > 0,
                                                             # exclude_unselective=False,
                                                             lickdir=False, 
                                                             return_traces=True,
@@ -1007,16 +1012,16 @@ for paths in all_paths[1:]:
             continue
         
         temp, _ = l1.modularity_proportion(p=adjusted_p, 
-                                           # exclude_unselective=False,
-                                            exclude_unselective=True,
-                                           lickdir=False)
+                                           period = range(l1.delay+int(1/l1.fs), l1.response),
+                                            exclude_unselective=st > 0,
+                                           lickdir=False,
+                                           bootstrap=True)
         
         num_neurons_selective = len(control_sel)
         fov_selectivity = np.mean(np.mean(control_sel, axis=0)[range(28, 40)])
         
         print(num_neurons_selective, fov_selectivity)
-        
-        # if num_neurons_selective > 3 and fov_selectivity > 0.3:
+        # if num_neurons_selective > 3 and fov_selectivity > 0.3 or st == 0:
         if True:
             
             # if temp > 0 and temp < 1: # Exclude values based on Chen et al method guidelines
@@ -1033,32 +1038,36 @@ for paths in all_paths[1:]:
                 _, _, perf_all = l1.performance_in_trials(stim_trials)
                 _, _, perf_all_c = l1.performance_in_trials(control_trials)
 
-                if perf_all_c < 0.5 or perf_all / perf_all_c > 1: #Skip low performance sessions
+                if perf_all_c < 0.5: #or perf_all / perf_all_c > 1: #Skip low performance sessions
                     continue
                 
                 modularity += [temp]
                 deltas += [perf_all - perf_all_c]
 
+                stats_ += [(num_neurons_selective, fov_selectivity)]
 
     all_deltas += [deltas]
     all_mod += [modularity]
-    
-    
+    all_stats += [stats]
+#%%
 fig = plt.figure(figsize=(7,6))
 
 ls = ['Naive', 'Learning', 'Expert']
 
-for i in range(3):
-    plt.scatter(all_mod[i], all_deltas[i], label = ls[i])
+# for i in range(3):
+for i in [1,2]:
+    plt.scatter(all_mod[i], all_deltas[i], label = ls[i], s=150)
 
 plt.xlabel('Robustness, unperturbed hemisphere')
 plt.ylabel('Behvioral recovery, (correct, control - photoinhib.)')
 # plt.ylabel('Behvioral recovery, (delta correct, control-photoinhib.)')
+# plt.xlim(left=0)
+# plt.xlim(right=1.5)
 plt.legend()
-plt.title('Pearsons correlation: {}, p-val: {}'.format(stats.pearsonr(cat(all_mod), cat(all_deltas))[0], 
-                                                       stats.pearsonr(cat(all_mod), cat(all_deltas))[1]))
+plt.title('Pearsons correlation: {}, p-val: {}'.format(stats.pearsonr(cat(all_mod[1:]), cat(all_deltas[1:]))[0], 
+                                                        stats.pearsonr(cat(all_mod[1:]), cat(all_deltas[1:]))[1]))
 
-# plt.savefig(r'F:\data\Fig 3\corr_behaviordiff_modularity_matched_updated.pdf')
+# plt.savefig(r'F:\data\Fig 3\corr_behaviordiff_modularity_leaexp_lasttwoseconds.pdf')
 plt.show()
 #%% Plot using previous calculations
 

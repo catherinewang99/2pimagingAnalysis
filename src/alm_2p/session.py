@@ -1504,7 +1504,7 @@ class Session:
         
      
     
-    def screen_preference(self, neuron_num, epoch, bootstrap=False, samplesize = 20, 
+    def screen_preference(self, neuron_num, epoch, bootstrap=False, samplesize = 25, 
                           lickdir=False, return_remove=False):
         """Determine if a neuron is left or right preferring
                 
@@ -2928,7 +2928,8 @@ class Session:
 
     def selectivity_optogenetics(self, save=False, p = 0.0001, lickdir = False, 
                                  return_traces = False, exclude_unselective=False,
-                                 fix_axis = [], selective_neurons = [], downsample=False):
+                                 fix_axis = [], selective_neurons = [], downsample=False,
+                                 bootstrap=False):
         """Plots overall selectivity trace across opto vs control trials
         
         Uses late delay epoch to calculate selectivity
@@ -2952,14 +2953,16 @@ class Session:
         x = np.arange(-6.97,4,self.fs)[:self.time_cutoff]
         # Late delay selective neurons
         delay_neurons = self.get_epoch_selective(range(self.response-int(1*(1/self.fs)), self.response), p=p)
+        # delay_neurons = self.get_epoch_selective(range(self.delay, self.response), p=p)
         control_sel = []
         opto_sel = []
                       
         if len(delay_neurons) == 0:
             return None, None
         for n in delay_neurons:
-            L_pref, screenl, screenr = self.screen_preference(n, range(self.delay, self.response))
-            all_exclude_trials = cat((screenl, screenr))
+            # L_pref, screenl, screenr = self.screen_preference(n, range(self.delay, self.response), bootstrap=bootstrap)
+            L_pref, screenl, screenr = self.screen_preference(n, range(self.response-int(1*(1/self.fs)), self.response), bootstrap=bootstrap)
+            all_exclude_trials = cat((screenl, screenr)) if not bootstrap else []
             if L_pref:
                 nonpref, pref = self.get_trace_matrix(n, lickdir=lickdir, trialtype=True, remove_trial=all_exclude_trials)
                 optonp, optop = self.get_trace_matrix(n, opto=True, both=False, lickdir=lickdir, remove_trial=all_exclude_trials)
@@ -3114,7 +3117,8 @@ class Session:
         plt.show()
 
 
-    def modularity_proportion(self, p = 0.0001, lickdir=False, exclude_unselective=False, trials=None, period=None, method=None):
+    def modularity_proportion(self, p = 0.0001, lickdir=False, exclude_unselective=False, trials=None, 
+                              period=None, method=None, bootstrap=False):
         """Returns the modularity as a proportion of control trial activity
         
         Uses method from Chen et al 2021 to calculate recovery during the 
@@ -3186,6 +3190,7 @@ class Session:
         
         sel, selo = self.selectivity_optogenetics(p = p, lickdir=lickdir, 
                                                   exclude_unselective=exclude_unselective,
+                                                  bootstrap = bootstrap,
                                                   return_traces=True)
 
         if method != None:

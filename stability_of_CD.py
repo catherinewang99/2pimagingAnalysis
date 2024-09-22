@@ -643,16 +643,22 @@ plt.axvline(l1.response, color = 'white', ls='--', linewidth = 0.5)
 plt.xticks([l1.sample, l1.delay, l1.response], [-4.3, -3, 0])    
 plt.yticks([l1.sample, l1.delay, l1.response], [-4.3, -3, 0])    
 plt.colorbar()
-#%% Stability of learning vs expert by showing runs on 20% train set sizes but independent
+#%% Stability of learning vs expert by showing runs on 20% train set sizes but independent then train on another 20%
 naivepath, learningpath, expertpath = [r'H:\data\BAYLORCW046\python\2024_05_31',
                     r'H:\data\BAYLORCW046\python\2024_06_11',
                   r'H:\data\BAYLORCW046\python\2024_06_26',]
-naivepath, learningpath, expertpath = [r'H:\data\BAYLORCW044\python\2024_05_22',
-                                      r'H:\data\BAYLORCW044\python\2024_06_06',
-                                    r'H:\data\BAYLORCW044\python\2024_06_19']
-naivepath, learningpath, expertpath =[r'H:\data\BAYLORCW046\python\2024_05_30',
-                                     r'H:\data\BAYLORCW046\python\2024_06_10',
-                                     r'H:\data\BAYLORCW046\python\2024_06_27']
+# naivepath, learningpath, expertpath = [r'H:\data\BAYLORCW044\python\2024_05_22',
+#                                       r'H:\data\BAYLORCW044\python\2024_06_06',
+#                                     r'H:\data\BAYLORCW044\python\2024_06_19']
+# naivepath, learningpath, expertpath = [r'H:\data\BAYLORCW044\python\2024_05_23',
+#                                       r'H:\data\BAYLORCW044\python\2024_06_04',
+#                                     r'H:\data\BAYLORCW044\python\2024_06_18']
+# naivepath, learningpath, expertpath = [r'H:\data\BAYLORCW046\python\2024_05_29',
+#                     r'H:\data\BAYLORCW046\python\2024_06_07',
+#                   r'H:\data\BAYLORCW046\python\2024_06_24',]
+# naivepath, learningpath, expertpath =[r'H:\data\BAYLORCW046\python\2024_05_30',
+#                                       r'H:\data\BAYLORCW046\python\2024_06_10',
+#                                       r'H:\data\BAYLORCW046\python\2024_06_27']
 split = 1/4
 splitnum = int(1/split)
 ctl=True
@@ -661,8 +667,8 @@ vmin=0
 vmax=0.8
 ##LEARNING
 
-path = learningpath
-l1 = Mode(path, use_reg = True, triple=True)
+# path = learningpath
+# l1 = Mode(path, use_reg = True, triple=True)
 numr = sum([l1.R_correct[i] for i in l1.i_good_non_stim_trials if not l1.early_lick[i]])
 numl = sum([l1.L_correct[i] for i in l1.i_good_non_stim_trials if not l1.early_lick[i]])
 numr = numr-numr%splitnum if numr%splitnum else numr
@@ -678,10 +684,10 @@ l_trials_err = np.random.permutation(numl_err)
 
 # First half
 r_train_idx, l_train_idx = r_trials[:int(split * numr)], l_trials[:int(split * numl)] #Take a portion of the trials for train
-r_test_idx, l_test_idx = r_trials[int(split * numr):], l_trials[int(split * numl):]
+r_test_idx, l_test_idx = r_trials[int(split * numr):int(split * 2 * numr)], l_trials[int(split * numl):int(split * 2 * numl)]
 
 r_train_err_idx, l_train_err_idx = r_trials_err[:int(split* numr_err)], l_trials_err[:int(split * numl_err)]
-r_test_err_idx, l_test_err_idx = r_trials_err[int(split* numr_err):], l_trials_err[int(split * numl_err):]
+r_test_err_idx, l_test_err_idx = r_trials_err[int(split* numr_err):int(split*2* numr_err)], l_trials_err[int(split * numl_err):int(split * 2 * numl_err)]
 
 train_test_trials = (r_train_idx, l_train_idx, r_test_idx, l_test_idx)
 train_test_trials_err = (r_train_err_idx, l_train_err_idx, r_test_err_idx, l_test_err_idx)
@@ -691,17 +697,17 @@ l1 = Mode(path, use_reg = True, triple=True,
           train_test_trials = [train_test_trials, train_test_trials_err])
 projR, projL = l1.plot_CD(mode_input = 'choice', plot=False, auto_corr_return=True, ctl=ctl)
 if save:
-    l1.plot_CD(ctl=ctl, save=r'H:\Fig 5\CDchoice_20perc_learning_run1.pdf')
+    l1.plot_CD(ctl=ctl, save=r'H:\Fig 5\CDchoice_20perc_train_test_learning_run1.pdf')
 else:
     l1.plot_CD(ctl=ctl)
 
 
 #second half
 r_train_idx, l_train_idx = r_trials[int((1-split) * numr):], l_trials[int((1-split) * numl):] #Take a portion of the trials for train
-r_test_idx, l_test_idx = r_trials[:int((1-split) * numr)], l_trials[:int((1-split) * numl)]
+r_test_idx, l_test_idx = r_trials[int((1-(2*split)) * numr):int((1-split) * numr)], l_trials[int((1-(2*split)) * numl):int((1-split) * numl)]
 
 r_train_err_idx, l_train_err_idx = r_trials_err[int((1-split) * numr_err):], l_trials_err[int((1-split) * numl_err):]
-r_test_err_idx, l_test_err_idx = r_trials_err[:int((1-split) * numr_err)], l_trials_err[:int((1-split) * numl_err)]
+r_test_err_idx, l_test_err_idx = r_trials_err[int((1-(2*split)) * numr_err):int((1-split) * numr_err)], l_trials_err[int((1-(2*split)) * numl_err):int((1-split) * numl_err)]
 
 train_test_trials = (r_train_idx, l_train_idx, r_test_idx, l_test_idx)
 train_test_trials_err = (r_train_err_idx, l_train_err_idx, r_test_err_idx, l_test_err_idx)
@@ -711,7 +717,7 @@ l1 = Mode(path, use_reg = True, triple=True,
           train_test_trials = [train_test_trials, train_test_trials_err])
 projR1, projL1 = l1.plot_CD(mode_input = 'choice', plot=False, auto_corr_return=True, ctl=ctl)
 if save:
-    l1.plot_CD(ctl=ctl, save=r'H:\Fig 5\CDchoice_20perc_learning_run2.pdf')
+    l1.plot_CD(ctl=ctl, save=r'H:\Fig 5\CDchoice_20perc_train_test_learning_run2.pdf')
 else:
     l1.plot_CD(ctl=ctl)
 
@@ -736,10 +742,10 @@ plt.xticks([l1.sample, l1.delay, l1.response], [-4.3, -3, 0])
 plt.yticks([l1.sample, l1.delay, l1.response], [-4.3, -3, 0])    
 plt.colorbar()
 if save:
-    plt.savefig(r'H:\Fig 5\CDchoice_20perc_learning_CORR.pdf')
+    plt.savefig(r'H:\Fig 5\CDchoice_20perc_train_test_learning_CORR.pdf')
 plt.show()
 
-##EXPERT
+#%%EXPERT
 
 path = expertpath
 l1 = Mode(path, use_reg = True, triple=True)
@@ -758,10 +764,10 @@ l_trials_err = np.random.permutation(numl_err)
 
 # First half
 r_train_idx, l_train_idx = r_trials[:int(split * numr)], l_trials[:int(split * numl)] #Take a portion of the trials for train
-r_test_idx, l_test_idx = r_trials[int(split * numr):], l_trials[int(split * numl):]
+r_test_idx, l_test_idx = r_trials[int(split * numr):int(split * 2 * numr)], l_trials[int(split * numl):int(split * 2 * numl)]
 
 r_train_err_idx, l_train_err_idx = r_trials_err[:int(split* numr_err)], l_trials_err[:int(split * numl_err)]
-r_test_err_idx, l_test_err_idx = r_trials_err[int(split* numr_err):], l_trials_err[int(split * numl_err):]
+r_test_err_idx, l_test_err_idx = r_trials_err[int(split* numr_err):int(split*2* numr_err)], l_trials_err[int(split * numl_err):int(split * 2 * numl_err)]
 
 train_test_trials = (r_train_idx, l_train_idx, r_test_idx, l_test_idx)
 train_test_trials_err = (r_train_err_idx, l_train_err_idx, r_test_err_idx, l_test_err_idx)
@@ -771,17 +777,17 @@ l1 = Mode(path, use_reg = True, triple=True,
           train_test_trials = [train_test_trials, train_test_trials_err])
 projR, projL = l1.plot_CD(mode_input = 'choice', plot=False, auto_corr_return=True, ctl=ctl)
 if save:
-    l1.plot_CD(ctl=ctl, save=r'H:\Fig 5\CDchoice_20perc_expert_run1.pdf')
+    l1.plot_CD(ctl=ctl, save=r'H:\Fig 5\CDchoice_20perc_train_test_expert_run1.pdf')
 else:
     l1.plot_CD(ctl=ctl)
 
 
 #second half
 r_train_idx, l_train_idx = r_trials[int((1-split) * numr):], l_trials[int((1-split) * numl):] #Take a portion of the trials for train
-r_test_idx, l_test_idx = r_trials[:int((1-split) * numr)], l_trials[:int((1-split) * numl)]
+r_test_idx, l_test_idx = r_trials[int((1-(2*split)) * numr):int((1-split) * numr)], l_trials[int((1-(2*split)) * numl):int((1-split) * numl)]
 
 r_train_err_idx, l_train_err_idx = r_trials_err[int((1-split) * numr_err):], l_trials_err[int((1-split) * numl_err):]
-r_test_err_idx, l_test_err_idx = r_trials_err[:int((1-split) * numr_err)], l_trials_err[:int((1-split) * numl_err)]
+r_test_err_idx, l_test_err_idx = r_trials_err[int((1-(2*split)) * numr_err):int((1-split) * numr_err)], l_trials_err[int((1-(2*split)) * numl_err):int((1-split) * numl_err)]
 
 train_test_trials = (r_train_idx, l_train_idx, r_test_idx, l_test_idx)
 train_test_trials_err = (r_train_err_idx, l_train_err_idx, r_test_err_idx, l_test_err_idx)
@@ -792,7 +798,7 @@ l1 = Mode(path, use_reg = True, triple=True,
 projR1, projL1 = l1.plot_CD(mode_input = 'choice', plot=False, auto_corr_return=True, ctl=ctl)
 if save:
 
-    l1.plot_CD(ctl=ctl, save=r'H:\Fig 5\CDchoice_20perc_expert_run2.pdf')
+    l1.plot_CD(ctl=ctl, save=r'H:\Fig 5\CDchoice_20perc_train_test_expert_run2.pdf')
 else:
     l1.plot_CD(ctl=ctl)
 
@@ -817,7 +823,7 @@ plt.xticks([l1.sample, l1.delay, l1.response], [-4.3, -3, 0])
 plt.yticks([l1.sample, l1.delay, l1.response], [-4.3, -3, 0])    
 plt.colorbar()
 if save:
-    plt.savefig(r'H:\Fig 5\CDchoice_20perc_expert_CORR.pdf')
+    plt.savefig(r'H:\Fig 5\CDchoice_20perc_train_test_expert_CORR.pdf')
     
     
 
