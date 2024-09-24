@@ -84,14 +84,14 @@ naivepath, learningpath, expertpath = [r'H:\data\BAYLORCW044\python\2024_05_23',
                    r'H:\data\BAYLORCW044\python\2024_06_04',
                   r'H:\data\BAYLORCW044\python\2024_06_18',]
 
-naivepath, learningpath, expertpath = [r'H:\data\BAYLORCW046\python\2024_05_31',
-                    r'H:\data\BAYLORCW046\python\2024_06_11',
-                  r'H:\data\BAYLORCW046\python\2024_06_26',]
+# naivepath, learningpath, expertpath = [r'H:\data\BAYLORCW046\python\2024_05_31',
+#                     r'H:\data\BAYLORCW046\python\2024_06_11',
+#                   r'H:\data\BAYLORCW046\python\2024_06_26',]
 
 
-naivepath, learningpath, expertpath = [r'H:\data\BAYLORCW046\python\2024_05_31',
-                    r'/Users/catherinewang/Desktop/Imaging analysis/CW46/2024_06_11',
-                  r'H:\data\BAYLORCW046\python\2024_06_26',]
+# naivepath, learningpath, expertpath = [r'H:\data\BAYLORCW046\python\2024_05_31',
+#                     r'/Users/catherinewang/Desktop/Imaging analysis/CW46/2024_06_11',
+#                   r'H:\data\BAYLORCW046\python\2024_06_26',]
 
 
 # naivepath, learningpath, expertpath =[r'F:\data\BAYLORCW035\python\2023_10_12',
@@ -169,15 +169,15 @@ orthonormal_basis, mean = l1.plot_CD(mode_input='action')
 
 path = naivepath
 l1 = Mode(path, use_reg = True, triple=True)
-orthonormal_basis, mean = l1.plot_CD(mode_input='action', save = r'F:\data\Fig 2\CDact_naive_nctl_CW37.pdf')
+orthonormal_basis, mean = l1.plot_CD(mode_input='stimulus', save = r'F:\data\Fig 2\CDstim_naive_nctl_CW44.pdf')
 
 path = learningpath
 l1 = Mode(path, use_reg = True, triple=True)
-l1.plot_appliedCD(orthonormal_basis, mean,save = r'F:\data\Fig 2\CDact_learn_nctl_CW37.pdf')
+l1.plot_appliedCD(orthonormal_basis, mean, save = r'F:\data\Fig 2\CDstim_learn_nctl_CW44.pdf')
 
 path = expertpath
 l1 = Mode(path, use_reg = True, triple=True)
-l1.plot_appliedCD(orthonormal_basis, mean,save = r'F:\data\Fig 2\CDact_exp_nctl_CW37.pdf') 
+l1.plot_appliedCD(orthonormal_basis, mean, save = r'F:\data\Fig 2\CDstim_exp_nctl_CW44.pdf') 
 
 #%% Choice dimension
 
@@ -210,17 +210,17 @@ l1.plot_appliedCD(orthonormal_basis, mean,  save = r'F:\data\Fig 2\CDstim_naive_
 
 #%% Action dimension
 
-path = expertpath
+path = naivepath
 l1 = Mode(path, use_reg = True, triple=True)
-orthonormal_basis, mean = l1.plot_CD(mode_input='action')#, save = r'F:\data\Fig 2\CDaction_expert_CW46.pdf')
+orthonormal_basis, mean = l1.plot_CD(mode_input='action', save = r'F:\data\Fig 2\CDaction_naive_nctl_CW44.pdf')
 
 path = learningpath
 l1 = Mode(path, use_reg = True, triple=True)
-l1.plot_appliedCD(orthonormal_basis, mean)#, save = r'F:\data\Fig 2\CDaction_learning_CW46.pdf')
+l1.plot_appliedCD(orthonormal_basis, mean, save = r'F:\data\Fig 2\CDaction_learning_nctl_CW44.pdf')
 
-path = naivepath
+path = expertpath
 l1 = Mode(path, use_reg = True, triple=True)
-l1.plot_appliedCD(orthonormal_basis, mean)#, save = r'F:\data\Fig 2\CDaction_naive_CW46.pdf')
+l1.plot_appliedCD(orthonormal_basis, mean, save = r'F:\data\Fig 2\CDaction_exp_nctl_CW44.pdf')
 
 #%% Use Full method
 

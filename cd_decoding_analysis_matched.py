@@ -54,8 +54,8 @@ all_matched_paths = [
         r'H:\data\BAYLORCW044\python\2024_06_18'],
 
             [r'H:\data\BAYLORCW046\python\2024_05_29',
-             r'H:\data\BAYLORCW046\python\2024_06_07',
-             r'H:\data\BAYLORCW046\python\2024_06_24'],
+             r'H:\data\BAYLORCW046\python\2024_06_24',
+             r'H:\data\BAYLORCW046\python\2024_06_28'],
 
 
             [r'H:\data\BAYLORCW046\python\2024_05_30',
@@ -139,8 +139,8 @@ for i in range(3):
     mode_input = modes[i]
     allaccs = []
     counter = 1
-    if i != 0:
-        continue
+    # if i != 0:
+    #     continue
     for paths in all_matched_paths:
         
         l1 = Mode(paths[0], use_reg=True, triple=True) #Learning
@@ -181,7 +181,7 @@ for i in range(3):
     plt.ylim(bottom=0.4, top =1)
     plt.axhline(0.5, ls='--', color='black')
     plt.title(mode_input)
-    plt.savefig(r'F:\data\Fig 2\CD_{}_allAGG_decoding_NLE.pdf'.format(mode_input))
+    plt.savefig(r'F:\data\Fig 2\CD_{}_allAGG_decoding_naivectl_NLE.pdf'.format(mode_input))
     plt.show()
     
     stats.ttest_ind(np.array(allaccs)[:, 0], np.array(allaccs)[:, 1])
