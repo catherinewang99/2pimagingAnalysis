@@ -841,7 +841,7 @@ l_trials_err = np.random.permutation(numl_err)
 
 splits = 10
 all_weights_learn = []
-for i in range(splits-1):
+for i in range(splits):
     r_train_idx, l_train_idx = r_trials[int(i/splits*numr):int((i+1)/splits * numr)], l_trials[int(i/splits*numl):int((i+1)/splits * numl)] #Take a portion of the trials for train
     rtest = [n for n in range(numr) if n not in range(int(i/splits*numr), int((i+1)/splits * numr))]
     ltest = [n for n in range(numl) if n not in range(int(i/splits*numl), int((i+1)/splits * numl))]
@@ -858,13 +858,32 @@ for i in range(splits-1):
     l1 = Mode(path, use_reg = True, triple=True, 
               baseline_normalization="median_zscore",
               train_test_trials = [train_test_trials, train_test_trials_err])
-    orthonormal_basis_initial_choice, mean = l1.plot_CD(mode_input = 'choice')
+    if i ==0:
+        maxval = max(orthonormal_basis_initial)
+        maxn = np.where(orthonormal_basis_initial == maxval)[0][0]
+    orthonormal_basis_initial_choice, mean = l1.plot_CD(mode_input = 'choice', ctl=True)
     all_weights_learn += [orthonormal_basis_initial_choice]
-
-
-
-
-#%% learning sess
+all_weights_learn = np.array(all_weights_learn)
+#%% Plot correlation heatmap
+df = pd.DataFrame(all_weights_learn.T)
+corrs = df.corr()
+plt.imshow(np.abs(corrs), vmin=0, vmax=0.7)
+plt.colorbar()
+plt.title('Correlation between CD_choice weights')
+#%% Plot dotproduct heatmap
+alldotslearn = np.eye(splits)
+for i in range(splits):
+    for j in range(splits):
+        if i==j:
+            continue
+        alldotslearn[i,j] = np.dot(all_weights_learn[i], all_weights_learn[j])
+                
+f = plt.figure(figsize=(5,5))
+plt.imshow(np.abs(alldotslearn), vmin=0, vmax=1, cmap='afmhot')
+plt.colorbar()
+plt.title('Learning: Dot product between CD_choice weights')
+plt.savefig(r'H:\Fig 5\learningCD_dot_product.pdf')
+#%% Expert sess 10-fold run
 path = expertpath
 l1 = Mode(path, use_reg = True, triple=True)
 numr = sum([l1.R_correct[i] for i in l1.i_good_non_stim_trials if not l1.early_lick[i]])
@@ -878,7 +897,7 @@ l_trials_err = np.random.permutation(numl_err)
 
 splits = 10
 all_weights = []
-for i in range(splits-1):
+for i in range(splits):
     r_train_idx, l_train_idx = r_trials[int(i/splits*numr):int((i+1)/splits * numr)], l_trials[int(i/splits*numl):int((i+1)/splits * numl)] #Take a portion of the trials for train
     rtest = [n for n in range(numr) if n not in range(int(i/splits*numr), int((i+1)/splits * numr))]
     ltest = [n for n in range(numl) if n not in range(int(i/splits*numl), int((i+1)/splits * numl))]
@@ -895,10 +914,30 @@ for i in range(splits-1):
     l1 = Mode(path, use_reg = True, triple=True, 
               baseline_normalization="median_zscore",
               train_test_trials = [train_test_trials, train_test_trials_err])
-    orthonormal_basis_initial_choice, mean = l1.plot_CD(mode_input = 'choice')
+    orthonormal_basis_initial_choice, mean = l1.plot_CD(mode_input = 'choice', ctl=True)
     all_weights += [orthonormal_basis_initial_choice]
-    
-#%% Pairwise dot products
+all_weights = np.array(all_weights)
+#%% Plot correlation heatmap
+df = pd.DataFrame(all_weights.T)
+corrs = df.corr()
+plt.imshow(np.abs(corrs), vmin=0, vmax=0.7)
+plt.colorbar()
+plt.title('Correlation between CD_choice weights')
+#%% Plot dotproduct heatmap
+alldotslearn = np.eye(splits)
+for i in range(splits):
+    for j in range(splits):
+        if i==j:
+            continue
+        alldotslearn[i,j] = np.dot(all_weights[i], all_weights[j])
+                
+f = plt.figure(figsize=(5,5))
+plt.imshow(np.abs(alldotslearn), vmin=0, vmax=1, cmap='afmhot')
+plt.colorbar()
+plt.title('Expert: Dot product between CD_choice weights')
+# plt.savefig(r'H:\Fig 5\expertCD_dot_product.pdf')
+
+#%% Pairwise dot products between learning and expert
 alldotslearn, alldotsexp = [], []
 for i in range(splits-2):
     for j in range(i+1, splits-1):
