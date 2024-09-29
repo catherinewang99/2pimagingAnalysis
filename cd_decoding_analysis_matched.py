@@ -139,18 +139,18 @@ for i in range(3):
     mode_input = modes[i]
     allaccs = []
     counter = 1
-    # if i != 0:
-    #     continue
+    if i == 0:
+        continue
     for paths in all_matched_paths:
         
-        l1 = Mode(paths[0], use_reg=True, triple=True) #Learning
-        orthonormal_basis, mean, db, acc_expert = l1.decision_boundary(mode_input=mode_input, persistence=pers)
+        l1 = Mode(paths[1], use_reg=True, triple=True) #Learning
+        orthonormal_basis, mean, db, acc_learning = l1.decision_boundary(mode_input=mode_input, persistence=pers)
     
         
-        l1 = Mode(paths[1], use_reg=True, triple=True) #Expert
-        acc_learning= l1.decision_boundary_appliedCD(mode_input, orthonormal_basis, mean, db, persistence=pers)
+        l1 = Mode(paths[2], use_reg=True, triple=True) #Expert
+        acc_expert = l1.decision_boundary_appliedCD(mode_input, orthonormal_basis, mean, db, persistence=pers)
     
-        l1 = Mode(paths[2], use_reg=True, triple=True) # Naive
+        l1 = Mode(paths[0], use_reg=True, triple=True) # Naive
         acc_naive = l1.decision_boundary_appliedCD(mode_input, orthonormal_basis, mean, db, persistence=pers)
         
         nai = np.mean(acc_naive)
@@ -175,17 +175,18 @@ for i in range(3):
     for i in range(len(allaccs)): # For each FOV
         plt.plot([0, 1], [allaccs[i,0], allaccs[i,1]], color='lightgrey')
         plt.plot([1, 2], [allaccs[i,1], allaccs[i,2]], color='lightgrey')
+    for i in range(len(allaccs)): # For each FOV
         plt.scatter([0,1,2], allaccs[i], facecolors='white', edgecolors='black')
 
     plt.xticks([0,1,2], ['Naive', 'Learning', 'Expert'])
     plt.ylim(bottom=0.4, top =1)
     plt.axhline(0.5, ls='--', color='black')
     plt.title(mode_input)
-    plt.savefig(r'F:\data\Fig 2\CD_{}_allAGG_decoding_naivectl_NLE.pdf'.format(mode_input))
+    plt.savefig(r'F:\data\Fig 2\CD_{}_allAGG_decoding_learningctl_NLE.pdf'.format(mode_input))
     plt.show()
     
-    stats.ttest_ind(np.array(allaccs)[:, 0], np.array(allaccs)[:, 1])
-    stats.ttest_ind(np.array(allaccs)[:, 2], np.array(allaccs)[:, 1])
+    print(stats.ttest_ind(np.array(allaccs)[:, 0], np.array(allaccs)[:, 1]))
+    print(stats.ttest_ind(np.array(allaccs)[:, 2], np.array(allaccs)[:, 1]))
 
 #%% Decoding analysis applied across training stages for choice CW37
 paths =[r'F:\data\BAYLORCW037\python\2023_11_21',

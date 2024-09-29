@@ -99,6 +99,10 @@ naivepath, learningpath, expertpath = [r'H:\data\BAYLORCW044\python\2024_05_23',
                    r'H:\data\BAYLORCW044\python\2024_06_04',
                   r'H:\data\BAYLORCW044\python\2024_06_18',]
 
+naivepath, learningpath, expertpath = [r'H:\data\BAYLORCW044\python\2024_05_22',
+                   r'H:\data\BAYLORCW044\python\2024_06_06',
+                  r'H:\data\BAYLORCW044\python\2024_06_19',]
+
 # naivepath, learningpath, expertpath = [r'H:\data\BAYLORCW046\python\2024_05_31',
 #                     r'H:\data\BAYLORCW046\python\2024_06_11',
 #                   r'H:\data\BAYLORCW046\python\2024_06_26']
@@ -112,25 +116,72 @@ path = learningpath
 s2 = Mode(path, use_reg = True, triple=True)
 orthonormal_basis_learning, mean = s2.plot_CD(ctl=True)
 
+# CD_final - CD_average; get: CD_final, CDaverage - CDfinal
 exp_lea_stack = np.vstack((orthonormal_basis, orthonormal_basis_learning))
 # orthog_exp_lea = s2.Gram_Schmidt_process(exp_lea_stack.T)
-# Q, R = np.linalg.qr(exp_lea_stack.T, mode='complete')
-# exp_CD = Q[0]
-# lea_CD = Q[1]
-exp_CD, lea_CD = gs(exp_lea_stack)
+Q, R = np.linalg.qr(exp_lea_stack.T, mode='complete')
+exp_CD = Q[0]
+lea_CD = Q[1]
+# exp_CD, lea_CD = gs(exp_lea_stack)
 
 # Project onto data:
     
-# CDavg on expert
+# CDfinal on expert
 s1.plot_appliedCD(exp_CD, mean_exp)
+# CDavg on expert
+s1.plot_appliedCD(orthonormal_basis_learning, mean)
 # CDleftover on expert
 s1.plot_appliedCD(lea_CD, mean_exp)
 
+# CDfinal on learning
+s2.plot_appliedCD(exp_CD, mean_exp)
 # CDavg on learning
-s2.plot_appliedCD(exp_CD, mean)
+s2.plot_appliedCD(orthonormal_basis_learning, mean)
 # CDleftover on expert
 s2.plot_appliedCD(lea_CD, mean)
 
+# CD_average - CD_final; get: CD_average, CDfinal - CDaverage
+lea_exp_stack = np.vstack((orthonormal_basis_learning, orthonormal_basis))
+# lea_CD, exp_CD = gs(lea_exp_stack)
+Q, R = np.linalg.qr(lea_exp_stack.T, mode='complete')
+lea_CD = Q[0]
+exp_CD = Q[1]
+# Project onto data:
+    
+# CDfinal on expert
+s1.plot_appliedCD(exp_CD, mean_exp)
+# CDavg on expert
+s1.plot_appliedCD(orthonormal_basis_learning, mean)
+# CDleftover on expert
+s1.plot_appliedCD(lea_CD, mean_exp)
+
+# CDfinal on learning
+s2.plot_appliedCD(exp_CD, mean_exp)
+# CDavg on learning
+s2.plot_appliedCD(orthonormal_basis_learning, mean)
+# CDleftover on learning
+s2.plot_appliedCD(lea_CD, mean)
+
+
+#%% Look at if the extra dimension in learning is less robust in opto trials
+
+
+# CD_final - CD_average; get: CD_final, CDaverage - CDfinal
+exp_lea_stack = np.vstack((orthonormal_basis, orthonormal_basis_learning))
+# orthog_exp_lea = s2.Gram_Schmidt_process(exp_lea_stack.T)
+Q, R = np.linalg.qr(exp_lea_stack.T, mode='complete')
+exp_CD = Q[0]
+lea_CD = Q[1]
+# exp_CD, lea_CD = gs(exp_lea_stack)
+
+# Project onto data:
+    
+# CDfinal on expert
+s1.plot_CD_opto_applied(exp_CD, mean_exp)
+# CDavg on expert
+s1.plot_CD_opto_applied(orthonormal_basis_learning, mean)
+# CDleftover on expert
+s1.plot_CD_opto_applied(lea_CD, mean_exp)
     
 
 

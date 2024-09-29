@@ -84,9 +84,9 @@ naivepath, learningpath, expertpath = [r'H:\data\BAYLORCW044\python\2024_05_23',
                    r'H:\data\BAYLORCW044\python\2024_06_04',
                   r'H:\data\BAYLORCW044\python\2024_06_18',]
 
-# naivepath, learningpath, expertpath = [r'H:\data\BAYLORCW046\python\2024_05_31',
-#                     r'H:\data\BAYLORCW046\python\2024_06_11',
-#                   r'H:\data\BAYLORCW046\python\2024_06_26',]
+naivepath, learningpath, expertpath = [r'H:\data\BAYLORCW046\python\2024_05_31',
+                    r'H:\data\BAYLORCW046\python\2024_06_11',
+                  r'H:\data\BAYLORCW046\python\2024_06_26',]
 
 
 # naivepath, learningpath, expertpath = [r'H:\data\BAYLORCW046\python\2024_05_31',
@@ -828,6 +828,9 @@ if save:
     
 
 #%% Run over the 10 different possible splits for train set size
+naivepath, learningpath, expertpath = [r'H:\data\BAYLORCW044\python\2024_05_22',
+                   r'H:\data\BAYLORCW044\python\2024_06_06',
+                  r'H:\data\BAYLORCW044\python\2024_06_19',]
 path = learningpath
 l1 = Mode(path, use_reg = True, triple=True)
 numr = sum([l1.R_correct[i] for i in l1.i_good_non_stim_trials if not l1.early_lick[i]])
@@ -858,9 +861,7 @@ for i in range(splits):
     l1 = Mode(path, use_reg = True, triple=True, 
               baseline_normalization="median_zscore",
               train_test_trials = [train_test_trials, train_test_trials_err])
-    if i ==0:
-        maxval = max(orthonormal_basis_initial)
-        maxn = np.where(orthonormal_basis_initial == maxval)[0][0]
+
     orthonormal_basis_initial_choice, mean = l1.plot_CD(mode_input = 'choice', ctl=True)
     all_weights_learn += [orthonormal_basis_initial_choice]
 all_weights_learn = np.array(all_weights_learn)
@@ -882,7 +883,7 @@ f = plt.figure(figsize=(5,5))
 plt.imshow(np.abs(alldotslearn), vmin=0, vmax=1, cmap='afmhot')
 plt.colorbar()
 plt.title('Learning: Dot product between CD_choice weights')
-plt.savefig(r'H:\Fig 5\learningCD_dot_product.pdf')
+# plt.savefig(r'H:\Fig 5\learningCD_dot_product.pdf')
 #%% Expert sess 10-fold run
 path = expertpath
 l1 = Mode(path, use_reg = True, triple=True)
