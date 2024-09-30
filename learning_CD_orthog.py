@@ -66,7 +66,54 @@ def gs(X, row_vecs=True, norm = True):
     
     
 #%% PATHS
+all_matched_paths = [
+    
+            [r'F:\data\BAYLORCW032\python\2023_10_05',
+              r'F:\data\BAYLORCW032\python\2023_10_19',
+              r'F:\data\BAYLORCW032\python\2023_10_24',
+          ],
+         
+            [ r'F:\data\BAYLORCW034\python\2023_10_12',
+                r'F:\data\BAYLORCW034\python\2023_10_22',
+                r'F:\data\BAYLORCW034\python\2023_10_27',],
+         
+            [r'F:\data\BAYLORCW036\python\2023_10_09',
+            r'F:\data\BAYLORCW036\python\2023_10_19',
+            r'F:\data\BAYLORCW036\python\2023_10_30',
+           ],
+         
+         [r'F:\data\BAYLORCW037\python\2023_11_21',
+            r'F:\data\BAYLORCW037\python\2023_12_08',
+            r'F:\data\BAYLORCW037\python\2023_12_15',],
+         
+         [r'F:\data\BAYLORCW035\python\2023_10_26',
+            r'F:\data\BAYLORCW035\python\2023_12_07',
+            r'F:\data\BAYLORCW035\python\2023_12_15',],
+         
+         [r'H:\data\BAYLORCW044\python\2024_05_22',
+          r'H:\data\BAYLORCW044\python\2024_06_06',
+        r'H:\data\BAYLORCW044\python\2024_06_19'],
 
+         
+            [r'H:\data\BAYLORCW044\python\2024_05_23',
+             r'H:\data\BAYLORCW044\python\2024_06_04',
+        r'H:\data\BAYLORCW044\python\2024_06_18'],
+
+            [r'H:\data\BAYLORCW046\python\2024_05_29',
+             r'H:\data\BAYLORCW046\python\2024_06_24',
+             r'H:\data\BAYLORCW046\python\2024_06_28'],
+
+
+            [r'H:\data\BAYLORCW046\python\2024_05_30',
+             r'H:\data\BAYLORCW046\python\2024_06_10',
+             r'H:\data\BAYLORCW046\python\2024_06_27'],
+
+            [r'H:\data\BAYLORCW046\python\2024_05_31',
+             r'H:\data\BAYLORCW046\python\2024_06_11',
+             r'H:\data\BAYLORCW046\python\2024_06_26'
+             ]
+         
+        ]
 paths = [[r'F:\data\BAYLORCW032\python\2023_10_08',
           r'F:\data\BAYLORCW032\python\2023_10_16',
           r'F:\data\BAYLORCW032\python\2023_10_25',
@@ -91,17 +138,17 @@ naivepath, learningpath, expertpath = [ r'F:\data\BAYLORCW034\python\2023_10_12'
     r'F:\data\BAYLORCW034\python\2023_10_22',
     r'F:\data\BAYLORCW034\python\2023_10_27',]
 
-naivepath, learningpath, expertpath =[r'F:\data\BAYLORCW036\python\2023_10_09',
-            r'F:\data\BAYLORCW036\python\2023_10_19',
-            r'F:\data\BAYLORCW036\python\2023_10_30',]
+# naivepath, learningpath, expertpath =[r'F:\data\BAYLORCW036\python\2023_10_09',
+#             r'F:\data\BAYLORCW036\python\2023_10_19',
+#             r'F:\data\BAYLORCW036\python\2023_10_30',]
 
-naivepath, learningpath, expertpath = [r'H:\data\BAYLORCW044\python\2024_05_23',
-                   r'H:\data\BAYLORCW044\python\2024_06_04',
-                  r'H:\data\BAYLORCW044\python\2024_06_18',]
+# naivepath, learningpath, expertpath = [r'H:\data\BAYLORCW044\python\2024_05_23',
+#                    r'H:\data\BAYLORCW044\python\2024_06_04',
+#                   r'H:\data\BAYLORCW044\python\2024_06_18',]
 
-naivepath, learningpath, expertpath = [r'H:\data\BAYLORCW044\python\2024_05_22',
-                   r'H:\data\BAYLORCW044\python\2024_06_06',
-                  r'H:\data\BAYLORCW044\python\2024_06_19',]
+# naivepath, learningpath, expertpath = [r'H:\data\BAYLORCW044\python\2024_05_22',
+#                    r'H:\data\BAYLORCW044\python\2024_06_06',
+#                   r'H:\data\BAYLORCW044\python\2024_06_19',]
 
 # naivepath, learningpath, expertpath = [r'H:\data\BAYLORCW046\python\2024_05_31',
 #                     r'H:\data\BAYLORCW046\python\2024_06_11',
@@ -148,41 +195,74 @@ lea_CD, exp_CD = gs(lea_exp_stack)
 # exp_CD = Q[1]
 # Project onto data:
     
-# CDfinal on expert
+# CDfinal - CDaverage on expert
 s1.plot_appliedCD(exp_CD, mean_exp)
 # CDavg on expert
 s1.plot_appliedCD(orthonormal_basis_learning, mean)
-# CDleftover on expert
+# CDavg on expert
 s1.plot_appliedCD(lea_CD, mean_exp)
 
-# CDfinal on learning
+# CDfinal - CDaverage on learning
 s2.plot_appliedCD(exp_CD, mean_exp)
 # CDavg on learning
 s2.plot_appliedCD(orthonormal_basis_learning, mean)
-# CDleftover on learning
+# CDavg on learning
 s2.plot_appliedCD(lea_CD, mean)
 
 #%% Look at decoding accuracy 
 mode_input = 'choice'
 pers=False
-path = expertpath
-s1 = Mode(path, use_reg = True, triple=True)
-orthonormal_basis, mean_exp = s1.plot_CD(ctl=True)
+f = plt.figure()
+accs_expert = []
+accs_learning = []
 
-path = learningpath
-s2 = Mode(path, use_reg = True, triple=True)
-orthonormal_basis_learning, mean = s2.plot_CD(ctl=True)
+for paths in all_matched_paths:
+    s1 = Mode(paths[2], use_reg = True, triple=True)
+    orthonormal_basis, mean_exp = s1.plot_CD(ctl=True, plot=False)
+    
+    s2 = Mode(paths[1], use_reg = True, triple=True)
+    orthonormal_basis_learning, mean = s2.plot_CD(ctl=True, plot=False)
+    
+    # CD_final - CD_average; get: CD_final, CDaverage - CDfinal
+    exp_lea_stack = np.vstack((orthonormal_basis, orthonormal_basis_learning))
+    exp_CD, lea_CD = gs(exp_lea_stack)
+    
+    ### Get decoding accuracies ###
+    
+    orthonormal_basis, mean_exp, db, acc_final = s1.decision_boundary(mode_input=mode_input, persistence=pers, ctl=True)
+    acc_average = s1.decision_boundary_appliedCD(mode_input, orthonormal_basis_learning, mean_exp, db, persistence=pers)
+    acc_leftover = s1.decision_boundary_appliedCD(mode_input, lea_CD, mean_exp, db, persistence=pers)
+    
+    acc_final = np.mean(acc_final)
+    acc_final = acc_final if acc_final > 0.5 else 1-acc_final
+    acc_average = np.mean(acc_average)
+    acc_average = acc_average if acc_average > 0.5 else 1-acc_average
+    acc_leftover = np.mean(acc_leftover)
+    acc_leftover = acc_leftover if acc_leftover > 0.5 else 1-acc_leftover
+    accs_expert += [[acc_final, acc_average, acc_leftover]]
+    plt.scatter(np.arange(3)+0.2, [acc_final, acc_average, acc_leftover])
+    
+    
+    _, mean, db, acc_average = s2.decision_boundary(mode_input=mode_input, persistence=pers, ctl=True)
+    acc_final = s2.decision_boundary_appliedCD(mode_input, orthonormal_basis, mean_exp, db, persistence=pers)
+    acc_leftover = s2.decision_boundary_appliedCD(mode_input, lea_CD, mean, db, persistence=pers)
+    
+    acc_final = np.mean(acc_final)
+    acc_final = acc_final if acc_final > 0.5 else 1-acc_final
+    acc_average = np.mean(acc_average)
+    acc_average = acc_average if acc_average > 0.5 else 1-acc_average
+    acc_leftover = np.mean(acc_leftover)
+    acc_leftover = acc_leftover if acc_leftover > 0.5 else 1-acc_leftover
+    accs_learning += [[acc_final, acc_average, acc_leftover]]
 
-# CD_final - CD_average; get: CD_final, CDaverage - CDfinal
-exp_lea_stack = np.vstack((orthonormal_basis, orthonormal_basis_learning))
-exp_CD, lea_CD = gs(exp_lea_stack)
-
-orthonormal_basis, mean, db, acc_final = s1.decision_boundary(mode_input=mode_input, persistence=pers)
-acc_average = s1.decision_boundary_appliedCD(mode_input, orthonormal_basis_learning, mean, db, persistence=pers)
-acc_leftover = s1.decision_boundary_appliedCD(mode_input, lea_CD, mean, db, persistence=pers)
-
-plt.bar([0,1,2], [np.mean(acc_final), np.mean(acc_average), np.mean(acc_leftover)])
+    plt.scatter(np.arange(3)-0.2, [acc_final, acc_average, acc_leftover])
+    
+    
+plt.bar(np.arange(3)-0.2, np.mean(accs_learning, axis=0), 0.4, label='Learning')
+plt.bar(np.arange(3)+0.2, np.mean(accs_expert, axis=0), 0.4, label='Expert')
 plt.xticks([0,1,2], ['CD_expert', 'CD_average', 'CD_average-CD_expert'])
+plt.axhline(0.5, ls='--', color='grey')
+plt.legend()
 
 #%% Look at if the extra dimension in learning is less robust in opto trials
 
@@ -194,7 +274,7 @@ exp_CD, lea_CD = gs(exp_lea_stack)
 # Project onto data:
 # Expert: 
 # CDfinal on expert
-orthonormal_basis, mean, meantrain, meanstd = s1.plot_CD_opto(return_traces = False, return_applied=True)
+orthonormal_basis, mean, meantrain, meanstd = s1.plot_CD_opto(return_traces = False, return_applied=True, ctl=True)
 # CDavg on expert
 s1.plot_CD_opto_applied(orthonormal_basis_learning, mean, meantrain, meanstd)
 # CDleftover on expert
@@ -202,7 +282,7 @@ s1.plot_CD_opto_applied(lea_CD, mean, meantrain, meanstd)
     
 # Learning: 
 # CDavg on learning
-_, mean, meantrain, meanstd = s2.plot_CD_opto(return_traces = False, return_applied=True)
+orthonormal_basis_learning, mean, meantrain, meanstd = s2.plot_CD_opto(return_traces = False, return_applied=True, ctl=True)
 # CDexp on learning
 s2.plot_CD_opto_applied(exp_CD, mean, meantrain, meanstd)
 # CDleftover on learning
@@ -211,3 +291,7 @@ s2.plot_CD_opto_applied(lea_CD, mean, meantrain, meanstd)
 lea_exp_stack = np.vstack((orthonormal_basis_learning, orthonormal_basis))
 lea_CD, exp_CD = gs(lea_exp_stack)
 s2.plot_CD_opto_applied(exp_CD, mean, meantrain, meanstd)
+
+#%% Look at decoding accuracy on opto trials for different CDs
+
+
