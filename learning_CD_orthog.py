@@ -119,10 +119,10 @@ orthonormal_basis_learning, mean = s2.plot_CD(ctl=True)
 # CD_final - CD_average; get: CD_final, CDaverage - CDfinal
 exp_lea_stack = np.vstack((orthonormal_basis, orthonormal_basis_learning))
 # orthog_exp_lea = s2.Gram_Schmidt_process(exp_lea_stack.T)
-Q, R = np.linalg.qr(exp_lea_stack.T, mode='complete')
-exp_CD = Q[0]
-lea_CD = Q[1]
-# exp_CD, lea_CD = gs(exp_lea_stack)
+# Q, R = np.linalg.qr(exp_lea_stack.T, mode='complete')
+# exp_CD = Q[0]
+# lea_CD = Q[1]
+exp_CD, lea_CD = gs(exp_lea_stack)
 
 # Project onto data:
     
@@ -142,10 +142,10 @@ s2.plot_appliedCD(lea_CD, mean)
 
 # CD_average - CD_final; get: CD_average, CDfinal - CDaverage
 lea_exp_stack = np.vstack((orthonormal_basis_learning, orthonormal_basis))
-# lea_CD, exp_CD = gs(lea_exp_stack)
-Q, R = np.linalg.qr(lea_exp_stack.T, mode='complete')
-lea_CD = Q[0]
-exp_CD = Q[1]
+lea_CD, exp_CD = gs(lea_exp_stack)
+# Q, R = np.linalg.qr(lea_exp_stack.T, mode='complete')
+# lea_CD = Q[0]
+# exp_CD = Q[1]
 # Project onto data:
     
 # CDfinal on expert
@@ -162,26 +162,52 @@ s2.plot_appliedCD(orthonormal_basis_learning, mean)
 # CDleftover on learning
 s2.plot_appliedCD(lea_CD, mean)
 
+#%% Look at decoding accuracy 
+mode_input = 'choice'
+pers=False
+path = expertpath
+s1 = Mode(path, use_reg = True, triple=True)
+orthonormal_basis, mean_exp = s1.plot_CD(ctl=True)
+
+path = learningpath
+s2 = Mode(path, use_reg = True, triple=True)
+orthonormal_basis_learning, mean = s2.plot_CD(ctl=True)
+
+# CD_final - CD_average; get: CD_final, CDaverage - CDfinal
+exp_lea_stack = np.vstack((orthonormal_basis, orthonormal_basis_learning))
+exp_CD, lea_CD = gs(exp_lea_stack)
+
+orthonormal_basis, mean, db, acc_final = s1.decision_boundary(mode_input=mode_input, persistence=pers)
+acc_average = s1.decision_boundary_appliedCD(mode_input, orthonormal_basis_learning, mean, db, persistence=pers)
+acc_leftover = s1.decision_boundary_appliedCD(mode_input, lea_CD, mean, db, persistence=pers)
+
+plt.bar([0,1,2], [np.mean(acc_final), np.mean(acc_average), np.mean(acc_leftover)])
+plt.xticks([0,1,2], ['CD_expert', 'CD_average', 'CD_average-CD_expert'])
 
 #%% Look at if the extra dimension in learning is less robust in opto trials
 
 
 # CD_final - CD_average; get: CD_final, CDaverage - CDfinal
 exp_lea_stack = np.vstack((orthonormal_basis, orthonormal_basis_learning))
-# orthog_exp_lea = s2.Gram_Schmidt_process(exp_lea_stack.T)
-Q, R = np.linalg.qr(exp_lea_stack.T, mode='complete')
-exp_CD = Q[0]
-lea_CD = Q[1]
-# exp_CD, lea_CD = gs(exp_lea_stack)
+exp_CD, lea_CD = gs(exp_lea_stack)
 
 # Project onto data:
-    
+# Expert: 
 # CDfinal on expert
-s1.plot_CD_opto_applied(exp_CD, mean_exp)
+orthonormal_basis, mean, meantrain, meanstd = s1.plot_CD_opto(return_traces = False, return_applied=True)
 # CDavg on expert
-s1.plot_CD_opto_applied(orthonormal_basis_learning, mean)
+s1.plot_CD_opto_applied(orthonormal_basis_learning, mean, meantrain, meanstd)
 # CDleftover on expert
-s1.plot_CD_opto_applied(lea_CD, mean_exp)
+s1.plot_CD_opto_applied(lea_CD, mean, meantrain, meanstd)
     
-
-
+# Learning: 
+# CDavg on learning
+_, mean, meantrain, meanstd = s2.plot_CD_opto(return_traces = False, return_applied=True)
+# CDexp on learning
+s2.plot_CD_opto_applied(exp_CD, mean, meantrain, meanstd)
+# CDleftover on learning
+s2.plot_CD_opto_applied(lea_CD, mean, meantrain, meanstd)
+# What about CD_final-CDaverage?
+lea_exp_stack = np.vstack((orthonormal_basis_learning, orthonormal_basis))
+lea_CD, exp_CD = gs(lea_exp_stack)
+s2.plot_CD_opto_applied(exp_CD, mean, meantrain, meanstd)

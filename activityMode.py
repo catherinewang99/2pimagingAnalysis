@@ -1841,8 +1841,11 @@ class Mode(Session):
 
         if save is not None:
             plt.savefig(save)
-            
         plt.show()
+
+        if return_applied:
+            return orthonormal_basis, np.mean(activityRL_train, axis=1)[:, None], meantrain, meanstd
+
         # axs[0, 0].set_ylabel('Activity proj.')
         # axs[3, 0].set_xlabel('Time')
     def plot_CD_opto_applied(self, orthonormal_basis, mean, meantrain, meanstd, save=None, return_traces = False, normalize=True):
