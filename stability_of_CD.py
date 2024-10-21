@@ -956,6 +956,54 @@ plt.xticks([0,1], ['Learning', 'Expert'])
 # f = plt.figure(figsize=(5,5))
 # plt.bar([0,1], [np.mean(np.var(all_weights_learn, axis=0)), np.mean(np.var(all_weights, axis=0))])
     
+
+#%% Run over n=10,15,20 sequential train test sets for learning sess
+naivepath, learningpath, expertpath = [r'H:\data\BAYLORCW044\python\2024_05_22',
+                   r'H:\data\BAYLORCW044\python\2024_06_06',
+                  r'H:\data\BAYLORCW044\python\2024_06_19',]
+path = learningpath
+l1 = Mode(path, use_reg = True, triple=True)
+numr = sum([l1.R_correct[i] for i in l1.i_good_non_stim_trials if not l1.early_lick[i]])
+numl = sum([l1.L_correct[i] for i in l1.i_good_non_stim_trials if not l1.early_lick[i]])
+r_trials = np.arange(numr) # shuffle the indices
+l_trials = np.arange(numl)
+numr_err = sum([l1.R_wrong[i] for i in l1.i_good_non_stim_trials if not l1.early_lick[i]])
+numl_err = sum([l1.L_wrong[i] for i in l1.i_good_non_stim_trials if not l1.early_lick[i]])
+r_trials_err = np.arange(numr_err) # shuffle the indices
+l_trials_err = np.arange(numl_err)
+
+splits = 20
+all_weights_learn = []
+for i in range(splits):
+    r_train_idx, l_train_idx = r_trials[int(i/splits*numr):int((i+1)/splits * numr)], l_trials[int(i/splits*numl):int((i+1)/splits * numl)] #Take a portion of the trials for train
+    rtest = [n for n in range(numr) if n not in range(int(i/splits*numr), int((i+1)/splits * numr))]
+    ltest = [n for n in range(numl) if n not in range(int(i/splits*numl), int((i+1)/splits * numl))]
+    r_test_idx, l_test_idx = r_trials[rtest], l_trials[ltest]
+    
+    r_train_err_idx, l_train_err_idx = r_trials_err[int(i/splits*numr_err):int((i+1)/splits * numr_err)], l_trials_err[int(i/splits*numl_err):int((i+1)/splits * numl_err)]
+    rtest = [n for n in range(numr_err) if n not in range(int(i/splits*numr_err), int((i+1)/splits * numr_err))]
+    ltest = [n for n in range(numl_err) if n not in range(int(i/splits*numl_err), int((i+1)/splits * numl_err))]
+    r_test_err_idx, l_test_err_idx = r_trials_err[rtest], l_trials_err[ltest]
+
+    train_test_trials = (r_train_idx, l_train_idx, r_test_idx, l_test_idx)
+    train_test_trials_err = (r_train_err_idx, l_train_err_idx, r_test_err_idx, l_test_err_idx)
+        
+    l1 = Mode(path, use_reg = True, triple=True, 
+              baseline_normalization="median_zscore",
+              train_test_trials = [train_test_trials, train_test_trials_err])
+
+    orthonormal_basis_initial_choice, mean = l1.plot_CD(mode_input = 'choice', ctl=True)
+    all_weights_learn += [orthonormal_basis_initial_choice]
+all_weights_learn = np.array(all_weights_learn)
+# Plot correlation heatmap
+df = pd.DataFrame(all_weights_learn.T)
+corrs = df.corr()
+plt.imshow(np.abs(corrs), vmin=0, vmax=1)
+plt.colorbar()
+plt.title('Correlation between CD_choice weights')
+
+
+
 #%% Stability represented by a few example neurons over few example trials
 naivepath, learningpath, expertpath = [r'H:\data\BAYLORCW046\python\2024_05_31',
                     r'H:\data\BAYLORCW046\python\2024_06_11',

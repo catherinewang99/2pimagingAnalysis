@@ -93,6 +93,7 @@ class Mode(Session):
         ### SORT CONTROL TRIALS:
         # First method: in house
         if len(train_test_trials) == 0:
+                
             print("in house train test sorting")
             numr = sum([self.R_correct[i] for i in self.i_good_non_stim_trials if not self.early_lick[i]])
             numl = sum([self.L_correct[i] for i in self.i_good_non_stim_trials if not self.early_lick[i]])
@@ -111,7 +112,10 @@ class Mode(Session):
             self.r_train_err_idx, self.l_train_err_idx = r_trials[:int(numr*self.proportion_train)], l_trials[:int(numl*self.proportion_train)]
             self.r_test_err_idx, self.l_test_err_idx = r_trials[int(numr*self.proportion_train):], l_trials[int(numl*self.proportion_train):]
           
-            
+            if proportion_train == 1:
+                self.r_test_idx, self.l_test_idx = self.r_train_idx, self.l_train_idx
+                self.r_test_err_idx, self.l_test_err_idx = self.r_train_err_idx, self.l_train_err_idx
+                
         # Second method: read in from outside
         else:
             self.r_train_idx, self.l_train_idx, self.r_test_idx, self.l_test_idx = train_test_trials[0]
@@ -3118,16 +3122,14 @@ class Mode(Session):
             activity = activity - np.tile(np.mean(activityRL_train, axis=1)[:, None], (1, activity.shape[1]))
             proj_allDim = np.dot(activity.T, orthonormal_basis)
             proj_allDim = (proj_allDim - meantrain) / meanstd
-            r_proj_delta += [right_control_traces[period] - proj_allDim[period]]
-            # plt.plot(x, proj_allDim[:len(self.T_cue_aligned_sel), i_pc], 'b', alpha = 0.5,  linewidth = 0.5)
+            r_proj_delta += [(right_control_traces[period] - proj_allDim[period]) / right_control_traces[period]]
             
         for l in l_trials:
             activity = self.dff[0, l][self.good_neurons]
             activity = activity - np.tile(np.mean(activityRL_train, axis=1)[:, None], (1, activity.shape[1]))
             proj_allDim = np.dot(activity.T, orthonormal_basis)
             proj_allDim = (proj_allDim - meantrain) / meanstd
-            l_proj_delta += [left_control_traces[period] - proj_allDim[period]]
-            # plt.plot(x, proj_allDim[:len(self.T_cue_aligned_sel), i_pc], 'r', alpha = 0.5, linewidth = 0.5)
+            l_proj_delta += [(left_control_traces[period] - proj_allDim[period]) / left_control_traces[period]]
             
         if return_trials:
             return r_trials, l_trials, r_proj_delta, l_proj_delta
