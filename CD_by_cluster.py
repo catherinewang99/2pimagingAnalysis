@@ -25,6 +25,7 @@ import stats
 from numpy.linalg import norm
 # from scipy.stats import norm
 from sklearn import preprocessing
+import joblib
 
 cat = np.concatenate
 plt.rcParams['pdf.fonttype'] = '42' 
@@ -152,4 +153,56 @@ allpaths = [[    r'F:\data\BAYLORCW032\python\2023_10_05',
             
             ]]
 
+naivepath, learningpath, expertpath = [r'H:\data\BAYLORCW044\python\2024_05_22',
+                    r'H:\data\BAYLORCW044\python\2024_06_06',
+                  r'H:\data\BAYLORCW044\python\2024_06_19',]
+
 #%% Run analysis
+lda = joblib.load(r'H:\data\BAYLORCW044\python\2024_06_19\full_model')
+expert_counts = pd.read_csv(r'H:\data\BAYLORCW044\python\2024_06_19\expert_counts')
+learning_counts = pd.read_csv(r'H:\data\BAYLORCW044\python\2024_06_06\learning_counts')
+ldaclusters_exp = lda.transform(expert_counts.filter(regex="^neuron"))
+ldaclusters = lda.transform(learning_counts.filter(regex="^neuron"))
+
+path = expertpath
+s1 = Mode(path, use_reg = True, triple=True)
+orthonormal_basis, mean_exp = s1.plot_CD(ctl=True)
+
+path = learningpath
+s2 = Mode(path, use_reg = True, triple=True)
+orthonormal_basis_learning, mean = s2.plot_CD(ctl=True)
+
+#%% Get different CDs from the clusters for learning session
+# A trial belongs to a CD if the probability > 1/num clusters
+cluster = 2 # focus on one cluster for now
+
+cluster_trials_all_idx = np.where(ldaclusters[:,cluster] > 1/ldaclusters.shape[1])[0]
+cluster_trials_all = s2.i_good_trials[cluster_trials_all_idx]
+
+all_r_idx = [i for i in s2.i_good_non_stim_trials if s2.R_correct[i] and ~s2.early_lick[i]]
+all_l_idx = [i for i in s2.i_good_non_stim_trials if s2.L_correct[i] and ~s2.early_lick[i]]
+
+r_train_idx = [r for r in range(len(all_r_idx)) if all_r_idx[r] in cluster_trials_all_idx]
+l_train_idx = [r for r in range(len(all_l_idx)) if all_l_idx[r] in cluster_trials_all_idx]
+# Get R and L correct
+# r_train_idx = [c for c in cluster_trials_all if s2.R_correct[c] and ~s2.early_lick[c] and ~s2.stim_ON[c]]
+# l_train_idx = [c for c in cluster_trials_all if s2.L_correct[c] and ~s2.early_lick[c] and ~s2.stim_ON[c]]
+r_test_idx = r_train_idx
+l_test_idx = l_train_idx
+
+all_r_idx = [i for i in s2.i_good_non_stim_trials if s2.R_wrong[i] and ~s2.early_lick[i]]
+all_l_idx = [i for i in s2.i_good_non_stim_trials if s2.L_wrong[i] and ~s2.early_lick[i]]
+r_train_err_idx = [r for r in range(len(all_r_idx)) if all_r_idx[r] in cluster_trials_all_idx]
+l_train_err_idx = [r for r in range(len(all_l_idx)) if all_l_idx[r] in cluster_trials_all_idx]
+# r_train_err_idx = [c for c in cluster_trials_all if s2.R_wrong[c] and ~s2.early_lick[c] and ~s2.stim_ON[c]]
+# l_train_err_idx = [c for c in cluster_trials_all if s2.L_wrong[c] and ~s2.early_lick[c] and ~s2.stim_ON[c]]
+r_test_err_idx = r_train_err_idx
+l_test_err_idx = l_train_err_idx
+
+train_test_trials = (r_train_idx, l_train_idx, r_test_idx, l_test_idx)
+train_test_trials_err = (r_train_err_idx, l_train_err_idx, r_test_err_idx, l_test_err_idx)
+
+s2 = Mode(learningpath, use_reg = True, triple=True, 
+          baseline_normalization="median_zscore",
+          train_test_trials = [train_test_trials, train_test_trials_err])
+orthonormal_basis_learning, mean = s2.plot_CD(ctl=True)
