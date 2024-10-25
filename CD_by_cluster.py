@@ -172,30 +172,30 @@ path = learningpath
 s2 = Mode(path, use_reg = True, triple=True)
 orthonormal_basis_learning, mean = s2.plot_CD(ctl=True)
 
-#%% Get different CDs from the clusters for learning session
+#%% Get different CDs from the clusters for learning session applied to expert
 # A trial belongs to a CD if the probability > 1/num clusters
-cluster = 2 # focus on one cluster for now
+cluster = 0 # focus on one cluster for now
 
 cluster_trials_all_idx = np.where(ldaclusters[:,cluster] > 1/ldaclusters.shape[1])[0]
 cluster_trials_all = s2.i_good_trials[cluster_trials_all_idx]
 
-all_r_idx = [i for i in s2.i_good_non_stim_trials if s2.R_correct[i] and ~s2.early_lick[i]]
-all_l_idx = [i for i in s2.i_good_non_stim_trials if s2.L_correct[i] and ~s2.early_lick[i]]
+all_r_idx = [i for i in s2.i_good_non_stim_trials if s2.R_correct[i] and not bool(s2.early_lick[i])]
+all_l_idx = [i for i in s2.i_good_non_stim_trials if s2.L_correct[i] and not bool(s2.early_lick[i])]
 
 r_train_idx = [r for r in range(len(all_r_idx)) if all_r_idx[r] in cluster_trials_all_idx]
 l_train_idx = [r for r in range(len(all_l_idx)) if all_l_idx[r] in cluster_trials_all_idx]
+
 # Get R and L correct
-# r_train_idx = [c for c in cluster_trials_all if s2.R_correct[c] and ~s2.early_lick[c] and ~s2.stim_ON[c]]
-# l_train_idx = [c for c in cluster_trials_all if s2.L_correct[c] and ~s2.early_lick[c] and ~s2.stim_ON[c]]
+
 r_test_idx = r_train_idx
 l_test_idx = l_train_idx
 
-all_r_idx = [i for i in s2.i_good_non_stim_trials if s2.R_wrong[i] and ~s2.early_lick[i]]
-all_l_idx = [i for i in s2.i_good_non_stim_trials if s2.L_wrong[i] and ~s2.early_lick[i]]
+all_r_idx = [i for i in s2.i_good_non_stim_trials if s2.R_wrong[i] and not bool(s2.early_lick[i])]
+all_l_idx = [i for i in s2.i_good_non_stim_trials if s2.L_wrong[i] and not bool(s2.early_lick[i])]
+
 r_train_err_idx = [r for r in range(len(all_r_idx)) if all_r_idx[r] in cluster_trials_all_idx]
 l_train_err_idx = [r for r in range(len(all_l_idx)) if all_l_idx[r] in cluster_trials_all_idx]
-# r_train_err_idx = [c for c in cluster_trials_all if s2.R_wrong[c] and ~s2.early_lick[c] and ~s2.stim_ON[c]]
-# l_train_err_idx = [c for c in cluster_trials_all if s2.L_wrong[c] and ~s2.early_lick[c] and ~s2.stim_ON[c]]
+
 r_test_err_idx = r_train_err_idx
 l_test_err_idx = l_train_err_idx
 
@@ -205,4 +205,12 @@ train_test_trials_err = (r_train_err_idx, l_train_err_idx, r_test_err_idx, l_tes
 s2 = Mode(learningpath, use_reg = True, triple=True, 
           baseline_normalization="median_zscore",
           train_test_trials = [train_test_trials, train_test_trials_err])
+
 orthonormal_basis_learning, mean = s2.plot_CD(ctl=True)
+s1.plot_appliedCD(orthonormal_basis_learning, mean)
+
+
+#%% look at cluster projections for opto trials
+_, mean_exp = s2.plot_CD(ctl=True)
+s1.plot_CD_opto(ctl=True)
+s1.plot_CD_opto_applied(ctl=True, orthonormal_basis_learning, mean, mean)
