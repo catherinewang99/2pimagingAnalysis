@@ -212,5 +212,5 @@ s1.plot_appliedCD(orthonormal_basis_learning, mean)
 
 #%% look at cluster projections for opto trials
 _, mean_exp = s2.plot_CD(ctl=True)
-s1.plot_CD_opto(ctl=True)
-s1.plot_CD_opto_applied(ctl=True, orthonormal_basis_learning, mean, mean)
+orthonormal_basis_learning, mean, meantrain, std = s1.plot_CD_opto(ctl=True, return_applied=True)
+s1.plot_CD_opto_applied(orthonormal_basis_learning, mean, meantrain, std)
