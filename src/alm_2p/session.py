@@ -215,6 +215,7 @@ class Session:
         
         self.time_cutoff = self.determine_cutoff()
         self.recording_loc = 'l'
+        self.data_type = 'imaging'
         # self.skew = layer['skew']
         
         # self.good_neurons = np.where(self.skew>=1)[1]
