@@ -15,7 +15,7 @@ sys.path.append("C:\scripts\Imaging analysis")
 import numpy as np
 import scipy.io as scio
 import matplotlib.pyplot as plt
-from session import Session
+from alm_2p.session import Session
 from matplotlib.pyplot import figure
 from numpy import concatenate as cat
 from sklearn.preprocessing import normalize
@@ -585,7 +585,7 @@ plt.legend()
 
 plt.show()
 
-#%% Number of selective neurons per layer in expert sessions
+#%% Number of selective neurons per layer in expert sessions MATCHED
 agg_mice_paths = [
         
         r'F:\data\BAYLORCW032\python\2023_10_24',
@@ -650,4 +650,112 @@ plt.show()
 
 
 
+
+
+#%% Number of selective neurons per layer in expert sessions MATCHED
+agg_mice_paths = [
+        
+        # r'F:\data\BAYLORCW032\python\2023_10_24',
+        # r'F:\data\BAYLORCW034\python\2023_10_27',
+        # r'F:\data\BAYLORCW036\python\2023_10_30',
+        # r'F:\data\BAYLORCW035\python\2023_12_15',
+        # r'F:\data\BAYLORCW037\python\2023_12_15',
+        
+        r'H:\data\BAYLORCW044\python\2024_06_18',
+        r'H:\data\BAYLORCW044\python\2024_06_19',
+        r'H:\data\BAYLORCW044\python\2024_06_20',
+
+        r'H:\data\BAYLORCW046\python\2024_06_26',
+        r'H:\data\BAYLORCW046\python\2024_06_27',
+        r'H:\data\BAYLORCW046\python\2024_06_28',
+
+        ]
+p = 0.05
+num_neurons = []
+num_sel_neurons = []
+all_props = []
+for path in agg_mice_paths: # Per FOV
+    per_layer = []
+    count = []
+    count_sel = []
+    layer_range = range(1,6) if 'W04' not in path else [1,2]
+    for i in layer_range:
+        l1 = Session(path, layer_num = i, baseline_normalization = "median_zscore")
+        allneurons = len(l1.good_neurons)
+        # _ = l1.get_epoch_selective(np.arange(15,61), p=p) # Use whole epoch from stim onset
+        _ = l1.get_epoch_selective(np.arange(l1.delay, l1.response), p=p) # Use delay epoch
+        
+        per_layer += [len(l1.selective_neurons) / allneurons]
+        count += [allneurons]
+        count_sel += [len(l1.selective_neurons)]
+        
+    all_props += [per_layer]
+    num_neurons += [count]
+    num_sel_neurons += [count_sel]
+   
+#%% Second batch
+
+plt.bar(range(2), np.mean(all_props, axis=0))
+for i in range(2):
+    plt.scatter(np.ones(6) * i, np.array(all_props)[:, i])
+for i in range(6):
+    plt.plot(range(2), all_props[i], color='grey', alpha =0.3)
+plt.xticks(range(2), [400, 450])
+plt.ylabel('Proportion of selective neurons')
+plt.xlabel('Depth (um below pia)')
+plt.show()
+
+
+plt.bar(range(2), np.mean(num_neurons, axis=0))
+for i in range(2):
+    plt.scatter(np.ones(6) * i, np.array(num_neurons)[:, i])
+for i in range(6):
+    plt.plot(range(2), num_neurons[i], color='grey', alpha =0.3)
+plt.xticks(range(2), [400, 450])
+plt.ylabel('Total neurons')
+plt.xlabel('Depth (um below pia)')
+plt.show()
+
+
+plt.bar(range(2), np.mean(num_sel_neurons, axis=0))
+for i in range(2):
+    plt.scatter(np.ones(6) * i, np.array(num_sel_neurons)[:, i])
+for i in range(6):
+    plt.plot(range(2), num_sel_neurons[i], color='grey', alpha =0.3)
+plt.xticks(range(2), [400, 450])
+plt.ylabel('Total selective neurons')
+plt.xlabel('Depth (um below pia)')
+plt.show()
+
+
+#%% First batch 
+plt.bar(range(5), np.mean(all_props, axis=0))
+for i in range(5):
+    plt.scatter(np.ones(5) * i, np.array(all_props)[:, i])
+    plt.plot(range(5), all_props[i], color='grey', alpha =0.3)
+plt.xticks(range(5), range(350,480,30))
+plt.ylabel('Proportion of selective neurons')
+plt.xlabel('Depth (um below pia)')
+plt.show()
+
+
+plt.bar(range(5), np.mean(num_neurons, axis=0))
+for i in range(5):
+    plt.scatter(np.ones(5) * i, np.array(num_neurons)[:, i])
+    plt.plot(range(5), num_neurons[i], color='grey', alpha =0.3)
+
+plt.xticks(range(5), range(350,480,30))
+plt.ylabel('Total neurons')
+plt.xlabel('Depth (um below pia)')
+plt.show()
+
+plt.bar(range(5), np.mean(num_sel_neurons, axis=0))
+for i in range(5):
+    plt.scatter(np.ones(5) * i, np.array(num_sel_neurons)[:, i])
+    plt.plot(range(5), num_sel_neurons[i], color='grey', alpha =0.3)
+
+plt.xticks(range(5), range(350,480,30))
+plt.ylabel('Total selective neurons')
+plt.xlabel('Depth (um below pia)')
+plt.show()
 
