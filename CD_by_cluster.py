@@ -24,8 +24,10 @@ from sklearn.decomposition import PCA
 import stats
 from numpy.linalg import norm
 # from scipy.stats import norm
+import pandas as pd
 from sklearn import preprocessing
 import joblib
+from sklearn.preprocessing import normalize
 
 cat = np.concatenate
 plt.rcParams['pdf.fonttype'] = '42' 
@@ -157,12 +159,26 @@ naivepath, learningpath, expertpath = [r'H:\data\BAYLORCW044\python\2024_05_22',
                     r'H:\data\BAYLORCW044\python\2024_06_06',
                   r'H:\data\BAYLORCW044\python\2024_06_19',]
 
+
+#%% Import LDA cluster info
+
+clusters = pd.read_pickle("/Users/catherinewang/Desktop/matched_topic_params/CW44_FOV1_table")
+trialparams = clusters.trial_params[0]
+num_clusters = len(trialparams.columns)
+idx = pd.IndexSlice
+
+learning = trialparams.loc[idx['learning', :]]
+learning_normalized = pd.DataFrame(normalize(learning, norm='l1'), columns=learning.columns)#, index=learning.index)
+
+expert = trialparams.loc[idx['expert', :]]
+expert_normalized = pd.DataFrame(normalize(expert, norm='l1'), columns=expert.columns)#, index=expert.index)
+
 #%% Run analysis
-lda = joblib.load(r'H:\data\BAYLORCW044\python\2024_06_19\full_model')
-expert_counts = pd.read_csv(r'H:\data\BAYLORCW044\python\2024_06_19\expert_counts')
-learning_counts = pd.read_csv(r'H:\data\BAYLORCW044\python\2024_06_06\learning_counts')
-ldaclusters_exp = lda.transform(expert_counts.filter(regex="^neuron"))
-ldaclusters = lda.transform(learning_counts.filter(regex="^neuron"))
+# lda = joblib.load(r'H:\data\BAYLORCW044\python\2024_06_19\full_model')
+# expert_counts = pd.read_csv(r'H:\data\BAYLORCW044\python\2024_06_19\expert_counts')
+# learning_counts = pd.read_csv(r'H:\data\BAYLORCW044\python\2024_06_06\learning_counts')
+# ldaclusters_exp = lda.transform(expert_counts.filter(regex="^neuron"))
+# ldaclusters = lda.transform(learning_counts.filter(regex="^neuron"))
 
 path = expertpath
 s1 = Mode(path, use_reg = True, triple=True)
@@ -176,9 +192,12 @@ orthonormal_basis_learning, mean = s2.plot_CD(ctl=True)
 # A trial belongs to a CD if the probability > 1/num clusters
 cluster = 4 # focus on one cluster for now
 learning_CDs = []
-for cluster in range(5):
-    cluster_trials_all_idx = np.where(ldaclusters[:,cluster] > 1/ldaclusters.shape[1])[0]
-    cluster_trials_all = s2.i_good_trials[cluster_trials_all_idx]
+for cluster in range(num_clusters):
+    # cluster_trials_all_idx = np.where(ldaclusters[:,cluster] > 1/ldaclusters.shape[1])[0]
+    # cluster_trials_all = s2.i_good_trials[cluster_trials_all_idx]
+    
+    cluster_trials_all_idx = learning_normalized.index[learning_normalized['topic_{}'.format(cluster)] > 0.25].to_numpy()
+
     
     all_r_idx = [i for i in s2.i_good_non_stim_trials if s2.R_correct[i] and not bool(s2.early_lick[i])]
     all_l_idx = [i for i in s2.i_good_non_stim_trials if s2.L_correct[i] and not bool(s2.early_lick[i])]
