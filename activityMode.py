@@ -976,7 +976,7 @@ class Mode(Session):
                 
         if auto_corr_return:
             
-            return proj_allDimR, proj_allDimL
+            return np.array(proj_allDimR), np.array(proj_allDimL)
             
         # Correct trials
         activityRL_test = activityRL_test - np.tile(np.mean(activityRL_train, axis=1)[:, None], (1, activityRL_test.shape[1]))  # remove mean
@@ -1739,7 +1739,9 @@ class Mode(Session):
 
 ## Modes with optogenetic inhibition
     
-    def plot_CD_opto(self, mode_input = 'choice', save=None, return_traces = False, return_applied = False, normalize=True, ctl=False):
+    def plot_CD_opto(self, mode_input = 'choice', save=None, return_traces = False, 
+                     return_applied = False, normalize=True, ctl=False,
+                     plot=True):
         '''
         Plots similar figure as Li et al 2016 Fig 3c to view the effect of
         photoinhibition on L/R CD traces
@@ -1793,7 +1795,7 @@ class Mode(Session):
             proj_allDim = (proj_allDim - meantrain) / meanstd
         
         control_traces = proj_allDim[:len(self.T_cue_aligned_sel)], proj_allDim[len(self.T_cue_aligned_sel):]
-        if not return_traces:
+        if not return_traces and plot:
             # Plot average control traces as dotted lines
             plt.plot(x, proj_allDim[:len(self.T_cue_aligned_sel)], 'b', ls = '--', linewidth = 0.5)
             plt.plot(x, proj_allDim[len(self.T_cue_aligned_sel):], 'r', ls = '--', linewidth = 0.5)
@@ -1849,22 +1851,23 @@ class Mode(Session):
             else:
 
                 return control_traces, opto_traces, error_bars
+        if plot:
         
-        plt.plot(x, proj_allDim[:len(self.T_cue_aligned_sel)], 'b', linewidth = 2)
-        plt.plot(x, proj_allDim[len(self.T_cue_aligned_sel):], 'r', linewidth = 2)
-        
-        plt.fill_between(x, proj_allDim[len(self.T_cue_aligned_sel):] - stats.sem(l_proj, axis=0), 
-                 proj_allDim[len(self.T_cue_aligned_sel):] +  stats.sem(l_proj, axis=0),
-                 color=['#ffaeb1'])
-        plt.fill_between(x, proj_allDim[:len(self.T_cue_aligned_sel)] - stats.sem(r_proj, axis=0), 
-                 proj_allDim[:len(self.T_cue_aligned_sel)] + stats.sem(r_proj, axis=0),
-                 color=['#b4b2dc'])
-        
-        plt.hlines(y=max(proj_allDim[:]) + 0.5, xmin=-3, xmax=-2, linewidth=10, color='red')
-
-        if save is not None:
-            plt.savefig(save)
-        plt.show()
+            plt.plot(x, proj_allDim[:len(self.T_cue_aligned_sel)], 'b', linewidth = 2)
+            plt.plot(x, proj_allDim[len(self.T_cue_aligned_sel):], 'r', linewidth = 2)
+            
+            plt.fill_between(x, proj_allDim[len(self.T_cue_aligned_sel):] - stats.sem(l_proj, axis=0), 
+                     proj_allDim[len(self.T_cue_aligned_sel):] +  stats.sem(l_proj, axis=0),
+                     color=['#ffaeb1'])
+            plt.fill_between(x, proj_allDim[:len(self.T_cue_aligned_sel)] - stats.sem(r_proj, axis=0), 
+                     proj_allDim[:len(self.T_cue_aligned_sel)] + stats.sem(r_proj, axis=0),
+                     color=['#b4b2dc'])
+            
+            plt.hlines(y=max(proj_allDim[:]) + 0.5, xmin=-3, xmax=-2, linewidth=10, color='red')
+    
+            if save is not None:
+                plt.savefig(save)
+            plt.show()
 
         if return_applied:
             return orthonormal_basis, np.mean(activityRL_train, axis=1)[:, None], meantrain, meanstd
@@ -2451,7 +2454,8 @@ class Mode(Session):
         plt.show()
         
         
-    def plot_appliedCD(self, orthonormal_basis, mean, save=None, fix_axis=None):
+    def plot_appliedCD(self, orthonormal_basis, mean, save=None, fix_axis=None,
+                       plot=True, auto_corr_return=False):
         
         x = np.arange(-6.97,4,self.fs)[:self.time_cutoff]
 
@@ -2471,18 +2475,27 @@ class Mode(Session):
         i_pc = 0
            
         # Project for every trial
+        proj_allDimR = []
         for t in self.r_test_idx:
             activity = self.dff[0, r_trials[t]][self.good_neurons] 
             activity = activity - np.tile(mean, (1, activity.shape[1]))
             proj_allDim = np.dot(activity.T, orthonormal_basis)
-            plt.plot(x, proj_allDim[:len(self.T_cue_aligned_sel)], 'b', alpha = 0.5,  linewidth = 0.5)
+            proj_allDimR += [proj_allDim[:len(self.T_cue_aligned_sel)]]
+            if plot:
+                plt.plot(x, proj_allDim[:len(self.T_cue_aligned_sel)], 'b', alpha = 0.5,  linewidth = 0.5)
             
+        proj_allDimL = []
         for t in self.l_test_idx:
             activity = self.dff[0, l_trials[t]][self.good_neurons]
             activity = activity - np.tile(mean, (1, activity.shape[1]))
             proj_allDim = np.dot(activity.T, orthonormal_basis)
-            plt.plot(x, proj_allDim[:len(self.T_cue_aligned_sel)], 'r', alpha = 0.5, linewidth = 0.5)
+            proj_allDimL += [proj_allDim[:len(self.T_cue_aligned_sel)]]
+            if plot:
+                plt.plot(x, proj_allDim[:len(self.T_cue_aligned_sel)], 'r', alpha = 0.5, linewidth = 0.5)
             
+        if auto_corr_return:
+            return np.array(proj_allDimR), np.array(proj_allDimL)
+        
         # Correct trials
         activityRL_test = activityRL_test - np.tile(mean, (1, activityRL_test.shape[1]))  # remove mean
         proj_allDim = np.dot(activityRL_test.T, orthonormal_basis)

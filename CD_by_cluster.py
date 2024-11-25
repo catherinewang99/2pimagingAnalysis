@@ -155,14 +155,21 @@ allpaths = [[    r'F:\data\BAYLORCW032\python\2023_10_05',
             
             ]]
 
-naivepath, learningpath, expertpath = [r'H:\data\BAYLORCW044\python\2024_05_22',
+naivepath, learningpath, expertpath, clusterpath = [r'H:\data\BAYLORCW044\python\2024_05_22',
                     r'H:\data\BAYLORCW044\python\2024_06_06',
-                  r'H:\data\BAYLORCW044\python\2024_06_19',]
+                  r'H:\data\BAYLORCW044\python\2024_06_19',
+                  r'H:\data\matched_topic_params\CW44_FOV1_table']
 
+# naivepath, learningpath, expertpath, clusterpath = [
+#                     r'H:\data\BAYLORCW046\python\2024_05_31',
+#                     r'H:\data\BAYLORCW046\python\2024_06_11',
+#                     r'H:\data\BAYLORCW046\python\2024_06_26',
+                    # r'H:\data\matched_topic_params\CW46_FOV3_table']
 
 #%% Import LDA cluster info
 
-clusters = pd.read_pickle("/Users/catherinewang/Desktop/matched_topic_params/CW44_FOV1_table")
+clusters = pd.read_pickle(clusterpath)
+#FIXME: need to average across five runs
 trialparams = clusters.trial_params[0]
 num_clusters = len(trialparams.columns)
 idx = pd.IndexSlice
@@ -173,6 +180,21 @@ learning_normalized = pd.DataFrame(normalize(learning, norm='l1'), columns=learn
 expert = trialparams.loc[idx['expert', :]]
 expert_normalized = pd.DataFrame(normalize(expert, norm='l1'), columns=expert.columns)#, index=expert.index)
 
+#%% Number of trials per cluster
+
+# Max method:
+max_cluster_by_trial = np.argmax(learning_normalized, axis=1)
+for c in set(max_cluster_by_trial):
+    plt.scatter([c], [sum(max_cluster_by_trial == c)], color='black')
+
+# plt.show()
+for cluster in range(num_clusters):
+    cluster_trials_all_idx = learning_normalized.index[learning_normalized['topic_{}'.format(cluster)] > 0.25].to_numpy()
+    plt.scatter([cluster], [len(cluster_trials_all_idx)], color='red')
+
+plt.show()
+
+
 #%% Run analysis
 # lda = joblib.load(r'H:\data\BAYLORCW044\python\2024_06_19\full_model')
 # expert_counts = pd.read_csv(r'H:\data\BAYLORCW044\python\2024_06_19\expert_counts')
@@ -181,16 +203,100 @@ expert_normalized = pd.DataFrame(normalize(expert, norm='l1'), columns=expert.co
 # ldaclusters = lda.transform(learning_counts.filter(regex="^neuron"))
 
 path = expertpath
-s1 = Mode(path, use_reg = True, triple=True)
+s1 = Mode(path, use_reg = True, triple=True, baseline_normalization="median_zscore")
 orthonormal_basis, mean_exp = s1.plot_CD(ctl=True)
 
 path = learningpath
-s2 = Mode(path, use_reg = True, triple=True)
+s2 = Mode(path, use_reg = True, triple=True, baseline_normalization="median_zscore")
 orthonormal_basis_learning, mean = s2.plot_CD(ctl=True)
 
-#%% Get different CDs from the clusters for learning session applied to expert
+#%% Decoding accuracy of clusters
+
+
+
+#%% End point analysis across clusters
+main_cluster = 0
+compare_cluster = 1
+
+cluster_trials_all_idx = learning_normalized.index[learning_normalized['topic_{}'.format(compare_cluster)] > 0.25].to_numpy()
+cluster_trials_all_idx = np.where(np.argmax(learning_normalized, axis=1) == compare_cluster)[0]
+
+all_r_idx = [i for i in s2.i_good_non_stim_trials if s2.R_correct[i] and not bool(s2.early_lick[i])]
+all_l_idx = [i for i in s2.i_good_non_stim_trials if s2.L_correct[i] and not bool(s2.early_lick[i])]
+
+r_train_idx = [r for r in range(len(all_r_idx)) if all_r_idx[r] in cluster_trials_all_idx]
+l_train_idx = [r for r in range(len(all_l_idx)) if all_l_idx[r] in cluster_trials_all_idx]
+
+# Get R and L correct
+
+r_test_idx = r_train_idx
+l_test_idx = l_train_idx
+
+all_r_idx = [i for i in s2.i_good_non_stim_trials if s2.R_wrong[i] and not bool(s2.early_lick[i])]
+all_l_idx = [i for i in s2.i_good_non_stim_trials if s2.L_wrong[i] and not bool(s2.early_lick[i])]
+
+r_train_err_idx = [r for r in range(len(all_r_idx)) if all_r_idx[r] in cluster_trials_all_idx]
+l_train_err_idx = [r for r in range(len(all_l_idx)) if all_l_idx[r] in cluster_trials_all_idx]
+
+r_test_err_idx = r_train_err_idx
+l_test_err_idx = l_train_err_idx
+
+train_test_trials = (r_train_idx, l_train_idx, r_test_idx, l_test_idx)
+train_test_trials_err = (r_train_err_idx, l_train_err_idx, r_test_err_idx, l_test_err_idx)
+
+s2 = Mode(learningpath, use_reg = True, triple=True, 
+          baseline_normalization="median_zscore",
+          train_test_trials = [train_test_trials, train_test_trials_err])
+
+orthonormal_basis_learning, mean = s2.plot_CD(ctl=True, plot=False)
+
+## Look at main cluster
+cluster_trials_all_idx = learning_normalized.index[learning_normalized['topic_{}'.format(main_cluster)] > 0.25].to_numpy()
+cluster_trials_all_idx = np.where(np.argmax(learning_normalized, axis=1) == main_cluster)[0]
+
+all_r_idx = [i for i in s2.i_good_non_stim_trials if s2.R_correct[i] and not bool(s2.early_lick[i])]
+all_l_idx = [i for i in s2.i_good_non_stim_trials if s2.L_correct[i] and not bool(s2.early_lick[i])]
+
+r_train_idx = [r for r in range(len(all_r_idx)) if all_r_idx[r] in cluster_trials_all_idx]
+l_train_idx = [r for r in range(len(all_l_idx)) if all_l_idx[r] in cluster_trials_all_idx]
+
+# Get R and L correct
+
+r_test_idx = r_train_idx
+l_test_idx = l_train_idx
+
+all_r_idx = [i for i in s2.i_good_non_stim_trials if s2.R_wrong[i] and not bool(s2.early_lick[i])]
+all_l_idx = [i for i in s2.i_good_non_stim_trials if s2.L_wrong[i] and not bool(s2.early_lick[i])]
+
+r_train_err_idx = [r for r in range(len(all_r_idx)) if all_r_idx[r] in cluster_trials_all_idx]
+l_train_err_idx = [r for r in range(len(all_l_idx)) if all_l_idx[r] in cluster_trials_all_idx]
+
+r_test_err_idx = r_train_err_idx
+l_test_err_idx = l_train_err_idx
+
+train_test_trials = (r_train_idx, l_train_idx, r_test_idx, l_test_idx)
+train_test_trials_err = (r_train_err_idx, l_train_err_idx, r_test_err_idx, l_test_err_idx)
+
+s2 = Mode(learningpath, use_reg = True, triple=True, 
+          baseline_normalization="median_zscore",
+          train_test_trials = [train_test_trials, train_test_trials_err])
+
+proj_allDimR, proj_allDimL = s2.plot_CD(ctl=True, plot=False, auto_corr_return=True)
+proj_allDimR_applied, proj_allDimL_applied = s2.plot_appliedCD(orthonormal_basis_learning, mean, auto_corr_return=True, plot=False)
+
+# Plot end points
+
+plt.scatter(proj_allDimR[:, s2.response-1], proj_allDimR_applied[:, s2.response-1], color='b')
+plt.scatter(proj_allDimL[:, s2.response-1], proj_allDimL_applied[:, s2.response-1], color='r')
+plt.axhline(0, ls = '--', color='black')
+plt.axvline(0, ls = '--', color='black')
+plt.ylabel('Outside cluster CD')
+plt.xlabel('Within cluster CD')
+plt.title('Cluster main {} vs. cluster {}'.format(main_cluster, compare_cluster))
+
+#%% Get different CDs from the clusters for learning session applied to expert and opto projections
 # A trial belongs to a CD if the probability > 1/num clusters
-cluster = 4 # focus on one cluster for now
+# cluster = 4 # focus on one cluster for now
 learning_CDs = []
 for cluster in range(num_clusters):
     # cluster_trials_all_idx = np.where(ldaclusters[:,cluster] > 1/ldaclusters.shape[1])[0]
@@ -226,13 +332,83 @@ for cluster in range(num_clusters):
               baseline_normalization="median_zscore",
               train_test_trials = [train_test_trials, train_test_trials_err])
     
-    orthonormal_basis_learning, mean = s2.plot_CD(ctl=True)
+    orthonormal_basis_learning, mean = s2.plot_CD(ctl=True, plot=False)
     learning_CDs += [orthonormal_basis_learning]
     # s1.plot_appliedCD(orthonormal_basis_learning, mean)
     s2.plot_CD_opto(ctl=True)
 
-    _, mean, meantrain, std = s1.plot_CD_opto(ctl=True, return_applied=True)
+    _, mean, meantrain, std = s1.plot_CD_opto(ctl=True, return_applied=True, plot=False)
     s1.plot_CD_opto_applied(orthonormal_basis_learning, mean, meantrain, std)
+    
+#%% Get different CDs directly from learning/expert clusters
+
+for cluster in range(num_clusters):
+    
+    cluster_trials_all_idx = learning_normalized.index[learning_normalized['topic_{}'.format(cluster)] > 0.25].to_numpy()
+
+    
+    all_r_idx = [i for i in s2.i_good_non_stim_trials if s2.R_correct[i] and not bool(s2.early_lick[i])]
+    all_l_idx = [i for i in s2.i_good_non_stim_trials if s2.L_correct[i] and not bool(s2.early_lick[i])]
+    
+    r_train_idx = [r for r in range(len(all_r_idx)) if all_r_idx[r] in cluster_trials_all_idx]
+    l_train_idx = [r for r in range(len(all_l_idx)) if all_l_idx[r] in cluster_trials_all_idx]
+    
+    # Get R and L correct
+    
+    r_test_idx = r_train_idx
+    l_test_idx = l_train_idx
+    
+    all_r_idx = [i for i in s2.i_good_non_stim_trials if s2.R_wrong[i] and not bool(s2.early_lick[i])]
+    all_l_idx = [i for i in s2.i_good_non_stim_trials if s2.L_wrong[i] and not bool(s2.early_lick[i])]
+    
+    r_train_err_idx = [r for r in range(len(all_r_idx)) if all_r_idx[r] in cluster_trials_all_idx]
+    l_train_err_idx = [r for r in range(len(all_l_idx)) if all_l_idx[r] in cluster_trials_all_idx]
+    
+    r_test_err_idx = r_train_err_idx
+    l_test_err_idx = l_train_err_idx
+    
+    train_test_trials = (r_train_idx, l_train_idx, r_test_idx, l_test_idx)
+    train_test_trials_err = (r_train_err_idx, l_train_err_idx, r_test_err_idx, l_test_err_idx)
+    
+    s2 = Mode(learningpath, use_reg = True, triple=True, 
+              baseline_normalization="median_zscore",
+              train_test_trials = [train_test_trials, train_test_trials_err])
+    
+    # orthonormal_basis_learning, mean = s2.plot_CD(ctl=True, plot=False)
+    s2.plot_CD_opto(ctl=True)
+    
+    cluster_trials_all_idx = expert_normalized.index[expert_normalized['topic_{}'.format(cluster)] > 0.25].to_numpy()
+
+    all_r_idx = [i for i in s1.i_good_non_stim_trials if s1.R_correct[i] and not bool(s1.early_lick[i])]
+    all_l_idx = [i for i in s1.i_good_non_stim_trials if s1.L_correct[i] and not bool(s1.early_lick[i])]
+    
+    r_train_idx = [r for r in range(len(all_r_idx)) if all_r_idx[r] in cluster_trials_all_idx]
+    l_train_idx = [r for r in range(len(all_l_idx)) if all_l_idx[r] in cluster_trials_all_idx]
+    
+    # Get R and L correct
+    
+    r_test_idx = r_train_idx
+    l_test_idx = l_train_idx
+    
+    all_r_idx = [i for i in s1.i_good_non_stim_trials if s1.R_wrong[i] and not bool(s1.early_lick[i])]
+    all_l_idx = [i for i in s1.i_good_non_stim_trials if s1.L_wrong[i] and not bool(s1.early_lick[i])]
+    
+    r_train_err_idx = [r for r in range(len(all_r_idx)) if all_r_idx[r] in cluster_trials_all_idx]
+    l_train_err_idx = [r for r in range(len(all_l_idx)) if all_l_idx[r] in cluster_trials_all_idx]
+    
+    r_test_err_idx = r_train_err_idx
+    l_test_err_idx = l_train_err_idx
+    
+    train_test_trials = (r_train_idx, l_train_idx, r_test_idx, l_test_idx)
+    train_test_trials_err = (r_train_err_idx, l_train_err_idx, r_test_err_idx, l_test_err_idx)
+    
+    s1 = Mode(expertpath, use_reg = True, triple=True, 
+              baseline_normalization="median_zscore",
+              train_test_trials = [train_test_trials, train_test_trials_err])
+    s1.plot_CD_opto(ctl=True)
+    
+    
+    
 
 #%% Look at scatter of weights compared to CD expert:
 path = expertpath
