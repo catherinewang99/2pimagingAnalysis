@@ -228,6 +228,8 @@ class Mode(Session):
             
         time_epochs = [self.sample, self.delay, self.response]
         self.time_epochs = time_epochs
+        
+        self.exclude_sample_orthog = False
 
     def z_score_baseline(self):
         """
@@ -489,6 +491,8 @@ class Mode(Session):
     
         activityRL = activityRL - np.mean(activityRL, axis=1, keepdims=True) # remove?
         u, s, v = np.linalg.svd(activityRL.T)
+
+            
         proj_allDim = activityRL.T @ v
     
         # Variance of each dimension normalized
@@ -671,8 +675,15 @@ class Mode(Session):
         start_time = time.time()
         input_ = np.concatenate((CD_stim_mode, CD_choice_mode, CD_outcome_mode, CD_sample_mode, CD_delay_mode, CD_go_mode, Ramping_mode, GoDirection_mode, v), axis=1)
         # orthonormal_basis = self.Gram_Schmidt_process(input_)
+        if self.exclude_sample_orthog:
+            print('Excluding sample mode from orthogonalization')
+            input_ = np.concatenate((CD_choice_mode, CD_outcome_mode, CD_sample_mode, CD_delay_mode, CD_go_mode, Ramping_mode, GoDirection_mode, v), axis=1)
+
         orthonormal_basis, _ = np.linalg.qr(input_, mode='complete')  # lmao
         
+        if self.exclude_sample_orthog:
+            orthonormal_basis = np.hstack((CD_stim_mode, orthonormal_basis))
+            
         proj_allDim = np.dot(activityRL.T, orthonormal_basis)
         var_allDim = np.sum(proj_allDim**2, axis=0)
         var_allDim = var_allDim[~np.isnan(var_allDim)]
@@ -680,6 +691,8 @@ class Mode(Session):
         var_allDim = var_allDim / np.sum(var_allDim)
         
         print("Runtime: {} secs".format(time.time() - start_time))
+        
+
         return orthonormal_basis, var_allDim
     
     def KD_LDA2(self, ll, rr, rs=None):

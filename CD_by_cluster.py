@@ -179,6 +179,22 @@ learning_normalized = pd.DataFrame(normalize(learning, norm='l1'), columns=learn
 expert = trialparams.loc[idx['expert', :]]
 expert_normalized = pd.DataFrame(normalize(expert, norm='l1'), columns=expert.columns)#, index=expert.index)
 
+
+#%% Run analysis
+# lda = joblib.load(r'H:\data\BAYLORCW044\python\2024_06_19\full_model')
+# expert_counts = pd.read_csv(r'H:\data\BAYLORCW044\python\2024_06_19\expert_counts')
+# learning_counts = pd.read_csv(r'H:\data\BAYLORCW044\python\2024_06_06\learning_counts')
+# ldaclusters_exp = lda.transform(expert_counts.filter(regex="^neuron"))
+# ldaclusters = lda.transform(learning_counts.filter(regex="^neuron"))
+
+path = expertpath
+s1 = Mode(path, use_reg = True, triple=True, baseline_normalization="median_zscore")
+orthonormal_basis, mean_exp = s1.plot_CD(ctl=True)
+
+path = learningpath
+s2 = Mode(path, use_reg = True, triple=True, baseline_normalization="median_zscore")
+orthonormal_basis_learning, mean = s2.plot_CD(ctl=True)
+
 #%% Number of trials per cluster
 
 # Max method:
@@ -229,21 +245,31 @@ ax[1].set_title('Expert trials')
 plt.tight_layout()
 plt.show()
 
+# Left/right trials per cluster
+# Max method:
+f,ax=plt.subplots(1,2,figsize=(10,5))
+max_cluster_by_trial = np.argmax(learning_normalized, axis=1)
+max_cluster_by_trial_exp = np.argmax(expert_normalized, axis=1)
+for c in set(max_cluster_by_trial):
+    ax[0].scatter([c-0.2], [len([i for i in range(len(max_cluster_by_trial)) if s2.L_correct[s2.i_good_trials[i]] and max_cluster_by_trial[i] == c])], color='red')
+    ax[0].scatter([c+0.2], [len([i for i in range(len(max_cluster_by_trial)) if s2.R_correct[s2.i_good_trials[i]] and max_cluster_by_trial[i] == c])], color='blue')
+    ax[0].plot([c-0.2, c+0.2], [len([i for i in range(len(max_cluster_by_trial)) if s2.L_correct[s2.i_good_trials[i]] and max_cluster_by_trial[i] == c]),
+                                len([i for i in range(len(max_cluster_by_trial)) if s2.R_correct[s2.i_good_trials[i]] and max_cluster_by_trial[i] == c])],
+               color='grey', ls='--')
+    ax[1].scatter([c-0.2], [len([i for i in range(len(max_cluster_by_trial_exp)) if s1.L_correct[s1.i_good_trials[i]] and max_cluster_by_trial_exp[i] == c])], color='red')
+    ax[1].scatter([c+0.2], [len([i for i in range(len(max_cluster_by_trial_exp)) if s1.R_correct[s1.i_good_trials[i]] and max_cluster_by_trial_exp[i] == c])], color='blue')
+    ax[1].plot([c-0.2, c+0.2], [len([i for i in range(len(max_cluster_by_trial_exp)) if s1.L_correct[s1.i_good_trials[i]] and max_cluster_by_trial_exp[i] == c]),
+                                len([i for i in range(len(max_cluster_by_trial_exp)) if s1.R_correct[s1.i_good_trials[i]] and max_cluster_by_trial_exp[i] == c])],
+               color='grey', ls='--')
+    
+ax[0].set_title('Learning clusters')
+ax[1].set_title('Expert clusters')
+ax[0].set_ylabel('Number of trials belong to cluster')
+ax[0].set_xlabel('Cluster #')
+plt.legend()
+plt.show()
 
-#%% Run analysis
-# lda = joblib.load(r'H:\data\BAYLORCW044\python\2024_06_19\full_model')
-# expert_counts = pd.read_csv(r'H:\data\BAYLORCW044\python\2024_06_19\expert_counts')
-# learning_counts = pd.read_csv(r'H:\data\BAYLORCW044\python\2024_06_06\learning_counts')
-# ldaclusters_exp = lda.transform(expert_counts.filter(regex="^neuron"))
-# ldaclusters = lda.transform(learning_counts.filter(regex="^neuron"))
 
-path = expertpath
-s1 = Mode(path, use_reg = True, triple=True, baseline_normalization="median_zscore")
-orthonormal_basis, mean_exp = s1.plot_CD(ctl=True)
-
-path = learningpath
-s2 = Mode(path, use_reg = True, triple=True, baseline_normalization="median_zscore")
-orthonormal_basis_learning, mean = s2.plot_CD(ctl=True)
 
 #%% Decoding accuracy of clusters within
 
@@ -252,16 +278,20 @@ for cluster in range(num_clusters):
     # cluster_trials_all_idx = np.where(ldaclusters[:,cluster] > 1/ldaclusters.shape[1])[0]
     # cluster_trials_all = s2.i_good_trials[cluster_trials_all_idx]
     
-    cluster_trials_all_idx = learning_normalized.index[learning_normalized['topic_{}'.format(cluster)] > 0.25].to_numpy()
+    cluster_trials_all_idx = learning_normalized.index[learning_normalized['topic_{}'.format(cluster)] > 1/num_clusters].to_numpy()
     # cluster_trials_all_idx = np.where(np.argmax(learning_normalized, axis=1) == cluster)[0]
    
     s2 = Mode(learningpath, use_reg = True, triple=True, 
               baseline_normalization="median_zscore",
               i_good = cluster_trials_all_idx,
-              proportion_train = 0.4,
+              proportion_train = 0.5,
               lda_cluster=True)
+    try:
+        _, _, db, acc_learning = s2.decision_boundary(mode_input='choice', persistence=False)
+    except np.linalg.LinAlgError:
+        all_learn_accs += [0]
+        continue
     
-    _, _, db, acc_learning = s2.decision_boundary(mode_input='choice', persistence=False)
     all_learn_accs += [np.mean(acc_learning)]
   
 all_exp_accs = []
@@ -269,16 +299,19 @@ for cluster in range(num_clusters):
     # cluster_trials_all_idx = np.where(ldaclusters[:,cluster] > 1/ldaclusters.shape[1])[0]
     # cluster_trials_all = s2.i_good_trials[cluster_trials_all_idx]
     
-    cluster_trials_all_idx = expert_normalized.index[expert_normalized['topic_{}'.format(cluster)] > 0.25].to_numpy()
-    # cluster_trials_all_idx = np.where(np.argmax(learning_normalized, axis=1) == cluster)[0]
+    cluster_trials_all_idx = expert_normalized.index[expert_normalized['topic_{}'.format(cluster)] > 1/num_clusters].to_numpy()
+    # cluster_trials_all_idx = np.where(np.argmax(expert_normalized, axis=1) == cluster)[0]
    
     s2 = Mode(expertpath, use_reg = True, triple=True, 
               baseline_normalization="median_zscore",
               i_good = cluster_trials_all_idx,
-              proportion_train = 0.6,
+              proportion_train = 0.5,
               lda_cluster=True)
-    
-    _, _, db, acc_learning = s2.decision_boundary(mode_input='choice', persistence=False)
+    try:
+        _, _, db, acc_learning = s2.decision_boundary(mode_input='choice', persistence=False)
+    except np.linalg.LinAlgError:
+        all_exp_accs += [0]
+        continue
     all_exp_accs += [np.mean(acc_learning)]  
     
 plt.bar(np.arange(num_clusters)-0.2, all_learn_accs, 0.4, label='Learning')
@@ -316,7 +349,7 @@ for main_cluster in range(num_clusters):
         all_learn_accs += [np.mean(acc_learning)]
     agg_accs += [all_learn_accs]
 
-#%% 
+
 agg_accs = np.array(agg_accs)
 plt.bar(np.arange(num_clusters)-0.15, agg_accs[:, 0], 0.1)
 plt.bar(np.arange(num_clusters)-0.05, agg_accs[:, 1], 0.1,)
@@ -365,14 +398,15 @@ plt.xlabel('Within cluster CD')
 plt.title('Cluster main {} vs. cluster {}'.format(main_cluster, compare_cluster))
 
 #%% Get different CDs from the clusters for learning session applied to expert and opto projections
-# A trial belongs to a CD if the probability > 1/num clusters
-# cluster = 4 # focus on one cluster for now
+# A trial belongs to a CD if the probability > 1/num clusters OR max method
+
 learning_CDs = []
 for cluster in range(num_clusters):
     # cluster_trials_all_idx = np.where(ldaclusters[:,cluster] > 1/ldaclusters.shape[1])[0]
     # cluster_trials_all = s2.i_good_trials[cluster_trials_all_idx]
     
-    cluster_trials_all_idx = learning_normalized.index[learning_normalized['topic_{}'.format(cluster)] > 0.25].to_numpy()
+    cluster_trials_all_idx = learning_normalized.index[learning_normalized['topic_{}'.format(cluster)] > 1/num_clusters].to_numpy()
+    cluster_trials_all_idx = np.where(np.argmax(learning_normalized, axis=1) == cluster)[0]
 
     s2 = Mode(learningpath, use_reg = True, triple=True, 
               baseline_normalization="median_zscore",
@@ -386,6 +420,28 @@ for cluster in range(num_clusters):
 
     _, mean, meantrain, std = s1.plot_CD_opto(ctl=True, return_applied=True, plot=False)
     s1.plot_CD_opto_applied(orthonormal_basis_learning, mean, meantrain, std)
+
+#%% Get different CDs from the clusters for expert session
+# A trial belongs to a CD if the probability > 1/num clusters OR max method
+
+learning_CDs = []
+for cluster in range(num_clusters):
+    # cluster_trials_all_idx = np.where(ldaclusters[:,cluster] > 1/ldaclusters.shape[1])[0]
+    # cluster_trials_all = s2.i_good_trials[cluster_trials_all_idx]
+    
+    cluster_trials_all_idx = expert_normalized.index[expert_normalized['topic_{}'.format(cluster)] > 1/num_clusters].to_numpy()
+    cluster_trials_all_idx = np.where(np.argmax(expert_normalized, axis=1) == cluster)[0]
+
+    s2 = Mode(expertpath, use_reg = True, triple=True, 
+              baseline_normalization="median_zscore",
+              train_test_trials = cluster_trials_all_idx,
+              lda_cluster=True)
+    
+    orthonormal_basis_learning, mean = s2.plot_CD(ctl=True, plot=False)
+
+    s2.plot_CD_opto(ctl=True)
+
+    
     
 #%% Get different CDs directly from learning/expert clusters
 
