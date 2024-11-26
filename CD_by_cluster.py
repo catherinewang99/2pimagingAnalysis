@@ -169,8 +169,7 @@ naivepath, learningpath, expertpath, clusterpath = [r'H:\data\BAYLORCW044\python
 #%% Import LDA cluster info
 
 clusters = pd.read_pickle(clusterpath)
-#FIXME: need to average across five runs
-trialparams = clusters.trial_params[0]
+trialparams = np.mean(clusters.trial_params.to_numpy())
 num_clusters = len(trialparams.columns)
 idx = pd.IndexSlice
 
@@ -184,14 +183,50 @@ expert_normalized = pd.DataFrame(normalize(expert, norm='l1'), columns=expert.co
 
 # Max method:
 max_cluster_by_trial = np.argmax(learning_normalized, axis=1)
+max_cluster_by_trial_exp = np.argmax(expert_normalized, axis=1)
 for c in set(max_cluster_by_trial):
-    plt.scatter([c], [sum(max_cluster_by_trial == c)], color='black')
+    plt.scatter([c-0.2], [sum(max_cluster_by_trial == c)], color='black')
+    plt.scatter([c+0.2], [sum(max_cluster_by_trial_exp == c)], color='black')
+    plt.plot([c-0.2, c+0.2], [sum(max_cluster_by_trial == c),
+                              sum(max_cluster_by_trial_exp == c)],
+             color='grey', ls='--')
+plt.scatter([c-0.2], [sum(max_cluster_by_trial == c)], color='black', label='Max')
 
 # plt.show()
 for cluster in range(num_clusters):
-    cluster_trials_all_idx = learning_normalized.index[learning_normalized['topic_{}'.format(cluster)] > 0.25].to_numpy()
-    plt.scatter([cluster], [len(cluster_trials_all_idx)], color='red')
+    cluster_trials_all_idx = learning_normalized.index[learning_normalized['topic_{}'.format(cluster)] > 1/num_clusters].to_numpy()
+    plt.scatter([cluster-0.2], [len(cluster_trials_all_idx)], color='red')
+    cluster_trials_all_idx_exp = expert_normalized.index[expert_normalized['topic_{}'.format(cluster)] > 1/num_clusters].to_numpy()
+    plt.scatter([cluster+0.2], [len(cluster_trials_all_idx_exp)], color='red')
+    plt.plot([cluster-0.2, cluster+0.2], [len(cluster_trials_all_idx),
+                              len(cluster_trials_all_idx_exp)],
+             color='grey', ls='--')
+plt.scatter([cluster-0.2], [len(cluster_trials_all_idx)], color='red', label='Threshold')
 
+plt.ylabel('Number of trials belong to cluster')
+plt.xlabel('Cluster #')
+plt.legend()
+plt.show()
+
+# Plot heatmap over trials
+f,ax=plt.subplots(1,2,figsize=(15,2))
+
+max_cluster_by_trial = np.argmax(learning_normalized, axis=1)
+trial_stack = np.zeros(learning_normalized.shape[0])
+for c in set(max_cluster_by_trial):
+    trial_stack = np.vstack((trial_stack, max_cluster_by_trial == c))
+ax[0].imshow(trial_stack[1:],aspect='auto',interpolation='none')
+ax[0].set_title('Learning trials')
+ax[0].set_ylabel('Cluster #')
+ax[0].set_xlabel('Trial #')
+
+max_cluster_by_trial = np.argmax(expert_normalized, axis=1)
+trial_stack = np.zeros(expert_normalized.shape[0])
+for c in set(max_cluster_by_trial):
+    trial_stack = np.vstack((trial_stack, max_cluster_by_trial == c))
+ax[1].imshow(trial_stack[1:],aspect='auto',interpolation='none')
+ax[1].set_title('Expert trials')
+plt.tight_layout()
 plt.show()
 
 
@@ -210,43 +245,100 @@ path = learningpath
 s2 = Mode(path, use_reg = True, triple=True, baseline_normalization="median_zscore")
 orthonormal_basis_learning, mean = s2.plot_CD(ctl=True)
 
-#%% Decoding accuracy of clusters
+#%% Decoding accuracy of clusters within
 
+all_learn_accs = []
+for cluster in range(num_clusters):
+    # cluster_trials_all_idx = np.where(ldaclusters[:,cluster] > 1/ldaclusters.shape[1])[0]
+    # cluster_trials_all = s2.i_good_trials[cluster_trials_all_idx]
+    
+    cluster_trials_all_idx = learning_normalized.index[learning_normalized['topic_{}'.format(cluster)] > 0.25].to_numpy()
+    # cluster_trials_all_idx = np.where(np.argmax(learning_normalized, axis=1) == cluster)[0]
+   
+    s2 = Mode(learningpath, use_reg = True, triple=True, 
+              baseline_normalization="median_zscore",
+              i_good = cluster_trials_all_idx,
+              proportion_train = 0.4,
+              lda_cluster=True)
+    
+    _, _, db, acc_learning = s2.decision_boundary(mode_input='choice', persistence=False)
+    all_learn_accs += [np.mean(acc_learning)]
+  
+all_exp_accs = []
+for cluster in range(num_clusters):
+    # cluster_trials_all_idx = np.where(ldaclusters[:,cluster] > 1/ldaclusters.shape[1])[0]
+    # cluster_trials_all = s2.i_good_trials[cluster_trials_all_idx]
+    
+    cluster_trials_all_idx = expert_normalized.index[expert_normalized['topic_{}'.format(cluster)] > 0.25].to_numpy()
+    # cluster_trials_all_idx = np.where(np.argmax(learning_normalized, axis=1) == cluster)[0]
+   
+    s2 = Mode(expertpath, use_reg = True, triple=True, 
+              baseline_normalization="median_zscore",
+              i_good = cluster_trials_all_idx,
+              proportion_train = 0.6,
+              lda_cluster=True)
+    
+    _, _, db, acc_learning = s2.decision_boundary(mode_input='choice', persistence=False)
+    all_exp_accs += [np.mean(acc_learning)]  
+    
+plt.bar(np.arange(num_clusters)-0.2, all_learn_accs, 0.4, label='Learning')
+plt.bar(np.arange(num_clusters)+0.2, all_exp_accs, 0.4, label='Expert')
+plt.legend()
+plt.ylim(bottom=0.5)
+plt.xlabel('Cluster number')
+plt.ylabel('Accuracy %')
 
+#%% Decoding acc across clusters
+#FIXME: Need to do the correct within cluster CD assignment
+main_cluster = 0
+agg_accs = []
+for main_cluster in range(num_clusters):
+    all_learn_accs = []
+
+    for cluster in range(num_clusters):
+        # cluster_trials_all_idx = np.where(ldaclusters[:,cluster] > 1/ldaclusters.shape[1])[0]
+        # cluster_trials_all = s2.i_good_trials[cluster_trials_all_idx]
+        
+        cluster_trials_all_idx = learning_normalized.index[learning_normalized['topic_{}'.format(cluster)] > 0.25].to_numpy()
+        # cluster_trials_all_idx = np.where(np.argmax(learning_normalized, axis=1) == cluster)[0]
+       
+        s2 = Mode(learningpath, use_reg = True, triple=True, 
+                  baseline_normalization="median_zscore",
+                  # i_good = cluster_trials_all_idx,
+                  # proportion_train = 0.4,
+                  lda_cluster=True,
+                  train_test_trials = cluster_trials_all_idx)
+        if main_cluster == cluster:
+            orthonormal_basis, mean, db, acc_learning = s2.decision_boundary(mode_input='choice', persistence=False)
+        else:
+            acc_learning = s2.decision_boundary_appliedCD('choice', orthonormal_basis, mean, db, persistence=False)
+    
+        all_learn_accs += [np.mean(acc_learning)]
+    agg_accs += [all_learn_accs]
+
+#%% 
+agg_accs = np.array(agg_accs)
+plt.bar(np.arange(num_clusters)-0.15, agg_accs[:, 0], 0.1)
+plt.bar(np.arange(num_clusters)-0.05, agg_accs[:, 1], 0.1,)
+plt.bar(np.arange(num_clusters)+0.05, agg_accs[:, 2], 0.1)
+plt.bar(np.arange(num_clusters)+0.15, agg_accs[:, 3], 0.1)
+plt.legend()
+plt.ylim(bottom=0.5)
+plt.xlabel('Cluster number')
+plt.ylabel('Accuracy %')
 
 #%% End point analysis across clusters
-main_cluster = 0
+main_cluster = 2
 compare_cluster = 1
 
 cluster_trials_all_idx = learning_normalized.index[learning_normalized['topic_{}'.format(compare_cluster)] > 0.25].to_numpy()
 cluster_trials_all_idx = np.where(np.argmax(learning_normalized, axis=1) == compare_cluster)[0]
 
-all_r_idx = [i for i in s2.i_good_non_stim_trials if s2.R_correct[i] and not bool(s2.early_lick[i])]
-all_l_idx = [i for i in s2.i_good_non_stim_trials if s2.L_correct[i] and not bool(s2.early_lick[i])]
-
-r_train_idx = [r for r in range(len(all_r_idx)) if all_r_idx[r] in cluster_trials_all_idx]
-l_train_idx = [r for r in range(len(all_l_idx)) if all_l_idx[r] in cluster_trials_all_idx]
-
-# Get R and L correct
-
-r_test_idx = r_train_idx
-l_test_idx = l_train_idx
-
-all_r_idx = [i for i in s2.i_good_non_stim_trials if s2.R_wrong[i] and not bool(s2.early_lick[i])]
-all_l_idx = [i for i in s2.i_good_non_stim_trials if s2.L_wrong[i] and not bool(s2.early_lick[i])]
-
-r_train_err_idx = [r for r in range(len(all_r_idx)) if all_r_idx[r] in cluster_trials_all_idx]
-l_train_err_idx = [r for r in range(len(all_l_idx)) if all_l_idx[r] in cluster_trials_all_idx]
-
-r_test_err_idx = r_train_err_idx
-l_test_err_idx = l_train_err_idx
-
-train_test_trials = (r_train_idx, l_train_idx, r_test_idx, l_test_idx)
-train_test_trials_err = (r_train_err_idx, l_train_err_idx, r_test_err_idx, l_test_err_idx)
 
 s2 = Mode(learningpath, use_reg = True, triple=True, 
           baseline_normalization="median_zscore",
-          train_test_trials = [train_test_trials, train_test_trials_err])
+            train_test_trials = cluster_trials_all_idx,
+            lda_cluster=True)
 
 orthonormal_basis_learning, mean = s2.plot_CD(ctl=True, plot=False)
 
@@ -254,32 +346,10 @@ orthonormal_basis_learning, mean = s2.plot_CD(ctl=True, plot=False)
 cluster_trials_all_idx = learning_normalized.index[learning_normalized['topic_{}'.format(main_cluster)] > 0.25].to_numpy()
 cluster_trials_all_idx = np.where(np.argmax(learning_normalized, axis=1) == main_cluster)[0]
 
-all_r_idx = [i for i in s2.i_good_non_stim_trials if s2.R_correct[i] and not bool(s2.early_lick[i])]
-all_l_idx = [i for i in s2.i_good_non_stim_trials if s2.L_correct[i] and not bool(s2.early_lick[i])]
-
-r_train_idx = [r for r in range(len(all_r_idx)) if all_r_idx[r] in cluster_trials_all_idx]
-l_train_idx = [r for r in range(len(all_l_idx)) if all_l_idx[r] in cluster_trials_all_idx]
-
-# Get R and L correct
-
-r_test_idx = r_train_idx
-l_test_idx = l_train_idx
-
-all_r_idx = [i for i in s2.i_good_non_stim_trials if s2.R_wrong[i] and not bool(s2.early_lick[i])]
-all_l_idx = [i for i in s2.i_good_non_stim_trials if s2.L_wrong[i] and not bool(s2.early_lick[i])]
-
-r_train_err_idx = [r for r in range(len(all_r_idx)) if all_r_idx[r] in cluster_trials_all_idx]
-l_train_err_idx = [r for r in range(len(all_l_idx)) if all_l_idx[r] in cluster_trials_all_idx]
-
-r_test_err_idx = r_train_err_idx
-l_test_err_idx = l_train_err_idx
-
-train_test_trials = (r_train_idx, l_train_idx, r_test_idx, l_test_idx)
-train_test_trials_err = (r_train_err_idx, l_train_err_idx, r_test_err_idx, l_test_err_idx)
-
 s2 = Mode(learningpath, use_reg = True, triple=True, 
           baseline_normalization="median_zscore",
-          train_test_trials = [train_test_trials, train_test_trials_err])
+            train_test_trials = cluster_trials_all_idx,
+            lda_cluster=True)
 
 proj_allDimR, proj_allDimL = s2.plot_CD(ctl=True, plot=False, auto_corr_return=True)
 proj_allDimR_applied, proj_allDimL_applied = s2.plot_appliedCD(orthonormal_basis_learning, mean, auto_corr_return=True, plot=False)
@@ -304,33 +374,10 @@ for cluster in range(num_clusters):
     
     cluster_trials_all_idx = learning_normalized.index[learning_normalized['topic_{}'.format(cluster)] > 0.25].to_numpy()
 
-    
-    all_r_idx = [i for i in s2.i_good_non_stim_trials if s2.R_correct[i] and not bool(s2.early_lick[i])]
-    all_l_idx = [i for i in s2.i_good_non_stim_trials if s2.L_correct[i] and not bool(s2.early_lick[i])]
-    
-    r_train_idx = [r for r in range(len(all_r_idx)) if all_r_idx[r] in cluster_trials_all_idx]
-    l_train_idx = [r for r in range(len(all_l_idx)) if all_l_idx[r] in cluster_trials_all_idx]
-    
-    # Get R and L correct
-    
-    r_test_idx = r_train_idx
-    l_test_idx = l_train_idx
-    
-    all_r_idx = [i for i in s2.i_good_non_stim_trials if s2.R_wrong[i] and not bool(s2.early_lick[i])]
-    all_l_idx = [i for i in s2.i_good_non_stim_trials if s2.L_wrong[i] and not bool(s2.early_lick[i])]
-    
-    r_train_err_idx = [r for r in range(len(all_r_idx)) if all_r_idx[r] in cluster_trials_all_idx]
-    l_train_err_idx = [r for r in range(len(all_l_idx)) if all_l_idx[r] in cluster_trials_all_idx]
-    
-    r_test_err_idx = r_train_err_idx
-    l_test_err_idx = l_train_err_idx
-    
-    train_test_trials = (r_train_idx, l_train_idx, r_test_idx, l_test_idx)
-    train_test_trials_err = (r_train_err_idx, l_train_err_idx, r_test_err_idx, l_test_err_idx)
-    
     s2 = Mode(learningpath, use_reg = True, triple=True, 
               baseline_normalization="median_zscore",
-              train_test_trials = [train_test_trials, train_test_trials_err])
+              train_test_trials = cluster_trials_all_idx,
+              lda_cluster=True)
     
     orthonormal_basis_learning, mean = s2.plot_CD(ctl=True, plot=False)
     learning_CDs += [orthonormal_basis_learning]

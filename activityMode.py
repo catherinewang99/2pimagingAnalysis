@@ -25,7 +25,7 @@ class Mode(Session):
     def __init__(self, path, lickdir=True, use_reg=False, triple=False, filter_reg= True, 
                  layer_num='all', responsive_neurons = [], use_selective= False, use_background_sub=False,
                  baseline_normalization = "dff_avg", proportion_train = 0.5,
-                 train_test_trials = []):
+                 train_test_trials = [], lda_cluster = False, i_good = []):
         """
         Child object of Session that allows for activity mode calculations 
         Mostly adds new functions and also train test split of trials 
@@ -93,7 +93,11 @@ class Mode(Session):
         ### SORT CONTROL TRIALS:
         # First method: in house
         if len(train_test_trials) == 0:
-                
+            if lda_cluster == True and len(i_good) != 0:
+                print('new i_good based on clusters')
+                self.i_good_trials = i_good
+                self.i_good_non_stim_trials = [t for t in self.i_good_trials if not self.stim_ON[t]]
+
             print("in house train test sorting")
             numr = sum([self.R_correct[i] for i in self.i_good_non_stim_trials if not self.early_lick[i]])
             numl = sum([self.L_correct[i] for i in self.i_good_non_stim_trials if not self.early_lick[i]])
@@ -116,7 +120,34 @@ class Mode(Session):
                 self.r_test_idx, self.l_test_idx = self.r_train_idx, self.l_train_idx
                 self.r_test_err_idx, self.l_test_err_idx = self.r_train_err_idx, self.l_train_err_idx
                 
-        # Second method: read in from outside
+        elif lda_cluster:
+            
+            cluster_trials_all_idx = train_test_trials
+            
+            all_r_idx = [i for i in self.i_good_non_stim_trials if self.R_correct[i] and not bool(self.early_lick[i])]
+            all_l_idx = [i for i in self.i_good_non_stim_trials if self.L_correct[i] and not bool(self.early_lick[i])]
+            
+            r_train_idx = [r for r in range(len(all_r_idx)) if all_r_idx[r] in cluster_trials_all_idx]
+            l_train_idx = [r for r in range(len(all_l_idx)) if all_l_idx[r] in cluster_trials_all_idx]
+            
+            # Get R and L correct
+            
+            r_test_idx = r_train_idx
+            l_test_idx = l_train_idx
+            
+            all_r_idx = [i for i in self.i_good_non_stim_trials if self.R_wrong[i] and not bool(self.early_lick[i])]
+            all_l_idx = [i for i in self.i_good_non_stim_trials if self.L_wrong[i] and not bool(self.early_lick[i])]
+            
+            r_train_err_idx = [r for r in range(len(all_r_idx)) if all_r_idx[r] in cluster_trials_all_idx]
+            l_train_err_idx = [r for r in range(len(all_l_idx)) if all_l_idx[r] in cluster_trials_all_idx]
+            
+            r_test_err_idx = r_train_err_idx
+            l_test_err_idx = l_train_err_idx
+            
+            self.r_train_idx, self.l_train_idx, self.r_test_idx, self.l_test_idx  = r_train_idx, l_train_idx, r_test_idx, l_test_idx
+            self.r_train_err_idx, self.l_train_err_idx, self.r_test_err_idx, self.l_test_err_idx = r_train_err_idx, l_train_err_idx, r_test_err_idx, l_test_err_idx
+            
+        # Last method: read in from outside
         else:
             self.r_train_idx, self.l_train_idx, self.r_test_idx, self.l_test_idx = train_test_trials[0]
             self.r_train_err_idx, self.l_train_err_idx, self.r_test_err_idx, self.l_test_err_idx = train_test_trials[1]
