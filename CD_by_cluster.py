@@ -28,6 +28,7 @@ import pandas as pd
 from sklearn import preprocessing
 import joblib
 from sklearn.preprocessing import normalize
+import os
 
 cat = np.concatenate
 plt.rcParams['pdf.fonttype'] = '42' 
@@ -159,7 +160,10 @@ naivepath, learningpath, expertpath, clusterpath = [r'H:\data\BAYLORCW044\python
                     r'H:\data\BAYLORCW044\python\2024_06_06',
                   r'H:\data\BAYLORCW044\python\2024_06_19',
                   r'H:\data\matched_topic_params\CW44_FOV1_table']
-
+naivepath, learningpath, expertpath, clusterpath = [r'F:\data\BAYLORCW034\python\2023_10_22',
+                   r'F:\data\BAYLORCW034\python\2023_10_22',
+                   r'F:\data\BAYLORCW034\python\2023_10_27',
+                  r'H:\data\matched_topic_params\CW34_table']
 # naivepath, learningpath, expertpath, clusterpath = [
 #                     r'H:\data\BAYLORCW046\python\2024_05_31',
 #                     r'H:\data\BAYLORCW046\python\2024_06_11',
@@ -247,7 +251,7 @@ plt.show()
 
 # Left/right trials per cluster
 # Max method:
-f,ax=plt.subplots(1,2,figsize=(10,5))
+f,ax=plt.subplots(1,2,figsize=(10,5), sharey='row')
 max_cluster_by_trial = np.argmax(learning_normalized, axis=1)
 max_cluster_by_trial_exp = np.argmax(expert_normalized, axis=1)
 for c in set(max_cluster_by_trial):
@@ -360,9 +364,9 @@ plt.ylim(bottom=0.5)
 plt.xlabel('Cluster number')
 plt.ylabel('Accuracy %')
 
-#%% End point analysis across clusters
-main_cluster = 2
-compare_cluster = 1
+#%% End point analysis across clusters in learning session vs expert
+main_cluster = 1
+compare_cluster = 0
 
 cluster_trials_all_idx = learning_normalized.index[learning_normalized['topic_{}'.format(compare_cluster)] > 0.25].to_numpy()
 cluster_trials_all_idx = np.where(np.argmax(learning_normalized, axis=1) == compare_cluster)[0]
@@ -395,7 +399,42 @@ plt.axhline(0, ls = '--', color='black')
 plt.axvline(0, ls = '--', color='black')
 plt.ylabel('Outside cluster CD')
 plt.xlabel('Within cluster CD')
-plt.title('Cluster main {} vs. cluster {}'.format(main_cluster, compare_cluster))
+plt.title('Learning: cluster main {} vs. cluster {}'.format(main_cluster, compare_cluster))
+plt.show()
+
+#Expert
+cluster_trials_all_idx = expert_normalized.index[expert_normalized['topic_{}'.format(compare_cluster)] > 0.25].to_numpy()
+cluster_trials_all_idx = np.where(np.argmax(expert_normalized, axis=1) == compare_cluster)[0]
+
+s2 = Mode(expertpath, use_reg = True, triple=True, 
+          baseline_normalization="median_zscore",
+            train_test_trials = cluster_trials_all_idx,
+            lda_cluster=True)
+
+orthonormal_basis_learning, mean = s2.plot_CD(ctl=True, plot=False)
+
+## Look at main cluster
+cluster_trials_all_idx = expert_normalized.index[expert_normalized['topic_{}'.format(main_cluster)] > 0.25].to_numpy()
+cluster_trials_all_idx = np.where(np.argmax(expert_normalized, axis=1) == main_cluster)[0]
+
+s2 = Mode(expertpath, use_reg = True, triple=True, 
+          baseline_normalization="median_zscore",
+            train_test_trials = cluster_trials_all_idx,
+            lda_cluster=True)
+
+proj_allDimR, proj_allDimL = s2.plot_CD(ctl=True, plot=False, auto_corr_return=True)
+proj_allDimR_applied, proj_allDimL_applied = s2.plot_appliedCD(orthonormal_basis_learning, mean, auto_corr_return=True, plot=False)
+
+# Plot end points
+
+plt.scatter(proj_allDimR[:, s2.response-1], proj_allDimR_applied[:, s2.response-1], color='b')
+plt.scatter(proj_allDimL[:, s2.response-1], proj_allDimL_applied[:, s2.response-1], color='r')
+plt.axhline(0, ls = '--', color='black')
+plt.axvline(0, ls = '--', color='black')
+plt.ylabel('Outside cluster CD')
+plt.xlabel('Within cluster CD')
+plt.title('Expert: cluster main {} vs. cluster {}'.format(main_cluster, compare_cluster))
+plt.show()
 
 #%% Get different CDs from the clusters for learning session applied to expert and opto projections
 # A trial belongs to a CD if the probability > 1/num clusters OR max method
@@ -529,3 +568,67 @@ for i in range(5):
 _, mean_exp = s2.plot_CD(ctl=True)
 orthonormal_basis_learning, mean, meantrain, std = s1.plot_CD_opto(ctl=True, return_applied=True)
 s1.plot_CD_opto_applied(orthonormal_basis_learning, mean, meantrain, std)
+
+
+#%% Iterate over all LDA clusters to get some general info
+
+path = r'H:\data\matched_topic_params'
+files = [f for f in os.listdir(path) if 'CW' in f]
+num_clusters = []
+num_trials_learning = []
+num_trials_expert = []
+
+for file in files:
+    clusters = pd.read_pickle(path + '\\' + file)
+    trialparams = np.mean(clusters.trial_params.to_numpy())
+    num_clusters += [len(trialparams.columns)]
+    idx = pd.IndexSlice
+    
+    learning = trialparams.loc[idx['learning', :]]
+    learning_normalized = pd.DataFrame(normalize(learning, norm='l1'), columns=learning.columns)#, index=learning.index)
+    
+    expert = trialparams.loc[idx['expert', :]]
+    expert_normalized = pd.DataFrame(normalize(expert, norm='l1'), columns=expert.columns)#, index=expert.index)
+    max_cluster_by_trial = np.argmax(learning_normalized, axis=1)
+    max_cluster_by_trial_exp = np.argmax(expert_normalized, axis=1)
+    _, counts = np.unique(max_cluster_by_trial, return_counts=True)
+    num_trials_learning += [counts]    
+    _, counts = np.unique(max_cluster_by_trial_exp, return_counts=True)
+    num_trials_expert += [counts]
+num_trials_learning = cat(num_trials_learning)
+num_trials_expert = cat(num_trials_expert)
+    
+# Make plots
+
+# Number of clusters over FOVS
+f = plt.figure(figsize=(5,5))
+plt.bar([0], [np.mean(num_clusters)])
+jitter_x = np.random.normal(0, 0.1, len(num_clusters))  # Jitter for x (mean=0, std=0.1)
+plt.scatter(np.zeros(len(files)) + jitter_x, num_clusters)
+plt.ylabel('Number of clusters')
+
+# Number of trials per cluster all FOVs
+f = plt.figure(figsize=(5,5))
+plt.bar([0,1], [np.mean(num_trials_learning), np.mean(num_trials_expert)])
+plt.scatter(np.zeros(len(num_trials_learning)), num_trials_learning)
+plt.scatter(np.ones(len(num_trials_expert)), num_trials_expert)
+for i in range(len(num_trials_expert)):
+    plt.plot([0,1], [num_trials_learning[i],
+                     num_trials_expert[i]],
+             color='grey', alpha=0.5)
+plt.xticks([0,1],['Learning', 'Expert'])
+plt.ylabel('Number of trials')
+
+# Delta of number of trials per cluster all FOVs
+f = plt.figure(figsize=(5,5))
+plt.hist(num_trials_expert-num_trials_learning, bins=20)
+plt.xlabel('Clusters')
+plt.ylabel('Delta in num of trials')
+
+# Delta vs size of cluster scatter
+f = plt.figure(figsize=(5,5))
+plt.scatter(num_trials_expert, num_trials_expert-num_trials_learning)
+plt.xlabel('Number of trials in cluster: expert')
+plt.ylabel('Delta in num of trials (exp - learning)')
+
+
