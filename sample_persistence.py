@@ -29,6 +29,7 @@ import joblib
 from sklearn.preprocessing import normalize
 from scipy.stats import ttest_rel
 from scipy.stats import ttest_ind
+import scipy 
 
 cat = np.concatenate
 plt.rcParams['pdf.fonttype'] = '42' 
@@ -187,9 +188,12 @@ orthonormal_basis_learning, mean = s2.plot_CD(ctl=True)
 #%% Across FOVs, get angle between CDs
 plot=False
 all_choice_stability = []
+all_r_choice = []
 
 for paths in allpaths[1:]:
     choice_stability = []
+    r_choice = []
+
     for path in paths:
         
         s2 = Mode(path, use_reg = True, triple=True, 
@@ -200,9 +204,10 @@ for paths in allpaths[1:]:
         orthonormal_basis_no_sam, mean = s2.plot_CD(ctl=True, plot=plot)
 
         choice_stability += [cos_sim(orthonormal_basis, orthonormal_basis_no_sam)]
+        r_choice += [scipy.stats.pearsonr(orthonormal_basis, orthonormal_basis_no_sam)[0]]
 
     all_choice_stability += [choice_stability]
-    
+    all_r_choice += [r_choice]
     
 all_choice_stability = np.abs(all_choice_stability)
 t_stat, p_value = ttest_rel(all_choice_stability[0], all_choice_stability[1]) # Paired t-test
@@ -222,6 +227,28 @@ plt.ylim(bottom=0.5)
 plt.xticks([0,1],['Learning', 'Expert'])
 plt.ylabel('Cosine similarity')
 plt.title('Simialrity of CD_delay with/without sample mode')
+plt.show()
+
+
+all_r_choice = np.abs(all_r_choice)
+t_stat, p_value = ttest_rel(all_r_choice[0], all_r_choice[1]) # Paired t-test
+print(t_stat, p_value)
+f = plt.figure(figsize=(6,6))
+plt.bar(np.arange(len(all_r_choice)), np.mean(all_r_choice, axis=1))
+for i in range(len(all_r_choice)):
+    plt.scatter(np.ones(len(all_r_choice[i]))*i, all_r_choice[i])
+    
+for j in range(len(all_r_choice[i])):
+    plt.plot([0,1], [all_r_choice[0][j],
+                     all_r_choice[1][j]],
+             color='grey')
+
+plt.ylim(bottom=0.5)
+plt.xticks([0,1],['Learning', 'Expert'])
+plt.ylabel('R correlation')
+plt.title('Simialrity of CD_delay with/without sample mode')
+plt.show()
+
 
 #%% Contribution of sample selective vs delay selective cells to selectivity at end of delay ONE FOV
 # Contribution can be thought of as weight to CD_delay wo sample exclusion
@@ -234,7 +261,7 @@ s2 = Mode(learningpath, use_reg = True, triple=True,
           baseline_normalization="median_zscore")
 
 sample_selective = s2.get_epoch_selective(range(s2.sample, s2.delay), p=p)
-delay_selective = s2.get_epoch_selective(range(s2.delay + int(1.5*(1/s2.fs)), s2.response), p=p)
+delay_selective = s2.get_epoch_selective(range(s2.delay + int(2*(1/s2.fs)), s2.response), p=p)
 
 sample_delay_selective = np.intersect1d(sample_selective, delay_selective)
 sample_selective = [n for n in sample_selective if n not in sample_delay_selective]
@@ -284,7 +311,7 @@ for paths in allpaths[1:]:
                   baseline_normalization="median_zscore")
         
         sample_selective = s2.get_epoch_selective(range(s2.sample, s2.delay), p=p)
-        delay_selective = s2.get_epoch_selective(range(s2.delay + int(1.5*(1/s2.fs)), s2.response), p=p)
+        delay_selective = s2.get_epoch_selective(range(s2.delay + int(2*(1/s2.fs)), s2.response), p=p)
         
         sample_delay_selective = np.intersect1d(sample_selective, delay_selective)
         sample_selective = [n for n in sample_selective if n not in sample_delay_selective]
