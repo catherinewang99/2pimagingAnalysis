@@ -32,6 +32,7 @@ import os
 from sklearn.metrics.pairwise import cosine_similarity
 from scipy.stats import ttest_rel
 from scipy.stats import ttest_ind
+import scipy 
 
 cat = np.concatenate
 plt.rcParams['pdf.fonttype'] = '42' 
@@ -828,6 +829,95 @@ for paths in agg_mice_paths:
     robustness_expert += [cds]
     num_trials_expert += [trials]
     
+#%% Decoding accuracy of CDs clusters
+# Takes a while to run
+
+# robustness_learning = []
+# robustness_expert = []
+acc_learning = []
+# acc_expert = []
+
+for paths in agg_mice_paths:
+    clusters = pd.read_pickle(paths[3])
+    trialparams = np.mean(clusters.trial_params.to_numpy())
+    num_clusters = len(trialparams.columns)
+
+    idx = pd.IndexSlice
+    
+    learning = trialparams.loc[idx['learning', :]]
+    learning_normalized = pd.DataFrame(normalize(learning, norm='l1'), columns=learning.columns)#, index=learning.index)
+    
+    cds = []
+    allaccs = []
+    for cluster in range(num_clusters):
+        cluster_trials_all_idx = np.where(np.argmax(learning_normalized, axis=1) == cluster)[0]
+
+        s2 = Mode(paths[1], use_reg = True, triple=True, 
+                  baseline_normalization="median_zscore",
+                  i_good = cluster_trials_all_idx,                  
+                  lda_cluster=True)
+        # try:
+        #     rob = s2.modularity_proportion_by_CD()
+        # except np.linalg.LinAlgError:
+        #     rob = 0
+            
+        try:
+            _, _, db, acc = s2.decision_boundary(mode_input='choice', persistence=False)
+        except np.linalg.LinAlgError:
+            acc = [0]
+            
+        # cds += [rob]
+        allaccs += [np.mean(acc)]
+        
+    robustness_learning += [cds]
+    acc_learning += [allaccs]
+    
+    # expert = trialparams.loc[idx['expert', :]]
+    # expert_normalized = pd.DataFrame(normalize(expert, norm='l1'), columns=expert.columns)#, index=expert.index)
+    # cds = []
+    # allaccs = []
+    # for cluster in range(num_clusters):
+    #     cluster_trials_all_idx = np.where(np.argmax(expert_normalized, axis=1) == cluster)[0]
+
+    #     s2 = Mode(paths[2], use_reg = True, triple=True, 
+    #               baseline_normalization="median_zscore",
+    #               i_good = cluster_trials_all_idx,                  
+    #               lda_cluster=True)
+    #     # try:
+    #     #     rob = s2.modularity_proportion_by_CD()
+    #     # except np.linalg.LinAlgError:
+    #     #     rob = 0
+            
+    #     try:
+    #         _, _, db, acc = s2.decision_boundary(mode_input='choice', persistence=False)
+    #     except np.linalg.LinAlgError:
+    #         acc = [0]
+            
+    #     # cds += [rob]
+    #     allaccs += [np.mean(acc)]
+        
+    # # robustness_expert += [cds]
+    # acc_expert += [allaccs]
+    
+#%% Distribution of accuracies
+all_acc_learning = cat(acc_learning)
+all_acc_expert = cat(acc_expert)
+all_acc_learning_filt, all_acc_expert_filt = [], []
+for i in range(len(all_acc_learning)):
+    if all_acc_expert[i] != 0 and all_acc_learning[i] != 0:
+        all_acc_learning_filt += [all_acc_learning[i]]
+        all_acc_expert_filt += [all_acc_expert[i]]
+
+
+# Plot all decoding accuracry values across learning
+plt.bar([0,1], [np.mean(all_acc_learning_filt), np.mean(all_acc_expert_filt)])
+plt.scatter(np.zeros(len(all_acc_learning_filt)), all_acc_learning_filt)
+plt.scatter(np.ones(len(all_acc_expert_filt)), all_acc_expert_filt)
+plt.ylabel('Decoding accuracy')
+plt.xticks([0,1], ['Learning', 'Expert'])
+plt.title('Decoding accuracy of cluster CDs across learning')
+plt.show()
+
 #%% Robustness of CDs vs size of clusters
 f, ax = plt.subplots(2,2, figsize=(10,10), sharey='row', sharex='col')
 
@@ -846,7 +936,22 @@ print(scipy.stats.pearsonr(cat(num_trials_learning), cat(robustness_learning)))
 print(scipy.stats.pearsonr(cat(num_trials_learning), cat(robustness_expert)))
 
 
-#%% Remove 0 values
+#%% Delta of robustness distribution
+all_robustness_expert = cat(robustness_expert)
+all_robustness_learning = cat(robustness_learning)
+all_robustness_learning_filt, all_robustness_expert_filt = [],[]
+for i in range(len(all_robustness_learning)):
+    if all_robustness_expert[i] != 0 and all_robustness_learning[i] != 0:
+        all_robustness_learning_filt += [all_robustness_learning[i]]
+        all_robustness_expert_filt += [all_robustness_expert[i]]
+        
+delta_rob = np.array(all_robustness_expert_filt) - np.array(all_robustness_learning_filt)
+
+plt.hist(delta_rob)
+plt.axvline(x=0, ls='--', color='purple')
+plt.xlabel('Delta of robustness')
+plt.ylabel('Number of clusters')
+
 
 #%% Plot all robustness values across learning
 
@@ -921,13 +1026,59 @@ plt.scatter(all_robustness_learning_filt, delta)
 plt.axhline(0, ls = '--', color='grey')
 plt.ylabel('Delta in number of trials (expert-learning)')
 plt.xlabel('Robustness in learning stage (delta from control)')
+# print(scipy.stats.pearsonr(all_robustness_learning_filt, delta))
+plt.show()
+
+plt.scatter(delta_rob, num_trials_expert_filt)
+plt.axvline(0, ls = '--', color='grey')
+plt.ylabel('Number of trials (expert)')
+plt.xlabel('Delta robustness (delta from control)')
+plt.show()
+# print(scipy.stats.pearsonr(delta_rob, delta))
+
+plt.scatter(delta_rob, num_trials_learning_filt)
+plt.axvline(0, ls = '--', color='grey')
+plt.ylabel('Number of trials (learning)')
+plt.xlabel('Delta robustness (delta from control)')
+plt.show()
+
+#%% Filter out clusters with very few trials
+
+all_robustness_learning_filt, all_robustness_expert_filt = [],[]
+num_trials_learning_filt, num_trials_expert_filt = [],[]
+for i in range(len(all_robustness_learning)):
+    if all_num_trials_learning[i] > 50:
+        all_robustness_learning_filt += [all_robustness_learning[i]]
+        all_robustness_expert_filt += [all_robustness_expert[i]]
+        num_trials_learning_filt += [all_num_trials_learning[i]]
+        num_trials_expert_filt += [all_num_trials_expert[i]]
+
+delta = np.array(num_trials_expert_filt) - np.array(num_trials_learning_filt)
+delta_rob = np.array(all_robustness_expert_filt) - np.array(all_robustness_learning_filt)
+# 
+plt.scatter(all_robustness_expert_filt, delta)
+plt.axhline(0, ls = '--', color='grey')
+plt.ylabel('Delta in number of trials (expert-learning)')
+plt.xlabel('Robustness in expert stage (delta from control)')
+plt.show()
+
+# learning
+plt.scatter(all_robustness_learning_filt, delta)
+plt.axhline(0, ls = '--', color='grey')
+plt.ylabel('Delta in number of trials (expert-learning)')
+plt.xlabel('Robustness in learning stage (delta from control)')
 print(scipy.stats.pearsonr(all_robustness_learning_filt, delta))
 plt.show()
 
 plt.scatter(delta_rob, num_trials_expert_filt)
-plt.axhline(0, ls = '--', color='grey')
+plt.axvline(0, ls = '--', color='grey')
+plt.ylabel('Number of trials (expert)')
+plt.xlabel('Delta robustness (delta from control)')
+plt.show()
+# print(scipy.stats.pearsonr(delta_rob, delta))
+
+plt.scatter(delta_rob, num_trials_learning_filt)
+plt.axvline(0, ls = '--', color='grey')
 plt.ylabel('Number of trials (learning)')
 plt.xlabel('Delta robustness (delta from control)')
 plt.show()
-print(scipy.stats.pearsonr(delta_rob, delta))
-
