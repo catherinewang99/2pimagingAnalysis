@@ -1916,8 +1916,7 @@ class Mode(Session):
         if return_applied:
             return orthonormal_basis, np.mean(activityRL_train, axis=1)[:, None], meantrain, meanstd
 
-        # axs[0, 0].set_ylabel('Activity proj.')
-        # axs[3, 0].set_xlabel('Time')
+
     def plot_CD_opto_applied(self, orthonormal_basis, mean, meantrain, meanstd, save=None, return_traces = False, normalize=True):
         '''
         Plots similar figure as Li et al 2016 Fig 3c to view the effect of
@@ -3068,9 +3067,9 @@ class Mode(Session):
         return CD_recovery_mode
     
     
-    def modularity_proportion_by_CD(self, mode_input = 'choice', trials=None, 
+    def modularity_proportion_by_CD(self, mode_input='choice', trials=None, 
                                     period=None, normalize=True, return_trials=False,
-                                    applied=[]):
+                                    applied=[], ctl=False):
         """Returns the modularity as a proportion of control CD
         
         Define CD using all trials
@@ -3102,7 +3101,7 @@ class Mode(Session):
         if len(applied) != 0:
             orthonormal_basis, mean = applied
         else:
-            orthonormal_basis, mean = self.plot_behaviorally_relevant_modes(plot=False) # one method
+            orthonormal_basis, mean = self.plot_behaviorally_relevant_modes(plot=False, ctl=ctl) # one method
             orthonormal_basis = orthonormal_basis[:, idx]
             
         activityRL_train= np.concatenate((self.PSTH_r_train_correct, 
@@ -3116,7 +3115,6 @@ class Mode(Session):
         if period is None: 
             period = range(self.response-int(1*1/self.fs),self.response) # Last second
 
-        # orthonormal_basis = orthonormal_basis.reshape(-1,1)
         i_pc = 0
 
         # Project for every control trial
@@ -3161,7 +3159,7 @@ class Mode(Session):
 
         r_opto, l_opto = self.get_trace_matrix_multiple(self.good_neurons, opto=True)
 
-        # activityRL_opto= np.concatenate((r_opto, l_opto), axis=1)
+        activityRL_opto= np.concatenate((r_opto, l_opto), axis=1)
         
         
         r_corr = np.where(self.R_correct + self.L_wrong)[0]
@@ -3172,33 +3170,98 @@ class Mode(Session):
         r_trials = [i for i in r_corr if self.stim_ON[i] and not self.early_lick[i]]
         l_trials = [i for i in l_corr if self.stim_ON[i] and not self.early_lick[i]]
         
-        r_proj_delta = []
-        l_proj_delta = []
+        
+        r_proj = []
+        l_proj = []
         for r in r_trials:
             activity = self.dff[0, r][self.good_neurons] 
             activity = activity - np.tile(np.mean(activityRL_train, axis=1)[:, None], (1, activity.shape[1]))
             proj_allDim = np.dot(activity.T, orthonormal_basis)
-            proj_allDim = (proj_allDim - meantrain) / meanstd
-            r_proj_delta += [(right_control_traces[period] - proj_allDim[period]) / right_control_traces[period]]
+            r_proj += [proj_allDim[:len(self.T_cue_aligned_sel)]]
+            # plt.plot(x, proj_allDim[:len(self.T_cue_aligned_sel), i_pc], 'b', alpha = 0.5,  linewidth = 0.5)
             
         for l in l_trials:
             activity = self.dff[0, l][self.good_neurons]
             activity = activity - np.tile(np.mean(activityRL_train, axis=1)[:, None], (1, activity.shape[1]))
             proj_allDim = np.dot(activity.T, orthonormal_basis)
-            proj_allDim = (proj_allDim - meantrain) / meanstd
-            l_proj_delta += [(left_control_traces[period] - proj_allDim[period]) / left_control_traces[period]]
+            l_proj += [proj_allDim[:len(self.T_cue_aligned_sel)]]
+            # plt.plot(x, proj_allDim[:len(self.T_cue_aligned_sel), i_pc], 'r', alpha = 0.5, linewidth = 0.5)
             
-        if return_trials:
-            return r_trials, l_trials, r_proj_delta, l_proj_delta
+            
+        # Opto trials
+        activityRL_opto = activityRL_opto - np.tile(np.mean(activityRL_train, axis=1)[:, None], (1, activityRL_opto.shape[1]))  # remove mean
+        proj_allDim = np.dot(activityRL_opto.T, orthonormal_basis)
+        if normalize:
 
-        recovery = 0
+            proj_allDim = (proj_allDim - meantrain) / meanstd
+            l_proj = (l_proj - meantrain) / meanstd
+            r_proj = (r_proj - meantrain) / meanstd
+            
+        recovery = []
+        top = 'left' if left_control_traces[period[-1]] > right_control_traces[period[-1]] else 'right'
+        for t in period:
+            left = left_control_traces[t] - proj_allDim[len(self.T_cue_aligned_sel):][t]
+            right = right_control_traces[t]  - proj_allDim[:len(self.T_cue_aligned_sel)][t]
+            # left = (left_control_traces[t] - proj_allDim[len(self.T_cue_aligned_sel):][t]) / left_control_traces[t]
+            # right = (right_control_traces[t]  - proj_allDim[:len(self.T_cue_aligned_sel)][t]) / right_control_traces[t]
+            # left = proj_allDim[len(self.T_cue_aligned_sel):][t] / left_control_traces[t]
+            # right = proj_allDim[:len(self.T_cue_aligned_sel)][t] / right_control_traces[t]
+            if top == 'left':
+                # left = proj_allDim[len(self.T_cue_aligned_sel):][t] / left_control_traces[t]
+                # right = np.abs(proj_allDim[:len(self.T_cue_aligned_sel)])[t] / np.abs(right_control_traces)[t]
+
+                right = -right
+            else:
+                # left = np.abs(proj_allDim[len(self.T_cue_aligned_sel):])[t] / np.abs(left_control_traces)[t]
+                # right = proj_allDim[:len(self.T_cue_aligned_sel)][t] / right_control_traces[t]
+                left=-left
+            # recovery += [np.mean((np.abs(left), np.abs(right)))]
+                
+              # left = proj_allDim[len(self.T_cue_aligned_sel):][t] / left_control_traces[t]
+              # right = proj_allDim[:len(self.T_cue_aligned_sel)][t] / right_control_traces[t]
+             
+            # left = left_control_traces[t] - proj_allDim[len(self.T_cue_aligned_sel):][t]
+            # right = right_control_traces[t]  - proj_allDim[:len(self.T_cue_aligned_sel)][t]
+             
+            # left = (left_control_traces[t] - proj_allDim[len(self.T_cue_aligned_sel):][t]) / left_control_traces[t]
+            # right = (right_control_traces[t]  - proj_allDim[:len(self.T_cue_aligned_sel)][t]) / right_control_traces[t]
+            # recovery += [np.mean((np.abs(left), np.abs(right)))]
+            recovery += [np.abs(left) + np.abs(right)]
+
         
-        if len(r_proj_delta) != 0:
-            recovery += np.abs(np.mean(r_proj_delta)) 
-        if len(l_proj_delta) != 0:
-            recovery += np.abs(np.mean(l_proj_delta))
+        # return proj_allDim[len(self.T_cue_aligned_sel):],left_control_traces, period
+        return np.mean(recovery)
+        
+        
+        # Old method to calculate robustness
+        
+        # r_proj_delta = []
+        # l_proj_delta = []
+        # for r in r_trials:
+        #     activity = self.dff[0, r][self.good_neurons] 
+        #     activity = activity - np.tile(np.mean(activityRL_train, axis=1)[:, None], (1, activity.shape[1]))
+        #     proj_allDim = np.dot(activity.T, orthonormal_basis)
+        #     proj_allDim = (proj_allDim - meantrain) / meanstd
+        #     r_proj_delta += [(right_control_traces[period] - proj_allDim[period]) / right_control_traces[period]]
+            
+        # for l in l_trials:
+        #     activity = self.dff[0, l][self.good_neurons]
+        #     activity = activity - np.tile(np.mean(activityRL_train, axis=1)[:, None], (1, activity.shape[1]))
+        #     proj_allDim = np.dot(activity.T, orthonormal_basis)
+        #     proj_allDim = (proj_allDim - meantrain) / meanstd
+        #     l_proj_delta += [(left_control_traces[period] - proj_allDim[period]) / left_control_traces[period]]
+            
+        # if return_trials:
+        #     return r_trials, l_trials, r_proj_delta, l_proj_delta
 
-        return recovery
+        # recovery = 0
+        
+        # if len(r_proj_delta) != 0:
+        #     recovery += np.abs(np.mean(r_proj_delta)) 
+        # if len(l_proj_delta) != 0:
+        #     recovery += np.abs(np.mean(l_proj_delta))
+
+        # return recovery
 
   
 

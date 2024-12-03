@@ -29,6 +29,9 @@ from sklearn import preprocessing
 import joblib
 from sklearn.preprocessing import normalize
 import os
+from sklearn.metrics.pairwise import cosine_similarity
+from scipy.stats import ttest_rel
+from scipy.stats import ttest_ind
 
 cat = np.concatenate
 plt.rcParams['pdf.fonttype'] = '42' 
@@ -164,6 +167,59 @@ naivepath, learningpath, expertpath, clusterpath = [r'F:\data\BAYLORCW034\python
                    r'F:\data\BAYLORCW034\python\2023_10_22',
                    r'F:\data\BAYLORCW034\python\2023_10_27',
                   r'H:\data\matched_topic_params\CW34_table']
+
+
+agg_mice_paths = [[r'F:\data\BAYLORCW032\python\2023_10_08',
+          r'F:\data\BAYLORCW032\python\2023_10_16',
+          r'F:\data\BAYLORCW032\python\2023_10_25',
+          r'H:\data\matched_topic_params\CW32_table'],
+         
+        [ r'F:\data\BAYLORCW034\python\2023_10_12',
+              r'F:\data\BAYLORCW034\python\2023_10_22',
+              r'F:\data\BAYLORCW034\python\2023_10_27',
+              r'H:\data\matched_topic_params\CW34_table'],
+
+        [r'F:\data\BAYLORCW036\python\2023_10_09',
+            r'F:\data\BAYLORCW036\python\2023_10_19',
+            r'F:\data\BAYLORCW036\python\2023_10_30',
+            r'H:\data\matched_topic_params\CW36_table'],
+    
+        [r'F:\data\BAYLORCW035\python\2023_10_26',
+            r'F:\data\BAYLORCW035\python\2023_12_07',
+            r'F:\data\BAYLORCW035\python\2023_12_15',
+            r'H:\data\matched_topic_params\CW35_table'],
+     
+        [r'F:\data\BAYLORCW037\python\2023_11_21',
+             r'F:\data\BAYLORCW037\python\2023_12_08',
+             r'F:\data\BAYLORCW037\python\2023_12_15',
+             r'H:\data\matched_topic_params\CW37_table'],
+        
+        [r'H:\data\BAYLORCW044\python\2024_05_22',
+              r'H:\data\BAYLORCW044\python\2024_06_06',
+            r'H:\data\BAYLORCW044\python\2024_06_19',
+            r'H:\data\matched_topic_params\CW44_FOV1_table'],
+        
+        [r'H:\data\BAYLORCW044\python\2024_05_23',
+            r'H:\data\BAYLORCW044\python\2024_06_04',
+            r'H:\data\BAYLORCW044\python\2024_06_18',
+            r'H:\data\matched_topic_params\CW44_FOV2_table'],
+        
+        [r'H:\data\BAYLORCW046\python\2024_05_29',
+            r'H:\data\BAYLORCW046\python\2024_06_07',
+            r'H:\data\BAYLORCW046\python\2024_06_24',
+            r'H:\data\matched_topic_params\CW46_FOV1_table'],
+        
+        [r'H:\data\BAYLORCW046\python\2024_05_30',
+            r'H:\data\BAYLORCW046\python\2024_06_10',
+            r'H:\data\BAYLORCW046\python\2024_06_27',
+            r'H:\data\matched_topic_params\CW46_FOV2_table'],
+        
+        [r'H:\data\BAYLORCW046\python\2024_05_31',
+            r'H:\data\BAYLORCW046\python\2024_06_11',
+            r'H:\data\BAYLORCW046\python\2024_06_26',
+            r'H:\data\matched_topic_params\CW46_FOV3_table']
+                            
+        ]
 # naivepath, learningpath, expertpath, clusterpath = [
 #                     r'H:\data\BAYLORCW046\python\2024_05_31',
 #                     r'H:\data\BAYLORCW046\python\2024_06_11',
@@ -631,4 +687,247 @@ plt.scatter(num_trials_expert, num_trials_expert-num_trials_learning)
 plt.xlabel('Number of trials in cluster: expert')
 plt.ylabel('Delta in num of trials (exp - learning)')
 
+
+#%% Similarity of CDs over all sessions learning vs expert
+
+# Takes a while to run
+cd_learning_sim = []
+cd_expert_sim = []
+cd_learning_var = []
+cd_expert_var = []
+
+for paths in agg_mice_paths:
+    clusters = pd.read_pickle(paths[3])
+    trialparams = np.mean(clusters.trial_params.to_numpy())
+    num_clusters = len(trialparams.columns)
+
+    idx = pd.IndexSlice
+    
+    learning = trialparams.loc[idx['learning', :]]
+    learning_normalized = pd.DataFrame(normalize(learning, norm='l1'), columns=learning.columns)#, index=learning.index)
+    cds = []
+    for cluster in range(num_clusters):
+        cluster_trials_all_idx = np.where(np.argmax(learning_normalized, axis=1) == cluster)[0]
+
+        s2 = Mode(paths[1], use_reg = True, triple=True, 
+                  baseline_normalization="median_zscore",
+                  train_test_trials = cluster_trials_all_idx,
+                  lda_cluster=True)
+        
+        orthonormal_basis, mean = s2.plot_CD(ctl=True, plot=False)
+        cds += [orthonormal_basis]
+    cos_sim = cosine_similarity(cds)
+    overall_similarity = np.mean(cos_sim[np.triu_indices_from(cos_sim, k=1)])  # Mean of upper triangle
+    cd_learning_sim += [overall_similarity]
+    cd_learning_var += [np.var(cos_sim[np.triu_indices_from(cos_sim, k=1)])]
+                        
+    expert = trialparams.loc[idx['expert', :]]
+    expert_normalized = pd.DataFrame(normalize(expert, norm='l1'), columns=expert.columns)#, index=expert.index)
+    cds = []
+    for cluster in range(num_clusters):
+        cluster_trials_all_idx = np.where(np.argmax(expert_normalized, axis=1) == cluster)[0]
+
+        s2 = Mode(paths[2], use_reg = True, triple=True, 
+                  baseline_normalization="median_zscore",
+                  train_test_trials = cluster_trials_all_idx,
+                  lda_cluster=True)
+        orthonormal_basis, mean = s2.plot_CD(ctl=True, plot=False)
+        cds += [orthonormal_basis]
+    cos_sim = cosine_similarity(cds)
+    overall_similarity = np.mean(cos_sim[np.triu_indices_from(cos_sim, k=1)])  # Mean of upper triangle
+    cd_expert_sim += [overall_similarity]
+    cd_expert_var += [np.var(cos_sim[np.triu_indices_from(cos_sim, k=1)])]
+
+# Plot
+
+f = plt.figure(figsize=(5,5))
+plt.bar([0,1],[np.mean(np.abs(cd_learning_sim)), np.mean(np.abs(cd_expert_sim))])
+plt.scatter(np.zeros(len(cd_learning_sim)), np.abs(cd_learning_sim))
+plt.scatter(np.ones(len(cd_expert_sim)), np.abs(cd_expert_sim))
+for i in range(len(cd_learning_sim)):
+    plt.plot([0,1], [np.abs(cd_learning_sim)[i], np.abs(cd_expert_sim)[i]], color='grey')
+plt.xticks([0,1], ['Learning', 'Expert'])
+plt.ylabel('Cosine similarity')
+plt.title('Mean cosine similarity between cluster CDs')
+
+t_stat, p_value = ttest_rel(np.abs(cd_learning_sim), np.abs(cd_expert_sim)) # Paired t-test
+print(t_stat, p_value)
+
+# Variance of CD similarities
+
+f = plt.figure(figsize=(5,5))
+plt.bar([0,1],[np.mean(np.abs(cd_learning_var)), np.mean(np.abs(cd_expert_var))])
+plt.scatter(np.zeros(len(cd_learning_var)), np.abs(cd_learning_var))
+plt.scatter(np.ones(len(cd_expert_var)), np.abs(cd_expert_var))
+for i in range(len(cd_learning_var)):
+    plt.plot([0,1], [np.abs(cd_learning_var)[i], np.abs(cd_expert_var)[i]], color='grey')
+plt.xticks([0,1], ['Learning', 'Expert'])
+plt.ylabel('Variance')
+plt.title('Variance of cosine similarity between cluster CDs')
+
+t_stat, p_value = ttest_rel(np.abs(cd_learning_var), np.abs(cd_expert_var)) # Paired t-test
+print(t_stat, p_value)
+
+
+#%% Robustness of CDs compared to trial numbers in expert session
+# Takes a while to run
+
+robustness_learning = []
+robustness_expert = []
+num_trials_learning = []
+num_trials_expert = []
+
+for paths in agg_mice_paths:
+    clusters = pd.read_pickle(paths[3])
+    trialparams = np.mean(clusters.trial_params.to_numpy())
+    num_clusters = len(trialparams.columns)
+
+    idx = pd.IndexSlice
+    
+    learning = trialparams.loc[idx['learning', :]]
+    learning_normalized = pd.DataFrame(normalize(learning, norm='l1'), columns=learning.columns)#, index=learning.index)
+    cds = []
+    trials = []
+    for cluster in range(num_clusters):
+        cluster_trials_all_idx = np.where(np.argmax(learning_normalized, axis=1) == cluster)[0]
+
+        s2 = Mode(paths[1], use_reg = True, triple=True, 
+                  baseline_normalization="median_zscore",
+                  train_test_trials = cluster_trials_all_idx,
+                  lda_cluster=True)
+        try:
+            rob = s2.modularity_proportion_by_CD()
+        except np.linalg.LinAlgError:
+            rob = 0
+            
+        cds += [rob]
+        trials += [len(cluster_trials_all_idx)]
+        
+    robustness_learning += [cds]
+    num_trials_learning += [trials]
+    
+    expert = trialparams.loc[idx['expert', :]]
+    expert_normalized = pd.DataFrame(normalize(expert, norm='l1'), columns=expert.columns)#, index=expert.index)
+    cds = []
+    trials = []
+    for cluster in range(num_clusters):
+        cluster_trials_all_idx = np.where(np.argmax(expert_normalized, axis=1) == cluster)[0]
+
+        s2 = Mode(paths[2], use_reg = True, triple=True, 
+                  baseline_normalization="median_zscore",
+                  train_test_trials = cluster_trials_all_idx,
+                  lda_cluster=True)
+        try:
+            rob = s2.modularity_proportion_by_CD()
+        except np.linalg.LinAlgError:
+            rob = 0
+            
+        cds += [rob]
+        trials += [len(cluster_trials_all_idx)]
+        
+    robustness_expert += [cds]
+    num_trials_expert += [trials]
+    
+#%% Robustness of CDs vs size of clusters
+f, ax = plt.subplots(2,2, figsize=(10,10), sharey='row', sharex='col')
+
+ax[0,0].scatter(cat(num_trials_learning), cat(robustness_learning))
+ax[0,0].set_ylabel('Learning CD robustness')
+ax[1,0].scatter(cat(num_trials_learning), cat(robustness_expert))
+ax[1,0].set_ylabel('Expert CD robustness')
+
+ax[0,1].scatter(cat(num_trials_expert), cat(robustness_learning))
+ax[1,0].set_xlabel('Learning number of trials')
+ax[1,1].scatter(cat(num_trials_expert), cat(robustness_expert))
+ax[1,1].set_xlabel('Expert number of trials')
+
+
+print(scipy.stats.pearsonr(cat(num_trials_learning), cat(robustness_learning)))
+print(scipy.stats.pearsonr(cat(num_trials_learning), cat(robustness_expert)))
+
+
+#%% Remove 0 values
+
+#%% Plot all robustness values across learning
+
+all_robustness_expert = cat(robustness_expert)
+all_robustness_learning = cat(robustness_learning)
+
+all_robustness_learning_filt = [i for i in all_robustness_learning if i != 0]
+all_robustness_expert_filt = [i for i in all_robustness_expert if i != 0]
+
+
+plt.bar([0,1], [np.mean(all_robustness_learning_filt), np.mean(all_robustness_expert_filt)])
+plt.scatter(np.zeros(len(all_robustness_learning_filt)), all_robustness_learning_filt)
+plt.scatter(np.ones(len(all_robustness_expert_filt)), all_robustness_expert_filt)
+plt.ylabel('Robustness (delta from control)')
+plt.xticks([0,1], ['Learning', 'Expert'])
+plt.title('Robustness of clusters across learning')
+plt.show()
+
+t_stat, p_value = ttest_ind(all_robustness_learning_filt, all_robustness_expert_filt) # Paired t-test
+print(t_stat, p_value)
+
+all_robustness_learning_filt, all_robustness_expert_filt = [],[]
+for i in range(len(all_robustness_learning)):
+    if all_robustness_expert[i] != 0 and all_robustness_learning[i] != 0:
+        all_robustness_learning_filt += [all_robustness_learning[i]]
+        all_robustness_expert_filt += [all_robustness_expert[i]]
+
+plt.bar([0,1], [np.mean(all_robustness_learning_filt), np.mean(all_robustness_expert_filt)])
+plt.scatter(np.zeros(len(all_robustness_learning_filt)), all_robustness_learning_filt)
+plt.scatter(np.ones(len(all_robustness_expert_filt)), all_robustness_expert_filt)
+for i in range(len(all_robustness_expert_filt)):
+    # if all_robustness_learning[i] or all_robustness
+    plt.plot([0,1], [all_robustness_learning_filt[i], all_robustness_expert_filt[i]],
+             color='grey')
+    
+plt.ylabel('Robustness (delta from control)')
+plt.xticks([0,1], ['Learning', 'Expert'])
+plt.title('Robustness of clusters across learning')
+plt.show()
+
+t_stat, p_value = ttest_rel(all_robustness_learning_filt, all_robustness_expert_filt) # Paired t-test
+print(t_stat, p_value)
+
+#%% Plot delta of cluster trial size vs robustness
+
+all_robustness_expert = cat(robustness_expert)
+all_robustness_learning = cat(robustness_learning)
+all_num_trials_learning = cat(num_trials_learning)
+all_num_trials_expert = cat(num_trials_expert)
+
+
+all_robustness_learning_filt, all_robustness_expert_filt = [],[]
+num_trials_learning_filt, num_trials_expert_filt = [],[]
+for i in range(len(all_robustness_learning)):
+    if all_robustness_expert[i] != 0 and all_robustness_learning[i] != 0:
+        all_robustness_learning_filt += [all_robustness_learning[i]]
+        all_robustness_expert_filt += [all_robustness_expert[i]]
+        num_trials_learning_filt += [all_num_trials_learning[i]]
+        num_trials_expert_filt += [all_num_trials_expert[i]]
+
+delta = np.array(num_trials_expert_filt) - np.array(num_trials_learning_filt)
+delta_rob = np.array(all_robustness_expert_filt) - np.array(all_robustness_learning_filt)
+# 
+plt.scatter(all_robustness_expert_filt, delta)
+plt.axhline(0, ls = '--', color='grey')
+plt.ylabel('Delta in number of trials (expert-learning)')
+plt.xlabel('Robustness in expert stage (delta from control)')
+plt.show()
+
+# learning
+plt.scatter(all_robustness_learning_filt, delta)
+plt.axhline(0, ls = '--', color='grey')
+plt.ylabel('Delta in number of trials (expert-learning)')
+plt.xlabel('Robustness in learning stage (delta from control)')
+print(scipy.stats.pearsonr(all_robustness_learning_filt, delta))
+plt.show()
+
+plt.scatter(delta_rob, num_trials_expert_filt)
+plt.axhline(0, ls = '--', color='grey')
+plt.ylabel('Number of trials (learning)')
+plt.xlabel('Delta robustness (delta from control)')
+plt.show()
+print(scipy.stats.pearsonr(delta_rob, delta))
 

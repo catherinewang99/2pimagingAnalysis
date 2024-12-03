@@ -3225,21 +3225,21 @@ class Session:
         # return selo[period], sel[period]
         
         
-    def modularity_proportion_per_neuron(self, period=None):
+    def modularity_proportion_per_neuron(self, period=None, bootstrap=True, lickdir=False):
         
         all_mod = []
         
         for n in self.good_neurons:
-                
-            
-            pref, _, _ = self.screen_preference(n, range(self.delay, self.response))
-            
-            if pref: # True if left preferring
-                nonpref, pref = self.get_trace_matrix(n)
-                optonp, optop = self.get_trace_matrix(n, opto=True)
+            # L_pref, screenl, screenr = self.screen_preference(n, range(self.delay, self.response), bootstrap=bootstrap)
+            L_pref, screenl, screenr = self.screen_preference(n, range(self.response-int(1*(1/self.fs)), self.response), bootstrap=bootstrap)
+            all_exclude_trials = cat((screenl, screenr)) if not bootstrap else []
+            if L_pref:
+                nonpref, pref = self.get_trace_matrix(n, lickdir=lickdir, trialtype=True, remove_trial=all_exclude_trials)
+                optonp, optop = self.get_trace_matrix(n, opto=True, both=False, lickdir=lickdir, remove_trial=all_exclude_trials)
             else:
-                pref, nonpref = self.get_trace_matrix(n)
-                optop, optonp = self.get_trace_matrix(n, opto=True)
+                pref, nonpref = self.get_trace_matrix(n, lickdir=lickdir, trialtype=True, remove_trial=all_exclude_trials)
+                optop, optonp = self.get_trace_matrix(n, opto=True, both=False, lickdir=lickdir, remove_trial=all_exclude_trials)
+
             
             sel = np.mean(pref, axis = 0) - np.mean(nonpref, axis = 0)
             err = np.std(pref, axis=0) / np.sqrt(len(pref)) 
@@ -3259,7 +3259,7 @@ class Session:
             
             all_mod += [recovery]
         
-        return all_mod
+        return np.array(all_mod)
     
 
     def selectivity_derivative(self, p = 0.0001, lickdir = False, period=None, selective_neurons = []):
