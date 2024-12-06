@@ -50,7 +50,7 @@ class Session:
     def __init__(self, path, layer_num='all', use_reg = False, triple = False,
                  filter_reg = True, use_background_sub = False, baseline_normalization = "dff_avg",
                  sess_reg = False, guang=False, passive=False, quality=False,
-                 remove_consec_opto = False):
+                 remove_consec_opto = False, filter_good_neurons=[]):
         
 
         """
@@ -85,12 +85,16 @@ class Session:
             If parent class is quality
         remove_consec_opto : bool, optional
             Whether to remove consecutive opto trials
+        filter_good_neurons : list, optional
+            if provided, filter the good_neurons layer by layer (for LDA analysis)
         """       
 
         self.use_background_sub = use_background_sub
         assert baseline_normalization in ["dff_avg","median_zscore"], "`baseline_normalization` parameter value {} not recognized".format(baseline_normalization)
         self.baseline_normalization = baseline_normalization
 
+        lda_filter = len(filter_good_neurons) != 0
+        
         if use_background_sub:
             print('Using subtracted background dataset')
             if 'mod_layer_1.mat' not in os.listdir(path):
@@ -155,7 +159,6 @@ class Session:
                                     self.good_neurons = np.load(os.path.join(path,'layer{}_triple_registered_filtered_neurons.npy'.format(counter)))
 
                                 else:
-                                    print("using the neurons I want")
                                     self.good_neurons = np.load(os.path.join(path,'layer{}_triple_registered_neurons.npy'.format(counter)))
 
                             else:
@@ -163,10 +166,10 @@ class Session:
                                     self.good_neurons = np.load(os.path.join(path,'layer{}_registered_filtered_neurons.npy'.format(counter)))
                                 else:
                                     self.good_neurons = np.load(os.path.join(path,'layer{}_registered_neurons.npy'.format(counter)))
+                        
+                        if lda_filter:
+                            filter_good_neurons_idx = [int(s.split('_')[3]) for s in filter_good_neurons if int(s.split('_')[1]) == counter]
 
-
-
-                            # self.good_neurons = layer['dff'][:, :][neurons]
                         self.dff = layer['dff']
                         if 'background' in layer_og.keys():
                             self.background = layer['background']
@@ -174,6 +177,10 @@ class Session:
                             self.npil = layer['neuropil']
                         self.num_trials = layer['dff'].shape[1] 
                     else:
+                        if lda_filter:
+                            temp = [int(s.split('_')[3]) + len(self.good_neurons) for s in filter_good_neurons if int(s.split('_')[1]) == counter]
+                            filter_good_neurons_idx = filter_good_neurons_idx + temp
+                            
                         if use_reg:
                             # raise NotImplementedError("Multi plane reg not implemented!")
                             if triple:
@@ -191,6 +198,9 @@ class Session:
                             
                                     neurons = np.load(os.path.join(path , 'layer{}_registered_neurons.npy'.format(counter)))
                                     self.good_neurons = np.append(self.good_neurons, neurons + self.dff[0,0].shape[0])
+                                    
+
+                                    
                         for t in range(self.num_trials):
 
                             add = layer['dff'][0, t]
@@ -203,7 +213,8 @@ class Session:
                                 self.npil[0, t] = np.vstack((self.npil[0, t], add))
                     counter += 1
             self.fs = 1/(30/counter)
-
+        if lda_filter:
+            self.good_neurons = self.good_neurons[filter_good_neurons_idx]
 
         behavior = scio.loadmat(os.path.join(path,"behavior.mat"))
         self.path = path

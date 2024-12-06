@@ -431,7 +431,7 @@ for paths in allpaths[1:]:
                   baseline_normalization="median_zscore")
         
         # Then look at weights on CDdelay of each of these pools
-        s2.exclude_sample_orthog = True
+        # s2.exclude_sample_orthog = True
         orthonormal_basis_learning, mean = s2.plot_CD(ctl=True)
         
         weights += [orthonormal_basis_learning]
@@ -580,4 +580,81 @@ ax[1].set_title('Sample+Delay cell modularity')
 ax[0].set_ylim(top=2.5)
 plt.suptitle('Per FOV changes in robustness')
 
-plt.suptitle('Per FOV changes in robustness')        
+plt.suptitle('Per FOV changes in robustness')   
+
+#%% CD robustness with and without sample mode
+
+
+all_rob = []
+all_rob_w_sample = []
+
+for paths in allpaths[1:]:
+    
+    robs = []
+    rob_w_sample = []
+    
+    for path in paths:
+    
+        # First, separate neurons into sample vs sample/delay vs delay selective
+        s2 = Mode(path, use_reg = True, triple=True,
+                  proportion_train=1,
+                  baseline_normalization="median_zscore")
+        rob = s2.modularity_proportion_by_CD()
+        robs += [rob]
+        # Then look at weights on CDdelay of each of these pools
+        s2.exclude_sample_orthog = True
+        rob = s2.modularity_proportion_by_CD()
+        rob_w_sample += [rob]
+
+    all_rob += [robs]
+    all_rob_w_sample += [rob_w_sample]
+    
+#%% Plot
+f, ax = plt.subplots(1,2,figsize=(10,5),sharey='row')
+ax[0].bar([0,1], [np.mean(all_rob[0]), np.mean(all_rob[1])])
+ax[0].scatter(np.zeros(len(all_rob[0])), all_rob[0])
+ax[0].scatter(np.ones(len(all_rob[1])), all_rob[1])
+for i in range(len(all_rob[0])):
+    ax[0].plot([0,1],[all_rob[0][i], all_rob[1][i]])
+ax[0].set_title('CD delay')
+ax[0].axhline(1, ls='--', color='grey')
+ax[0].set_xticks([0,1],['Learning', 'Expert'])
+
+ax[1].bar([0,1], [np.mean(all_rob_w_sample[0]), np.mean(all_rob_w_sample[1])])
+ax[1].scatter(np.zeros(len(all_rob_w_sample[0])), all_rob_w_sample[0])
+ax[1].scatter(np.ones(len(all_rob_w_sample[1])), all_rob_w_sample[1])
+for i in range(len(all_rob_w_sample[0])):
+    ax[1].plot([0,1],[all_rob_w_sample[0][i], all_rob_w_sample[1][i]])
+ax[1].set_title('CD delay with sample mode')
+ax[1].axhline(1, ls='--', color='grey')
+ax[1].set_xticks([0,1],['Learning', 'Expert'])
+ax[0].set_ylabel('Robustness')
+
+
+f, ax = plt.subplots(1,2,figsize=(10,5),sharey='row')
+ax[0].bar([0,1], [np.mean(all_rob[0]), np.mean(all_rob_w_sample[0])])
+ax[0].scatter(np.zeros(len(all_rob[0])), all_rob[0])
+ax[0].scatter(np.ones(len(all_rob_w_sample[0])), all_rob_w_sample[0])
+for i in range(len(all_rob[0])):
+    ax[0].plot([0,1],[all_rob[0][i], all_rob_w_sample[0][i]])
+ax[0].set_title('Learning')
+ax[0].axhline(1, ls='--', color='grey')
+ax[0].set_xticks([0,1],['CD delay', 'CD delay with sample mode'])
+
+ax[1].bar([0,1], [np.mean(all_rob[1]), np.mean(all_rob_w_sample[1])])
+ax[1].scatter(np.zeros(len(all_rob[1])), all_rob[1])
+ax[1].scatter(np.ones(len(all_rob_w_sample[1])), all_rob_w_sample[1])
+for i in range(len(all_rob_w_sample[1])):
+    ax[1].plot([0,1],[all_rob[1][i], all_rob_w_sample[1][i]])
+ax[1].set_title('Expert')
+ax[1].axhline(1, ls='--', color='grey')
+ax[1].set_xticks([0,1],['CD delay', ' with sample mode'])
+ax[0].set_ylabel('Robustness')
+
+
+
+t_stat, p_value = ttest_ind(all_rob[0], all_rob_w_sample[0]) # Paired t-test
+print(t_stat, p_value)
+
+
+

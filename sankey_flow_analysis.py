@@ -250,12 +250,13 @@ recruited_sample = []
 retained_delay = []
 recruited_delay = []
 dropped_delay = []
+dropped_sample = []
 alls1list, alld1, allr1, allns1 = [],[],[],[]
 for paths in all_matched_paths: # For each mouse/FOV
     ret_s = []
     recr_s = []
     ret_d, recr_d = [],[]
-    drop_d = []
+    drop_d, drop_s = [], []
     
     s1list, d1, r1, ns1 = np.zeros(4),np.zeros(4),np.zeros(4),np.zeros(4)
 
@@ -287,7 +288,8 @@ for paths in all_matched_paths: # For each mouse/FOV
             s1list[2] += 1
         else:
             s1list[3] += 1
-    
+            drop_s += [(n, s2.good_neurons[np.where(s1.good_neurons == n)[0][0]])]
+
     for n in naive_delay_sel:
         if s2.is_selective(s2.good_neurons[np.where(s1.good_neurons ==n)[0][0]], sample_epoch, p=p):
             d1[0] += 1
@@ -337,6 +339,7 @@ for paths in all_matched_paths: # For each mouse/FOV
     
     retained_sample += [ret_s]
     recruited_sample += [recr_s]
+    dropped_sample += [drop_s]
     retained_delay += [ret_d]
     recruited_delay += [recr_d]
     dropped_delay += [drop_d]

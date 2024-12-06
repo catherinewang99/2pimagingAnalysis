@@ -5,7 +5,9 @@ Created on Mon Oct 21 14:31:45 2024
 @author: catherinewang
 
 Use clusters to build various CD's in session instead of orthogonalizing to look 
-for robust dimension
+for robust dimensions
+
+Looks at analysis TRIAL wise
 """
 
 
@@ -164,10 +166,10 @@ naivepath, learningpath, expertpath, clusterpath = [r'H:\data\BAYLORCW044\python
                     r'H:\data\BAYLORCW044\python\2024_06_06',
                   r'H:\data\BAYLORCW044\python\2024_06_19',
                   r'H:\data\matched_topic_params\CW44_FOV1_table']
-naivepath, learningpath, expertpath, clusterpath = [r'F:\data\BAYLORCW034\python\2023_10_22',
-                   r'F:\data\BAYLORCW034\python\2023_10_22',
-                   r'F:\data\BAYLORCW034\python\2023_10_27',
-                  r'H:\data\matched_topic_params\CW34_table']
+# naivepath, learningpath, expertpath, clusterpath = [r'F:\data\BAYLORCW034\python\2023_10_22',
+#                    r'F:\data\BAYLORCW034\python\2023_10_22',
+#                    r'F:\data\BAYLORCW034\python\2023_10_27',
+#                   r'H:\data\matched_topic_params\CW34_table']
 
 
 agg_mice_paths = [[r'F:\data\BAYLORCW032\python\2023_10_08',
@@ -205,10 +207,10 @@ agg_mice_paths = [[r'F:\data\BAYLORCW032\python\2023_10_08',
             r'H:\data\BAYLORCW044\python\2024_06_18',
             r'H:\data\matched_topic_params\CW44_FOV2_table'],
         
-        [r'H:\data\BAYLORCW046\python\2024_05_29',
-            r'H:\data\BAYLORCW046\python\2024_06_07',
-            r'H:\data\BAYLORCW046\python\2024_06_24',
-            r'H:\data\matched_topic_params\CW46_FOV1_table'],
+        # [r'H:\data\BAYLORCW046\python\2024_05_29',
+        #     r'H:\data\BAYLORCW046\python\2024_06_07',
+        #     r'H:\data\BAYLORCW046\python\2024_06_24',
+        #     r'H:\data\matched_topic_params\CW46_FOV1_table'],
         
         [r'H:\data\BAYLORCW046\python\2024_05_30',
             r'H:\data\BAYLORCW046\python\2024_06_10',
@@ -696,6 +698,8 @@ cd_learning_sim = []
 cd_expert_sim = []
 cd_learning_var = []
 cd_expert_var = []
+cd_learning_all = []
+cd_expert_all = []
 
 for paths in agg_mice_paths:
     clusters = pd.read_pickle(paths[3])
@@ -721,7 +725,8 @@ for paths in agg_mice_paths:
     overall_similarity = np.mean(cos_sim[np.triu_indices_from(cos_sim, k=1)])  # Mean of upper triangle
     cd_learning_sim += [overall_similarity]
     cd_learning_var += [np.var(cos_sim[np.triu_indices_from(cos_sim, k=1)])]
-                        
+    cd_learning_all += [cds]                 
+       
     expert = trialparams.loc[idx['expert', :]]
     expert_normalized = pd.DataFrame(normalize(expert, norm='l1'), columns=expert.columns)#, index=expert.index)
     cds = []
@@ -738,7 +743,7 @@ for paths in agg_mice_paths:
     overall_similarity = np.mean(cos_sim[np.triu_indices_from(cos_sim, k=1)])  # Mean of upper triangle
     cd_expert_sim += [overall_similarity]
     cd_expert_var += [np.var(cos_sim[np.triu_indices_from(cos_sim, k=1)])]
-
+    cd_expert_all += [cds]
 # Plot
 
 f = plt.figure(figsize=(5,5))
@@ -769,10 +774,37 @@ plt.title('Variance of cosine similarity between cluster CDs')
 t_stat, p_value = ttest_rel(np.abs(cd_learning_var), np.abs(cd_expert_var)) # Paired t-test
 print(t_stat, p_value)
 
+#%% Rotation of CDs within cluster
+all_cd_rotations = []
+for fov in range(len(cd_expert_all)):
+    cd_rotations = []
+    for cl in range(len(cd_expert_all[fov])):
+        if len(cd_expert_all[fov][cl]) == len(cd_learning_all[fov][cl]): # Catch bug case of CW46
+            cos_sim = cosine_similarity(cd_learning_all[fov][cl].reshape(1, -1), 
+                                        cd_expert_all[fov][cl].reshape(1, -1))[0][0]
+            cd_rotations += [cos_sim]
+        else:
+            print('{} field of view excluded'.format(agg_mice_paths[fov][3]))
+    all_cd_rotations += [cd_rotations]
+
+# Plot all angles
+cat_all_cd_rotations = np.abs(cat(all_cd_rotations))         
+plt.hist(cat_all_cd_rotations)
+plt.ylabel('Number of cluster CDs')
+plt.xlabel('Cosine similarity (learning-->expert)')
+plt.show()
+
+# Plot all angles grouped by FOV
+for fov in range(len(all_cd_rotations)):
+    plt.scatter(np.ones(len(all_cd_rotations[fov]))*fov, np.abs(all_cd_rotations[fov]))
+plt.ylabel('Cosine similarity')
+plt.xlabel('Field of view')
+plt.show()
+
 
 #%% Robustness of CDs compared to trial numbers in expert session
 # Takes a while to run
-
+maxmethod = False
 robustness_learning = []
 robustness_expert = []
 num_trials_learning = []
@@ -787,10 +819,14 @@ for paths in agg_mice_paths:
     
     learning = trialparams.loc[idx['learning', :]]
     learning_normalized = pd.DataFrame(normalize(learning, norm='l1'), columns=learning.columns)#, index=learning.index)
+    
     cds = []
     trials = []
     for cluster in range(num_clusters):
-        cluster_trials_all_idx = np.where(np.argmax(learning_normalized, axis=1) == cluster)[0]
+        if maxmethod:
+            cluster_trials_all_idx = np.where(np.argmax(learning_normalized, axis=1) == cluster)[0]
+        else:
+            cluster_trials_all_idx = learning_normalized.index[learning_normalized['topic_{}'.format(cluster)] > 1/num_clusters].to_numpy()
 
         s2 = Mode(paths[1], use_reg = True, triple=True, 
                   baseline_normalization="median_zscore",
@@ -812,7 +848,10 @@ for paths in agg_mice_paths:
     cds = []
     trials = []
     for cluster in range(num_clusters):
-        cluster_trials_all_idx = np.where(np.argmax(expert_normalized, axis=1) == cluster)[0]
+        if maxmethod:
+            cluster_trials_all_idx = np.where(np.argmax(expert_normalized, axis=1) == cluster)[0]
+        else:
+            cluster_trials_all_idx = expert_normalized.index[expert_normalized['topic_{}'.format(cluster)] > 1/num_clusters].to_numpy()
 
         s2 = Mode(paths[2], use_reg = True, triple=True, 
                   baseline_normalization="median_zscore",
@@ -835,7 +874,7 @@ for paths in agg_mice_paths:
 # robustness_learning = []
 # robustness_expert = []
 acc_learning = []
-# acc_expert = []
+acc_expert = []
 
 for paths in agg_mice_paths:
     clusters = pd.read_pickle(paths[3])
@@ -850,7 +889,10 @@ for paths in agg_mice_paths:
     cds = []
     allaccs = []
     for cluster in range(num_clusters):
-        cluster_trials_all_idx = np.where(np.argmax(learning_normalized, axis=1) == cluster)[0]
+        if maxmethod:
+            cluster_trials_all_idx = np.where(np.argmax(learning_normalized, axis=1) == cluster)[0]
+        else:
+            cluster_trials_all_idx = learning_normalized.index[learning_normalized['topic_{}'.format(cluster)] > 1/num_clusters].to_numpy()
 
         s2 = Mode(paths[1], use_reg = True, triple=True, 
                   baseline_normalization="median_zscore",
@@ -872,32 +914,35 @@ for paths in agg_mice_paths:
     robustness_learning += [cds]
     acc_learning += [allaccs]
     
-    # expert = trialparams.loc[idx['expert', :]]
-    # expert_normalized = pd.DataFrame(normalize(expert, norm='l1'), columns=expert.columns)#, index=expert.index)
-    # cds = []
-    # allaccs = []
-    # for cluster in range(num_clusters):
-    #     cluster_trials_all_idx = np.where(np.argmax(expert_normalized, axis=1) == cluster)[0]
-
-    #     s2 = Mode(paths[2], use_reg = True, triple=True, 
-    #               baseline_normalization="median_zscore",
-    #               i_good = cluster_trials_all_idx,                  
-    #               lda_cluster=True)
-    #     # try:
-    #     #     rob = s2.modularity_proportion_by_CD()
-    #     # except np.linalg.LinAlgError:
-    #     #     rob = 0
+    expert = trialparams.loc[idx['expert', :]]
+    expert_normalized = pd.DataFrame(normalize(expert, norm='l1'), columns=expert.columns)#, index=expert.index)
+    cds = []
+    allaccs = []
+    for cluster in range(num_clusters):
+        if maxmethod:
+            cluster_trials_all_idx = np.where(np.argmax(expert_normalized, axis=1) == cluster)[0]
+        else:
+            cluster_trials_all_idx = expert_normalized.index[expert_normalized['topic_{}'.format(cluster)] > 1/num_clusters].to_numpy()
             
-    #     try:
-    #         _, _, db, acc = s2.decision_boundary(mode_input='choice', persistence=False)
-    #     except np.linalg.LinAlgError:
-    #         acc = [0]
+        s2 = Mode(paths[2], use_reg = True, triple=True, 
+                  baseline_normalization="median_zscore",
+                  i_good = cluster_trials_all_idx,                  
+                  lda_cluster=True)
+        # try:
+        #     rob = s2.modularity_proportion_by_CD()
+        # except np.linalg.LinAlgError:
+        #     rob = 0
             
-    #     # cds += [rob]
-    #     allaccs += [np.mean(acc)]
+        try:
+            _, _, db, acc = s2.decision_boundary(mode_input='choice', persistence=False)
+        except np.linalg.LinAlgError:
+            acc = [0]
+            
+        # cds += [rob]
+        allaccs += [np.mean(acc)]
         
-    # # robustness_expert += [cds]
-    # acc_expert += [allaccs]
+    robustness_expert += [cds]
+    acc_expert += [allaccs]
     
 #%% Distribution of accuracies
 all_acc_learning = cat(acc_learning)
@@ -909,14 +954,29 @@ for i in range(len(all_acc_learning)):
         all_acc_expert_filt += [all_acc_expert[i]]
 
 
-# Plot all decoding accuracry values across learning
+
+# Plot all decoding accuracry values across learning filtered
 plt.bar([0,1], [np.mean(all_acc_learning_filt), np.mean(all_acc_expert_filt)])
 plt.scatter(np.zeros(len(all_acc_learning_filt)), all_acc_learning_filt)
 plt.scatter(np.ones(len(all_acc_expert_filt)), all_acc_expert_filt)
+for i in range(len(all_acc_expert_filt)):
+    plt.plot([0,1],[all_acc_learning_filt[i], all_acc_expert_filt[i]],
+             color='grey')
+plt.axhline(0.5, ls='--', color='black')
 plt.ylabel('Decoding accuracy')
 plt.xticks([0,1], ['Learning', 'Expert'])
 plt.title('Decoding accuracy of cluster CDs across learning')
+plt.ylim(bottom=0.4)
 plt.show()
+
+t_stat, p_value = ttest_ind(all_acc_learning_filt, all_acc_expert_filt) # Paired t-test
+print(t_stat, p_value)
+
+plt.hist(np.array(all_acc_expert_filt) - np.array(all_acc_learning_filt))
+plt.axvline(0, ls = '--', color='black')
+plt.xlabel('Delta of decoding accuracies')
+plt.ylabel('Number of clusters')
+
 
 #%% Robustness of CDs vs size of clusters
 f, ax = plt.subplots(2,2, figsize=(10,10), sharey='row', sharex='col')
@@ -1082,3 +1142,118 @@ plt.axvline(0, ls = '--', color='grey')
 plt.ylabel('Number of trials (learning)')
 plt.xlabel('Delta robustness (delta from control)')
 plt.show()
+
+#%% Plot the accuracy vs robustness
+
+all_acc_learning = cat(acc_learning)
+all_acc_expert = cat(acc_expert)
+
+# all_robustness_learning_filt, all_robustness_expert_filt = [],[]
+# all_acc_learning_filt, all_acc_expert_filt = [], []
+
+# for i in range(len(all_robustness_learning)):
+    
+#     if all_acc_expert[i] != 0 and all_robustness_learning[i] != 0:
+#         all_acc_expert_filt += [all_acc_expert[i]]
+#         all_robustness_learning_filt += [all_robustness_learning[i]]
+
+# # Plot learning robustness vs expert decoding acc
+# plt.scatter(all_acc_expert_filt, all_robustness_learning_filt)
+# plt.xlabel('Expert CD decoding accuracy')
+# plt.ylabel('Learning CD robustness')
+# print(scipy.stats.pearsonr(all_acc_expert_filt, all_robustness_learning_filt))
+
+all_robustness_learning_filt, all_robustness_expert_filt = [],[]
+all_acc_learning_filt, all_acc_expert_filt = [], []
+
+for i in range(len(all_robustness_learning)):
+    
+    if all_acc_learning[i] != 0 and all_acc_expert[i] != 0 and all_robustness_expert[i] != 0 and all_robustness_learning[i] != 0:
+        if all_num_trials_learning[i] > 50 and all_num_trials_expert[i] > 50:
+            all_acc_learning_filt += [all_acc_learning[i]]
+            all_acc_expert_filt += [all_acc_expert[i]]
+            all_robustness_learning_filt += [all_robustness_learning[i]]
+            all_robustness_expert_filt += [all_robustness_expert[i]]
+
+# Plot all four
+f, ax = plt.subplots(2,2, figsize=(10,10), sharey='row', sharex='col')
+
+ax[0,0].scatter(all_acc_learning_filt, all_robustness_learning_filt)
+ax[0,0].set_ylabel('Learning CD robustness')
+ax[1,0].scatter(all_acc_learning_filt, all_robustness_expert_filt)
+ax[1,0].set_ylabel('Expert CD robustness')
+
+ax[0,1].scatter(all_acc_expert_filt, all_robustness_learning_filt)
+ax[1,0].set_xlabel('Learning decoding acc')
+ax[1,1].scatter(all_acc_expert_filt, all_robustness_expert_filt)
+ax[1,1].set_xlabel('Expert decoding acc')
+
+
+print(scipy.stats.pearsonr(all_acc_learning_filt, all_robustness_learning_filt))
+print(scipy.stats.pearsonr(all_acc_learning_filt, all_robustness_expert_filt))        
+
+print(scipy.stats.pearsonr(all_acc_expert_filt, all_robustness_learning_filt))
+print(scipy.stats.pearsonr(all_acc_expert_filt, all_robustness_expert_filt))            
+
+
+
+
+#%% Plot robustness vs rotation
+# Do less robust CDs get rotated more?
+# Plot robustness vs rotation
+# drop empty from all_cd_rotations
+all_cd_rotations = [i for i in all_cd_rotations if len(i) != 0]
+robustness_expert = [i for i in robustness_expert if len(i) != 0]
+robustness_learning = [i for i in robustness_learning if len(i) != 0]
+
+cat_robustness_expert = cat(robustness_expert)
+cat_robustness_learning = cat(robustness_learning)
+cat_all_cd_rotations = cat(all_cd_rotations)
+
+plt.scatter(cat_robustness_expert, np.abs(cat_all_cd_rotations))
+plt.ylabel('CD rotation')
+plt.xlabel('Robustness expert')
+plt.show()
+
+plt.scatter(cat_robustness_learning, np.abs(cat_all_cd_rotations))
+plt.ylabel('CD rotation')
+plt.xlabel('Robustness learning')
+plt.show()
+print(scipy.stats.pearsonr(cat_robustness_learning, np.abs(cat_all_cd_rotations)))
+
+# Do more rotated CDs get more trials over learning?
+cat_num_trials_expert = cat(num_trials_expert)
+cat_num_trials_learning = cat(num_trials_learning)
+
+
+plt.scatter(cat_num_trials_expert, np.abs(cat_all_cd_rotations))
+plt.ylabel('CD rotation')
+plt.xlabel('Number of trials in expert session')
+plt.show()
+print(scipy.stats.pearsonr(cat_num_trials_expert-cat_num_trials_learning, np.abs(cat_all_cd_rotations)))
+
+plt.scatter(cat_num_trials_expert-cat_num_trials_learning, np.abs(cat_all_cd_rotations))
+plt.ylabel('CD rotation')
+plt.xlabel('Delta num of trials')
+plt.show()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -25,7 +25,8 @@ class Mode(Session):
     def __init__(self, path, lickdir=True, use_reg=False, triple=False, filter_reg= True, 
                  layer_num='all', responsive_neurons = [], use_selective= False, use_background_sub=False,
                  baseline_normalization = "dff_avg", proportion_train = 0.5,
-                 train_test_trials = [], lda_cluster = False, i_good = []):
+                 train_test_trials = [], lda_cluster = False, i_good = [],
+                 filter_good_neurons = []):
         """
         Child object of Session that allows for activity mode calculations 
         Mostly adds new functions and also train test split of trials 
@@ -68,7 +69,8 @@ class Mode(Session):
         # Inherit all parameters and functions of session.py
         super().__init__(path, layer_num=layer_num, use_reg=use_reg, triple=triple, 
                          filter_reg=filter_reg, use_background_sub=use_background_sub,
-                         baseline_normalization=baseline_normalization) 
+                         baseline_normalization=baseline_normalization,
+                         filter_good_neurons=filter_good_neurons) 
         
         self.lickdir = lickdir
         self.z_score_baseline()
