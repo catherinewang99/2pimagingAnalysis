@@ -1493,7 +1493,7 @@ class Session:
         r,l=trials
         # for neuron in range(self.num_neurons):
         for neuron in self.good_neurons: # Only look at non-noise neurons
-            right, left = self.get_trace_matrix(neuron, rtrials=r, ltrials =l)
+            right, left = self.get_trace_matrix(neuron, rtrials=r, ltrials=l)
 
             
             left_ = [l[epoch] for l in left]

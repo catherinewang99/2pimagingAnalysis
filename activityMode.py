@@ -26,7 +26,7 @@ class Mode(Session):
                  layer_num='all', responsive_neurons = [], use_selective= False, use_background_sub=False,
                  baseline_normalization = "dff_avg", proportion_train = 0.5,
                  train_test_trials = [], lda_cluster = False, i_good = [],
-                 filter_good_neurons = []):
+                 filter_good_neurons = [], cluster_neurons = None):
         """
         Child object of Session that allows for activity mode calculations 
         Mostly adds new functions and also train test split of trials 
@@ -60,6 +60,10 @@ class Mode(Session):
             sort in house. Indices are only for control, i good non stim, and 
             no early lick trials. Give an index in range(len(R_control_trials)),
             or example. two lists of four lists (correct error)
+        filter_good_neurons : list, optional
+            Provides an initial filter for good_neurons based on LDA exclusion
+        cluster_neurons: list, optional
+            Instructs on which neurons to use to calculate the CD
 
         Returns
         -------
@@ -178,6 +182,9 @@ class Mode(Session):
         
         
         ## ASSIGN NEURAL ACTIVITY PER train_idx / test_idx
+        
+        if len(filter_good_neurons) != 0 and cluster_neurons is not None:
+            self.good_neurons = self.good_neurons[cluster_neurons]
         
         counter = 0
         for n in self.good_neurons:
