@@ -721,7 +721,7 @@ for paths in agg_mice_paths:
         
         orthonormal_basis, mean = s2.plot_CD(ctl=True, plot=False)
         cds += [orthonormal_basis]
-    cos_sim = cosine_similarity(cds)
+    cos_sim = np.abs(cosine_similarity(cds))
     overall_similarity = np.mean(cos_sim[np.triu_indices_from(cos_sim, k=1)])  # Mean of upper triangle
     cd_learning_sim += [overall_similarity]
     cd_learning_var += [np.var(cos_sim[np.triu_indices_from(cos_sim, k=1)])]
@@ -739,7 +739,7 @@ for paths in agg_mice_paths:
                   lda_cluster=True)
         orthonormal_basis, mean = s2.plot_CD(ctl=True, plot=False)
         cds += [orthonormal_basis]
-    cos_sim = cosine_similarity(cds)
+    cos_sim = np.abs(cosine_similarity(cds))
     overall_similarity = np.mean(cos_sim[np.triu_indices_from(cos_sim, k=1)])  # Mean of upper triangle
     cd_expert_sim += [overall_similarity]
     cd_expert_var += [np.var(cos_sim[np.triu_indices_from(cos_sim, k=1)])]
@@ -800,6 +800,19 @@ for fov in range(len(all_cd_rotations)):
 plt.ylabel('Cosine similarity')
 plt.xlabel('Field of view')
 plt.show()
+
+# Plot rotation of CDs against decoding accuracy
+for fov in range(len(cd_expert_all)):
+    plt.scatter(np.ones(len(all_cd_rotations[fov]))*cd_learning_sim[fov],
+                np.abs(all_cd_rotations[fov]))
+plt.ylabel('CD similarity across learning')
+plt.xlabel('CD similarity across clusters in learning session')
+
+cat_cd_learning_sim = cat([np.ones(len(all_cd_rotations[fov]))*cd_learning_sim[fov] for fov in range(len(cd_expert_all))])
+print(scipy.stats.pearsonr(np.abs(cat(all_cd_rotations)), cat_cd_learning_sim))
+
+# Decoding accuracy vs rotation of cd across learning
+
 
 
 #%% Robustness of CDs compared to trial numbers in expert session
@@ -904,7 +917,7 @@ for paths in agg_mice_paths:
         #     rob = 0
             
         try:
-            _, _, db, acc = s2.decision_boundary(mode_input='choice', persistence=False)
+            _, _, db, acc = s2.decision_boundary(mode_input='choice', persistence=False, ctl=True)
         except np.linalg.LinAlgError:
             acc = [0]
             
@@ -934,7 +947,7 @@ for paths in agg_mice_paths:
         #     rob = 0
             
         try:
-            _, _, db, acc = s2.decision_boundary(mode_input='choice', persistence=False)
+            _, _, db, acc = s2.decision_boundary(mode_input='choice', persistence=False,ctl=True)
         except np.linalg.LinAlgError:
             acc = [0]
             
@@ -976,6 +989,22 @@ plt.hist(np.array(all_acc_expert_filt) - np.array(all_acc_learning_filt))
 plt.axvline(0, ls = '--', color='black')
 plt.xlabel('Delta of decoding accuracies')
 plt.ylabel('Number of clusters')
+
+#%% Rotation across learning vs learning decoding acc
+cat_all_cd_rotations = np.abs(cat(all_cd_rotations))
+
+plt.scatter(all_acc_learning, cat_all_cd_rotations)
+plt.ylabel('CD rotation across learning')
+plt.xlabel('Decoding accuracy (learning)')
+plt.title('Learning CDs')
+plt.show()
+plt.scatter(all_acc_expert, cat_all_cd_rotations)
+plt.ylabel('CD rotation across learning')
+plt.xlabel('Decoding accuracy (expert)')
+plt.title('Expert CDs')
+
+print(scipy.stats.pearsonr(np.abs(cat(all_cd_rotations)), all_acc_learning))
+print(scipy.stats.pearsonr(np.abs(cat(all_cd_rotations)), all_acc_expert))
 
 
 #%% Robustness of CDs vs size of clusters

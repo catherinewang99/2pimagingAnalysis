@@ -828,7 +828,7 @@ plt.ylabel('delta Robustness')
 plt.xlabel('delta T-statistic')
 
 
-#%% Iterate through all the FOVs to get decoding accs
+#%% Iterate through all the FOVs to get decoding accs across neurons
 all_learning_wi_decodingaccs = []
 all_learning_wo_decodingaccs = []
 
@@ -862,7 +862,7 @@ for paths in agg_mice_paths:
         ## LEARNING ## 
         
         max_neurons_norm_arr = np.where(np.argmax(neurons_norm_arr, axis=1) == cl)[0]
-        cluster_trials_all_idx = learning_normalized.index[learning_normalized['topic_{}'.format(cl)] > 0.25].to_numpy()
+        cluster_trials_all_idx = learning_normalized.index[learning_normalized['topic_{}'.format(cl)] > 1 / num_clusters].to_numpy()
         # cluster_trials_all_idx = np.where(np.argmax(learning_normalized, axis=1) == cluster)[0]
         all_acc_learning = []
         for _ in range(5):
@@ -907,7 +907,7 @@ for paths in agg_mice_paths:
         
         ## EXPERT ## 
         
-        cluster_trials_all_idx = expert_normalized.index[expert_normalized['topic_{}'.format(cl)] > 0.25].to_numpy()
+        cluster_trials_all_idx = expert_normalized.index[expert_normalized['topic_{}'.format(cl)] > 1 / num_clusters].to_numpy()
         # cluster_trials_all_idx = np.where(np.argmax(learning_normalized, axis=1) == cluster)[0]
         all_acc_learning = []
         for _ in range(5):
@@ -959,6 +959,153 @@ for paths in agg_mice_paths:
     all_expert_wi_decodingaccs += [expert_wi_decodingaccs]
     all_expert_wo_decodingaccs += [expert_wo_decodingaccs]
 
+#%% Iterate through all the FOVs to get decoding accs applied CDs
+all_learning_wi_decodingaccs = []
+all_learning_wo_decodingaccs = []
+
+all_expert_wi_decodingaccs = []
+all_expert_wo_decodingaccs = []
+
+
+for paths in agg_mice_paths:
+    clusters = pd.read_pickle(paths[3])
+    trialparams = np.mean(clusters.trial_params.to_numpy())
+    num_clusters = len(trialparams.columns)
+
+    learning = trialparams.loc[idx['learning', :]]
+    learning_normalized = pd.DataFrame(normalize(learning, norm='l1'), columns=learning.columns)#, index=learning.index)
+    
+    expert = trialparams.loc[idx['expert', :]]
+    expert_normalized = pd.DataFrame(normalize(expert, norm='l1'), columns=expert.columns)#, index=expert.index)
+    
+    neuronparams = np.mean(clusters.components.to_numpy()).T
+    neurons_norm = pd.DataFrame(normalize(neuronparams, norm='l1'), columns=neuronparams.columns, index=neuronparams.index)
+    neurons_norm_arr = neurons_norm.to_numpy()
+        
+    learning_wi_decodingaccs = []
+    learning_wo_decodingaccs = []
+    
+    expert_wi_decodingaccs = []
+    expert_wo_decodingaccs = []
+
+    for cl in range(num_clusters):
+        
+        ## LEARNING ## 
+        
+        max_neurons_norm_arr = np.where(np.argmax(neurons_norm_arr, axis=1) == cl)[0]
+        cluster_trials_all_idx = learning_normalized.index[learning_normalized['topic_{}'.format(cl)] > 1/num_clusters].to_numpy()
+        # cluster_trials_all_idx = np.where(np.argmax(learning_normalized, axis=1) == cluster)[0]
+        all_acc_learning = []
+        all_learning_cds = []
+        all_dbs = []
+        all_means = []
+        for _ in range(5):
+
+            s1 = Mode(paths[1], use_reg = True, triple=True, baseline_normalization="median_zscore",
+                      filter_good_neurons=neurons_norm.index,
+                        cluster_neurons=max_neurons_norm_arr,
+                          i_good = cluster_trials_all_idx,
+                          lda_cluster=True)
+                          # train_test_trials = cluster_trials_all_idx)
+        
+            try:
+                orthonormal_basis, mean, db, acc_learning = s1.decision_boundary(mode_input='choice', persistence=False, ctl=True)
+                all_learning_cds += [orthonormal_basis]
+                all_dbs += [db]
+                all_means += [mean]
+            except np.linalg.LinAlgError:
+                all_acc_learning += [0]
+                continue
+            all_acc_learning += [np.mean(acc_learning)]
+        
+        learning_wi_decodingaccs += [np.mean(all_acc_learning)]
+        
+        wo_trials = [i for i in learning_normalized.index if i not in cluster_trials_all_idx]
+        # wo_neurons = np.array([i for i in range(neurons_norm_arr.shape[0]) if i not in max_neurons_norm_arr])
+
+        all_acc_learning = []
+        orthonormal_basis_app = np.mean(all_learning_cds, axis=0)
+        db = np.mean(all_dbs)
+        mean = np.mean(all_means, axis=0)
+        for _ in range(5):
+
+            s1 = Mode(paths[1], use_reg = True, triple=True, baseline_normalization="median_zscore",
+                      filter_good_neurons=neurons_norm.index,
+                        cluster_neurons=max_neurons_norm_arr,
+                          i_good = wo_trials,
+                          lda_cluster=True)
+                          # train_test_trials = cluster_trials_all_idx)
+
+            try:
+                acc_learning = s1.decision_boundary_appliedCD('choice', orthonormal_basis_app,
+                                                                        mean, db, persistence=False)
+            except np.linalg.LinAlgError:
+                all_acc_learning += [0]
+                continue
+            all_acc_learning += [np.mean(acc_learning)]
+        
+        learning_wo_decodingaccs += [np.mean(all_acc_learning)]
+        
+        ## EXPERT ## 
+        
+        cluster_trials_all_idx = expert_normalized.index[expert_normalized['topic_{}'.format(cl)] > 1/num_clusters].to_numpy()
+        # cluster_trials_all_idx = np.where(np.argmax(learning_normalized, axis=1) == cluster)[0]
+        all_acc_learning = []
+        all_learning_cds = []
+        all_dbs = []
+        all_means = []
+        for _ in range(5):
+
+            s1 = Mode(paths[2], use_reg = True, triple=True, baseline_normalization="median_zscore",
+                      filter_good_neurons=neurons_norm.index,
+                        cluster_neurons=max_neurons_norm_arr,
+                          i_good = cluster_trials_all_idx,
+                          lda_cluster=True)
+                          # train_test_trials = cluster_trials_all_idx)
+        
+            try:
+                orthonormal_basis, mean, db, acc_learning = s1.decision_boundary(mode_input='choice', persistence=False, ctl=True)
+                all_learning_cds += [orthonormal_basis]
+                all_dbs += [db]
+                all_means += [mean]
+            except np.linalg.LinAlgError:
+                all_acc_learning += [0]
+                continue
+            all_acc_learning += [np.mean(acc_learning)]
+        
+        expert_wi_decodingaccs += [np.mean(all_acc_learning)]
+        
+        wo_trials = [i for i in expert_normalized.index if i not in cluster_trials_all_idx]
+        # wo_neurons = np.array([i for i in range(neurons_norm_arr.shape[0]) if i not in max_neurons_norm_arr])
+
+        all_acc_learning = []
+        orthonormal_basis_app = np.mean(all_learning_cds, axis=0)
+        for _ in range(5):
+
+            s1 = Mode(paths[2], use_reg = True, triple=True, baseline_normalization="median_zscore",
+                      filter_good_neurons=neurons_norm.index,
+                        cluster_neurons=max_neurons_norm_arr,
+                          i_good = wo_trials,
+                          lda_cluster=True)
+                           # train_test_trials = cluster_trials_all_idx)
+
+            try:
+                acc_learning = s1.decision_boundary_appliedCD('choice', orthonormal_basis_app,
+                                                                        mean, db, persistence=False)
+            except np.linalg.LinAlgError:
+                all_acc_learning += [0]
+                continue
+            all_acc_learning += [np.mean(acc_learning)]
+        
+        expert_wo_decodingaccs += [np.mean(all_acc_learning)]
+        
+        
+        
+    all_learning_wi_decodingaccs += [learning_wi_decodingaccs]
+    all_learning_wo_decodingaccs += [learning_wo_decodingaccs]
+    
+    all_expert_wi_decodingaccs += [expert_wi_decodingaccs]
+    all_expert_wo_decodingaccs += [expert_wo_decodingaccs]
 
 #%% Plot results (old, for trials clusters)
 all_wi_decodingaccs_cat = cat(all_wi_decodingaccs)
@@ -1119,13 +1266,18 @@ for fov in range(len(learning_deltas)):
 
 # Plot the selectivity (tstat) of neurons in clusters that outperform vs that don't
 outperform_sel, other_sel = [], []
+outperform_wo_sel = []
 
 for fov in range(len(learning_deltas)):
     for i in cluster_idx[fov]:
-        outperform_sel += [all_learning_tstat[fov][i]]
+        outperform_sel += [np.mean(np.abs(all_learning_tstat[fov][i]))]
+        outperform_wo_sel += [np.mean(np.abs(all_wo_learning_tstat[fov][i]))]
+        # outperform_sel += [np.abs(all_learning_tstat[fov][i])]
+        # outperform_wo_sel += [np.abs(all_wo_learning_tstat[fov][i])]
     other_idx = [j for j in range(len(all_learning_tstat[fov])) if j not in cluster_idx[fov]]
     for i in other_idx:
-        other_sel += [all_learning_tstat[fov][i]]
+        other_sel += [np.mean(np.abs(all_learning_tstat[fov][i]))]
+        # other_sel += [np.abs(all_learning_tstat[fov][i])]
 
 
 # plt.bar([0,1],[np.median(outperform_sel), np.median(other_sel)])
@@ -1137,28 +1289,89 @@ plt.yscale("log")
 plt.ylabel('Selectivity (t-statistic)')
 plt.xticks([1,2], ['Outperforming clusters',
                     'Other clusters'])
-
+plt.show()
 t_stat, p_value = ttest_ind(outperform_sel,
                             other_sel) # unpaired t-test
+print(t_stat, p_value)
+
+# plt.bar([0,1],[np.median(outperform_sel), np.median(other_sel)])
+plt.boxplot([outperform_sel, outperform_wo_sel])
+# plt.scatter(np.zeros(len(outperform_sel)), outperform_sel)
+# plt.scatter(np.ones(len(other_sel)), other_sel)
+# plt.ylim(top=0.6)
+# plt.yscale("log")
+plt.ylabel('Selectivity (t-statistic)')
+plt.xticks([1,2], ['Outperforming clusters wi trials',
+                    'Other trials'])
+plt.show()
+t_stat, p_value = ttest_ind(outperform_sel,
+                            outperform_wo_sel) # unpaired t-test
 
 print(t_stat, p_value)
 
+# Plot all the neurons 
+outperform_sel, other_sel = [], []
+outperform_wo_sel = []
 
-# Plot the size of the neuron clusters that outperform vs not
 for fov in range(len(learning_deltas)):
-    paths = agg_mice_paths[fov]
-    clusters = pd.read_pickle(paths[3])
-    trialparams = np.mean(clusters.trial_params.to_numpy())
-    num_clusters = len(trialparams.columns)
+    for i in cluster_idx[fov]:
+        # outperform_sel += [np.mean(np.abs(all_learning_tstat[fov][i]))]
+        # outperform_wo_sel += [np.mean(np.abs(all_wo_learning_tstat[fov][i]))]
+        outperform_sel += [np.abs(all_learning_tstat[fov][i])]
+        outperform_wo_sel += [np.abs(all_wo_learning_tstat[fov][i])]
+    other_idx = [j for j in range(len(all_learning_tstat[fov])) if j not in cluster_idx[fov]]
+    for i in other_idx:
+        # other_sel += [np.mean(np.abs(all_learning_tstat[fov][i]))]
+        other_sel += [np.abs(all_learning_tstat[fov][i])]
 
-    learning = trialparams.loc[idx['learning', :]]
-    learning_normalized = pd.DataFrame(normalize(learning, norm='l1'), columns=learning.columns)#, index=learning.index)
-    
-    expert = trialparams.loc[idx['expert', :]]
-    expert_normalized = pd.DataFrame(normalize(expert, norm='l1'), columns=expert.columns)#, index=expert.index)
-    
-    neuronparams = np.mean(clusters.components.to_numpy()).T
-    neurons_norm = pd.DataFrame(normalize(neuronparams, norm='l1'), columns=neuronparams.columns, index=neuronparams.index)
-    neurons_norm_arr = neurons_norm.to_numpy()
-    max_neurons_norm_arr = np.where(np.argmax(neurons_norm_arr, axis=1) == cl)[0]
+outperform_sel, other_sel, outperform_wo_sel = cat(outperform_sel), cat(other_sel), cat(outperform_wo_sel)
 
+# plt.bar([0,1],[np.median(outperform_sel), np.median(other_sel)])
+plt.boxplot([outperform_sel,other_sel])
+# plt.scatter(np.zeros(len(outperform_sel)), outperform_sel)
+# plt.scatter(np.ones(len(other_sel)), other_sel)
+# plt.ylim(top=0.6)
+plt.yscale("log")
+plt.ylabel('Selectivity (t-statistic)')
+plt.xticks([1,2], ['Outperforming clusters',
+                    'Other clusters'])
+plt.show()
+t_stat, p_value = ttest_ind(outperform_sel,
+                            other_sel) # unpaired t-test
+print(t_stat, p_value)
+
+# plt.bar([0,1],[np.median(outperform_sel), np.median(other_sel)])
+plt.boxplot([outperform_sel, outperform_wo_sel])
+# plt.scatter(np.zeros(len(outperform_sel)), outperform_sel)
+# plt.scatter(np.ones(len(other_sel)), other_sel)
+# plt.ylim(top=0.6)
+plt.yscale("log")
+plt.ylabel('Selectivity (t-statistic)')
+plt.xticks([1,2], ['Outperforming clusters wi trials',
+                    'Other trials'])
+plt.show()
+t_stat, p_value = ttest_ind(outperform_sel,
+                            outperform_wo_sel) # unpaired t-test
+
+print(t_stat, p_value)
+
+#%% Plot the size of the neuron clusters that outperform vs not
+outperform_size, other_size = [], []
+outperform_wo_size = []
+
+for fov in range(len(learning_deltas)):
+    for i in cluster_idx[fov]:
+        # outperform_sel += [np.mean(np.abs(all_learning_tstat[fov][i]))]
+        # outperform_wo_sel += [np.mean(np.abs(all_wo_learning_tstat[fov][i]))]
+        outperform_size += [len(all_learning_tstat[fov][i])]
+    other_idx = [j for j in range(len(all_learning_tstat[fov])) if j not in cluster_idx[fov]]
+    for i in other_idx:
+        # other_sel += [np.mean(np.abs(all_learning_tstat[fov][i]))]
+        other_size += [len(all_learning_tstat[fov][i])]
+
+plt.boxplot([outperform_size, other_size])
+plt.ylabel('Number of neurons')
+plt.xticks([1,2], ['Outperforming clusters',
+                    'Other clusters'])
+t_stat, p_value = ttest_ind(outperform_size, other_size) # unpaired t-test
+print(t_stat, p_value)
