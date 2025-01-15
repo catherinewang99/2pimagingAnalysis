@@ -10,6 +10,7 @@ sys.path.append("C:\scripts\Imaging analysis")
 import numpy as np
 import scipy.io as scio
 import matplotlib.pyplot as plt
+from alm_2p import session
 from session import Session
 from matplotlib.pyplot import figure
 from numpy import concatenate as cat
@@ -356,36 +357,56 @@ agg_mice_paths = [
     
                     ]
 
+by_FOV = True
 
 f, axarr = plt.subplots(1,3, sharex='col', figsize=(15,5))  
 
 for i in range(3):
     
     pref, nonpref, optop, optonp = np.zeros(61), np.zeros(61), np.zeros(61), np.zeros(61)
+    all_control_sel, all_opto_sel = np.zeros(61), np.zeros(61)
+
     num_neurons = 0
     for path in agg_mice_paths[i]:
     
         
-        l1 = Session(path)
+        l1 = session.Session(path) #, baseline_normalization="median_zscore")
         
-        pref_, nonpref_, optop_, optonp_ = l1.selectivity_optogenetics(p=0.01, lickdir=True, return_traces=True)
+        control_sel, opto_sel = l1.selectivity_optogenetics(p=0.01, lickdir=False, 
+                                                            return_traces=True)
         
-        pref = np.vstack((pref, pref_))
-        nonpref = np.vstack((nonpref, nonpref_))
-        optop = np.vstack((optop, optop_))
-        optonp = np.vstack((optonp, optonp_))
+        # pref_, nonpref_, optop_, optonp_ = l1.selectivity_optogenetics(p=0.01, lickdir=True, return_traces=True)
+        
+        # pref = np.vstack((pref, pref_))
+        # nonpref = np.vstack((nonpref, nonpref_))
+        # optop = np.vstack((optop, optop_))
+        # optonp = np.vstack((optonp, optonp_))
+        
+        if by_FOV:
+            all_control_sel = np.vstack((all_control_sel, np.mean(control_sel, axis=0)))
+            all_opto_sel = np.vstack((all_opto_sel, np.mean(opto_sel, axis=0)))
+        else:
+            all_control_sel = np.vstack((all_control_sel, control_sel))
+            all_opto_sel = np.vstack((all_opto_sel, opto_sel))
         
         num_neurons += len(l1.selective_neurons)
         
-    pref, nonpref, optop, optonp = pref[1:], nonpref[1:], optop[1:], optonp[1:]
+    # pref, nonpref, optop, optonp = pref[1:], nonpref[1:], optop[1:], optonp[1:]
     
-    sel = np.mean(pref, axis = 0) - np.mean(nonpref, axis = 0)
-    err = np.std(pref, axis=0) / np.sqrt(len(pref)) 
-    err += np.std(nonpref, axis=0) / np.sqrt(len(nonpref))
+    # sel = np.mean(pref, axis = 0) - np.mean(nonpref, axis = 0)
+    # err = np.std(pref, axis=0) / np.sqrt(len(pref)) 
+    # err += np.std(nonpref, axis=0) / np.sqrt(len(nonpref))
     
-    selo = np.mean(optop, axis = 0) - np.mean(optonp, axis = 0)
-    erro = np.std(optop, axis=0) / np.sqrt(len(optop)) 
-    erro += np.std(optonp, axis=0) / np.sqrt(len(optonp))  
+    # selo = np.mean(optop, axis = 0) - np.mean(optonp, axis = 0)
+    # erro = np.std(optop, axis=0) / np.sqrt(len(optop)) 
+    # erro += np.std(optonp, axis=0) / np.sqrt(len(optonp))  
+    
+    all_control_sel, all_opto_sel = all_control_sel[1:], all_opto_sel[1:]
+
+    sel = np.mean(all_control_sel, axis=0)
+    err = np.std(all_control_sel, axis=0) / np.sqrt(len(all_control_sel))
+    selo = np.mean(all_opto_sel, axis=0)
+    erro = np.std(all_opto_sel, axis=0) / np.sqrt(len(all_opto_sel))
     
     x = np.arange(-6.97,4,l1.fs)[:l1.time_cutoff]
     axarr[i].plot(x, sel, 'black')
@@ -449,38 +470,63 @@ agg_mice_paths = [
                     ]
 
 
-
+by_FOV=True
 
 f, axarr = plt.subplots(1,3, sharex='col', figsize=(15,5))  
 
 for i in range(3):
+    
     pref, nonpref, optop, optonp = np.zeros(61), np.zeros(61), np.zeros(61), np.zeros(61)
+    all_control_sel, all_opto_sel = np.zeros(61), np.zeros(61)
     num_neurons = 0
+
     for path in agg_mice_paths[i]:
     
         if '43' in path or '38' in path:
-            l1 = Session(path, use_reg=True, triple=False)
+            l1 = session.Session(path, use_reg=True, triple=False)
         else:
-            l1 = Session(path, use_reg=True, triple=True)
+            l1 = session.Session(path, use_reg=True, triple=True)
 
-        pref_, nonpref_, optop_, optonp_ = l1.selectivity_optogenetics(p=0.001, lickdir=True, return_traces=True)
+        # pref_, nonpref_, optop_, optonp_ = l1.selectivity_optogenetics(p=0.001, lickdir=True, return_traces=True)
+        control_sel, opto_sel = l1.selectivity_optogenetics(p=0.001, lickdir=False, 
+                                                            return_traces=True)
         
-        pref = np.vstack((pref, pref_))
-        nonpref = np.vstack((nonpref, nonpref_))
-        optop = np.vstack((optop, optop_))
-        optonp = np.vstack((optonp, optonp_))
+        # pref_, nonpref_, optop_, optonp_ = l1.selectivity_optogenetics(p=0.01, lickdir=True, return_traces=True)
+        
+        # pref = np.vstack((pref, pref_))
+        # nonpref = np.vstack((nonpref, nonpref_))
+        # optop = np.vstack((optop, optop_))
+        # optonp = np.vstack((optonp, optonp_))
+        
+        if by_FOV:
+            all_control_sel = np.vstack((all_control_sel, np.mean(control_sel, axis=0)))
+            all_opto_sel = np.vstack((all_opto_sel, np.mean(opto_sel, axis=0)))
+        else:
+            all_control_sel = np.vstack((all_control_sel, control_sel))
+            all_opto_sel = np.vstack((all_opto_sel, opto_sel))
+        
+        # pref = np.vstack((pref, pref_))
+        # nonpref = np.vstack((nonpref, nonpref_))
+        # optop = np.vstack((optop, optop_))
+        # optonp = np.vstack((optonp, optonp_))
         
         num_neurons += len(l1.selective_neurons)
         
-    pref, nonpref, optop, optonp = pref[1:], nonpref[1:], optop[1:], optonp[1:]
+    all_control_sel, all_opto_sel = all_control_sel[1:], all_opto_sel[1:]
+
+    sel = np.mean(all_control_sel, axis=0)
+    err = np.std(all_control_sel, axis=0) / np.sqrt(len(all_control_sel))
+    selo = np.mean(all_opto_sel, axis=0)
+    erro = np.std(all_opto_sel, axis=0) / np.sqrt(len(all_opto_sel))
+    # pref, nonpref, optop, optonp = pref[1:], nonpref[1:], optop[1:], optonp[1:]
     
-    sel = np.mean(pref, axis = 0) - np.mean(nonpref, axis = 0)
-    err = np.std(pref, axis=0) / np.sqrt(len(pref)) 
-    err += np.std(nonpref, axis=0) / np.sqrt(len(nonpref))
+    # sel = np.mean(pref, axis = 0) - np.mean(nonpref, axis = 0)
+    # err = np.std(pref, axis=0) / np.sqrt(len(pref)) 
+    # err += np.std(nonpref, axis=0) / np.sqrt(len(nonpref))
     
-    selo = np.mean(optop, axis = 0) - np.mean(optonp, axis = 0)
-    erro = np.std(optop, axis=0) / np.sqrt(len(optop)) 
-    erro += np.std(optonp, axis=0) / np.sqrt(len(optonp))  
+    # selo = np.mean(optop, axis = 0) - np.mean(optonp, axis = 0)
+    # erro = np.std(optop, axis=0) / np.sqrt(len(optop)) 
+    # erro += np.std(optonp, axis=0) / np.sqrt(len(optonp))  
     
     x = np.arange(-6.97,4,l1.fs)[:l1.time_cutoff]
     axarr[i].plot(x, sel, 'black')
