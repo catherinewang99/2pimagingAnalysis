@@ -702,7 +702,7 @@ cd_learning_all = []
 cd_expert_all = []
 
 for paths in agg_mice_paths:
-    clusters = pd.read_pickle(paths[3])
+    clusters = pd.read_pickle(paths[3] + '_last_1')
     trialparams = np.mean(clusters.trial_params.to_numpy())
     num_clusters = len(trialparams.columns)
 
