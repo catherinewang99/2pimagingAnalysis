@@ -892,11 +892,7 @@ class Session:
                 right_trials = [b for b in ctlright_trials if b not in bias_trials]
                 left_trials = [b for b in ctlleft_trials if b not in bias_trials]
 
-        if len(rtrials) > 0:
-            right_trials = rtrials
 
-        if len(ltrials) > 0:
-            left_trials = ltrials
             
         # Filter out opto trials
         if not opto:
@@ -909,6 +905,12 @@ class Session:
         if len(remove_trial) != 0:
             right_trials = [b for b in right_trials if b not in remove_trial]
             left_trials = [b for b in left_trials if b not in remove_trial]
+            
+        if len(rtrials) > 0:
+            right_trials = rtrials
+
+        if len(ltrials) > 0:
+            left_trials = ltrials
             
         R_av_dff = []
         for i in right_trials:
