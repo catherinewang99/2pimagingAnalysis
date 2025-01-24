@@ -3343,7 +3343,7 @@ class Session:
     def susceptibility(self, period=None):
         """
         Calculates the per neuron susceptibility to perturbation, measured as a
-        simple difference between control/opto trials during the whole delay
+        simple difference between control/opto trials during the specified period
 
         Returns
         -------

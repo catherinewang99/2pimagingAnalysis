@@ -919,7 +919,94 @@ print("mod diff p-value: ", p_val)
 
 
 
+#%% Look at the contribution of individual neurons to coupling effect
+agg_mice_paths = [
+                    [
+                        r'H:\data\BAYLORCW038\python\2024_02_05',
+                     'H:\\data\\BAYLORCW039\\python\\2024_04_17',
+                     'H:\\data\\BAYLORCW039\\python\\2024_04_18',
+                     'H:\\data\\BAYLORCW041\\python\\2024_05_14', 
+                     'H:\\data\\BAYLORCW041\\python\\2024_05_13', 
+                     'H:\\data\\BAYLORCW041\\python\\2024_05_15', 
+                     'H:\\data\\BAYLORCW042\\python\\2024_06_05', 
+                     ],
+                    
+                    [
+                        # r'H:\data\BAYLORCW038\python\2024_02_15',
+                     'H:\\data\\BAYLORCW039\\python\\2024_04_24',
+                     'H:\\data\\BAYLORCW039\\python\\2024_04_25',
+                     'H:\\data\\BAYLORCW041\\python\\2024_05_23',
+                     'H:\\data\\BAYLORCW041\\python\\2024_05_24',
+                     'H:\\data\\BAYLORCW041\\python\\2024_05_28',
+                     'H:\\data\\BAYLORCW042\\python\\2024_06_14',
+                     ],
+                    
+                    [
+                        r'H:\data\BAYLORCW038\python\2024_03_15',
+                     'H:\\data\\BAYLORCW039\\python\\2024_05_06',
+                     'H:\\data\\BAYLORCW039\\python\\2024_05_08',
+                     'H:\\data\\BAYLORCW041\\python\\2024_06_07',
+                     'H:\\data\\BAYLORCW041\\python\\2024_06_12',
+                     'H:\\data\\BAYLORCW041\\python\\2024_06_11',
+                     'H:\\data\\BAYLORCW042\\python\\2024_06_24'
+                     ]
+    
+                    ]
 
+
+all_stages_susc = []
+
+for i in range(2):
+
+    susc = []
+
+    for path in agg_mice_paths[i]:
+    
+        if '43' in path or '38' in path:
+            l1 = session.Session(path, use_reg=True, triple=False)
+        else:
+            l1 = session.Session(path, use_reg=True, triple=True)
+            
+            
+        all_susc = l1.susceptibility(period = range(l1.delay, l1.delay+int(1/l1.fs)))
+    
+        susc += [all_susc]
+
+    all_stages_susc += [susc]
+
+#%% Plot the change in susc over stages
+fov = -6
+f=plt.figure(figsize=(10,10))
+plt.scatter(np.zeros(len(all_stages_susc[0][fov])), all_stages_susc[0][fov])
+plt.scatter(np.ones(len(all_stages_susc[1][fov])), all_stages_susc[1][fov])
+for i in range(len(all_stages_susc[0][fov])):
+    plt.plot([0,1], [all_stages_susc[0][fov][i], all_stages_susc[1][fov][i]], color='grey')
+plt.show()
+plt.scatter(all_stages_susc[0][fov], all_stages_susc[1][fov])
+plt.show()
+#%% Compare this to their contribution to the choice CD
+path = agg_mice_paths[0][fov]
+l1 = Mode(path, use_reg=True, triple=True)
+mode_init, _ = l1.plot_CD()
+
+path = agg_mice_paths[1][fov]
+l1 = Mode(path, use_reg=True, triple=True)
+mode_mid, _ = l1.plot_CD()
+#%% 
+# plt.scatter(mode_init, mode_mid)
+incr = []
+for i in range(len(all_stages_susc[0][fov])):
+    if all_stages_susc[0][fov][i] < all_stages_susc[1][fov][i]: # if becomes more suscp
+        incr += [i]
+        plt.scatter(all_stages_susc[0][fov][i], all_stages_susc[1][fov][i], color='red')
+    else:
+        plt.scatter(all_stages_susc[0][fov][i], all_stages_susc[1][fov][i], color='blue')
+
+plt.plot(range(20), range(20))
+
+#%%
+plt.scatter(np.array(all_stages_susc[1][fov])[incr], mode_init[incr])
+# plt.scatter(mode_init[incr], mode_mid[incr])
 
 #%% Correlate modularity with behaavioral recovery (do with more data points)
 
