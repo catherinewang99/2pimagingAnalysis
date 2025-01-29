@@ -3340,29 +3340,31 @@ class Session:
     
         return pert_der, ctl_der, pert_der - ctl_der
 
-    def susceptibility(self, period=None):
+    def susceptibility(self, p=0.01, period=None):
         """
         Calculates the per neuron susceptibility to perturbation, measured as a
         simple difference between control/opto trials during the specified period
 
         Returns
         -------
-        array : one positive value for every good neuron
+        all_sus : one positive value for every good neuron
+        p_value : provide a significance measure
 
         """
         if period is None:
             period = range(self.delay, self.response)
             
         all_sus = []
+        sig_p = [] 
         
         for n in self.good_neurons:
             
             control_trials = [t for t in self.L_trials if t not in self.stim_trials]
             pert_trials = [t for t in self.L_trials if t in self.stim_trials]
 
-            control = [self.dff[0,l][n, period] for l in control_trials]
-            pert = [self.dff[0,l][n, period] for l in pert_trials]
-            diff = np.abs(np.average(control, axis=0) - np.average(pert, axis=0))
+            control_left = [self.dff[0,l][n, period] for l in control_trials]
+            pert_left = [self.dff[0,l][n, period] for l in pert_trials]
+            diff = np.abs(np.average(control_left, axis=0) - np.average(pert_left, axis=0))
             
             control_trials = [t for t in self.R_trials if t not in self.stim_trials]
             pert_trials = [t for t in self.R_trials if t in self.stim_trials]
@@ -3372,8 +3374,18 @@ class Session:
             diff += np.abs(np.average(control, axis=0) - np.average(pert, axis=0))
             
             all_sus += [np.sum(diff)]
+            
+            tstat_left, p_val_left = stats.ttest_ind(np.mean(control_left, axis = 1), np.mean(pert_left, axis = 1))
+            tstat_right, p_val_right = stats.ttest_ind(np.mean(control, axis = 1), np.mean(pert, axis = 1))
+            
+            # return control, pert_left
+            
+            if p_val_left or p_val_right < p:
+                sig_p += [1]
+            else:
+                sig_p += [0]
         
-        return all_sus
+        return all_sus, sig_p
             
             
 

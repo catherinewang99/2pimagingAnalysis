@@ -224,11 +224,11 @@ agg_mice_paths = [[r'F:\data\BAYLORCW032\python\2023_10_08',
             r'H:\data\matched_topic_params\CW46_FOV3_table']
                             
         ]
-# naivepath, learningpath, expertpath, clusterpath = [
-#                     r'H:\data\BAYLORCW046\python\2024_05_31',
-#                     r'H:\data\BAYLORCW046\python\2024_06_11',
-#                     r'H:\data\BAYLORCW046\python\2024_06_26',
-                    # r'H:\data\matched_topic_params\CW46_FOV3_table']
+naivepath, learningpath, expertpath, clusterpath = [
+                    r'H:\data\BAYLORCW046\python\2024_05_31',
+                    r'H:\data\BAYLORCW046\python\2024_06_11',
+                    r'H:\data\BAYLORCW046\python\2024_06_26',
+                    r'H:\data\matched_topic_params\CW46_FOV3_table']
 #%% Import LDA cluster info
 
 clusters = pd.read_pickle(clusterpath)
