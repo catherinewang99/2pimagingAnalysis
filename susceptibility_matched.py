@@ -10,9 +10,8 @@ sys.path.append("C:\scripts\Imaging analysis")
 import numpy as np
 import scipy.io as scio
 import matplotlib.pyplot as plt
-from session import Session
+from alm_2p import session
 from matplotlib.pyplot import figure
-import decon
 from scipy.stats import chisquare
 import pandas as pd
 from activityMode import Mode
@@ -178,6 +177,341 @@ all_matched_paths = [
              ]
          
         ]
+
+
+
+#%% Sannkey of sig susceptibly cells - all neurons
+
+p_s=0.05
+p=0.01
+retained_sample = []
+recruited_sample = []
+retained_delay = []
+recruited_delay = []
+dropped_delay = []
+dropped_sample = []
+alls1list, alld1, allr1, allns1 = [],[],[],[] # s1: susc ns: non susc
+
+learning_SDR = []
+expert_SDR = []
+
+for paths in all_matched_paths: # For each mouse/FOV
+    ret_s = []
+    recr_s = []
+    ret_d, recr_d = [],[]
+    drop_d, drop_s = [], []
+    
+    s1list, d1, r1, ns1 = np.zeros(4),np.zeros(4),np.zeros(4),np.zeros(4)
+
+    s1 = session.Session(paths[1], use_reg=True, triple=True, use_background_sub=False) # Learning
+    stim_period = range(s1.delay+int(0.5/s1.fs), s1.delay+int(1.2/s1.fs))
+
+    naive_sample_sel = s1.susceptibility(period = stim_period, p=p_s, return_n=True)
+
+    # Get functional group info
+    sample_epoch = range(s1.sample, s1.delay)
+    delay_epoch = range(s1.delay+int(1.5 * 1/s1.fs), s1.response)
+    response_epoch = range(s1.response, s1.response + int(2*1/s1.fs))
+    
+    
+    naive_sample_sel_mod = s1.get_epoch_selective(sample_epoch, p=p)
+    naive_sample_sel_mod = [n for n in naive_sample_sel_mod if n in naive_sample_sel]
+    
+    naive_delay_sel = s1.get_epoch_selective(delay_epoch, p=p)
+    naive_delay_sel = [n for n in naive_delay_sel if n not in naive_sample_sel_mod and n in naive_sample_sel]
+    
+    naive_response_sel = s1.get_epoch_selective(response_epoch, p=p)
+    naive_response_sel = [n for n in naive_response_sel if n not in naive_sample_sel_mod and n not in naive_delay_sel and n in naive_sample_sel]
+
+    naive_nonsel_mod = [n for n in s1.good_neurons if n not in naive_sample_sel_mod and n not in naive_delay_sel and n not in naive_response_sel and n in naive_sample_sel]
+    
+    learning_SDR += [[len(naive_sample_sel_mod), len(naive_delay_sel), len(naive_response_sel), len(naive_nonsel_mod)]]
+    
+    
+    naive_nonsel = [n for n in s1.good_neurons if n not in naive_sample_sel]
+
+    s2 = session.Session(paths[2], use_reg=True, triple=True) # Expert
+    exp_susc = s2.susceptibility(period = stim_period, p=p_s, return_n=True)
+    
+    # Get functional group info
+    
+    naive_sample_sel_mod = s2.get_epoch_selective(sample_epoch, p=p)
+    naive_sample_sel_mod = [n for n in naive_sample_sel_mod if n in exp_susc]
+    
+    naive_delay_sel = s2.get_epoch_selective(delay_epoch, p=p)
+    naive_delay_sel = [n for n in naive_delay_sel if n not in naive_sample_sel_mod and n in exp_susc]
+    
+    naive_response_sel = s2.get_epoch_selective(response_epoch, p=p)
+    naive_response_sel = [n for n in naive_response_sel if n not in naive_sample_sel_mod and n not in naive_delay_sel and n in exp_susc]
+
+    naive_nonsel_mod = [n for n in s2.good_neurons if n not in naive_sample_sel_mod and n not in naive_delay_sel and n not in naive_response_sel and n in exp_susc]
+    
+    expert_SDR += [[len(naive_sample_sel_mod), len(naive_delay_sel), len(naive_response_sel), len(naive_nonsel_mod)]]
+    
+    
+    
+    for n in naive_sample_sel:
+        if s2.good_neurons[np.where(s1.good_neurons == n)[0][0]] in exp_susc:
+            s1list[0] += 1
+            ret_s += [(n, s2.good_neurons[np.where(s1.good_neurons == n)[0][0]])]
+        # elif s2.is_selective(s2.good_neurons[np.where(s1.good_neurons == n)[0][0]], delay_epoch, p=p):
+        #     s1list[1] += 1
+        # elif s2.is_selective(s2.good_neurons[np.where(s1.good_neurons ==n)[0][0]], response_epoch, p=p):
+        #     s1list[2] += 1
+        else:
+            s1list[3] += 1
+            drop_s += [(n, s2.good_neurons[np.where(s1.good_neurons == n)[0][0]])]
+
+    # for n in naive_delay_sel:
+    #     if s2.is_selective(s2.good_neurons[np.where(s1.good_neurons ==n)[0][0]], sample_epoch, p=p):
+    #         d1[0] += 1
+    #     elif s2.is_selective(s2.good_neurons[np.where(s1.good_neurons ==n)[0][0]], delay_epoch, p=p):
+    #         d1[1] += 1
+    #         ret_d += [(n, s2.good_neurons[np.where(s1.good_neurons == n)[0][0]])]
+
+    #     elif s2.is_selective(s2.good_neurons[np.where(s1.good_neurons ==n)[0][0]], response_epoch, p=p):
+    #         d1[2] += 1
+    #     else:
+    #         d1[3] += 1
+    #         drop_d += [(n, s2.good_neurons[np.where(s1.good_neurons == n)[0][0]])]
+    
+    
+    # for n in naive_response_sel:
+    #     if s2.is_selective(s2.good_neurons[np.where(s1.good_neurons ==n)[0][0]], sample_epoch, p=p):
+    #         r1[0] += 1
+
+    #     elif s2.is_selective(s2.good_neurons[np.where(s1.good_neurons ==n)[0][0]], delay_epoch, p=p):
+    #         r1[1] += 1
+
+    #     elif s2.is_selective(s2.good_neurons[np.where(s1.good_neurons ==n)[0][0]], response_epoch, p=p):
+    #         r1[2] += 1
+    #     else:
+    #         r1[3] += 1
+    
+    
+    for n in naive_nonsel:
+        if s2.good_neurons[np.where(s1.good_neurons == n)[0][0]] in exp_susc:
+            ns1[0] += 1
+            recr_s += [(n, s2.good_neurons[np.where(s1.good_neurons ==n)[0][0]])]
+        # elif s2.is_selective(s2.good_neurons[np.where(s1.good_neurons ==n)[0][0]], delay_epoch, p=p):
+        #     ns1[1] += 1
+        #     recr_d += [(n, s2.good_neurons[np.where(s1.good_neurons ==n)[0][0]])]
+
+        # elif s2.is_selective(s2.good_neurons[np.where(s1.good_neurons ==n)[0][0]], response_epoch, p=p):
+        #     ns1[2] += 1
+        else:
+            ns1[3] += 1
+    print(s1list)
+
+    s1list, d1, r1, ns1 = s1list / len(s1.good_neurons), d1 / len(s1.good_neurons), r1 / len(s1.good_neurons), ns1 / len(s1.good_neurons)
+
+    alls1list += [s1list]
+    alld1 += [d1]
+    allr1 += [r1] 
+    allns1 += [ns1]
+    
+    retained_sample += [ret_s]
+    recruited_sample += [recr_s]
+    dropped_sample += [drop_s]
+    retained_delay += [ret_d]
+    recruited_delay += [recr_d]
+    dropped_delay += [drop_d]
+
+alls1list = np.mean(alls1list, axis=0) 
+alld1 = np.mean(alld1, axis=0)
+allr1 = np.mean(allr1, axis=0)
+allns1 = np.mean(allns1, axis=0)
+
+# SDR proportion of susceptible population
+
+learning_SDR = np.array(learning_SDR) # S, D, R, NS
+expert_SDR = np.array(expert_SDR)
+
+f, ax = plt.subplots(1,2, figsize=(9,5), sharey='row')
+
+ax[0].bar(range(4), np.sum(learning_SDR, axis=0))
+ax[0].set_xticks(range(4), ['Sample', 'Delay', 'Response', 'N.S.'])
+ax[0].set_ylabel('Number of neurons')
+ax[0].set_title('Learning stage susceptible neurons')
+
+ax[1].bar(range(4), np.sum(expert_SDR, axis=0))
+ax[1].set_xticks(range(4), ['Sample', 'Delay', 'Response', 'N.S.'])
+ax[1].set_title('Expert stage susceptible neurons')
+
+# Plot as stacked instead
+sum_learning_SDR = np.sum(learning_SDR, axis=0)
+sum_expert_SDR = np.sum(expert_SDR, axis=0)
+f = plt.figure(figsize=(8,8))
+labels = ['Sample', 'Delay', 'Response', 'N.S.']
+bottom_exp, bottom_lea = 0,0
+for i in range(4):
+    plt.bar(range(2), [sum_learning_SDR[i], sum_expert_SDR[i]], label=labels[i], bottom = [bottom_lea, bottom_exp])
+    bottom_lea += sum_learning_SDR[i]
+    bottom_exp += sum_expert_SDR[i]
+plt.legend()
+plt.ylabel('Number of neurons')
+plt.xticks([0,1], ['Learning', 'Expert'])
+
+
+#%% Sankey of sig susc cells - delay neurons only (lea or exp)
+p_s=0.05
+p=0.01
+retained_sample = []
+recruited_sample = []
+retained_delay = []
+recruited_delay = []
+dropped_delay = []
+dropped_sample = []
+alls1list, alld1, allr1, allns1 = [],[],[],[] # s1: susc ns: non susc
+
+learning_SDR = []
+expert_SDR = []
+
+for paths in all_matched_paths: # For each mouse/FOV
+    ret_s = []
+    recr_s = []
+    ret_d, recr_d = [],[]
+    drop_d, drop_s = [], []
+    
+    s1list, d1, r1, ns1 = np.zeros(4),np.zeros(4),np.zeros(4),np.zeros(4)
+
+    s1 = session.Session(paths[1], use_reg=True, triple=True, use_background_sub=False) # Learning
+    stim_period = range(s1.delay+int(0.5/s1.fs), s1.delay+int(1.2/s1.fs))
+
+    naive_sample_sel = s1.susceptibility(period = stim_period, p=p_s, return_n=True)
+
+    
+    # Get functional group info
+    # sample_epoch = range(s1.sample, s1.delay)
+    delay_epoch = range(s1.delay+int(1.5 * 1/s1.fs), s1.response)
+    # response_epoch = range(s1.response, s1.response + int(2*1/s1.fs))
+    
+    naive_delay_sel = s1.get_epoch_selective(delay_epoch, p=p) # Learning stage delay neurons
+    
+
+
+    s2 = session.Session(paths[2], use_reg=True, triple=True) # Expert
+    exp_susc = s2.susceptibility(period = stim_period, p=p_s, return_n=True)
+    exp_delay_sel = s2.get_epoch_selective(delay_epoch, p=p)
+    
+    naive_sample_sel = [n for n in naive_sample_sel if n in naive_delay_sel or s2.good_neurons[np.where(s1.good_neurons == n)[0][0]] in exp_delay_sel]
+    naive_nonsel = [n for n in s1.good_neurons if n not in naive_sample_sel and (n in naive_delay_sel or s2.good_neurons[np.where(s1.good_neurons == n)[0][0]] in exp_delay_sel)]
+    
+    exp_susc = [n for n in exp_susc if n in exp_delay_sel or s1.good_neurons[np.where(s2.good_neurons == n)[0][0]] in naive_delay_sel]
+    
+    num_delay_neurons = sum([len(exp_delay_sel), len(naive_delay_sel)])
+    
+    for n in naive_sample_sel:
+        if s2.good_neurons[np.where(s1.good_neurons == n)[0][0]] in exp_susc:
+            s1list[0] += 1
+            ret_s += [(n, s2.good_neurons[np.where(s1.good_neurons == n)[0][0]])]
+        # elif s2.is_selective(s2.good_neurons[np.where(s1.good_neurons == n)[0][0]], delay_epoch, p=p):
+        #     s1list[1] += 1
+        # elif s2.is_selective(s2.good_neurons[np.where(s1.good_neurons ==n)[0][0]], response_epoch, p=p):
+        #     s1list[2] += 1
+        else:
+            s1list[3] += 1
+            drop_s += [(n, s2.good_neurons[np.where(s1.good_neurons == n)[0][0]])]
+
+    # for n in naive_delay_sel:
+    #     if s2.is_selective(s2.good_neurons[np.where(s1.good_neurons ==n)[0][0]], sample_epoch, p=p):
+    #         d1[0] += 1
+    #     elif s2.is_selective(s2.good_neurons[np.where(s1.good_neurons ==n)[0][0]], delay_epoch, p=p):
+    #         d1[1] += 1
+    #         ret_d += [(n, s2.good_neurons[np.where(s1.good_neurons == n)[0][0]])]
+
+    #     elif s2.is_selective(s2.good_neurons[np.where(s1.good_neurons ==n)[0][0]], response_epoch, p=p):
+    #         d1[2] += 1
+    #     else:
+    #         d1[3] += 1
+    #         drop_d += [(n, s2.good_neurons[np.where(s1.good_neurons == n)[0][0]])]
+    
+    
+    # for n in naive_response_sel:
+    #     if s2.is_selective(s2.good_neurons[np.where(s1.good_neurons ==n)[0][0]], sample_epoch, p=p):
+    #         r1[0] += 1
+
+    #     elif s2.is_selective(s2.good_neurons[np.where(s1.good_neurons ==n)[0][0]], delay_epoch, p=p):
+    #         r1[1] += 1
+
+    #     elif s2.is_selective(s2.good_neurons[np.where(s1.good_neurons ==n)[0][0]], response_epoch, p=p):
+    #         r1[2] += 1
+    #     else:
+    #         r1[3] += 1
+    
+    
+    for n in naive_nonsel:
+        if s2.good_neurons[np.where(s1.good_neurons == n)[0][0]] in exp_susc:
+            ns1[0] += 1
+            recr_s += [(n, s2.good_neurons[np.where(s1.good_neurons ==n)[0][0]])]
+        # elif s2.is_selective(s2.good_neurons[np.where(s1.good_neurons ==n)[0][0]], delay_epoch, p=p):
+        #     ns1[1] += 1
+        #     recr_d += [(n, s2.good_neurons[np.where(s1.good_neurons ==n)[0][0]])]
+
+        # elif s2.is_selective(s2.good_neurons[np.where(s1.good_neurons ==n)[0][0]], response_epoch, p=p):
+        #     ns1[2] += 1
+        else:
+            ns1[3] += 1
+    print(s1list)
+
+    # s1list, d1, r1, ns1 = s1list / len(s1.good_neurons), d1 / len(s1.good_neurons), r1 / len(s1.good_neurons), ns1 / len(s1.good_neurons)
+    s1list, d1, r1, ns1 = s1list / num_delay_neurons, d1 / num_delay_neurons, r1 / num_delay_neurons, ns1 / num_delay_neurons
+
+    alls1list += [s1list]
+    alld1 += [d1]
+    allr1 += [r1] 
+    allns1 += [ns1]
+    
+    retained_sample += [ret_s]
+    recruited_sample += [recr_s]
+    dropped_sample += [drop_s]
+    retained_delay += [ret_d]
+    recruited_delay += [recr_d]
+    dropped_delay += [drop_d]
+
+alls1list = np.mean(alls1list, axis=0) 
+alld1 = np.mean(alld1, axis=0)
+allr1 = np.mean(allr1, axis=0)
+allns1 = np.mean(allns1, axis=0)
+
+#%% Plot some susceptible neurons
+s1 = session.Session(paths[1], use_reg=True, triple=True, use_background_sub=False) # Learning
+s2 = session.Session(paths[2], use_reg=True, triple=True) # Expert
+
+for pairs in retained_sample[-4]:
+    s1.plot_rasterPSTH_sidebyside(pairs[0])
+    s2.plot_rasterPSTH_sidebyside(pairs[1])
+
+#%% Average weight on choice CD of susceptible population across learning
+cd_weight_lea, cd_weight_exp = [], []
+p_s=0.05
+
+for paths in all_matched_paths: # For each mouse/FOV
+    s1 = Mode(paths[1], use_reg=True, triple=True, use_background_sub=False) # Learning
+    lea_cd, _ = s1.plot_CD(plot=False)
+    naive_susc = s1.susceptibility(period = range(s1.delay, s1.delay+int(1/s1.fs)), p=p_s, return_n=True)
+    susc_idx = [np.where(s1.good_neurons == n)[0][0] for n in naive_susc]
+    cd_weight_lea += [lea_cd[susc_idx]]
+    
+    s2 = Mode(paths[2], use_reg=True, triple=True) # Expert
+    exp_cd, _ = s1.plot_CD(plot=False)
+    exp_susc = s2.susceptibility(period = range(s2.delay, s2.delay+int(1/s2.fs)), p=p_s, return_n=True)
+    susc_idx = [np.where(s2.good_neurons == n)[0][0] for n in exp_susc]
+    cd_weight_exp += [exp_cd[susc_idx]]
+
+#%% PLot
+catcd_weight_lea = np.abs(cat(cd_weight_lea))
+catcd_weight_exp = np.abs(cat(cd_weight_exp))
+
+plt.bar(range(2), [np.mean(catcd_weight_lea), np.mean(catcd_weight_exp)])
+plt.scatter(np.zeros(len(catcd_weight_lea)), catcd_weight_lea)
+plt.scatter(np.ones(len(catcd_weight_exp)), catcd_weight_exp)
+plt.ylabel('CD weight')
+plt.xticks([0,1], ['Learning', 'Expert'])
+
+stats.ttest_ind(catcd_weight_lea, catcd_weight_exp)
+
+
 #%% Stability of susceptibility 
 
 r_sus = []
@@ -188,15 +522,16 @@ for paths in all_matched_paths:
     intialpath, finalpath = paths[1], paths[2]
     
     # sample CD
-    s1 = Session(intialpath, use_reg=True, triple=True)
-    s2 = Session(finalpath, use_reg = True, triple=True)
+    s1 = session.Session(intialpath, use_reg=True, triple=True)
+    s2 = session.Session(finalpath, use_reg = True, triple=True)
     
-    s1_sus = s1.susceptibility()
-    s2_sus = s2.susceptibility()
+    s1_sus, _ = s1.susceptibility()
+    s2_sus, _ = s2.susceptibility()
     
     plt.scatter(s1_sus, s2_sus)
     r_sus += [stats.pearsonr(s1_sus, s2_sus)[0]]
 
+# Plot
 plt.title('Pearsons correlation: {}, p-val: {}'.format(stats.pearsonr(s1_sus, s2_sus)[0], 
                                                        stats.pearsonr(s1_sus, s2_sus)[1]))
 plt.xlabel('Initial susceptibility')

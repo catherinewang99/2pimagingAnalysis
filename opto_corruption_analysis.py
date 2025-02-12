@@ -11,7 +11,6 @@ import numpy as np
 import scipy.io as scio
 import matplotlib.pyplot as plt
 from alm_2p import session
-from session import Session
 from matplotlib.pyplot import figure
 from numpy import concatenate as cat
 from sklearn.preprocessing import normalize
@@ -57,7 +56,7 @@ og_SDR = []
 c1, i1, ns1 = np.zeros(3),np.zeros(3),np.zeros(3)
 for paths in agg_mice_paths: # For each mouse
 
-    s1 = Session(paths[0], use_reg=True, triple=True) # Naive
+    s1 = session.Session(paths[0], use_reg=True, triple=True) # Naive
     # epoch = range(s1.response, s1.time_cutoff) # response selective
     epoch = range(s1.delay + 9, s1.response) # delay selective
     # epoch = range(s1.sample, s1.delay) # sample selective
@@ -68,7 +67,7 @@ for paths in agg_mice_paths: # For each mouse
     og_SDR += [[len(contra_neurons), len(ipsi_neurons), len(naive_nonsel)]]
 
     # s2 = session.Session(paths[0][1], use_reg=True, triple=True) # Learning
-    s2 = Session(paths[1], use_reg=True, triple=True) # Expert
+    s2 = session.Session(paths[1], use_reg=True, triple=True) # Expert
 
     # learning = sum([s2.is_selective(s2.good_neurons[np.where(s1.good_neurons ==n)[0][0]], epoch) for n in naive_sel])
     # expert = sum([s3.is_selective(s3.good_neurons[np.where(s1.good_neurons ==n)[0][0]], epoch) for n in naive_sel])
@@ -932,6 +931,8 @@ agg_mice_paths = [
                      ],
                     
                     [
+                        r'H:\data\BAYLORCW038\python\2024_03_15',
+
                         # r'H:\data\BAYLORCW038\python\2024_02_15',
                      'H:\\data\\BAYLORCW039\\python\\2024_04_24',
                      'H:\\data\\BAYLORCW039\\python\\2024_04_25',
@@ -955,11 +956,12 @@ agg_mice_paths = [
 
 
 all_stages_susc = []
-
+all_pvals = []
 for i in range(2):
 
     susc = []
-
+    pvals = []
+    
     for path in agg_mice_paths[i]:
     
         if '43' in path or '38' in path:
@@ -968,22 +970,51 @@ for i in range(2):
             l1 = session.Session(path, use_reg=True, triple=True)
             
             
-        all_susc = l1.susceptibility(period = range(l1.delay, l1.delay+int(1/l1.fs)))
+        all_susc, p = l1.susceptibility(period = range(l1.delay, l1.delay+int(1/l1.fs)))
     
         susc += [all_susc]
-
+        pvals += [p]
+        
     all_stages_susc += [susc]
-
+    all_pvals += [pvals]
+    
 #%% Plot the change in susc over stages
-fov = -6
+fov = 4
 f=plt.figure(figsize=(10,10))
 plt.scatter(np.zeros(len(all_stages_susc[0][fov])), all_stages_susc[0][fov])
 plt.scatter(np.ones(len(all_stages_susc[1][fov])), all_stages_susc[1][fov])
 for i in range(len(all_stages_susc[0][fov])):
     plt.plot([0,1], [all_stages_susc[0][fov][i], all_stages_susc[1][fov][i]], color='grey')
 plt.show()
-plt.scatter(all_stages_susc[0][fov], all_stages_susc[1][fov])
+# plt.scatter(all_stages_susc[0][fov], all_stages_susc[1][fov])
 plt.show()
+#%% Consider significance
+
+# number of significantly susceptible cells over learning per FOV
+learning_sig, expert_sig = [], []
+for fov in range(len(agg_mice_paths[1])):
+    learning_sig += [np.sum(all_pvals[0][fov])]
+    expert_sig += [np.sum(all_pvals[1][fov])]
+
+plt.scatter(np.zeros(len(learning_sig)), learning_sig)
+plt.scatter(np.ones(len(expert_sig)), expert_sig)
+
+
+#%% Replot with only significantly modulated neurons 
+
+# for fov in range(len(agg_mice_paths[1])):
+for fov in [4]:
+    f=plt.figure(figsize=(10,10))
+
+    keep_idx = np.where(all_pvals[0][fov])[0]
+    keep_idx = np.append(keep_idx, np.where(all_pvals[1][fov])[0])
+
+    plt.scatter(np.zeros(len(np.array(all_stages_susc[0][fov])[keep_idx])), np.array(all_stages_susc[0][fov])[keep_idx])
+
+    plt.scatter(np.ones(len(np.array(all_stages_susc[1][fov])[keep_idx])), np.array(all_stages_susc[1][fov])[keep_idx])
+    for i in keep_idx:
+        plt.plot([0,1], [np.array(all_stages_susc[0][fov][i]), np.array(all_stages_susc[1][fov][i])], color='grey')
+ 
 #%% Compare this to their contribution to the choice CD
 path = agg_mice_paths[0][fov]
 l1 = Mode(path, use_reg=True, triple=True)
@@ -995,18 +1026,20 @@ mode_mid, _ = l1.plot_CD()
 #%% 
 # plt.scatter(mode_init, mode_mid)
 incr = []
-for i in range(len(all_stages_susc[0][fov])):
+# for i in range(len(all_stages_susc[0][fov])):
+for i in keep_idx:
+
     if all_stages_susc[0][fov][i] < all_stages_susc[1][fov][i]: # if becomes more suscp
         incr += [i]
         plt.scatter(all_stages_susc[0][fov][i], all_stages_susc[1][fov][i], color='red')
     else:
         plt.scatter(all_stages_susc[0][fov][i], all_stages_susc[1][fov][i], color='blue')
 
-plt.plot(range(20), range(20))
+# plt.plot(range(20), range(20))
 
 #%%
-plt.scatter(np.array(all_stages_susc[1][fov])[incr], mode_init[incr])
-# plt.scatter(mode_init[incr], mode_mid[incr])
+# plt.scatter(np.array(all_stages_susc[1][fov])[incr], mode_init[incr])
+plt.scatter(mode_init[incr], mode_mid[incr])
 
 #%% Correlate modularity with behaavioral recovery (do with more data points)
 

@@ -335,8 +335,8 @@ class Session:
                 self.normalize_z_score()    
                 print(self.dff[0,0][0,0])
 
-        self.i_good_non_stim_trials = [t for t in self.i_good_trials if not self.stim_ON[t]]
-        self.i_good_stim_trials = [t for t in self.i_good_trials if self.stim_ON[t]]
+        self.i_good_non_stim_trials = [t for t in self.i_good_trials if not self.stim_ON[t] and not self.early_lick[t]]
+        self.i_good_stim_trials = [t for t in self.i_good_trials if self.stim_ON[t] and not self.early_lick[t]]
 
         if not sess_reg and not use_reg:
             print("Using Pearsons corr to filter neurons.")
@@ -3340,7 +3340,7 @@ class Session:
     
         return pert_der, ctl_der, pert_der - ctl_der
 
-    def susceptibility(self, p=0.01, period=None):
+    def susceptibility(self, p=0.01, period=None, return_n=False):
         """
         Calculates the per neuron susceptibility to perturbation, measured as a
         simple difference between control/opto trials during the specified period
@@ -3356,35 +3356,38 @@ class Session:
             
         all_sus = []
         sig_p = [] 
+        sig_n = []
         
         for n in self.good_neurons:
             
-            control_trials = [t for t in self.L_trials if t not in self.stim_trials]
-            pert_trials = [t for t in self.L_trials if t in self.stim_trials]
+            control_trials = [t for t in self.L_trials if t in self.i_good_non_stim_trials]
+            pert_trials = [t for t in self.L_trials if t in self.i_good_stim_trials]
 
             control_left = [self.dff[0,l][n, period] for l in control_trials]
             pert_left = [self.dff[0,l][n, period] for l in pert_trials]
             diff = np.abs(np.average(control_left, axis=0) - np.average(pert_left, axis=0))
             
-            control_trials = [t for t in self.R_trials if t not in self.stim_trials]
-            pert_trials = [t for t in self.R_trials if t in self.stim_trials]
+            control_trials = [t for t in self.R_trials if t in self.i_good_non_stim_trials]
+            pert_trials = [t for t in self.R_trials if t in self.i_good_stim_trials]
 
             control = [self.dff[0,l][n, period] for l in control_trials]
             pert = [self.dff[0,l][n, period] for l in pert_trials]
             diff += np.abs(np.average(control, axis=0) - np.average(pert, axis=0))
             
             all_sus += [np.sum(diff)]
-            
+
             tstat_left, p_val_left = stats.ttest_ind(np.mean(control_left, axis = 1), np.mean(pert_left, axis = 1))
             tstat_right, p_val_right = stats.ttest_ind(np.mean(control, axis = 1), np.mean(pert, axis = 1))
             
-            # return control, pert_left
             
-            if p_val_left or p_val_right < p:
+            if p_val_left < p or p_val_right < p:
                 sig_p += [1]
+                sig_n += [n]
             else:
                 sig_p += [0]
         
+        if return_n:
+            return sig_n
         return all_sus, sig_p
             
             

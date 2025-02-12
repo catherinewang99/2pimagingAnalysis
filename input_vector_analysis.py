@@ -10,9 +10,8 @@ sys.path.append("C:\scripts\Imaging analysis")
 import numpy as np
 import scipy.io as scio
 import matplotlib.pyplot as plt
-import session
+from alm_2p import session
 from matplotlib.pyplot import figure
-import decon
 from scipy.stats import chisquare
 import pandas as pd
 from activityMode import Mode
@@ -41,6 +40,160 @@ def angle_between(v1, v2):
 
 def cos_sim(a,b):
     return np.dot(a, b)/(norm(a)*norm(b))
+
+#%% Paths
+
+all_matched_paths = [
+    
+            [r'F:\data\BAYLORCW032\python\2023_10_05',
+              r'F:\data\BAYLORCW032\python\2023_10_19',
+              r'F:\data\BAYLORCW032\python\2023_10_24',
+          ],
+         
+            [ r'F:\data\BAYLORCW034\python\2023_10_12',
+               r'F:\data\BAYLORCW034\python\2023_10_22',
+               r'F:\data\BAYLORCW034\python\2023_10_27'],
+         
+            [r'F:\data\BAYLORCW036\python\2023_10_09',
+            r'F:\data\BAYLORCW036\python\2023_10_19',
+            r'F:\data\BAYLORCW036\python\2023_10_30',
+           ],
+         
+         [r'F:\data\BAYLORCW037\python\2023_11_21',
+            r'F:\data\BAYLORCW037\python\2023_12_08',
+            r'F:\data\BAYLORCW037\python\2023_12_15',],
+         
+         [r'F:\data\BAYLORCW035\python\2023_10_26',
+            r'F:\data\BAYLORCW035\python\2023_12_07',
+            r'F:\data\BAYLORCW035\python\2023_12_15',],
+         
+         [r'H:\data\BAYLORCW044\python\2024_05_22',
+          r'H:\data\BAYLORCW044\python\2024_06_06',
+        r'H:\data\BAYLORCW044\python\2024_06_19'],
+
+         
+            [r'H:\data\BAYLORCW044\python\2024_05_23',
+             r'H:\data\BAYLORCW044\python\2024_06_04',
+        r'H:\data\BAYLORCW044\python\2024_06_18'],
+
+            [r'H:\data\BAYLORCW046\python\2024_05_29',
+             r'H:\data\BAYLORCW046\python\2024_06_24',
+             r'H:\data\BAYLORCW046\python\2024_06_28'], # Modified dates (use 6/7, 6/24?)
+
+
+            [r'H:\data\BAYLORCW046\python\2024_05_30',
+             r'H:\data\BAYLORCW046\python\2024_06_10',
+             r'H:\data\BAYLORCW046\python\2024_06_27'],
+
+            [r'H:\data\BAYLORCW046\python\2024_05_31',
+             r'H:\data\BAYLORCW046\python\2024_06_11',
+             r'H:\data\BAYLORCW046\python\2024_06_26'
+             ]
+         
+        ]
+
+#%% Calculate input vector without trial type and project fwd
+
+naivepath = r'H:\data\BAYLORCW046\python\2024_05_31'
+# naivepath = r'F:\data\BAYLORCW034\python\2023_10_22'
+l1 = Mode(naivepath, lickdir=False, use_reg = True, triple=True, proportion_train=1, proportion_opto_train=1)
+input_vec = l1.input_vector(by_trialtype=False, plot=True)
+cd_choice, _ = l1.plot_CD(mode_input='choice', plot=False)
+
+expertpath = r'H:\\data\\BAYLORCW046\\python\\2024_06_26'
+# expertpath = r'F:\data\BAYLORCW034\python\2023_10_27'
+l2 = Mode(expertpath, lickdir=False, use_reg = True, triple=True, proportion_train=1, proportion_opto_train=1)
+input_vec = l2.input_vector(by_trialtype=False, plot=True)
+cd_choice_exp, _ = l2.plot_CD(mode_input='choice', plot=False)
+
+
+#%% Calculate input vector by trial type - one FOV
+# Control -correct trials only, Opto - use trial type
+
+# naivepath = r'H:\data\BAYLORCW046\python\2024_05_31'
+# naivepath = r'F:\data\BAYLORCW034\python\2023_10_22'
+# l1 = Mode(naivepath, lickdir=False, use_reg = True, triple=True, proportion_opto_train=1)
+# input_vector_L, input_vector_R = l1.input_vector(by_trialtype=True, plot=True)
+# cd_choice, _ = l1.plot_CD(mode_input='choice', plot=False)
+
+
+learningpath = r'H:\data\BAYLORCW046\python\2024_06_11'
+# learningpath = r'F:\data\BAYLORCW034\python\2023_10_22'
+l1 = Mode(learningpath, lickdir=False, use_reg = True, triple=True, proportion_opto_train=1)
+input_vector_L, input_vector_R = l1.input_vector(by_trialtype=True, plot=True)
+cd_choice, _ = l1.plot_CD(mode_input='choice', plot=False)
+
+
+expertpath = r'H:\\data\\BAYLORCW046\\python\\2024_06_26'
+# expertpath = r'F:\data\BAYLORCW034\python\2023_10_27'
+l2 = Mode(expertpath, lickdir=False, use_reg = True, triple=True, proportion_opto_train=1)
+input_vector_Lexp, input_vector_Rexp = l2.input_vector(by_trialtype=True, plot=True)
+cd_choice_exp, _ = l2.plot_CD(mode_input='choice', plot=False)
+
+# Angle between trial type input vector and CD
+print(cos_sim(input_vector_L, cd_choice), cos_sim(input_vector_Lexp, cd_choice_exp))
+print(cos_sim(input_vector_R, cd_choice), cos_sim(input_vector_Rexp, cd_choice_exp))
+angle_lea = cos_sim(input_vector_L, cd_choice)
+angle_lea = cos_sim(input_vector_R, cd_choice)
+
+angle_exp = cos_sim(input_vector_Lexp, cd_choice_exp)
+angle_exp = cos_sim(input_vector_Rexp, cd_choice_exp)
+
+#%% Calculate input vector by trial type - all FOVs
+L_angles, R_angles = [], []
+inputvector_angles_R, inputvector_angles_L = [], []
+
+for paths in all_matched_paths:
+
+    l1 = Mode(paths[1], lickdir=False, use_reg = True, triple=True, proportion_train=1, proportion_opto_train=1)
+    input_vector_L, input_vector_R = l1.input_vector(by_trialtype=True, plot=True)
+    cd_choice, _ = l1.plot_CD(mode_input='choice', plot=False)
+
+
+    l2 = Mode(paths[2], lickdir=False, use_reg = True, triple=True, proportion_train=1, proportion_opto_train=1)
+    input_vector_Lexp, input_vector_Rexp = l2.input_vector(by_trialtype=True, plot=True)
+    cd_choice_exp, _ = l2.plot_CD(mode_input='choice', plot=False)
+
+    # Angle between trial type input vector and CD
+    L_angles += [(cos_sim(input_vector_L, cd_choice), cos_sim(input_vector_Lexp, cd_choice_exp))]
+    R_angles += [(cos_sim(input_vector_R, cd_choice), cos_sim(input_vector_Rexp, cd_choice_exp))]
+    inputvector_angles_R += [cos_sim(input_vector_R, input_vector_Rexp)]
+    inputvector_angles_L += [cos_sim(input_vector_L, input_vector_Lexp)]
+    
+L_angles, R_angles = np.array(L_angles), np.array(R_angles)
+
+# Plot angle between input vectors
+plt.bar([0,1],[np.mean(inputvector_angles_L), np.mean(inputvector_angles_R)])
+plt.scatter(np.zeros(len(inputvector_angles_L)), inputvector_angles_L)
+plt.scatter(np.ones(len(inputvector_angles_R)), inputvector_angles_R)
+# for i in range(len(L_angles)):
+#     plt.plot([0,1],[L_angles[i,0], L_angles[i,1]], color='grey')
+plt.xticks([0,1],['Left trials', 'Right trials'])
+plt.ylabel('Dot product')
+plt.title('Angle btw input vectors over learning')
+plt.show()
+
+
+# Plot angle between choice CD and input vector
+plt.bar([0,1],np.mean(L_angles, axis=0))
+plt.scatter(np.zeros(len(L_angles)), np.array(L_angles)[:, 0])
+plt.scatter(np.ones(len(L_angles)), np.array(L_angles)[:, 1])
+for i in range(len(L_angles)):
+    plt.plot([0,1],[L_angles[i,0], L_angles[i,1]], color='grey')
+plt.xticks([0,1],['Learning','Expert'])
+plt.ylabel('Dot product')
+plt.title('L trial input vector alignment to choice CD')
+plt.show()
+
+plt.bar([0,1],np.mean(R_angles, axis=0))
+plt.scatter(np.zeros(len(R_angles)), np.array(R_angles)[:, 0])
+plt.scatter(np.ones(len(R_angles)), np.array(R_angles)[:, 1])
+for i in range(len(R_angles)):
+    plt.plot([0,1],[R_angles[i,0], R_angles[i,1]], color='grey')
+plt.xticks([0,1],['Learning', 'Expert'])
+plt.ylabel('Dot product')
+plt.title('R trial input vector alignment to choice CD')
+
 
 #%% Angle between input and CD
 all_paths = [[    r'F:\data\BAYLORCW032\python\2023_10_05',

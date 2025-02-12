@@ -80,11 +80,11 @@ naivepath, learningpath, expertpath = [
              r'H:\data\BAYLORCW046\python\2024_06_28'
              ]
 
-# naivepath, learningpath, expertpath = [
-#             r'H:\data\BAYLORCW046\python\2024_05_30',
-#              r'H:\data\BAYLORCW046\python\2024_06_10',
-#              r'H:\data\BAYLORCW046\python\2024_06_27'
-#              ]
+naivepath, learningpath, expertpath = [
+            r'H:\data\BAYLORCW046\python\2024_05_30',
+              r'H:\data\BAYLORCW046\python\2024_06_10',
+              r'H:\data\BAYLORCW046\python\2024_06_27'
+              ]
 
 
 
@@ -94,14 +94,14 @@ naivepath, learningpath, expertpath = [
 #             r'H:\data\BAYLORCW044\python\2024_06_19',
 #              ]
 
-# naivepath, learningpath, expertpath = [
-#             r'F:\data\BAYLORCW032\python\2023_10_05',
-#             r'F:\data\BAYLORCW032\python\2023_10_19',
-#             r'F:\data\BAYLORCW032\python\2023_10_24',
-#              ]
+naivepath, learningpath, expertpath = [
+            r'F:\data\BAYLORCW032\python\2023_10_05',
+            r'F:\data\BAYLORCW032\python\2023_10_19',
+            r'F:\data\BAYLORCW032\python\2023_10_24',
+              ]
 
 
-s2 = Mode(naivepath, use_reg = True, triple=True, 
+s2 = Mode(learningpath, use_reg = True, triple=True, 
           baseline_normalization="median_zscore")
 
 # calculate early lick CD in naive sessions - define here
@@ -159,11 +159,11 @@ i_t_l = range(int(l_cue) - int(round(0.8*(1/s2.fs))), int(l_cue)+int(round(0.2*(
 wt = (PSTH_yes_correct[:, i_t_r] - PSTH_no_correct[:, i_t_l]) / 2
 CD_choice_mode = np.mean(wt, axis=1)
 
-# project
+#%% project onto other sessions
 s2.plot_appliedCD(CD_choice_mode, 0)
 
 # project onto learning and expert sessions
-s2 = Mode(learningpath, use_reg = True, triple=True, 
+s2 = Mode(expertpath, use_reg = True, triple=True, 
           baseline_normalization="median_zscore")
 s2.plot_appliedCD(CD_choice_mode, 0)
 _, mean, meantrain, meanstd = s2.plot_CD_opto(return_applied=True)
@@ -171,7 +171,7 @@ s2.plot_CD_opto_applied(CD_choice_mode, mean, meantrain, meanstd)
 orthonormal_basis_learning, _ = s2.plot_CD(plot=False)
 
 
-s2 = Mode(expertpath, use_reg = True, triple=True, 
+s2 = Mode(naivepath, use_reg = True, triple=True, 
           baseline_normalization="median_zscore")
 s2.plot_appliedCD(CD_choice_mode, 0)
 _, mean, meantrain, meanstd = s2.plot_CD_opto(return_applied=True)
