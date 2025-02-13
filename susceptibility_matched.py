@@ -203,7 +203,7 @@ for paths in all_matched_paths: # For each mouse/FOV
     
     s1list, d1, r1, ns1 = np.zeros(4),np.zeros(4),np.zeros(4),np.zeros(4)
 
-    s1 = session.Session(paths[1], use_reg=True, triple=True, use_background_sub=False) # Learning
+    s1 = session.Session(paths[0], use_reg=True, triple=True, use_background_sub=False) # Learning
     stim_period = range(s1.delay+int(0.5/s1.fs), s1.delay+int(1.2/s1.fs))
 
     naive_sample_sel = s1.susceptibility(period = stim_period, p=p_s, return_n=True)

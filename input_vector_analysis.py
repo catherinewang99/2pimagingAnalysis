@@ -92,42 +92,78 @@ all_matched_paths = [
          
         ]
 
+#%% Project t.t. independent vector onto trial types
+
+
+
+
 #%% Calculate input vector without trial type and project fwd
+naivepath, learningpath, expertpath = [r'F:\data\BAYLORCW032\python\2023_10_05',
+  r'F:\data\BAYLORCW032\python\2023_10_19',
+  r'F:\data\BAYLORCW032\python\2023_10_24',]
 
-naivepath = r'H:\data\BAYLORCW046\python\2024_05_31'
-# naivepath = r'F:\data\BAYLORCW034\python\2023_10_22'
-l1 = Mode(naivepath, lickdir=False, use_reg = True, triple=True, proportion_train=1, proportion_opto_train=1)
-input_vec = l1.input_vector(by_trialtype=False, plot=True)
-cd_choice, _ = l1.plot_CD(mode_input='choice', plot=False)
+naivepath, learningpath, expertpath = [r'H:\data\BAYLORCW046\python\2024_05_31',
+                                         r'H:\data\BAYLORCW046\python\2024_06_11',
+                                         r'H:\data\BAYLORCW046\python\2024_06_26'
+                                         ]
 
-expertpath = r'H:\\data\\BAYLORCW046\\python\\2024_06_26'
-# expertpath = r'F:\data\BAYLORCW034\python\2023_10_27'
 l2 = Mode(expertpath, lickdir=False, use_reg = True, triple=True, proportion_train=1, proportion_opto_train=1)
-input_vec = l2.input_vector(by_trialtype=False, plot=True)
+input_vec, mean = l2.input_vector(by_trialtype=False, plot=True, return_applied=True)
+# l2.applied_input_vector(input_vec, mean)
 cd_choice_exp, _ = l2.plot_CD(mode_input='choice', plot=False)
 
 
-#%% Calculate input vector by trial type - one FOV
-# Control -correct trials only, Opto - use trial type
-
-# naivepath = r'H:\data\BAYLORCW046\python\2024_05_31'
-# naivepath = r'F:\data\BAYLORCW034\python\2023_10_22'
-# l1 = Mode(naivepath, lickdir=False, use_reg = True, triple=True, proportion_opto_train=1)
-# input_vector_L, input_vector_R = l1.input_vector(by_trialtype=True, plot=True)
-# cd_choice, _ = l1.plot_CD(mode_input='choice', plot=False)
-
-
-learningpath = r'H:\data\BAYLORCW046\python\2024_06_11'
-# learningpath = r'F:\data\BAYLORCW034\python\2023_10_22'
 l1 = Mode(learningpath, lickdir=False, use_reg = True, triple=True, proportion_opto_train=1)
-input_vector_L, input_vector_R = l1.input_vector(by_trialtype=True, plot=True)
+# input_vec, mean = l1.input_vector(by_trialtype=False, plot=True, return_applied=True)
+l1.applied_input_vector(input_vec, mean)
+l1.applied_input_vector(input_vec, mean, plot_ctl_opto=False)
 cd_choice, _ = l1.plot_CD(mode_input='choice', plot=False)
 
 
-expertpath = r'H:\\data\\BAYLORCW046\\python\\2024_06_26'
-# expertpath = r'F:\data\BAYLORCW034\python\2023_10_27'
-l2 = Mode(expertpath, lickdir=False, use_reg = True, triple=True, proportion_opto_train=1)
+
+
+l1 = Mode(naivepath, lickdir=False, use_reg = True, triple=True, proportion_train=1, proportion_opto_train=1)
+# input_vec, mean = l1.input_vector(by_trialtype=False, plot=True, return_applied=True)
+l1.applied_input_vector(input_vec, mean)
+l1.applied_input_vector(input_vec, mean, plot_ctl_opto=False)
+cd_choice, _ = l1.plot_CD(mode_input='choice', plot=False)
+
+
+
+
+
+#%% Calculate input vector by trial type  vs independent- one FOV
+# Control -correct trials only, Opto - use trial type
+naivepath, learningpath, expertpath = [r'F:\data\BAYLORCW032\python\2023_10_05',
+  r'F:\data\BAYLORCW032\python\2023_10_19',
+  r'F:\data\BAYLORCW032\python\2023_10_24',]
+naivepath, learningpath, expertpath =[ r'F:\data\BAYLORCW034\python\2023_10_12',
+   r'F:\data\BAYLORCW034\python\2023_10_22',
+   r'F:\data\BAYLORCW034\python\2023_10_27']
+naivepath, learningpath, expertpath = [r'H:\data\BAYLORCW046\python\2024_05_31',
+                                         r'H:\data\BAYLORCW046\python\2024_06_11',
+                                         r'H:\data\BAYLORCW046\python\2024_06_26'
+                                         ]
+l1 = Mode(naivepath, lickdir=False, use_reg = True, triple=True, proportion_opto_train=1, proportion_train=1)
+input_vector_L, input_vector_R = l1.input_vector(by_trialtype=True, plot=True)
+input_vec = l1.input_vector(by_trialtype=False, plot=True)
+input_vec = l1.input_vector(by_trialtype=False, plot=True, plot_ctl_opto=False)
+cd_choice, _ = l1.plot_CD(mode_input='choice', plot=False)
+
+
+
+l1 = Mode(learningpath, lickdir=False, use_reg = True, triple=True, proportion_opto_train=1, proportion_train=1)
+input_vector_L, input_vector_R = l1.input_vector(by_trialtype=True, plot=True)
+input_vec = l1.input_vector(by_trialtype=False, plot=True)
+input_vec = l1.input_vector(by_trialtype=False, plot=True, plot_ctl_opto=False)
+cd_choice, _ = l1.plot_CD(mode_input='choice', plot=False)
+
+
+
+l2 = Mode(expertpath, lickdir=False, use_reg = True, triple=True, proportion_opto_train=1, proportion_train=1)
 input_vector_Lexp, input_vector_Rexp = l2.input_vector(by_trialtype=True, plot=True)
+input_vec = l2.input_vector(by_trialtype=False, plot=True)
+input_vec = l2.input_vector(by_trialtype=False, plot=True, plot_ctl_opto=False)
 cd_choice_exp, _ = l2.plot_CD(mode_input='choice', plot=False)
 
 # Angle between trial type input vector and CD
@@ -138,6 +174,51 @@ angle_lea = cos_sim(input_vector_R, cd_choice)
 
 angle_exp = cos_sim(input_vector_Lexp, cd_choice_exp)
 angle_exp = cos_sim(input_vector_Rexp, cd_choice_exp)
+
+#%% Calculate t.t. independent input vector - all FOVs
+CD_angle, rotation_learning = [], []
+all_deltas = []
+
+for paths in all_matched_paths:
+
+    l1 = Mode(paths[1], lickdir=False, use_reg = True, triple=True, proportion_train=1, proportion_opto_train=1)
+    input_vector, delta = l1.input_vector(by_trialtype=False, plot=True, return_delta = True)
+    cd_choice, _ = l1.plot_CD(mode_input='choice', plot=False)
+
+
+    l2 = Mode(paths[2], lickdir=False, use_reg = True, triple=True, proportion_train=1, proportion_opto_train=1)
+    input_vector_exp, delta_exp = l2.input_vector(by_trialtype=False, plot=True, return_delta = True)
+    cd_choice_exp, _ = l2.plot_CD(mode_input='choice', plot=False)
+
+    # Angle between trial type input vector and CD
+    CD_angle += [(cos_sim(input_vector, cd_choice), cos_sim(input_vector_exp, cd_choice_exp))]
+    rotation_learning += [cos_sim(input_vector, input_vector_exp)]
+    all_deltas += [(delta, delta_exp)]
+    
+CD_angle, rotation_learning = np.array(CD_angle), np.array(rotation_learning)
+
+# Plot angle between input vectors
+plt.bar([0],[np.mean(rotation_learning)])
+plt.scatter(np.zeros(len(rotation_learning)), rotation_learning)
+# for i in range(len(L_angles)):
+#     plt.plot([0,1],[L_angles[i,0], L_angles[i,1]], color='grey')
+plt.xticks([0],['learning-->expert'])
+plt.ylabel('Dot product')
+plt.title('Angle btw input vectors over learning')
+plt.show()
+
+
+# Plot angle between choice CD and input vector
+plt.bar([0,1],np.mean(CD_angle, axis=0))
+plt.scatter(np.zeros(len(CD_angle)), np.array(CD_angle)[:, 0])
+plt.scatter(np.ones(len(CD_angle)), np.array(CD_angle)[:, 1])
+for i in range(len(CD_angle)):
+    plt.plot([0,1],[CD_angle[i,0], CD_angle[i,1]], color='grey')
+plt.xticks([0,1],['Learning','Expert'])
+plt.ylabel('Dot product')
+plt.title('Input vector alignment to choice CD')
+plt.show()
+
 
 #%% Calculate input vector by trial type - all FOVs
 L_angles, R_angles = [], []
