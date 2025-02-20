@@ -105,6 +105,194 @@ for paths in agg_mice_paths: # For each mouse
     
 og_SDR = np.sum(og_SDR, axis=0)
 
+#%% Changes at single cell level susceptibility - sankey SDR
+
+agg_mice_paths = [['H:\\data\\BAYLORCW038\\python\\2024_02_05', 
+                    'H:\\data\\BAYLORCW038\\python\\2024_03_15'],
+                   
+                   ['H:\\data\\BAYLORCW039\\python\\2024_04_17', 
+                    'H:\\data\\BAYLORCW039\\python\\2024_05_06'],
+                   
+                    [r'H:\\data\\BAYLORCW039\\python\\2024_04_18',
+                     r'H:\\data\\BAYLORCW039\\python\\2024_05_08'],
+                    
+                    [r'H:\\data\\BAYLORCW041\\python\\2024_05_14',
+                      r'H:\\data\\BAYLORCW041\\python\\2024_06_07'],
+                    
+                    [r'H:\\data\\BAYLORCW041\\python\\2024_05_13',
+                      r'H:\\data\\BAYLORCW041\\python\\2024_06_12'],
+
+                    [r'H:\\data\\BAYLORCW041\\python\\2024_05_15',
+                     r'H:\\data\\BAYLORCW041\\python\\2024_06_11'],
+                    
+                    ['H:\\data\\BAYLORCW042\\python\\2024_06_05', 
+                     'H:\\data\\BAYLORCW042\\python\\2024_06_24'],
+                    
+                      [r'H:\\data\\BAYLORCW043\\python\\2024_05_20',
+                      r'H:\\data\\BAYLORCW043\\python\\2024_06_03'],
+                    ]
+
+p_s=0.05
+p=0.01
+retained_sample = []
+recruited_sample = []
+retained_delay = []
+recruited_delay = []
+dropped_delay = []
+dropped_sample = []
+alls1list, alld1, allr1, allns1 = [],[],[],[] # s1: susc ns: non susc
+
+learning_SDR = []
+expert_SDR = []
+all_naive_susc, all_exp_susc = [],[]
+
+for paths in agg_mice_paths: # For each mouse/FOV
+    ret_s = []
+    recr_s = []
+    ret_d, recr_d = [],[]
+    drop_d, drop_s = [], []
+    
+    if '43' in paths[0] or '38' in paths[0]:
+        triple = False
+    else:
+        triple = True 
+    
+    s1list, d1, r1, ns1 = np.zeros(4),np.zeros(4),np.zeros(4),np.zeros(4)
+
+    s1 = session.Session(paths[0], use_reg=True, triple=triple, use_background_sub=False) # Learning
+    stim_period = range(s1.delay+int(0.5/s1.fs), s1.delay+int(1.2/s1.fs))
+
+    naive_sample_sel = s1.susceptibility(period = stim_period, p=p_s, return_n=True)
+
+    # Get functional group info
+    sample_epoch = range(s1.sample, s1.delay)
+    delay_epoch = range(s1.delay+int(1.5 * 1/s1.fs), s1.response)
+    response_epoch = range(s1.response, s1.response + int(2*1/s1.fs))
+    
+    
+    naive_sample_sel_mod = s1.get_epoch_selective(sample_epoch, p=p)
+    naive_sample_sel_mod = [n for n in naive_sample_sel_mod if n in naive_sample_sel]
+    
+    naive_delay_sel = s1.get_epoch_selective(delay_epoch, p=p)
+    naive_delay_sel = [n for n in naive_delay_sel if n not in naive_sample_sel_mod and n in naive_sample_sel]
+    
+    naive_response_sel = s1.get_epoch_selective(response_epoch, p=p)
+    naive_response_sel = [n for n in naive_response_sel if n not in naive_sample_sel_mod and n not in naive_delay_sel and n in naive_sample_sel]
+
+    naive_nonsel_mod = [n for n in s1.good_neurons if n not in naive_sample_sel_mod and n not in naive_delay_sel and n not in naive_response_sel and n in naive_sample_sel]
+    
+    learning_SDR += [[len(naive_sample_sel_mod), len(naive_delay_sel), len(naive_response_sel), len(naive_nonsel_mod)]]
+    
+    
+    naive_nonsel = [n for n in s1.good_neurons if n not in naive_sample_sel]
+
+    s2 = session.Session(paths[1], use_reg=True, triple=triple) # Expert
+    exp_susc = s2.susceptibility(period = stim_period, p=p_s, return_n=True)
+    
+    # Get functional group info
+    
+    naive_sample_sel_mod = s2.get_epoch_selective(sample_epoch, p=p)
+    naive_sample_sel_mod = [n for n in naive_sample_sel_mod if n in exp_susc]
+    
+    naive_delay_sel = s2.get_epoch_selective(delay_epoch, p=p)
+    naive_delay_sel = [n for n in naive_delay_sel if n not in naive_sample_sel_mod and n in exp_susc]
+    
+    naive_response_sel = s2.get_epoch_selective(response_epoch, p=p)
+    naive_response_sel = [n for n in naive_response_sel if n not in naive_sample_sel_mod and n not in naive_delay_sel and n in exp_susc]
+
+    naive_nonsel_mod = [n for n in s2.good_neurons if n not in naive_sample_sel_mod and n not in naive_delay_sel and n not in naive_response_sel and n in exp_susc]
+    
+    expert_SDR += [[len(naive_sample_sel_mod), len(naive_delay_sel), len(naive_response_sel), len(naive_nonsel_mod)]]
+    
+    all_naive_susc += [len(naive_sample_sel) / len(s1.good_neurons)]
+    all_exp_susc += [len(exp_susc) / len(s1.good_neurons)]
+    
+    for n in naive_sample_sel:
+        if s2.good_neurons[np.where(s1.good_neurons == n)[0][0]] in exp_susc:
+            s1list[0] += 1
+            ret_s += [(n, s2.good_neurons[np.where(s1.good_neurons == n)[0][0]])]
+
+        else:
+            s1list[3] += 1
+            drop_s += [(n, s2.good_neurons[np.where(s1.good_neurons == n)[0][0]])]
+
+
+    
+    
+    for n in naive_nonsel:
+        if s2.good_neurons[np.where(s1.good_neurons == n)[0][0]] in exp_susc:
+            ns1[0] += 1
+            recr_s += [(n, s2.good_neurons[np.where(s1.good_neurons ==n)[0][0]])]
+
+        else:
+            ns1[3] += 1
+    print(s1list)
+
+    s1list, d1, r1, ns1 = s1list / len(s1.good_neurons), d1 / len(s1.good_neurons), r1 / len(s1.good_neurons), ns1 / len(s1.good_neurons)
+
+    alls1list += [s1list]
+    alld1 += [d1]
+    allr1 += [r1] 
+    allns1 += [ns1]
+    
+    retained_sample += [ret_s]
+    recruited_sample += [recr_s]
+    dropped_sample += [drop_s]
+    retained_delay += [ret_d]
+    recruited_delay += [recr_d]
+    dropped_delay += [drop_d]
+
+alls1list = np.mean(alls1list, axis=0) 
+alld1 = np.mean(alld1, axis=0)
+allr1 = np.mean(allr1, axis=0)
+allns1 = np.mean(allns1, axis=0)
+
+# SDR proportion of susceptible population
+
+learning_SDR = np.array(learning_SDR) # S, D, R, NS
+expert_SDR = np.array(expert_SDR)
+
+f, ax = plt.subplots(1,2, figsize=(9,5), sharey='row')
+
+ax[0].bar(range(4), np.sum(learning_SDR, axis=0))
+ax[0].set_xticks(range(4), ['Sample', 'Delay', 'Response', 'N.S.'])
+ax[0].set_ylabel('Number of neurons')
+ax[0].set_title('Initial stage susceptible neurons')
+
+ax[1].bar(range(4), np.sum(expert_SDR, axis=0))
+ax[1].set_xticks(range(4), ['Sample', 'Delay', 'Response', 'N.S.'])
+ax[1].set_title('Post corr. stage susceptible neurons')
+
+# Plot as stacked instead
+sum_learning_SDR = np.sum(learning_SDR, axis=0)
+sum_expert_SDR = np.sum(expert_SDR, axis=0)
+f = plt.figure(figsize=(8,8))
+labels = ['Sample', 'Delay', 'Response', 'N.S.']
+bottom_exp, bottom_lea = 0,0
+for i in range(4):
+    plt.bar(range(2), [sum_learning_SDR[i], sum_expert_SDR[i]], label=labels[i], bottom = [bottom_lea, bottom_exp])
+    bottom_lea += sum_learning_SDR[i]
+    bottom_exp += sum_expert_SDR[i]
+plt.legend()
+plt.ylabel('Number of neurons')
+plt.xticks([0,1], ['Initial', 'Post corr.'])
+plt.show()
+
+f=plt.figure()
+
+plt.bar(range(2), [np.mean(all_naive_susc), np.mean(all_exp_susc)])
+plt.scatter(np.zeros(len(all_naive_susc)), all_naive_susc)
+plt.scatter(np.ones(len(all_exp_susc)), all_exp_susc)
+
+for i in range(len(all_exp_susc)):
+    plt.plot([0,1], [all_naive_susc[i], all_exp_susc[i]], color='grey')
+    
+plt.ylabel('Proportion of susc neurons')
+plt.xticks([0,1], ['Initial', 'Post corr'])
+plt.title('Proportion of susceptible neurons over learning')
+plt.show()
+
+print(stats.ttest_rel(all_naive_susc, all_exp_susc))
 
 #%% Changes at single cell level - sankey SDR
 agg_mice_paths = [[['H:\\data\\BAYLORCW038\\python\\2024_02_05', 

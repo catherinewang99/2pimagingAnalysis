@@ -160,7 +160,7 @@ wt = (PSTH_yes_correct[:, i_t_r] - PSTH_no_correct[:, i_t_l]) / 2
 CD_choice_mode = np.mean(wt, axis=1)
 
 #%% project onto other sessions
-s2.plot_appliedCD(CD_choice_mode, 0)
+s2.plot_appliedCD(CD_choice_mode, 0, )
 
 # project onto learning and expert sessions
 s2 = Mode(expertpath, use_reg = True, triple=True, 

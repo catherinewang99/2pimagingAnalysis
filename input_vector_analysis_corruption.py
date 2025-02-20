@@ -135,6 +135,7 @@ cd_choice_exp, _ = l2.plot_CD(mode_input='choice', plot=False)
 
 #%% Calculate t.t. independent input vector - all FOVs
 CD_angle, rotation_learning = [], []
+all_deltas = []
 
 for paths in agg_mice_paths:
 
@@ -144,28 +145,29 @@ for paths in agg_mice_paths:
         triple = True 
         
     l1 = Mode(paths[0], lickdir=False, use_reg = True, triple=triple, proportion_train=1, proportion_opto_train=1)
-    input_vector = l1.input_vector(by_trialtype=False, plot=True)
+    input_vector, delta_nai = l1.input_vector(by_trialtype=False, plot=True, return_delta = True)
     cd_choice, _ = l1.plot_CD(mode_input='choice', plot=False)
 
 
     l2 = Mode(paths[1], lickdir=False, use_reg = True, triple=triple, proportion_train=1, proportion_opto_train=1)
-    input_vector_exp = l2.input_vector(by_trialtype=False, plot=True)
+    input_vector_exp, delta_exp = l2.input_vector(by_trialtype=False, plot=True, return_delta = True)
     cd_choice_exp, _ = l2.plot_CD(mode_input='choice', plot=False)
 
     # Angle between trial type input vector and CD
     CD_angle += [(cos_sim(input_vector, cd_choice), cos_sim(input_vector_exp, cd_choice_exp))]
     rotation_learning += [cos_sim(input_vector, input_vector_exp)]
-    
-CD_angle, rotation_learning = np.array(CD_angle), np.array(rotation_learning)
+    all_deltas += [(delta_nai, delta_exp)]
+
+CD_angle, rotation_learning, all_deltas = np.array(CD_angle), np.array(rotation_learning), np.array(all_deltas)
 
 # Plot angle between input vectors
 plt.bar([0],[np.mean(rotation_learning)])
 plt.scatter(np.zeros(len(rotation_learning)), rotation_learning)
 # for i in range(len(L_angles)):
 #     plt.plot([0,1],[L_angles[i,0], L_angles[i,1]], color='grey')
-plt.xticks([0],['learning-->expert'])
+plt.xticks([0],['Initial --> post corr'])
 plt.ylabel('Dot product')
-plt.title('Angle btw input vectors over learning')
+plt.title('Angle btw input vectors over corruption')
 plt.show()
 
 
@@ -175,14 +177,24 @@ plt.scatter(np.zeros(len(CD_angle)), np.array(CD_angle)[:, 0])
 plt.scatter(np.ones(len(CD_angle)), np.array(CD_angle)[:, 1])
 for i in range(len(CD_angle)):
     plt.plot([0,1],[CD_angle[i,0], CD_angle[i,1]], color='grey')
-plt.xticks([0,1],['Learning','Expert'])
+plt.xticks([0,1],['Initial', 'Post corr.'])
 plt.ylabel('Dot product')
 plt.title('Input vector alignment to choice CD')
 plt.show()
 
+# Plot the deltas over learning
+plt.bar([0,1],np.mean(all_deltas, axis=0))
+plt.scatter(np.zeros(len(all_deltas)), np.array(all_deltas)[:, 0])
+plt.scatter(np.ones(len(all_deltas)), np.array(all_deltas)[:, 1])
+for i in range(len(all_deltas)):
+    plt.plot([0,1],[all_deltas[i,0], all_deltas[i,1]], color='grey')
+plt.xticks([0,1],['Initial', 'Post corr.'])
+plt.ylabel('Delta (ctl-stim)')
+plt.title('Delta of input vector btw control and stim condition')
+plt.show()
 
 
-
+#%% 
 
 
 

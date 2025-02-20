@@ -19,6 +19,7 @@ from scipy import stats
 from sklearn.metrics.pairwise import cosine_similarity
 from numpy import dot
 from numpy.linalg import norm
+from scipy.stats import pearsonr
 
 def unit_vector(vector):
     """ Returns the unit vector of the vector.  """
@@ -50,9 +51,9 @@ all_matched_paths = [
               r'F:\data\BAYLORCW032\python\2023_10_24',
           ],
          
-            [ r'F:\data\BAYLORCW034\python\2023_10_12',
-               r'F:\data\BAYLORCW034\python\2023_10_22',
-               r'F:\data\BAYLORCW034\python\2023_10_27'],
+            # [ r'F:\data\BAYLORCW034\python\2023_10_12',
+            #    r'F:\data\BAYLORCW034\python\2023_10_22',
+            #    r'F:\data\BAYLORCW034\python\2023_10_27'],
          
             [r'F:\data\BAYLORCW036\python\2023_10_09',
             r'F:\data\BAYLORCW036\python\2023_10_19',
@@ -63,9 +64,9 @@ all_matched_paths = [
             r'F:\data\BAYLORCW037\python\2023_12_08',
             r'F:\data\BAYLORCW037\python\2023_12_15',],
          
-         [r'F:\data\BAYLORCW035\python\2023_10_26',
-            r'F:\data\BAYLORCW035\python\2023_12_07',
-            r'F:\data\BAYLORCW035\python\2023_12_15',],
+          [r'F:\data\BAYLORCW035\python\2023_10_26',
+             r'F:\data\BAYLORCW035\python\2023_12_07',
+             r'F:\data\BAYLORCW035\python\2023_12_15',],
          
          [r'H:\data\BAYLORCW044\python\2024_05_22',
           r'H:\data\BAYLORCW044\python\2024_06_06',
@@ -178,24 +179,34 @@ angle_exp = cos_sim(input_vector_Rexp, cd_choice_exp)
 #%% Calculate t.t. independent input vector - all FOVs
 CD_angle, rotation_learning = [], []
 all_deltas = []
+decoding_acc = []
+cd_delta = []
 
 for paths in all_matched_paths:
+    
+    l1 = Mode(paths[0], lickdir=False, use_reg = True, triple=True, proportion_train=1, proportion_opto_train=1)
+    input_vector, delta_nai = l1.input_vector(by_trialtype=False, plot=True, return_delta = True)
+    _, cd_delta_nai = l1.input_vector(by_trialtype=False, plot=True, return_delta = True, plot_ctl_opto=False)
+
 
     l1 = Mode(paths[1], lickdir=False, use_reg = True, triple=True, proportion_train=1, proportion_opto_train=1)
     input_vector, delta = l1.input_vector(by_trialtype=False, plot=True, return_delta = True)
     cd_choice, _ = l1.plot_CD(mode_input='choice', plot=False)
+    _, cd_delta_lea = l1.input_vector(by_trialtype=False, plot=True, return_delta = True, plot_ctl_opto=False)
 
 
     l2 = Mode(paths[2], lickdir=False, use_reg = True, triple=True, proportion_train=1, proportion_opto_train=1)
     input_vector_exp, delta_exp = l2.input_vector(by_trialtype=False, plot=True, return_delta = True)
     cd_choice_exp, _ = l2.plot_CD(mode_input='choice', plot=False)
+    _, cd_delta_exp = l2.input_vector(by_trialtype=False, plot=True, return_delta = True, plot_ctl_opto=False)
 
     # Angle between trial type input vector and CD
     CD_angle += [(cos_sim(input_vector, cd_choice), cos_sim(input_vector_exp, cd_choice_exp))]
     rotation_learning += [cos_sim(input_vector, input_vector_exp)]
-    all_deltas += [(delta, delta_exp)]
+    all_deltas += [(delta_nai, delta, delta_exp)]
+    cd_delta += [(cd_delta_nai, cd_delta_lea, cd_delta_exp)]
     
-CD_angle, rotation_learning = np.array(CD_angle), np.array(rotation_learning)
+CD_angle, rotation_learning, all_deltas, cd_delta = np.array(CD_angle), np.array(rotation_learning), np.array(all_deltas), np.array(np.abs(cd_delta))
 
 # Plot angle between input vectors
 plt.bar([0],[np.mean(rotation_learning)])
@@ -219,20 +230,54 @@ plt.ylabel('Dot product')
 plt.title('Input vector alignment to choice CD')
 plt.show()
 
+# Plot the deltas over learning
+plt.bar([0,1,2],np.mean(all_deltas, axis=0))
+plt.scatter(np.zeros(len(all_deltas)), np.array(all_deltas)[:, 0])
+plt.scatter(np.ones(len(all_deltas)), np.array(all_deltas)[:, 1])
+plt.scatter(np.ones(len(all_deltas))*2, np.array(all_deltas)[:, 2])
+for i in range(len(all_deltas)):
+    plt.plot([0,1],[all_deltas[i,0], all_deltas[i,1]], color='grey')
+    plt.plot([1,2],[all_deltas[i,1], all_deltas[i,2]], color='grey')
+plt.xticks([0,1,2],['Naive', 'Learning','Expert'])
+plt.ylabel('Delta (ctl-stim)')
+plt.title('Delta of input vector btw control and stim condition')
+plt.show()
+stats.ttest_rel(np.array(all_deltas)[:, 1], np.array(all_deltas)[:, 2])
+
+# Plot the correlation between cd delta and input delta
+f=plt.figure()
+plt.scatter(cd_delta[:,0], all_deltas[:,0], color='orange', label='Naive')
+plt.scatter(cd_delta[:,1], all_deltas[:,1], color='purple', label='Learning')
+plt.ylabel('Input vector delta')
+plt.xlabel('Choice CD delta')
+plt.legend()
+plt.show()
+r_value, p_value = pearsonr(cd_delta[:,0], all_deltas[:,0])
+print(r_value, p_value)
+r_value, p_value = pearsonr(cd_delta[:,1], all_deltas[:,1])
+print(r_value, p_value)
+
 
 #%% Calculate input vector by trial type - all FOVs
 L_angles, R_angles = [], []
 inputvector_angles_R, inputvector_angles_L = [], []
+cd_delta = []
+all_deltas = []
+
 
 for paths in all_matched_paths:
 
+    l1 = Mode(paths[0], lickdir=False, use_reg = True, triple=True, proportion_train=1, proportion_opto_train=1)
+    input_vector_L, input_vector_R, delta_nai = l1.input_vector(by_trialtype=True, plot=True, return_delta=True)
+    cd_choice, _ = l1.plot_CD(mode_input='choice', plot=False)
+    
     l1 = Mode(paths[1], lickdir=False, use_reg = True, triple=True, proportion_train=1, proportion_opto_train=1)
-    input_vector_L, input_vector_R = l1.input_vector(by_trialtype=True, plot=True)
+    input_vector_L, input_vector_R, delta = l1.input_vector(by_trialtype=True, plot=True, return_delta=True)
     cd_choice, _ = l1.plot_CD(mode_input='choice', plot=False)
 
 
     l2 = Mode(paths[2], lickdir=False, use_reg = True, triple=True, proportion_train=1, proportion_opto_train=1)
-    input_vector_Lexp, input_vector_Rexp = l2.input_vector(by_trialtype=True, plot=True)
+    input_vector_Lexp, input_vector_Rexp, delta_exp = l2.input_vector(by_trialtype=True, plot=True, return_delta=True)
     cd_choice_exp, _ = l2.plot_CD(mode_input='choice', plot=False)
 
     # Angle between trial type input vector and CD
@@ -276,7 +321,17 @@ plt.ylabel('Dot product')
 plt.title('R trial input vector alignment to choice CD')
 
 
-#%% Angle between input and CD
+
+
+
+
+
+
+
+
+
+
+#%% Angle between input and CD OLD
 all_paths = [[    r'F:\data\BAYLORCW032\python\2023_10_05',
             # r'F:\data\BAYLORCW034\python\2023_10_12',
             r'F:\data\BAYLORCW036\python\2023_10_09',
@@ -426,11 +481,6 @@ stats.ttest_ind(all_recovery[1], all_recovery[2])
 stats.ttest_ind(all_recovery[0], all_recovery[2])
 stats.ttest_ind(all_recovery[0], all_recovery[1])
 
-
-
-#%% Project test trials on input vectors:
-
-input_vector = l1.input_vector(plot=True)
 
 
     

@@ -162,10 +162,13 @@ all_matched_paths = [
              r'H:\data\BAYLORCW044\python\2024_06_04',
         r'H:\data\BAYLORCW044\python\2024_06_18'],
 
-            [r'H:\data\BAYLORCW046\python\2024_05_29',
-             r'H:\data\BAYLORCW046\python\2024_06_07',
-             r'H:\data\BAYLORCW046\python\2024_06_24'],
+            # [r'H:\data\BAYLORCW046\python\2024_05_29',
+            #  r'H:\data\BAYLORCW046\python\2024_06_07',
+            #  r'H:\data\BAYLORCW046\python\2024_06_24'],
 
+            [r'H:\data\BAYLORCW046\python\2024_05_29',
+             r'H:\data\BAYLORCW046\python\2024_06_24',
+             r'H:\data\BAYLORCW046\python\2024_06_24'],
 
             [r'H:\data\BAYLORCW046\python\2024_05_30',
              r'H:\data\BAYLORCW046\python\2024_06_10',
@@ -179,7 +182,43 @@ all_matched_paths = [
         ]
 
 
+#%% Number/proportion of susceptible cells over learning
 
+all_naive_susc, all_lea_susc, all_exp_susc = [],[],[]
+p_s=0.05
+
+for paths in all_matched_paths: # For each mouse/FOV
+    s1 = session.Session(paths[0], use_reg=True, triple=True) # Naive
+    s2 = session.Session(paths[1], use_reg=True, triple=True) # Learning
+    s3 = session.Session(paths[2], use_reg=True, triple=True) # Expert
+    p_s = p_s / len(s1.good_neurons)
+    stim_period = range(s1.delay+int(0.5/s1.fs), s1.delay+int(1.2/s1.fs))
+    naive_susc = s1.susceptibility(period = stim_period, p=p_s, return_n=True)
+    lea_susc = s2.susceptibility(period = stim_period, p=p_s, return_n=True)
+    exp_susc = s3.susceptibility(period = stim_period, p=p_s, return_n=True)
+
+    all_naive_susc += [len(naive_susc) / len(s1.good_neurons)]
+    all_lea_susc += [len(lea_susc)  / len(s1.good_neurons)]
+    all_exp_susc += [len(exp_susc) / len(s1.good_neurons)]
+    
+# PLot
+
+f=plt.figure()
+
+plt.bar(range(3), [np.mean(all_naive_susc), np.mean(all_lea_susc), np.mean(all_exp_susc)])
+plt.scatter(np.zeros(len(all_naive_susc)), all_naive_susc)
+plt.scatter(np.ones(len(all_lea_susc)), all_lea_susc)
+plt.scatter(np.ones(len(all_exp_susc))*2, all_exp_susc)
+
+for i in range(len(all_exp_susc)):
+    plt.plot([0,1], [all_naive_susc[i], all_lea_susc[i]], color='grey')
+    plt.plot([1,2], [all_lea_susc[i], all_exp_susc[i]], color='grey')
+    
+plt.ylabel('Proportion of susc neurons')
+plt.xticks([0,1,2], ['Naive', 'Learning', 'Expert'])
+plt.title('Proportion of susceptible neurons over learning')
+plt.show()
+    
 #%% Sannkey of sig susceptibly cells - all neurons
 
 p_s=0.05
@@ -230,7 +269,7 @@ for paths in all_matched_paths: # For each mouse/FOV
     
     naive_nonsel = [n for n in s1.good_neurons if n not in naive_sample_sel]
 
-    s2 = session.Session(paths[2], use_reg=True, triple=True) # Expert
+    s2 = session.Session(paths[1], use_reg=True, triple=True) # Expert
     exp_susc = s2.susceptibility(period = stim_period, p=p_s, return_n=True)
     
     # Get functional group info
