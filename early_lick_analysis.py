@@ -101,7 +101,7 @@ naivepath, learningpath, expertpath = [
               ]
 
 
-s2 = Mode(learningpath, use_reg = True, triple=True, 
+s2 = Mode(naivepath, use_reg = True, triple=True, 
           baseline_normalization="median_zscore")
 
 # calculate early lick CD in naive sessions - define here
@@ -131,7 +131,16 @@ r_cue, l_cue = min(r_trial_lick), min(l_trial_lick)
 r_end, l_end = max(r_trial_lick), max(l_trial_lick)
 
 
+# get the train vs test indices
+all_r_idx, all_l_idx = np.arange(len(r_trials)), np.arange(len(l_trials))
+rtmp = np.random.permutation(len(all_r_idx))
+ltmp = np.random.permutation(len(all_l_idx))
+train_r_idx, test_r_idx = all_r_idx[:int(len(rtmp)/2)], all_r_idx[int(len(rtmp)/2):]
+train_l_idx, test_l_idx = all_l_idx[:int(len(ltmp)/2)], all_l_idx[int(len(ltmp)/2):]
+
+# compile train vs test psths
 PSTH_yes_correct, PSTH_no_correct = [], []
+PSTH_yes_correct_test, PSTH_no_correct_test = [], []
 for n in s2.good_neurons:
     
     r, l = s2.get_trace_matrix(n, rtrials=r_trials, ltrials=l_trials)
@@ -143,25 +152,70 @@ for n in s2.good_neurons:
         tmp = l[idx][int(l_trial_lick[idx] - l_cue) : ]
         l[idx] = tmp[ : int(s2.time_cutoff - (l_end-l_cue))]
         
-    r_train = np.mean(r, axis=0)
-    l_train = np.mean(l, axis=0)
+    r,l = np.array(r), np.array(l)
+    
+    r_train = np.mean(r[train_r_idx], axis=0)
+    l_train = np.mean(l[train_l_idx], axis=0)
+
+    r_test = np.mean(r[test_r_idx], axis=0)
+    l_test = np.mean(l[test_l_idx], axis=0)
     
     if len(PSTH_yes_correct) == 0:
         PSTH_yes_correct = np.reshape(r_train, (1,-1))
         PSTH_no_correct = np.reshape(l_train, (1,-1))
+        PSTH_yes_correct_test = np.reshape(r_test, (1,-1))
+        PSTH_no_correct_test = np.reshape(l_test, (1,-1))        
+        
     else: 
         PSTH_yes_correct = np.concatenate((PSTH_yes_correct, np.reshape(r_train, (1,-1))), axis = 0)
         PSTH_no_correct = np.concatenate((PSTH_no_correct, np.reshape(l_train, (1,-1))), axis = 0)
-
+        PSTH_yes_correct_test = np.concatenate((PSTH_yes_correct_test, np.reshape(r_test, (1,-1))), axis = 0)
+        PSTH_no_correct_test = np.concatenate((PSTH_no_correct_test, np.reshape(l_test, (1,-1))), axis = 0)
+        
 i_t_r = range(int(r_cue) - int(round(0.8*(1/s2.fs))), int(r_cue)+int(round(0.2*(1/s2.fs)))) # use 12 time steps before lick and 3 after lick
 i_t_l = range(int(l_cue) - int(round(0.8*(1/s2.fs))), int(l_cue)+int(round(0.2*(1/s2.fs))))
 
+
+# FIXME : use the correct slicing (don't want to slice neurons)
 wt = (PSTH_yes_correct[:, i_t_r] - PSTH_no_correct[:, i_t_l]) / 2
 CD_choice_mode = np.mean(wt, axis=1)
 
-#%% project onto other sessions
-s2.plot_appliedCD(CD_choice_mode, 0, )
+#%% project onto other early lick trials - do manually with realigned trials
+# s2.plot_appliedCD(CD_choice_mode, 0)
+x = np.arange(-6.97,4, s2.fs)[:len(i_t_r)]
 
+proj_allDimR = []
+for t in range(len(PSTH_yes_correct_test)):
+    activity = PSTH_yes_correct_test[:, t]
+    proj_allDim = np.dot(activity.T, CD_choice_mode)
+    # proj_allDimR += [proj_allDim[:len(s2.T_cue_aligned_sel)]]
+    plt.plot(x, proj_allDim[:len(s2.T_cue_aligned_sel)], 'b', alpha = 0.5,  linewidth = 0.5)
+    
+proj_allDimL = []
+for t in range(len(PSTH_no_correct_test)):
+    activity = PSTH_no_correct_test[:, t]
+    proj_allDim = np.dot(activity.T, CD_choice_mode)
+    # proj_allDimL += [proj_allDim[:len(s2.T_cue_aligned_sel)]]
+    plt.plot(x, proj_allDim[:len(s2.T_cue_aligned_sel)], 'r', alpha = 0.5, linewidth = 0.5)
+
+activityRL_test = np.concatenate((PSTH_yes_correct_test, PSTH_no_correct_test), axis=1)
+
+# Correct trials
+proj_allDim = np.dot(activityRL_test.T, CD_choice_mode)
+
+# ax = axs.flatten()[0]
+plt.plot(np.arange(-6.97,4, s2.fs)[:PSTH_yes_correct_test.shape[1]], proj_allDim[:PSTH_yes_correct_test.shape[1]], 'b', linewidth = 2)
+plt.plot(np.arange(-6.97,4, s2.fs)[:PSTH_no_correct_test.shape[1]], proj_allDim[PSTH_yes_correct_test.shape[1]:], 'r', linewidth = 2)
+plt.title("Applied decoder projections")
+plt.axvline(-4.3, color = 'grey', alpha=0.5, ls = '--')
+plt.axvline(-3, color = 'grey', alpha=0.5, ls = '--')
+plt.axvline(0, color = 'grey', alpha=0.5, ls = '--')
+plt.ylabel('Applied projection (a.u.)')
+
+    
+plt.show()
+
+#%%
 # project onto learning and expert sessions
 s2 = Mode(expertpath, use_reg = True, triple=True, 
           baseline_normalization="median_zscore")

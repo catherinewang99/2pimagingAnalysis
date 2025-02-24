@@ -48,7 +48,7 @@ class Session:
 
     """
     def __init__(self, path, layer_num='all', use_reg = False, triple = False,
-                 filter_reg = True, use_background_sub = False, baseline_normalization = "dff_avg",
+                 filter_reg = True, use_background_sub = False, baseline_normalization = "median_zscore",
                  sess_reg = False, guang=False, passive=False, quality=False,
                  remove_consec_opto = False, filter_good_neurons=[]):
         
@@ -3340,7 +3340,9 @@ class Session:
     
         return pert_der, ctl_der, pert_der - ctl_der
 
-    def susceptibility(self, p=0.01, period=None, return_n=False):
+    def susceptibility(self, p=0.01, period=None, return_n=False,
+                       all_n = False,
+                       baseline=False, exc_supr = False):
         """
         Calculates the per neuron susceptibility to perturbation, measured as a
         simple difference between control/opto trials during the specified period
@@ -3349,14 +3351,20 @@ class Session:
         -------
         all_sus : one positive value for every good neuron
         p_value : provide a significance measure
-
+        baseline : return baseline activity
+        all_n : return stats for all neurons
+        
         """
         if period is None:
             period = range(self.delay, self.response)
-            
+        baseline_period = range(self.delay - int(1/self.fs), self.delay)
+        baseline_period = range(self.sample - int(1/self.fs), self.sample)
+        
         all_sus = []
         sig_p = [] 
         sig_n = []
+        all_ps = []
+        all_baseline = []
         
         for n in self.good_neurons:
             
@@ -3365,6 +3373,7 @@ class Session:
 
             control_left = [self.dff[0,l][n, period] for l in control_trials]
             pert_left = [self.dff[0,l][n, period] for l in pert_trials]
+            baseline_left = [self.dff[0,l][n, baseline_period] for l in control_trials]
             diff = np.abs(np.average(control_left, axis=0) - np.average(pert_left, axis=0))
             
             control_trials = [t for t in self.R_trials if t in self.i_good_non_stim_trials]
@@ -3372,22 +3381,37 @@ class Session:
 
             control = [self.dff[0,l][n, period] for l in control_trials]
             pert = [self.dff[0,l][n, period] for l in pert_trials]
+            baseline_right = [self.dff[0,l][n, baseline_period] for l in control_trials]
             diff += np.abs(np.average(control, axis=0) - np.average(pert, axis=0))
+            
             
             all_sus += [np.sum(diff)]
 
             tstat_left, p_val_left = stats.ttest_ind(np.mean(control_left, axis = 1), np.mean(pert_left, axis = 1))
             tstat_right, p_val_right = stats.ttest_ind(np.mean(control, axis = 1), np.mean(pert, axis = 1))
             
-            
+            if all_n:
+                all_ps += [(p_val_left, p_val_right)]
+                all_baseline += [np.mean(cat((baseline_left, baseline_right)))]
+                
             if p_val_left < p or p_val_right < p:
                 sig_p += [1]
                 sig_n += [n]
+                if not all_n:
+                    if p_val_left < p_val_right:
+                        all_ps += [p_val_left]
+                        all_baseline += [np.mean(baseline_left)]
+                    else:
+                        all_ps += [p_val_right]
+                        all_baseline += [np.mean(baseline_right)]
+                    
             else:
                 sig_p += [0]
-        
+                
+        if baseline:
+            return all_baseline, all_ps
         if return_n:
-            return sig_n
+            return sig_n, all_ps
         return all_sus, sig_p
             
             

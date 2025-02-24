@@ -262,22 +262,22 @@ print(r_value, p_value)
 L_angles, R_angles = [], []
 inputvector_angles_R, inputvector_angles_L = [], []
 cd_delta = []
-all_deltas = []
+all_deltas_l, all_deltas_r = [], []
 
 
 for paths in all_matched_paths:
 
     l1 = Mode(paths[0], lickdir=False, use_reg = True, triple=True, proportion_train=1, proportion_opto_train=1)
-    input_vector_L, input_vector_R, delta_nai = l1.input_vector(by_trialtype=True, plot=True, return_delta=True)
+    input_vector_L, input_vector_R, delta_nai_l, delta_nai_r = l1.input_vector(by_trialtype=True, plot=True, return_delta=True)
     cd_choice, _ = l1.plot_CD(mode_input='choice', plot=False)
     
     l1 = Mode(paths[1], lickdir=False, use_reg = True, triple=True, proportion_train=1, proportion_opto_train=1)
-    input_vector_L, input_vector_R, delta = l1.input_vector(by_trialtype=True, plot=True, return_delta=True)
+    input_vector_L, input_vector_R, delta_l, delta_r = l1.input_vector(by_trialtype=True, plot=True, return_delta=True)
     cd_choice, _ = l1.plot_CD(mode_input='choice', plot=False)
 
 
     l2 = Mode(paths[2], lickdir=False, use_reg = True, triple=True, proportion_train=1, proportion_opto_train=1)
-    input_vector_Lexp, input_vector_Rexp, delta_exp = l2.input_vector(by_trialtype=True, plot=True, return_delta=True)
+    input_vector_Lexp, input_vector_Rexp, delta_exp_l, delta_exp_r = l2.input_vector(by_trialtype=True, plot=True, return_delta=True)
     cd_choice_exp, _ = l2.plot_CD(mode_input='choice', plot=False)
 
     # Angle between trial type input vector and CD
@@ -285,8 +285,12 @@ for paths in all_matched_paths:
     R_angles += [(cos_sim(input_vector_R, cd_choice), cos_sim(input_vector_Rexp, cd_choice_exp))]
     inputvector_angles_R += [cos_sim(input_vector_R, input_vector_Rexp)]
     inputvector_angles_L += [cos_sim(input_vector_L, input_vector_Lexp)]
+    all_deltas_l += [(delta_nai_l, delta_l, delta_exp_l)]
+    all_deltas_r += [(delta_nai_r, delta_r, delta_exp_r)]
+
     
 L_angles, R_angles = np.array(L_angles), np.array(R_angles)
+cd_delta, all_deltas_l, all_deltas_r = np.array(cd_delta), np.array(all_deltas_l), np.array(all_deltas_r)
 
 # Plot angle between input vectors
 plt.bar([0,1],[np.mean(inputvector_angles_L), np.mean(inputvector_angles_R)])
@@ -319,11 +323,45 @@ for i in range(len(R_angles)):
 plt.xticks([0,1],['Learning', 'Expert'])
 plt.ylabel('Dot product')
 plt.title('R trial input vector alignment to choice CD')
+plt.show()
+
+# Plot the deltas over learning - LEFT
+plt.bar([0,1,2],np.mean(all_deltas_l, axis=0))
+plt.scatter(np.zeros(len(all_deltas_l)), np.array(all_deltas_l)[:, 0])
+plt.scatter(np.ones(len(all_deltas_l)), np.array(all_deltas_l)[:, 1])
+plt.scatter(np.ones(len(all_deltas_l))*2, np.array(all_deltas_l)[:, 2])
+for i in range(len(all_deltas_l)):
+    plt.plot([0,1],[all_deltas_l[i,0], all_deltas_l[i,1]], color='grey')
+    plt.plot([1,2],[all_deltas_l[i,1], all_deltas_l[i,2]], color='grey')
+plt.xticks([0,1,2],['Naive', 'Learning','Expert'])
+plt.ylabel('Delta (ctl-stim)')
+plt.title('Delta of left input vector btw control and stim condition')
+plt.show()
+stats.ttest_rel(np.array(all_deltas_l)[:, 1], np.array(all_deltas_l)[:, 2])
+stats.ttest_rel(np.array(all_deltas_l)[:, 0], np.array(all_deltas_l)[:, 1])
+
+
+# Plot the deltas over learning - RIGHT
+plt.bar([0,1,2],np.mean(all_deltas_r, axis=0))
+plt.scatter(np.zeros(len(all_deltas_r)), np.array(all_deltas_r)[:, 0])
+plt.scatter(np.ones(len(all_deltas_r)), np.array(all_deltas_r)[:, 1])
+plt.scatter(np.ones(len(all_deltas_r))*2, np.array(all_deltas_r)[:, 2])
+for i in range(len(all_deltas_r)):
+    plt.plot([0,1],[all_deltas_r[i,0], all_deltas_r[i,1]], color='grey')
+    plt.plot([1,2],[all_deltas_r[i,1], all_deltas_r[i,2]], color='grey')
+plt.xticks([0,1,2],['Naive', 'Learning','Expert'])
+plt.ylabel('Delta (ctl-stim)')
+plt.title('Delta of right input vector btw control and stim condition')
+plt.show()
+stats.ttest_rel(np.array(all_deltas_r)[:, 1], np.array(all_deltas_r)[:, 2])
+stats.ttest_rel(np.array(all_deltas_r)[:, 0], np.array(all_deltas_r)[:, 1])
+
+
+# diff between left and right input vector deltas over NLE
 
 
 
-
-
+#  angle between left and right input vector over NLE
 
 
 

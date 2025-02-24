@@ -17,6 +17,8 @@ import pandas as pd
 from activityMode import Mode
 from scipy import stats
 cat=np.concatenate
+from scipy.stats import pearsonr
+
 all_paths = [[    
             r'F:\data\BAYLORCW032\python\2023_10_05',
             # r'F:\data\BAYLORCW034\python\2023_10_12',
@@ -183,24 +185,36 @@ all_matched_paths = [
 
 
 #%% Number/proportion of susceptible cells over learning
+# Classify by SDR buckets
 
 all_naive_susc, all_lea_susc, all_exp_susc = [],[],[]
-p_s=0.05
+p_naive, p_learning, p_expert = [],[],[]
+p_s=0.01
 
 for paths in all_matched_paths: # For each mouse/FOV
     s1 = session.Session(paths[0], use_reg=True, triple=True) # Naive
     s2 = session.Session(paths[1], use_reg=True, triple=True) # Learning
     s3 = session.Session(paths[2], use_reg=True, triple=True) # Expert
-    p_s = p_s / len(s1.good_neurons)
+    
+    # p_s = p_s / len(s1.good_neurons)
     stim_period = range(s1.delay+int(0.5/s1.fs), s1.delay+int(1.2/s1.fs))
-    naive_susc = s1.susceptibility(period = stim_period, p=p_s, return_n=True)
-    lea_susc = s2.susceptibility(period = stim_period, p=p_s, return_n=True)
-    exp_susc = s3.susceptibility(period = stim_period, p=p_s, return_n=True)
+    
+    naive_susc, p_n = s1.susceptibility(period = stim_period, p=p_s, return_n=True)
+    lea_susc, p_l = s2.susceptibility(period = stim_period, p=p_s, return_n=True)
+    exp_susc, p_e = s3.susceptibility(period = stim_period, p=p_s, return_n=True)
 
     all_naive_susc += [len(naive_susc) / len(s1.good_neurons)]
     all_lea_susc += [len(lea_susc)  / len(s1.good_neurons)]
     all_exp_susc += [len(exp_susc) / len(s1.good_neurons)]
-    
+    p_naive += [p_n]
+    p_learning += [p_l]
+    p_expert += [p_e]
+
+
+p_naive = [np.array(p) for p in p_naive] 
+p_learning = [np.array(p) for p in p_learning] 
+p_expert = [np.array(p) for p in p_expert] 
+
 # PLot
 
 f=plt.figure()
@@ -218,7 +232,195 @@ plt.ylabel('Proportion of susc neurons')
 plt.xticks([0,1,2], ['Naive', 'Learning', 'Expert'])
 plt.title('Proportion of susceptible neurons over learning')
 plt.show()
+
+#%% Look at distribution of p-values of suscp
+
+
+# Plot scatter with error bars
+plt.errorbar(np.zeros(len(p_naive)) + np.random.normal(0, 0.1, size=len(p_naive)), 
+             [np.mean(p[:, 0]) for p in p_naive], 
+             yerr=[stats.sem(p[:, 0]) for p in p_naive], 
+             fmt='o', capsize=5, alpha=0.8, ecolor='red')
+
+plt.errorbar(np.ones(len(p_learning)) + np.random.normal(0, 0.1, size=len(p_learning)), 
+             [np.mean(p[:, 0]) for p in p_learning], 
+             yerr=[stats.sem(p[:, 0]) for p in p_learning], 
+             fmt='o', capsize=5, alpha=0.8, ecolor='red')
+
+plt.errorbar(np.ones(len(p_expert)) + np.random.normal(1, 0.1, size=len(p_expert)), 
+             [np.mean(p[:, 0]) for p in p_expert], 
+             yerr=[stats.sem(p[:, 0]) for p in p_expert], 
+             fmt='o', capsize=5, alpha=0.8, ecolor='red')
+# Labels and title
+plt.xticks([0,1,2], ['Naive', 'Learning', 'Expert'])
+plt.ylabel("p-values")
+plt.title("Left trial susceptibility p-values over learning")
+# plt.legend()
+plt.grid(True)
+
+plt.show()
+
+# Plot scatter with error bars
+plt.errorbar(np.zeros(len(p_naive)) + np.random.normal(0, 0.1, size=len(p_naive)), 
+             [np.mean(p[:, 1]) for p in p_naive], 
+             yerr=[stats.sem(p[:, 1]) for p in p_naive], 
+             fmt='o', capsize=5, alpha=0.8, ecolor='red')
+
+plt.errorbar(np.ones(len(p_learning)) + np.random.normal(0, 0.1, size=len(p_learning)), 
+             [np.mean(p[:, 1]) for p in p_learning], 
+             yerr=[stats.sem(p[:, 1]) for p in p_learning], 
+             fmt='o', capsize=5, alpha=0.8, ecolor='red')
+
+plt.errorbar(np.ones(len(p_expert)) + np.random.normal(1, 0.1, size=len(p_expert)), 
+             [np.mean(p[:, 1]) for p in p_expert], 
+             yerr=[stats.sem(p[:, 1]) for p in p_expert], 
+             fmt='o', capsize=5, alpha=0.8, ecolor='red')
+# Labels and title
+plt.xticks([0,1,2], ['Naive', 'Learning', 'Expert'])
+plt.ylabel("p-values")
+plt.title("Right trial susceptibility p-values over learning")
+# plt.legend()
+plt.grid(True)
+
+plt.show()
+
+# Plot scatter with error bars
+plt.errorbar(np.zeros(len(p_naive)),# + np.random.normal(0, 0.1, size=len(p_naive)), 
+             [np.mean(p) for p in p_naive], 
+             yerr=[np.mean(stats.sem(p)) for p in p_naive], 
+             fmt='o', capsize=5, alpha=0.8, ecolor='red')
+
+plt.errorbar(np.ones(len(p_learning)),# + np.random.normal(0, 0.1, size=len(p_learning)), 
+             [np.mean(p) for p in p_learning], 
+             yerr=[np.mean(stats.sem(p)) for p in p_learning], 
+             fmt='o', capsize=5, alpha=0.8, ecolor='red')
+
+plt.errorbar(np.ones(len(p_expert)) * 2,# + np.random.normal(1, 0.1, size=len(p_expert)), 
+             [np.mean(p) for p in p_expert], 
+             yerr=[np.mean(stats.sem(p)) for p in p_expert], 
+             fmt='o', capsize=5, alpha=0.8, ecolor='red')
+
+for i in range(len(p_naive)):
+    plt.plot([0,1], [np.mean(p_naive[i]), np.mean(p_learning[i])], color='grey')
+    plt.plot([1,2], [np.mean(p_learning[i]), np.mean(p_expert[i])], color='grey')
+# Labels and title
+plt.xticks([0,1,2], ['Naive', 'Learning', 'Expert'])
+plt.ylabel("p-values")
+plt.title("All trial susceptibility p-values over learning")
+# plt.legend()
+plt.grid(True)
+
+plt.show()
+
+#  Plot as a histogram instead (not useful actually)
+cat_p_naive = cat(p_naive)
+cat_p_learning = cat(p_learning)
+cat_p_expert = cat(p_expert)
+
+plt.hist(cat_p_naive[:, 0], color='yellow', alpha = 0.25, label='Naive')
+plt.hist(cat_p_learning[:, 0], color='green', alpha = 0.25, label='Learning')
+plt.hist(cat_p_expert[:, 0], color='purple', alpha = 0.25, label='Expert')
+plt.legend()
+plt.xlabel('p-value')
+plt.ylabel('Count')
+plt.show() 
+
+plt.violinplot(cat_p_naive[:, 0], [0])
+plt.violinplot(cat_p_learning[:, 0], [1])
+plt.violinplot(cat_p_expert[:, 0], [2])
+plt.xticks([0,1,2], ['Naive', 'Learning', 'Expert'])
+plt.ylabel("p-values")
+
+#%% Distribution of excited vs supressed neurons
+
+
+
+#%% Baseline activity vs susceptibility analysis
+
+# all_naive_susc, all_lea_susc, all_exp_susc = [],[],[]
+baseline_naive, baseline_learning, baseline_expert = [],[],[]
+p_naive, p_learning, p_expert = [],[],[]
+
+p_s=0.05
+
+for paths in all_matched_paths: # For each mouse/FOV
+    s1 = session.Session(paths[0], use_reg=True, triple=True) # Naive
+    s2 = session.Session(paths[1], use_reg=True, triple=True) # Learning
+    s3 = session.Session(paths[2], use_reg=True, triple=True) # Expert
     
+    # p_s = p_s / len(s1.good_neurons)
+    stim_period = range(s1.delay+int(0.5/s1.fs), s1.delay+int(1.2/s1.fs))
+    
+    bn, p_n = s1.susceptibility(period = stim_period, p=p_s, baseline=True, all_n = True)
+    bl, p_l = s2.susceptibility(period = stim_period, p=p_s, return_n=True, all_n = True)
+    be, p_e = s3.susceptibility(period = stim_period, p=p_s, return_n=True, all_n = True)
+
+
+    p_naive += [p_n]
+    p_learning += [p_l]
+    p_expert += [p_e]
+
+    baseline_naive += [bn]
+    baseline_learning += [bl]
+    baseline_expert += [be]
+    
+p_naive = [np.array(p) for p in p_naive] 
+p_learning = [np.array(p) for p in p_learning] 
+p_expert = [np.array(p) for p in p_expert] 
+
+baseline_naive = [np.array(p) for p in baseline_naive] 
+baseline_learning = [np.array(p) for p in baseline_learning] 
+baseline_expert = [np.array(p) for p in baseline_expert] 
+
+# plot the correlation of baseline vs susc p-value in neurons - should we only look at supressed neurons?
+for i in range(len(baseline_naive)):
+    plt.scatter(p_naive[i], np.abs(baseline_naive[i]))
+    r_value, p_value = pearsonr(p_naive[i], np.abs(baseline_naive[i]))
+    print(r_value, p_value)
+plt.show()
+
+
+for i in range(len(baseline_learning)):
+    plt.scatter(p_learning[i], np.abs(baseline_learning[i]))
+    r_value, p_value = pearsonr(p_learning[i], np.abs(baseline_learning[i]))
+    print(r_value, p_value)
+plt.show()
+
+for i in range(len(baseline_expert)):
+    plt.scatter(p_expert[i], np.abs(baseline_expert[i]))
+    r_value, p_value = pearsonr(p_expert[i], np.abs(baseline_expert[i]))
+    print(r_value, p_value)
+plt.show()
+    
+# Plot average baseline level over learning
+# Plot scatter with error bars
+plt.errorbar(np.zeros(len(baseline_naive)),# + np.random.normal(0, 0.1, size=len(p_naive)), 
+             [np.mean(p) for p in baseline_naive], 
+             yerr=[np.mean(stats.sem(p)) for p in baseline_naive], 
+             fmt='o', capsize=5, alpha=0.8, ecolor='red')
+
+plt.errorbar(np.ones(len(baseline_learning)),# + np.random.normal(0, 0.1, size=len(p_learning)), 
+             [np.mean(p) for p in baseline_learning], 
+             yerr=[np.mean(stats.sem(p)) for p in baseline_learning], 
+             fmt='o', capsize=5, alpha=0.8, ecolor='red')
+
+plt.errorbar(np.ones(len(baseline_expert)) * 2,# + np.random.normal(1, 0.1, size=len(p_expert)), 
+             [np.mean(p) for p in baseline_expert], 
+             yerr=[np.mean(stats.sem(p)) for p in baseline_expert], 
+             fmt='o', capsize=5, alpha=0.8, ecolor='red')
+
+for i in range(len(p_naive)):
+    plt.plot([0,1], [np.mean(baseline_naive[i]), np.mean(baseline_learning[i])], color='grey')
+    plt.plot([1,2], [np.mean(baseline_learning[i]), np.mean(baseline_expert[i])], color='grey')
+# Labels and title
+plt.xticks([0,1,2], ['Naive', 'Learning', 'Expert'])
+plt.ylabel("Baseline dF/F0")
+plt.title("All susceptible neuron baseline levels over learning")
+# plt.legend()
+plt.grid(True)
+
+plt.show()
+
 #%% Sannkey of sig susceptibly cells - all neurons
 
 p_s=0.05
@@ -293,51 +495,17 @@ for paths in all_matched_paths: # For each mouse/FOV
         if s2.good_neurons[np.where(s1.good_neurons == n)[0][0]] in exp_susc:
             s1list[0] += 1
             ret_s += [(n, s2.good_neurons[np.where(s1.good_neurons == n)[0][0]])]
-        # elif s2.is_selective(s2.good_neurons[np.where(s1.good_neurons == n)[0][0]], delay_epoch, p=p):
-        #     s1list[1] += 1
-        # elif s2.is_selective(s2.good_neurons[np.where(s1.good_neurons ==n)[0][0]], response_epoch, p=p):
-        #     s1list[2] += 1
+
         else:
             s1list[3] += 1
             drop_s += [(n, s2.good_neurons[np.where(s1.good_neurons == n)[0][0]])]
 
-    # for n in naive_delay_sel:
-    #     if s2.is_selective(s2.good_neurons[np.where(s1.good_neurons ==n)[0][0]], sample_epoch, p=p):
-    #         d1[0] += 1
-    #     elif s2.is_selective(s2.good_neurons[np.where(s1.good_neurons ==n)[0][0]], delay_epoch, p=p):
-    #         d1[1] += 1
-    #         ret_d += [(n, s2.good_neurons[np.where(s1.good_neurons == n)[0][0]])]
-
-    #     elif s2.is_selective(s2.good_neurons[np.where(s1.good_neurons ==n)[0][0]], response_epoch, p=p):
-    #         d1[2] += 1
-    #     else:
-    #         d1[3] += 1
-    #         drop_d += [(n, s2.good_neurons[np.where(s1.good_neurons == n)[0][0]])]
-    
-    
-    # for n in naive_response_sel:
-    #     if s2.is_selective(s2.good_neurons[np.where(s1.good_neurons ==n)[0][0]], sample_epoch, p=p):
-    #         r1[0] += 1
-
-    #     elif s2.is_selective(s2.good_neurons[np.where(s1.good_neurons ==n)[0][0]], delay_epoch, p=p):
-    #         r1[1] += 1
-
-    #     elif s2.is_selective(s2.good_neurons[np.where(s1.good_neurons ==n)[0][0]], response_epoch, p=p):
-    #         r1[2] += 1
-    #     else:
-    #         r1[3] += 1
-    
     
     for n in naive_nonsel:
         if s2.good_neurons[np.where(s1.good_neurons == n)[0][0]] in exp_susc:
             ns1[0] += 1
             recr_s += [(n, s2.good_neurons[np.where(s1.good_neurons ==n)[0][0]])]
-        # elif s2.is_selective(s2.good_neurons[np.where(s1.good_neurons ==n)[0][0]], delay_epoch, p=p):
-        #     ns1[1] += 1
-        #     recr_d += [(n, s2.good_neurons[np.where(s1.good_neurons ==n)[0][0]])]
 
-        # elif s2.is_selective(s2.good_neurons[np.where(s1.good_neurons ==n)[0][0]], response_epoch, p=p):
-        #     ns1[2] += 1
         else:
             ns1[3] += 1
     print(s1list)

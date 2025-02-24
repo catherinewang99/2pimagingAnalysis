@@ -2957,8 +2957,8 @@ class Mode(Session):
                         # activityR += [np.mean([trial[n, range(self.delay+int(0.6/self.fs), self.delay+int(1.1/self.fs))] for trial in self.dff[0, allcontroloptotrain_r]], axis=0)]
                         # activityL += [np.mean([trial[n, range(self.delay+int(0.6/self.fs), self.delay+int(1.1/self.fs))] for trial in self.dff[0, allcontroloptotrain_l]], axis=0)]
                         
-                        activityR += [np.mean([trial[n, range(self.sample - int(1.5/self.fs, self.sample))] for trial in self.dff[0, allcontroloptotrain_r]], axis=0)]
-                        activityL += [np.mean([trial[n, range(self.sample - int(1.5/self.fs, self.sample))] for trial in self.dff[0, allcontroloptotrain_l]], axis=0)]
+                        activityR += [np.mean([trial[n, range(self.sample - int(1.5/self.fs), self.sample)] for trial in self.dff[0, allcontroloptotrain_r]], axis=0)]
+                        activityL += [np.mean([trial[n, range(self.sample - int(1.5/self.fs), self.sample)] for trial in self.dff[0, allcontroloptotrain_l]], axis=0)]
                         
                     x = np.arange(-6.97,4,self.fs)[:self.time_cutoff]
     
@@ -3095,7 +3095,7 @@ class Mode(Session):
                     
                     delta = np.sum([delta_l, delta_r], axis=0)
 
-                return CD_input_mode_left, CD_input_mode_right, np.mean(delta)
+                return CD_input_mode_left, CD_input_mode_right, np.mean(delta_l), np.mean(delta_r)
 
             else:
                 return CD_input_mode_left, CD_input_mode_right
@@ -3346,8 +3346,9 @@ class Mode(Session):
             if return_delta: 
                 if plot_ctl_opto:
                     stimperiod = range(self.delay+int(0/self.fs), self.delay+int(1/self.fs))
+                    baseline = range(self.sample-int(1.5/self.fs), self.sample)
                     
-                    var = np.sqrt(np.sum((np.std(ctl_traces, axis=0)[stimperiod] + np.std(opto_traces, axis=0)[stimperiod])))
+                    var = np.sqrt(np.sum((np.std(ctl_traces, axis=0)[baseline] + np.std(opto_traces, axis=0)[baseline])))
                     delta = np.abs(proj_allDim_ctl[stimperiod] - proj_allDim_opto[stimperiod]) / var
                 else:
                     responseperiod = range(self.response-int(0.3/self.fs), self.response+int(0.1/self.fs))
