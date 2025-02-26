@@ -170,7 +170,7 @@ all_matched_paths = [
 
             [r'H:\data\BAYLORCW046\python\2024_05_29',
              r'H:\data\BAYLORCW046\python\2024_06_24',
-             r'H:\data\BAYLORCW046\python\2024_06_24'],
+             r'H:\data\BAYLORCW046\python\2024_06_28'],
 
             [r'H:\data\BAYLORCW046\python\2024_05_30',
              r'H:\data\BAYLORCW046\python\2024_06_10',
@@ -190,6 +190,7 @@ all_matched_paths = [
 all_naive_susc, all_lea_susc, all_exp_susc = [],[],[]
 p_naive, p_learning, p_expert = [],[],[]
 p_s=0.01
+p=0.01
 
 for paths in all_matched_paths: # For each mouse/FOV
     s1 = session.Session(paths[0], use_reg=True, triple=True) # Naive
@@ -198,14 +199,41 @@ for paths in all_matched_paths: # For each mouse/FOV
     
     # p_s = p_s / len(s1.good_neurons)
     stim_period = range(s1.delay+int(0.5/s1.fs), s1.delay+int(1.2/s1.fs))
+    sample_epoch = range(s1.sample, s1.delay)
+    delay_epoch = range(s1.delay+int(1.5 * 1/s1.fs), s1.response)
+    response_epoch = range(s1.response, s1.response + int(2*1/s1.fs))
     
-    naive_susc, p_n = s1.susceptibility(period = stim_period, p=p_s, return_n=True)
-    lea_susc, p_l = s2.susceptibility(period = stim_period, p=p_s, return_n=True)
-    exp_susc, p_e = s3.susceptibility(period = stim_period, p=p_s, return_n=True)
+    naive_susc_all, p_n = s1.susceptibility(period = stim_period, p=p_s, return_n=True)
+    lea_susc_all, p_l = s2.susceptibility(period = stim_period, p=p_s, return_n=True)
+    exp_susc_all, p_e = s3.susceptibility(period = stim_period, p=p_s, return_n=True)
 
-    all_naive_susc += [len(naive_susc) / len(s1.good_neurons)]
-    all_lea_susc += [len(lea_susc)  / len(s1.good_neurons)]
-    all_exp_susc += [len(exp_susc) / len(s1.good_neurons)]
+    # Delay selective
+    # bucket = sample_epoch
+    # naive_delay = [n for n in s1.get_epoch_selective(delay_epoch, p=p) if n not in s1.get_epoch_selective(sample_epoch, p=p)]
+    # learning_delay = [n for n in s2.get_epoch_selective(delay_epoch, p=p) if n not in s2.get_epoch_selective(sample_epoch, p=p)]
+    # expert_delay = [n for n in s3.get_epoch_selective(delay_epoch, p=p) if n not in s3.get_epoch_selective(sample_epoch, p=p)]
+    
+    
+    # Sample selective
+    naive_delay = [n for n in s1.get_epoch_selective(sample_epoch, p=p)]
+    learning_delay = [n for n in s2.get_epoch_selective(sample_epoch, p=p)]
+    expert_delay = [n for n in s3.get_epoch_selective(sample_epoch, p=p)]
+    
+    naive_susc = [n for n in naive_susc_all if n in naive_delay]
+    lea_susc = [n for n in lea_susc_all if n in learning_delay]
+    exp_susc = [n for n in exp_susc_all if n in expert_delay]
+
+    # all_naive_susc += [len(naive_susc) / len(s1.good_neurons)]
+    # all_lea_susc += [len(lea_susc)  / len(s2.good_neurons)]
+    # all_exp_susc += [len(exp_susc) / len(s3.good_neurons)]
+    if len(s1.selective_neurons) == 0:
+        all_naive_susc += [0]
+    else:
+        all_naive_susc += [len(naive_susc) / len(naive_delay)]
+        
+    all_lea_susc += [len(lea_susc)  / len(learning_delay)]
+    all_exp_susc += [len(exp_susc) / len(expert_delay)]
+    
     p_naive += [p_n]
     p_learning += [p_l]
     p_expert += [p_e]
@@ -333,6 +361,89 @@ plt.ylabel("p-values")
 
 #%% Distribution of excited vs supressed neurons
 
+all_naive_susc, all_lea_susc, all_exp_susc = [],[],[]
+p_naive, p_learning, p_expert = [],[],[]
+p_s=0.01
+p=0.01
+
+for paths in all_matched_paths: # For each mouse/FOV
+
+    s1 = session.Session(paths[0], use_reg=True, triple=True) # Naive
+    s2 = session.Session(paths[1], use_reg=True, triple=True) # Learning
+    s3 = session.Session(paths[2], use_reg=True, triple=True) # Expert
+    
+    # p_s = p_s / len(s1.good_neurons)
+    stim_period = range(s1.delay+int(0.5/s1.fs), s1.delay+int(1.2/s1.fs))
+    sample_epoch = range(s1.sample, s1.delay)
+    delay_epoch = range(s1.delay+int(1.5 * 1/s1.fs), s1.response)
+    response_epoch = range(s1.response, s1.response + int(2*1/s1.fs))
+    
+    naive_susc_tval, naive_susc = s1.susceptibility(period = stim_period, p=p_s, exc_supr=True)
+    lea_susc_tval, lea_susc = s2.susceptibility(period = stim_period, p=p_s, exc_supr=True)
+    exp_susc_tval, exp_susc = s3.susceptibility(period = stim_period, p=p_s, exc_supr=True)
+
+    # bucket = delay_epoch
+    
+    # naive_susc = [n for n in naive_susc if n in s1.get_epoch_selective(bucket, p=p)]
+    # lea_susc = [n for n in lea_susc if n in s2.get_epoch_selective(bucket, p=p)]
+    # exp_susc = [n for n in exp_susc if n in s3.get_epoch_selective(bucket, p=p)]
+    
+    naive_delay = [n for n in s1.get_epoch_selective(delay_epoch, p=p) if n not in s1.get_epoch_selective(sample_epoch, p=p)]
+    learning_delay = [n for n in s2.get_epoch_selective(delay_epoch, p=p) if n not in s2.get_epoch_selective(sample_epoch, p=p)]
+    expert_delay = [n for n in s3.get_epoch_selective(delay_epoch, p=p) if n not in s3.get_epoch_selective(sample_epoch, p=p)]
+    
+    naive_susc_tval = [naive_susc_tval[n] for n in range(len(naive_susc)) if naive_susc[n] in naive_delay]
+    lea_susc_tval = [lea_susc_tval[n] for n in range(len(lea_susc)) if lea_susc[n] in learning_delay]
+    exp_susc_tval = [exp_susc_tval[n] for n in range(len(exp_susc)) if exp_susc[n] in expert_delay]
+
+
+    # Get the proportion that are excited
+    if len(naive_susc_tval) == 0:
+        all_naive_susc += [0]
+    else:
+        all_naive_susc += [sum(np.array(naive_susc_tval) < 0) / len(naive_susc_tval)]
+        
+    if len(lea_susc_tval) == 0:
+        all_lea_susc += [0]
+    else:
+        all_lea_susc += [sum(np.array(lea_susc_tval) < 0)  / len(lea_susc_tval)]
+        
+    if len(exp_susc_tval) == 0:
+        all_exp_susc += [0]
+    else:       
+        all_exp_susc += [sum(np.array(exp_susc_tval) < 0) / len(exp_susc_tval)]
+    
+    # all_naive_susc += [len(naive_susc) / len(s1.selective_neurons)]
+    # all_lea_susc += [len(lea_susc)  / len(s2.selective_neurons)]
+    # all_exp_susc += [len(exp_susc) / len(s3.selective_neurons)]
+    
+    p_naive += [p_n]
+    p_learning += [p_l]
+    p_expert += [p_e]
+
+
+p_naive = [np.array(p) for p in p_naive] 
+p_learning = [np.array(p) for p in p_learning] 
+p_expert = [np.array(p) for p in p_expert] 
+
+# Plot as a bar graph the proportion
+
+f=plt.figure()
+
+plt.bar(range(3), [np.mean(all_naive_susc), np.mean(all_lea_susc), np.mean(all_exp_susc)])
+plt.scatter(np.zeros(len(all_naive_susc)), all_naive_susc)
+plt.scatter(np.ones(len(all_lea_susc)), all_lea_susc)
+plt.scatter(np.ones(len(all_exp_susc))*2, all_exp_susc)
+
+for i in range(len(all_exp_susc)):
+    plt.plot([0,1], [all_naive_susc[i], all_lea_susc[i]], color='grey')
+    plt.plot([1,2], [all_lea_susc[i], all_exp_susc[i]], color='grey')
+    
+plt.ylabel('Proportion of excited neurons')
+plt.xticks([0,1,2], ['Naive', 'Learning', 'Expert'])
+# plt.ylim(bottom=0.5)
+plt.title('Proportion of excited susceptible neurons over learning')
+plt.show()
 
 
 #%% Baseline activity vs susceptibility analysis
@@ -341,7 +452,7 @@ plt.ylabel("p-values")
 baseline_naive, baseline_learning, baseline_expert = [],[],[]
 p_naive, p_learning, p_expert = [],[],[]
 
-p_s=0.05
+p_s=0.01
 
 for paths in all_matched_paths: # For each mouse/FOV
     s1 = session.Session(paths[0], use_reg=True, triple=True) # Naive
@@ -351,10 +462,9 @@ for paths in all_matched_paths: # For each mouse/FOV
     # p_s = p_s / len(s1.good_neurons)
     stim_period = range(s1.delay+int(0.5/s1.fs), s1.delay+int(1.2/s1.fs))
     
-    bn, p_n = s1.susceptibility(period = stim_period, p=p_s, baseline=True, all_n = True)
-    bl, p_l = s2.susceptibility(period = stim_period, p=p_s, return_n=True, all_n = True)
-    be, p_e = s3.susceptibility(period = stim_period, p=p_s, return_n=True, all_n = True)
-
+    bn, p_n = s1.susceptibility(period = stim_period, p=p_s, baseline=True, all_n = True, exc_supr=True)
+    bl, p_l = s2.susceptibility(period = stim_period, p=p_s, baseline=True, all_n = True, exc_supr=True)
+    be, p_e = s3.susceptibility(period = stim_period, p=p_s, baseline=True, all_n = True, exc_supr=True)
 
     p_naive += [p_n]
     p_learning += [p_l]
@@ -374,23 +484,38 @@ baseline_expert = [np.array(p) for p in baseline_expert]
 
 # plot the correlation of baseline vs susc p-value in neurons - should we only look at supressed neurons?
 for i in range(len(baseline_naive)):
-    plt.scatter(p_naive[i], np.abs(baseline_naive[i]))
-    r_value, p_value = pearsonr(p_naive[i], np.abs(baseline_naive[i]))
+    plt.scatter(p_naive[i], (baseline_naive[i]))
+    r_value, p_value = pearsonr(p_naive[i], (baseline_naive[i]))
     print(r_value, p_value)
+
+plt.ylabel('Z-scored delay activity')
+plt.xlabel('t-value')
+allr, allp = pearsonr(cat(p_naive), cat(baseline_naive))
+plt.title('Naive (R: {}, p: {})'.format(allr, allp))
 plt.show()
 
 
 for i in range(len(baseline_learning)):
-    plt.scatter(p_learning[i], np.abs(baseline_learning[i]))
-    r_value, p_value = pearsonr(p_learning[i], np.abs(baseline_learning[i]))
+    plt.scatter(p_learning[i], (baseline_learning[i]))
+    r_value, p_value = pearsonr(p_learning[i], (baseline_learning[i]))
     print(r_value, p_value)
+plt.ylabel('Z-scored delay activity')
+plt.xlabel('t-value')
+allr, allp = pearsonr(cat(p_learning), cat(baseline_learning))
+plt.title('Learning (R: {}, p: {})'.format(allr, allp))
 plt.show()
 
 for i in range(len(baseline_expert)):
-    plt.scatter(p_expert[i], np.abs(baseline_expert[i]))
-    r_value, p_value = pearsonr(p_expert[i], np.abs(baseline_expert[i]))
+    plt.scatter(p_expert[i], (baseline_expert[i]))
+    r_value, p_value = pearsonr(p_expert[i], (baseline_expert[i]))
     print(r_value, p_value)
+plt.ylabel('Z-scored delay activity')
+plt.xlabel('t-value')
+allr, allp = pearsonr(cat(p_expert), cat(baseline_expert))
+plt.title('Expert (R: {}, p: {})'.format(allr, allp))
 plt.show()
+
+# Plot r_values p values?
     
 # Plot average baseline level over learning
 # Plot scatter with error bars
@@ -414,8 +539,8 @@ for i in range(len(p_naive)):
     plt.plot([1,2], [np.mean(baseline_learning[i]), np.mean(baseline_expert[i])], color='grey')
 # Labels and title
 plt.xticks([0,1,2], ['Naive', 'Learning', 'Expert'])
-plt.ylabel("Baseline dF/F0")
-plt.title("All susceptible neuron baseline levels over learning")
+plt.ylabel("Z-scored change in dF/F0")
+plt.title("All susc. neuron z-scored delay activity over learning")
 # plt.legend()
 plt.grid(True)
 
@@ -423,7 +548,7 @@ plt.show()
 
 #%% Sannkey of sig susceptibly cells - all neurons
 
-p_s=0.05
+p_s=0.01
 p=0.01
 retained_sample = []
 recruited_sample = []
@@ -447,7 +572,7 @@ for paths in all_matched_paths: # For each mouse/FOV
     s1 = session.Session(paths[0], use_reg=True, triple=True, use_background_sub=False) # Learning
     stim_period = range(s1.delay+int(0.5/s1.fs), s1.delay+int(1.2/s1.fs))
 
-    naive_sample_sel = s1.susceptibility(period = stim_period, p=p_s, return_n=True)
+    naive_sample_sel, _ = s1.susceptibility(period = stim_period, p=p_s, return_n=True)
 
     # Get functional group info
     sample_epoch = range(s1.sample, s1.delay)
@@ -471,8 +596,8 @@ for paths in all_matched_paths: # For each mouse/FOV
     
     naive_nonsel = [n for n in s1.good_neurons if n not in naive_sample_sel]
 
-    s2 = session.Session(paths[1], use_reg=True, triple=True) # Expert
-    exp_susc = s2.susceptibility(period = stim_period, p=p_s, return_n=True)
+    s2 = session.Session(paths[2], use_reg=True, triple=True) # Expert
+    exp_susc, _ = s2.susceptibility(period = stim_period, p=p_s, return_n=True)
     
     # Get functional group info
     

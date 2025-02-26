@@ -3339,8 +3339,111 @@ class Session:
         ctl_der = np.gradient(sel[period])
     
         return pert_der, ctl_der, pert_der - ctl_der
+    
+    
+    def susceptibility(self, p=0.05, period=None, baseline=False, 
+                           return_n=False, exc_supr=False, all_n=False):
+        
+        starttime =time.time()
+        if period is None:
+            period = np.arange(self.delay, self.response)  # Use numpy array for fast indexing
+        
+        delay_period = np.arange(self.delay, self.delay + int(1 / self.fs))
+        baseline_period = np.arange(self.sample - int(1.5 / self.fs), self.sample)
+    
+        # Preallocate lists
+        all_sus, sig_p, sig_n, all_ps, all_baseline, all_tvalues = [], [], [], [], [], []
+    
+        # Convert trial lists to sets for fast lookup
+        good_non_stim_trials_set = set(self.i_good_non_stim_trials)
+        good_stim_trials_set = set(self.i_good_stim_trials)
+    
+        for n in self.good_neurons:
+            # **LEFT SIDE**
+            control_trials = [t for t in self.L_trials if t in good_non_stim_trials_set]
+            pert_trials = [t for t in self.L_trials if t in good_stim_trials_set]
+    
+            control_left = np.array([self.dff[0, l][n, period] for l in control_trials])
+            pert_left = np.array([self.dff[0, l][n, period] for l in pert_trials])
+    
+            baseline_left = np.array([self.dff[0, l][n, baseline_period] for l in control_trials])
+            delay_left = np.array([self.dff[0, l][n, delay_period] for l in control_trials])
+    
+            # Precompute means and standard deviations
+            mean_baseline_left = np.mean(baseline_left)
+            std_baseline_left = np.mean(np.std(baseline_left, axis=0))
+            mean_delay_left = np.mean(delay_left)
+            std_delay_left = np.mean(np.std(delay_left, axis=0))
+    
+            # Compute z-score difference
+            zdiff_left = (mean_delay_left - mean_baseline_left) / np.sqrt(std_delay_left**2 + std_baseline_left**2)
+    
+            # Compute mean differences directly
+            diff = np.abs(np.mean(control_left, axis=0) - np.mean(pert_left, axis=0))
+    
+            # **RIGHT SIDE**
+            control_trials = [t for t in self.R_trials if t in good_non_stim_trials_set]
+            pert_trials = [t for t in self.R_trials if t in good_stim_trials_set]
+    
+            control = np.array([self.dff[0, l][n, period] for l in control_trials])
+            pert = np.array([self.dff[0, l][n, period] for l in pert_trials])
+    
+            baseline_right = np.array([self.dff[0, l][n, baseline_period] for l in control_trials])
+            delay_right = np.array([self.dff[0, l][n, delay_period] for l in control_trials])
+    
+            # Precompute means and standard deviations for right side
+            mean_baseline_right = np.mean(baseline_right)
+            std_baseline_right = np.mean(np.std(baseline_right, axis=0))
+            mean_delay_right = np.mean(delay_right)
+            std_delay_right = np.mean(np.std(delay_right, axis=0))
+    
+            zdiff_right = (mean_delay_right - mean_baseline_right) / np.sqrt(std_delay_right**2 + std_baseline_right**2)
+    
+            # Compute absolute differences
+            diff += np.abs(np.mean(control, axis=0) - np.mean(pert, axis=0))
+    
+            # Store total susceptibility measure
+            all_sus.append(np.sum(diff))
+    
+            # Perform t-tests
+            tstat_left, p_val_left = stats.ttest_ind(np.mean(control_left, axis=1), np.mean(pert_left, axis=1))
+            tstat_right, p_val_right = stats.ttest_ind(np.mean(control, axis=1), np.mean(pert, axis=1))
+    
+            if all_n:
+                all_ps.append((p_val_left, p_val_right))
+                all_baseline.append((zdiff_left, zdiff_right))
+                all_tvalues.append((tstat_left, tstat_right))
 
-    def susceptibility(self, p=0.01, period=None, return_n=False,
+            if p_val_left < p or p_val_right < p:
+                sig_p.append(1)
+                sig_n.append(n)
+                if not all_n:
+                    if p_val_left < p_val_right:
+                        all_ps.append(p_val_left)
+                        all_baseline.append(zdiff_left)
+                        all_tvalues.append(tstat_left)
+                    else:
+                        all_ps.append(p_val_right)
+                        all_baseline.append(zdiff_right)
+                        all_tvalues.append(tstat_right)
+            else:
+                sig_p.append(0)
+
+        # endtime = time.time()
+        # print(endtime - starttime)
+        # Determine return values
+        if baseline:
+            if exc_supr:
+                return all_baseline, all_tvalues
+            return all_baseline, all_ps
+        if return_n:
+            return sig_n, all_ps
+        if exc_supr:
+            return all_tvalues, sig_n
+        return all_sus, sig_p
+    
+    
+    def susceptibility_slow(self, p=0.01, period=None, return_n=False,
                        all_n = False,
                        baseline=False, exc_supr = False):
         """
@@ -3351,39 +3454,57 @@ class Session:
         -------
         all_sus : one positive value for every good neuron
         p_value : provide a significance measure
-        baseline : return baseline activity
+        baseline : return baseline control delay activity relative to baseline
         all_n : return stats for all neurons
         
         """
+        starttime = time.time()
         if period is None:
             period = range(self.delay, self.response)
-        baseline_period = range(self.delay - int(1/self.fs), self.delay)
-        baseline_period = range(self.sample - int(1/self.fs), self.sample)
+            
+        delay_period = range(self.delay, self.delay + int(3/self.fs))
+        baseline_period = range(self.sample - int(1.5/self.fs), self.sample)
         
         all_sus = []
         sig_p = [] 
         sig_n = []
         all_ps = []
         all_baseline = []
+        all_tvalues = []
         
         for n in self.good_neurons:
             
+            # LEFT SIDE #
             control_trials = [t for t in self.L_trials if t in self.i_good_non_stim_trials]
             pert_trials = [t for t in self.L_trials if t in self.i_good_stim_trials]
 
             control_left = [self.dff[0,l][n, period] for l in control_trials]
             pert_left = [self.dff[0,l][n, period] for l in pert_trials]
+
             baseline_left = [self.dff[0,l][n, baseline_period] for l in control_trials]
+            meanleft, stdleft = np.mean(baseline_left), np.mean(np.std(baseline_left, axis=0))
+            delay_left = [self.dff[0,l][n, delay_period] for l in control_trials]
+            delaymeanleft, delaystdleft = np.mean(delay_left), np.mean(np.std(delay_left, axis=0))
+            zdiff_left = (delaymeanleft - meanleft) / np.sqrt(delaystdleft**2 + stdleft**2)
+
             diff = np.abs(np.average(control_left, axis=0) - np.average(pert_left, axis=0))
-            
+
+
+            # RIGHT SIDE #            
             control_trials = [t for t in self.R_trials if t in self.i_good_non_stim_trials]
             pert_trials = [t for t in self.R_trials if t in self.i_good_stim_trials]
 
             control = [self.dff[0,l][n, period] for l in control_trials]
             pert = [self.dff[0,l][n, period] for l in pert_trials]
-            baseline_right = [self.dff[0,l][n, baseline_period] for l in control_trials]
-            diff += np.abs(np.average(control, axis=0) - np.average(pert, axis=0))
             
+            baseline_right = [self.dff[0,l][n, baseline_period] for l in control_trials]
+            meanleft, stdleft = np.mean(baseline_right), np.mean(np.std(baseline_right, axis=0))
+            delay_right = [self.dff[0,l][n, delay_period] for l in control_trials]
+            delaymeanleft, delaystdleft = np.mean(delay_right), np.mean(np.std(delay_right, axis=0))
+            zdiff_right = (delaymeanleft - meanleft) / np.sqrt(delaystdleft**2 + stdleft**2)            
+            
+            
+            diff += np.abs(np.average(control, axis=0) - np.average(pert, axis=0))
             
             all_sus += [np.sum(diff)]
 
@@ -3392,7 +3513,8 @@ class Session:
             
             if all_n:
                 all_ps += [(p_val_left, p_val_right)]
-                all_baseline += [np.mean(cat((baseline_left, baseline_right)))]
+                all_baseline += [(zdiff_left, zdiff_right)]
+                # all_baseline += [np.mean(cat((zdiff_left, zdiff_right)))]
                 
             if p_val_left < p or p_val_right < p:
                 sig_p += [1]
@@ -3401,17 +3523,23 @@ class Session:
                     if p_val_left < p_val_right:
                         all_ps += [p_val_left]
                         all_baseline += [np.mean(baseline_left)]
+                        all_tvalues += [tstat_left]
                     else:
                         all_ps += [p_val_right]
                         all_baseline += [np.mean(baseline_right)]
-                    
+                        all_tvalues += [tstat_right]
+
             else:
                 sig_p += [0]
                 
+        endtime = time.time()
+        print(endtime - starttime)
         if baseline:
             return all_baseline, all_ps
         if return_n:
             return sig_n, all_ps
+        if exc_supr:
+            return all_tvalues, sig_n
         return all_sus, sig_p
             
             

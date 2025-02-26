@@ -325,6 +325,26 @@ plt.ylabel('Dot product')
 plt.title('R trial input vector alignment to choice CD')
 plt.show()
 
+# Plot deltas over both
+plt.bar([0,1,2],np.mean([np.mean(all_deltas_l, axis=0), np.mean(all_deltas_r, axis=0)], axis=0))
+plt.scatter(np.zeros(len(all_deltas_l)), np.mean([np.array(all_deltas_l)[:, 0], np.array(all_deltas_r)[:, 0]], axis=0), color='red')
+plt.scatter(np.ones(len(all_deltas_l)), np.mean([np.array(all_deltas_l)[:, 1], np.array(all_deltas_r)[:, 1]], axis=0), color='orange')
+plt.scatter(np.ones(len(all_deltas_l))*2, np.mean([np.array(all_deltas_l)[:, 2], np.array(all_deltas_r)[:, 2]], axis=0), color='green')
+for i in range(len(all_deltas_l)):
+    plt.plot([0,1],[np.mean([np.array(all_deltas_l)[i, 0], np.array(all_deltas_r)[i, 0]], axis=0), 
+                    np.mean([np.array(all_deltas_l)[i, 1], np.array(all_deltas_r)[i, 1]], axis=0)], color='grey')
+    plt.plot([1,2],[np.mean([np.array(all_deltas_l)[i, 1], np.array(all_deltas_r)[i, 1]], axis=0), 
+                    np.mean([np.array(all_deltas_l)[i, 2], np.array(all_deltas_r)[i, 2]], axis=0)], color='grey')
+plt.xticks([0,1,2],['Naive', 'Learning','Expert'])
+plt.ylabel('Delta (ctl-stim)')
+plt.title('Delta of input vector btw control and stim condition')
+plt.show()
+stats.ttest_rel(np.mean([np.array(all_deltas_l)[:, 0], np.array(all_deltas_r)[:, 0]], axis=0),
+                np.mean([np.array(all_deltas_l)[:, 1], np.array(all_deltas_r)[:, 1]], axis=0))
+stats.ttest_rel(np.mean([np.array(all_deltas_l)[:, 1], np.array(all_deltas_r)[:, 1]], axis=0), 
+                np.mean([np.array(all_deltas_l)[:, 2], np.array(all_deltas_r)[:, 2]], axis=0))
+
+
 # Plot the deltas over learning - LEFT
 plt.bar([0,1,2],np.mean(all_deltas_l, axis=0))
 plt.scatter(np.zeros(len(all_deltas_l)), np.array(all_deltas_l)[:, 0])

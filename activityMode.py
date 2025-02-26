@@ -3103,7 +3103,7 @@ class Mode(Session):
         else: # average over trial types
         
             CD_all = []
-            for t in range(self.delay+int(0.6/self.fs), self.delay+int(1.1/self.fs)):
+            for t in range(self.delay+int(0.6/self.fs), self.delay+int(1.1/self.fs)): # stim period
     
                 
                 control_activity = np.mean([trial[good_neurons, t] for trial in self.dff[0, alltrain]], axis=0)
@@ -3116,9 +3116,11 @@ class Mode(Session):
             
             allcontroloptotrain = cat((alloptotrain, alltrain))
             activityRL = []
+            
             for n in good_neurons:
                 
-                activityRL += [np.mean([trial[n, range(self.delay+int(0.6/self.fs), self.delay+int(1.1/self.fs))] for trial in self.dff[0, allcontroloptotrain]], axis=0)]
+                # activityRL += [np.mean([trial[n, range(self.delay+int(0.6/self.fs), self.delay+int(1.1/self.fs))] for trial in self.dff[0, allcontroloptotrain]], axis=0)]
+                activityRL += [np.mean([trial[n, range(self.sample-int(1.5/self.fs), self.sample)] for trial in self.dff[0, allcontroloptotrain]], axis=0)]
                 
             activityRL = activityRL - np.mean(activityRL, axis=1, keepdims=True) # remove?
             
