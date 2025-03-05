@@ -929,7 +929,8 @@ class Session:
     def get_trace_matrix_multiple(self, neuron_nums, error=False, bias_trials = [], 
                                   rtrials=[], ltrials=[], non_bias=False, 
                                   both=False, lickdir=False, trialtype = False, 
-                                  opto=False, remove_trial=[]):
+                                  opto=False, remove_trial=[],
+                                  return_trials=False):
         
        
         """Returns matrices of dF/F0 traces averaged over right/left trials of multiple neurons
@@ -973,7 +974,21 @@ class Session:
         R, L = [], []
         
         for neuron_num in neuron_nums:
-            R_av_dff, L_av_dff = self.get_trace_matrix(neuron_num, 
+            if return_trials:
+                R_av_dff, L_av_dff, right_trials, left_trials = self.get_trace_matrix(neuron_num, 
+                                                           error=error, 
+                                                           bias_trials = bias_trials, 
+                                                           rtrials=[],
+                                                           ltrials=[],
+                                                           non_bias=non_bias, 
+                                                           both=both, 
+                                                           lickdir=lickdir,
+                                                           trialtype=trialtype,
+                                                           opto=opto,
+                                                           remove_trial = remove_trial,
+                                                           return_trials=return_trials)
+            else:
+                R_av_dff, L_av_dff = self.get_trace_matrix(neuron_num, 
                                                        error=error, 
                                                        bias_trials = bias_trials, 
                                                        rtrials=[],
@@ -983,13 +998,16 @@ class Session:
                                                        lickdir=lickdir,
                                                        trialtype=trialtype,
                                                        opto=opto,
-                                                       remove_trial = remove_trial)
+                                                       remove_trial = remove_trial,
+                                                       return_trials=return_trials)
  
             
             R += [np.mean(R_av_dff, axis = 0)]
             L += [np.mean(L_av_dff, axis = 0)]
-            
-        return np.array(R), np.array(L)
+        if return_trials:
+            return np.array(R), np.array(L), right_trials, left_trials
+        else:
+            return np.array(R), np.array(L)
 
     def plot_PSTH(self, neuron_num, opto = False):
         
@@ -1329,8 +1347,10 @@ class Session:
         # p = 0.01
         # p = 0.0001
         return p_val < p
-
-    def get_epoch_selective(self, epoch, p = 0.0001, bias=False, rtrials=[], ltrials=[], return_stat = False, lickdir = False):
+    
+    
+    def get_epoch_selective(self, epoch, p=0.0001, bias=False, rtrials=[], ltrials=[], return_stat=False, lickdir=False):
+        """Optimized version of get_epoch_selective"""
         """Identifies neurons that are selective in a given epoch
         
         Saves neuron list in self.selective_neurons as well.
@@ -1358,6 +1378,85 @@ class Session:
             T-statistic associated with neuron, positive if left selective, 
             negative if right selective
         """
+        start = time.time()
+        selective_neurons = []
+        all_tstat = []
+    
+        # Convert epoch to NumPy array for faster slicing
+        epoch = np.array(epoch)
+    
+        for neuron in self.good_neurons:  # Only check non-noise neurons
+    
+            # Get trial data once
+            right, left = self.get_trace_matrix(neuron, rtrials=rtrials, ltrials=ltrials)
+    
+            if lickdir:
+                right, left = self.get_trace_matrix(neuron, lickdir=True, rtrials=rtrials, ltrials=ltrials)
+    
+            if bias:
+                biasidx = self.find_bias_trials()
+                right, left = self.get_trace_matrix(neuron, bias_trials=biasidx)
+    
+            # Convert lists to NumPy arrays (faster indexing)
+            left = np.array(left)
+            right = np.array(right)
+    
+            # Extract epochs using NumPy slicing (faster than list comprehensions)
+            left_ = left[:, epoch]
+            right_ = right[:, epoch]
+    
+            # Compute mean over epoch
+            left_mean = np.mean(left_, axis=1)
+            right_mean = np.mean(right_, axis=1)
+    
+            # Perform t-test
+            tstat, p_val = stats.ttest_ind(left_mean, right_mean)
+    
+            # Store selective neurons
+            if p_val < p:
+                selective_neurons.append(neuron)
+                all_tstat.append(tstat)  # Positive if L selective, negative if R selective
+    
+        # Save selective neurons
+        self.selective_neurons = selective_neurons
+        end = time.time()
+        print(end-start)
+        # Return results
+        if return_stat:
+            return selective_neurons, all_tstat
+        return selective_neurons
+
+
+
+    def get_epoch_selective_slow(self, epoch, p = 0.0001, bias=False, rtrials=[], ltrials=[], return_stat = False, lickdir = False):
+        """Identifies neurons that are selective in a given epoch
+        
+        Saves neuron list in self.selective_neurons as well.
+        
+        Parameters
+        ----------
+        epoch : list
+            Range of timesteps to evaluate selectivity over
+        p : int, optional
+            P-value cutoff to be deemed selectivity (default 0.0001)
+        bias : bool, optional
+            If true, only use the bias trials to evaluate (default False)
+        rtrials, ltrials: list, optional
+            If provided, use these trials to evaluate selectivty
+        return_stat : bool, optional
+            If true, returns the t-statistic to use for ranking
+        lickdir : bool, optional
+            If True, use the lick direction instaed of correct only
+            
+        Returns
+        -------
+        list
+            List of neurons that are selective
+        list, optional
+            T-statistic associated with neuron, positive if left selective, 
+            negative if right selective
+        """
+        start = time.time()
         selective_neurons = []
         all_tstat = []
         # for neuron in range(self.num_neurons):
@@ -1382,7 +1481,7 @@ class Session:
                 all_tstat += [tstat] # Positive if L selective, negative if R selective
         # print("Total delay selective neurons: ", len(selective_neurons))
         self.selective_neurons = selective_neurons
-        
+        print(time.time()-start)
         if return_stat:
             return selective_neurons, all_tstat
         
@@ -2590,6 +2689,64 @@ class Session:
             plt.savefig(save)
         plt.show()
         
+
+    def plot_ctl_stim(self, neuron_num):
+        """Plot averaged trace for ctl and stim trials, group across trial type
+                                
+        Parameters
+        ----------
+        neuron_num : int
+            Neuron number to be evaluated
+        bias: bool, optional
+            Whether to plot bias trials (default False)
+            
+        fixaxis : bool or tuple, optional
+            If given, use as the top/bottom lim for plotting
+        """
+        
+        R, L = self.get_trace_matrix(neuron_num)
+        ropto, lopto = self.get_trace_matrix(neuron_num,opto=True)
+        title = "Neuron {}: Control".format(neuron_num)
+        
+
+
+        # f, axarr = plt.subplots(2,2, sharex='col', sharey = 'row')
+        # f, axarr = plt.subplots(2,2, sharex='col')
+        f = plt.figure()
+        
+        
+
+
+        ctl_av = np.mean(cat((R,L)),axis=0)
+        err = stats.sem(cat((R,L)), axis=0)
+        ctl_av_opto = np.mean(cat((ropto, lopto)),axis=0)
+        err_opto = stats.sem(cat((ropto, lopto)), axis=0)
+        
+        x = range(self.time_cutoff)
+
+        plt.plot(x, ctl_av, color='black')
+        plt.plot(x, ctl_av_opto, color='red')
+
+        plt.fill_between(x, ctl_av - err, 
+                 ctl_av + err,
+                 color='lightgrey')
+        plt.fill_between(x, ctl_av_opto - err_opto, 
+                 ctl_av_opto + err_opto,
+                 color='pink')
+        
+        
+        
+        plt.axvline(self.sample, linestyle = '--')
+        plt.axvline(self.delay, linestyle = '--')
+        plt.axvline(self.response, linestyle = '--')
+        plt.axhline(0, linestyle = '--')
+       
+        
+        plt.ylabel('dF/F0')
+        
+        
+        plt.show()
+        
     def plot_heatmap_across_sess(self, neuron, return_arr=False):
         """
         Plot the right and left control trials as correlation heatmaps
@@ -3009,7 +3166,7 @@ class Session:
 
                 control_sel, opto_sel = self.dodownsample(control_sel), self.dodownsample(opto_sel)
                 
-            return control_sel, opto_sel
+            return np.array(control_sel), np.array(opto_sel)
             
         if False:
                 
@@ -3342,9 +3499,33 @@ class Session:
     
     
     def susceptibility(self, p=0.05, period=None, baseline=False, 
-                           return_n=False, exc_supr=False, all_n=False):
-        
-        starttime =time.time()
+                           return_n=False, exc_supr=False, all_n=False,
+                           side=False,
+                           by_trial_type = True,
+                           flexible=False):
+        """
+        faster version
+
+        Parameters
+        ----------
+        p : TYPE, optional
+            DESCRIPTION. The default is 0.05.
+        period : TYPE, optional
+            DESCRIPTION. The default is None.
+        baseline : TYPE, optional
+            DESCRIPTION. The default is False.
+        return_n : TYPE, optional
+            DESCRIPTION. The default is False.
+        exc_supr : TYPE, optional
+            DESCRIPTION. The default is False.
+        all_n : TYPE, optional
+            DESCRIPTION. The default is False.
+
+        Returns
+        -------
+        None.
+
+        """        
         if period is None:
             period = np.arange(self.delay, self.response)  # Use numpy array for fast indexing
         
@@ -3352,82 +3533,138 @@ class Session:
         baseline_period = np.arange(self.sample - int(1.5 / self.fs), self.sample)
     
         # Preallocate lists
-        all_sus, sig_p, sig_n, all_ps, all_baseline, all_tvalues = [], [], [], [], [], []
+        all_sus, sig_p, sig_n, all_ps, all_baseline, all_tvalues, all_side = [], [], [], [], [], [], []
     
         # Convert trial lists to sets for fast lookup
         good_non_stim_trials_set = set(self.i_good_non_stim_trials)
         good_stim_trials_set = set(self.i_good_stim_trials)
     
         for n in self.good_neurons:
-            # **LEFT SIDE**
-            control_trials = [t for t in self.L_trials if t in good_non_stim_trials_set]
-            pert_trials = [t for t in self.L_trials if t in good_stim_trials_set]
-    
-            control_left = np.array([self.dff[0, l][n, period] for l in control_trials])
-            pert_left = np.array([self.dff[0, l][n, period] for l in pert_trials])
-    
-            baseline_left = np.array([self.dff[0, l][n, baseline_period] for l in control_trials])
-            delay_left = np.array([self.dff[0, l][n, delay_period] for l in control_trials])
-    
-            # Precompute means and standard deviations
-            mean_baseline_left = np.mean(baseline_left)
-            std_baseline_left = np.mean(np.std(baseline_left, axis=0))
-            mean_delay_left = np.mean(delay_left)
-            std_delay_left = np.mean(np.std(delay_left, axis=0))
-    
-            # Compute z-score difference
-            zdiff_left = (mean_delay_left - mean_baseline_left) / np.sqrt(std_delay_left**2 + std_baseline_left**2)
-    
-            # Compute mean differences directly
-            diff = np.abs(np.mean(control_left, axis=0) - np.mean(pert_left, axis=0))
-    
-            # **RIGHT SIDE**
-            control_trials = [t for t in self.R_trials if t in good_non_stim_trials_set]
-            pert_trials = [t for t in self.R_trials if t in good_stim_trials_set]
-    
-            control = np.array([self.dff[0, l][n, period] for l in control_trials])
-            pert = np.array([self.dff[0, l][n, period] for l in pert_trials])
-    
-            baseline_right = np.array([self.dff[0, l][n, baseline_period] for l in control_trials])
-            delay_right = np.array([self.dff[0, l][n, delay_period] for l in control_trials])
-    
-            # Precompute means and standard deviations for right side
-            mean_baseline_right = np.mean(baseline_right)
-            std_baseline_right = np.mean(np.std(baseline_right, axis=0))
-            mean_delay_right = np.mean(delay_right)
-            std_delay_right = np.mean(np.std(delay_right, axis=0))
-    
-            zdiff_right = (mean_delay_right - mean_baseline_right) / np.sqrt(std_delay_right**2 + std_baseline_right**2)
-    
-            # Compute absolute differences
-            diff += np.abs(np.mean(control, axis=0) - np.mean(pert, axis=0))
-    
-            # Store total susceptibility measure
-            all_sus.append(np.sum(diff))
-    
-            # Perform t-tests
-            tstat_left, p_val_left = stats.ttest_ind(np.mean(control_left, axis=1), np.mean(pert_left, axis=1))
-            tstat_right, p_val_right = stats.ttest_ind(np.mean(control, axis=1), np.mean(pert, axis=1))
-    
-            if all_n:
-                all_ps.append((p_val_left, p_val_right))
-                all_baseline.append((zdiff_left, zdiff_right))
-                all_tvalues.append((tstat_left, tstat_right))
+            
+            if not by_trial_type:
+                
+                control_trials = [t for t in good_non_stim_trials_set]
+                pert_trials = [t for t in good_stim_trials_set]
 
-            if p_val_left < p or p_val_right < p:
-                sig_p.append(1)
-                sig_n.append(n)
-                if not all_n:
-                    if p_val_left < p_val_right:
-                        all_ps.append(p_val_left)
-                        all_baseline.append(zdiff_left)
-                        all_tvalues.append(tstat_left)
-                    else:
-                        all_ps.append(p_val_right)
-                        all_baseline.append(zdiff_right)
-                        all_tvalues.append(tstat_right)
+                control_left = np.array([self.dff[0, l][n, period] for l in control_trials])
+                pert_left = np.array([self.dff[0, l][n, period] for l in pert_trials])
+                
+                tstat_left, p_val_left = stats.ttest_ind(np.mean(control_left, axis=1), np.mean(pert_left, axis=1))
+                
+                if p_val_left < p:
+                    sig_n.append(n)
+                    all_tvalues.append(tstat_left)
+
             else:
-                sig_p.append(0)
+                # **LEFT SIDE**
+                control_trials = [t for t in self.L_trials if t in good_non_stim_trials_set]
+                pert_trials = [t for t in self.L_trials if t in good_stim_trials_set]
+                pert_trials_left = pert_trials
+
+                control_left = np.array([self.dff[0, l][n, period] for l in control_trials])
+                pert_left = np.array([self.dff[0, l][n, period] for l in pert_trials])
+        
+                baseline_left = np.array([self.dff[0, l][n, baseline_period] for l in control_trials])
+                delay_left = np.array([self.dff[0, l][n, delay_period] for l in control_trials])
+        
+                # Precompute means and standard deviations
+                mean_baseline_left = np.mean(baseline_left)
+                std_baseline_left = np.mean(np.std(baseline_left, axis=0))
+                mean_delay_left = np.mean(delay_left)
+                std_delay_left = np.mean(np.std(delay_left, axis=0))
+        
+                # Compute z-score difference
+                zdiff_left = (mean_delay_left - mean_baseline_left) / np.sqrt(std_delay_left**2 + std_baseline_left**2)
+        
+                # Compute mean differences directly
+                diff = np.abs(np.mean(control_left, axis=0) - np.mean(pert_left, axis=0))
+        
+                # **RIGHT SIDE**
+                control_trials = [t for t in self.R_trials if t in good_non_stim_trials_set]
+                pert_trials = [t for t in self.R_trials if t in good_stim_trials_set]
+            
+
+        
+                control = np.array([self.dff[0, l][n, period] for l in control_trials])
+                pert = np.array([self.dff[0, l][n, period] for l in pert_trials])
+        
+                baseline_right = np.array([self.dff[0, l][n, baseline_period] for l in control_trials])
+                delay_right = np.array([self.dff[0, l][n, delay_period] for l in control_trials])
+        
+                # Precompute means and standard deviations for right side
+                mean_baseline_right = np.mean(baseline_right)
+                std_baseline_right = np.mean(np.std(baseline_right, axis=0))
+                mean_delay_right = np.mean(delay_right)
+                std_delay_right = np.mean(np.std(delay_right, axis=0))
+        
+                zdiff_right = (mean_delay_right - mean_baseline_right) / np.sqrt(std_delay_right**2 + std_baseline_right**2)
+        
+                # Compute absolute differences
+                diff += np.abs(np.mean(control, axis=0) - np.mean(pert, axis=0))
+        
+                # Store total susceptibility measure
+                all_sus.append(np.sum(diff))
+        
+                # Perform t-tests
+                tstat_left, p_val_left = stats.ttest_ind(np.mean(control_left, axis=1), np.mean(pert_left, axis=1))
+                tstat_right, p_val_right = stats.ttest_ind(np.mean(control, axis=1), np.mean(pert, axis=1))
+        
+                # filter if not enough trials
+                # if len(pert_trials) < 20:
+                #     print(self.path + " less than 20 R stim trials")
+                #     tstat_right, p_val_right = 0,0
+                    
+                # if len(pert_trials_left) < 20:
+                #     print(self.path + " less than 20 L stim trials")
+                #     tstat_left, p_val_left = 0,0
+                    
+                if all_n:
+                    all_ps.append((p_val_left, p_val_right))
+                    all_baseline.append((zdiff_left, zdiff_right))
+                    all_tvalues.append((tstat_left, tstat_right))
+                    
+                # Flexible p value for inhibitd neurons p=0.05
+                if flexible:
+      
+                    if tstat_left > 0:
+                        if p_val_left < 0.05 and p_val_left > p:
+                            sig_n.append(n)
+                            all_tvalues.append(tstat_left)
+                        
+                    elif tstat_right > 0: # inhibted
+                        if p_val_right < 0.05 and p_val_right > p:
+                            sig_n.append(n) # Possible double add 
+                            all_tvalues.append(tstat_left)
+                            
+                    
+    
+                    
+                
+                if p_val_left < p or p_val_right < p:
+                    if p_val_left < p and p_val_right < p:
+                        all_side.append(2)
+                    else:
+                        if p_val_left < p:
+                            all_side.append(0)
+                        else:
+                            all_side.append(1)
+    
+                        
+                    sig_p.append(1)
+                    sig_n.append(n)
+                    if not all_n:
+                        if p_val_left < p_val_right:
+                            all_ps.append(p_val_left)
+                            all_baseline.append(zdiff_left)
+                            all_tvalues.append(tstat_left)
+                        else:
+                            all_ps.append(p_val_right)
+                            all_baseline.append(zdiff_right)
+                            all_tvalues.append(tstat_right)
+                else:
+                    sig_p.append(0)
+                    all_side.append(4)
+
 
         # endtime = time.time()
         # print(endtime - starttime)
@@ -3436,10 +3673,15 @@ class Session:
             if exc_supr:
                 return all_baseline, all_tvalues
             return all_baseline, all_ps
+        if exc_supr:
+            if return_n: 
+                return sig_n, all_tvalues
+            return all_tvalues, sig_n
         if return_n:
             return sig_n, all_ps
-        if exc_supr:
-            return all_tvalues, sig_n
+
+        if side:
+            return all_side, all_ps
         return all_sus, sig_p
     
     
@@ -4065,6 +4307,15 @@ class Session:
     
         """
         b=np.zeros(61)
+        
+        a=np.array(a)
+        
+        if len(a.shape) == 1:
+            x = np.arange(-6.97,6,1/30)[:self.time_cutoff*2]
+            nums = np.interp(x, np.arange(-6.97,6,1/15)[:self.time_cutoff], a)
+            b = np.vstack((b, scipy.signal.decimate(nums, 5)))
+            return b[1:]
+
         for i in range(len(a)):
             x = np.arange(-6.97,6,1/30)[:self.time_cutoff*2]
             nums = np.interp(x, np.arange(-6.97,6,1/15)[:self.time_cutoff], a[i])

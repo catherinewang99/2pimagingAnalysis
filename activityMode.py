@@ -24,6 +24,7 @@ class Mode(Session):
     
     def __init__(self, path, lickdir=True, use_reg=False, triple=False, filter_reg= True, 
                  layer_num='all', responsive_neurons = [], use_selective= False, use_background_sub=False,
+                 good_neurons = [],
                  baseline_normalization = "dff_avg", proportion_train = 0.5,
                  proportion_opto_train = 0.5,
                  train_test_trials = [], lda_cluster = False, i_good = [],
@@ -89,14 +90,15 @@ class Mode(Session):
         if use_selective:
             idx = np.load(path + '\selective_neurons.npy')
             self.good_neurons = self.good_neurons[idx]
-
+        if len(good_neurons) != 0:
+            self.good_neurons = good_neurons
         # Construct train and test sets for control and opto trials
         # built this section so we can split trials into train/test and track at the same time 
         # for error bar creation in some subsequent graphs
 
         self.proportion_train = proportion_train
         self.proportion_test = 1 - proportion_train
-            
+        self.stim_period = range(self.delay+int(0.6/self.fs), self.delay+int(1.1/self.fs))
         ### SORT CONTROL TRIALS:
         # First method: in house
         if len(train_test_trials) == 0:
@@ -1889,15 +1891,15 @@ class Mode(Session):
             
         
         
-        r_opto, l_opto = self.get_trace_matrix_multiple(self.good_neurons, opto=True)
-
+        r_opto, l_opto, r_trials, l_trials = self.get_trace_matrix_multiple(self.good_neurons, opto=True, return_trials=True)
+        
         activityRL_opto= np.concatenate((r_opto, l_opto), axis=1)
         
-        r_corr = np.where(self.R_correct + self.L_wrong)[0]
-        l_corr = np.where(self.L_correct + self.R_wrong)[0]
-        # Project for every opto trial
-        r_trials = [i for i in r_corr if self.stim_ON[i] and not self.early_lick[i]]
-        l_trials = [i for i in l_corr if self.stim_ON[i] and not self.early_lick[i]]
+        # r_corr = np.where(self.R_correct + self.L_wrong)[0]
+        # l_corr = np.where(self.L_correct + self.R_wrong)[0]
+        # # Project for every opto trial
+        # r_trials = [i for i in r_corr if self.stim_ON[i] and not self.early_lick[i]]
+        # l_trials = [i for i in l_corr if self.stim_ON[i] and not self.early_lick[i]]
         
         r_proj = []
         l_proj = []
@@ -1955,10 +1957,14 @@ class Mode(Session):
             return orthonormal_basis, np.mean(activityRL_train, axis=1)[:, None], meantrain, meanstd
 
 
-    def plot_CD_opto_applied(self, orthonormal_basis, mean, meantrain, meanstd, save=None, return_traces = False, normalize=True):
+    def plot_CD_opto_applied(self, orthonormal_basis, mean, meantrain, meanstd, 
+                             save=None, return_traces = False, normalize=True,
+                             return_delta = False):
         '''
         Plots similar figure as Li et al 2016 Fig 3c to view the effect of
         photoinhibition on L/R CD traces
+        
+        return_delta : return the delta between L/R at the end of the delay
         
         Returns
         -------
@@ -2021,15 +2027,16 @@ class Mode(Session):
             
         
         
-        r_opto, l_opto = self.get_trace_matrix_multiple(self.good_neurons, opto=True)
+        r_opto, l_opto,r_trials, l_trials = self.get_trace_matrix_multiple(self.good_neurons, opto=True, 
+                                                                           return_trials=True)
 
         activityRL_opto = np.concatenate((r_opto, l_opto), axis=1)
         
-        r_corr = np.where(self.R_correct + self.L_wrong)[0]
-        l_corr = np.where(self.L_correct + self.R_wrong)[0]
-        # Project for every opto trial
-        r_trials = [i for i in r_corr if self.stim_ON[i] and not self.early_lick[i]]
-        l_trials = [i for i in l_corr if self.stim_ON[i] and not self.early_lick[i]]
+        # r_corr = np.where(self.R_correct + self.L_wrong)[0]
+        # l_corr = np.where(self.L_correct + self.R_wrong)[0]
+        # # Project for every opto trial
+        # r_trials = [i for i in r_corr if self.stim_ON[i] and not self.early_lick[i]]
+        # l_trials = [i for i in l_corr if self.stim_ON[i] and not self.early_lick[i]]
         
         r_proj = []
         l_proj = []
@@ -2079,8 +2086,25 @@ class Mode(Session):
             plt.savefig(save)
             
         plt.show()
-        # axs[0, 0].set_ylabel('Activity proj.')
-        # axs[3, 0].set_xlabel('Time')
+        
+        if return_delta:
+            delay_end = range(self.delay + int(2/self.fs), self.response)
+            r_trace = proj_allDim[:len(self.T_cue_aligned_sel)][delay_end]
+            l_trace = proj_allDim[len(self.T_cue_aligned_sel):][delay_end]
+            
+            # l_std = np.std(l_proj, axis=0)[delay_end]
+            # r_std = np.std(r_proj, axis=0)[delay_end]
+            r_ctl, l_ctl = control_traces
+            ctldiff = np.abs(r_ctl[delay_end] - l_ctl[delay_end])
+            
+            var = np.sqrt(np.mean(np.std(l_proj, axis=0)[delay_end]) ** 2 + np.mean(np.std(r_proj, axis=0)[delay_end]) ** 2)
+
+            z_diff = np.abs(l_trace - r_trace) / var
+            
+            return np.mean(z_diff) 
+            
+            
+      
         
         
     def plot_persistent_mode_opto(self, epoch=None, save=None):
@@ -2861,7 +2885,7 @@ class Mode(Session):
         return indices
     
     def input_vector(self, orthog=False, by_trialtype=False,
-                     return_delta=False,
+                     return_delta=False, timecourse = False,
                      normalize=True,
                      plot=False, plot_ctl_opto = True,
                      return_opto=False, return_applied=False,
@@ -2893,8 +2917,8 @@ class Mode(Session):
         r_trials_opto = [i for i in r_corr if i in self.i_good_stim_trials and not self.early_lick[i]]
         l_trials_opto = [i for i in l_corr if i in self.i_good_stim_trials and not self.early_lick[i]]
 
-        r_corr = np.where(self.R_correct)[0]
-        l_corr = np.where(self.L_correct)[0]
+        # r_corr = np.where(self.R_correct)[0]
+        # l_corr = np.where(self.L_correct)[0]
         
         r_trials = [i for i in r_corr if i in self.i_good_non_stim_trials and not self.early_lick[i]]
         l_trials = [i for i in l_corr if i in self.i_good_non_stim_trials and not self.early_lick[i]]
@@ -3083,14 +3107,17 @@ class Mode(Session):
                     
                     plt.show()
             if return_delta: 
+                
+                
                 if plot_ctl_opto:
                     stimperiod = range(self.delay+int(0/self.fs), self.delay+int(1/self.fs))
+                    stimperiod = range(self.delay+int(0.6/self.fs), self.delay+int(1.2/self.fs))
                     
                     # left IV
-                    var_l = np.sqrt(np.sum((np.std(l_ctl, axis=0)[stimperiod] + np.std(l_opto, axis=0)[stimperiod])))
+                    var_l = np.sqrt(np.mean(np.std(l_ctl, axis=0)[stimperiod]) ** 2 + np.mean(np.std(l_opto, axis=0)[stimperiod])**2)
                     delta_l = np.abs(proj_allDim_l[stimperiod] - proj_allDim_l_opto[stimperiod]) / var_l
                     # right IV
-                    var_r = np.sqrt(np.sum((np.std(r_ctl, axis=0)[stimperiod] + np.std(r_opto, axis=0)[stimperiod])))
+                    var_r = np.sqrt(np.mean(np.std(r_ctl, axis=0)[stimperiod]) ** 2 + np.mean(np.std(r_opto, axis=0)[stimperiod])**2)
                     delta_r = np.abs(proj_allDim_r[stimperiod] - proj_allDim_r_opto[stimperiod]) / var_r
                     
                     delta = np.sum([delta_l, delta_r], axis=0)
@@ -3103,7 +3130,8 @@ class Mode(Session):
         else: # average over trial types
         
             CD_all = []
-            for t in range(self.delay+int(0.6/self.fs), self.delay+int(1.1/self.fs)): # stim period
+            stim_period = self.stim_period
+            for t in stim_period: # stim period
     
                 
                 control_activity = np.mean([trial[good_neurons, t] for trial in self.dff[0, alltrain]], axis=0)
@@ -3119,12 +3147,12 @@ class Mode(Session):
             
             for n in good_neurons:
                 
-                # activityRL += [np.mean([trial[n, range(self.delay+int(0.6/self.fs), self.delay+int(1.1/self.fs))] for trial in self.dff[0, allcontroloptotrain]], axis=0)]
+                # activityRL += [np.mean([trial[n, stim_period] for trial in self.dff[0, allcontroloptotrain]], axis=0)]
                 activityRL += [np.mean([trial[n, range(self.sample-int(1.5/self.fs), self.sample)] for trial in self.dff[0, allcontroloptotrain]], axis=0)]
                 
-            activityRL = activityRL - np.mean(activityRL, axis=1, keepdims=True) # remove?
+            # activityRL = activityRL - np.mean(activityRL, axis=1, keepdims=True) # remove?
             
-            if orthog: # Process to orthogonalize
+            if orthog: # Process to orthogonalize, ignore
             
                 
                 u, s, v = np.linalg.svd(activityRL.T)
@@ -3165,27 +3193,32 @@ class Mode(Session):
             
             if plot:
                 if plot_ctl_opto: # Plot traces as control vs stim averaged traces
+                
+                # Should be averageing over all left right trials equally
+                
                     activityRL_testR = []
                     activityRL_testR_opto = []
+                    
+                    r_trials_filt = [r_trials[t] for t in self.r_test_idx]
+                    l_trials_filt = [l_trials[t] for t in self.l_test_idx]
+                    r_trials_opto_filt = [r_trials_opto[t] for t in self.r_test_opto_idx]
+                    l_trials_opto_filt = [l_trials_opto[t] for t in self.l_test_opto_idx]
+                    
+                    cat_all_trials = cat((r_trials_filt, l_trials_filt))
+                    cat_all_opto_trials = cat((r_trials_opto_filt, l_trials_opto_filt))
+                    
                     for n in good_neurons:
                         
-                        activityRL_testR += [np.mean([trial[n, :self.time_cutoff] for trial in self.dff[0, [r_trials[t] for t in self.r_test_idx]]], axis=0)]
-                        activityRL_testR_opto += [np.mean([trial[n, :self.time_cutoff] for trial in self.dff[0, [r_trials_opto[t] for t in self.r_test_opto_idx]]], axis=0)]
-                        
-                    activityRL_testL = []
-                    activityRL_testL_opto = []
-                    for n in good_neurons:
-                        
-                        activityRL_testL += [np.mean([trial[n, :self.time_cutoff] for trial in self.dff[0, [l_trials[t] for t in self.l_test_idx]]], axis=0)]
-                        activityRL_testL_opto += [np.mean([trial[n, :self.time_cutoff] for trial in self.dff[0, [l_trials_opto[t] for t in self.l_test_opto_idx]]], axis=0)]
-
+                        activityRL_testR += [np.mean([trial[n, :self.time_cutoff] for trial in self.dff[0, cat_all_trials]], axis=0)]
+                        activityRL_testR_opto += [np.mean([trial[n, :self.time_cutoff] for trial in self.dff[0, cat_all_opto_trials]], axis=0)]
+                 
                     x = np.arange(-6.97,4,self.fs)[:self.time_cutoff]
                     # Project for every trial
                     
                     ctl_traces, opto_traces = [], []
                     for t in self.r_test_idx:
                         activity = self.dff[0, r_trials[t]][good_neurons] 
-                        activity = activity - np.tile(np.mean(activityRL, axis=1)[:, None], (1, activity.shape[1]))
+                        # activity = activity - np.tile(np.mean(activityRL, axis=1)[:, None], (1, activity.shape[1]))
                         proj_allDim = np.dot(activity.T, orthonormal_basis)
                         if not normalize:
                             plt.plot(x, proj_allDim[:len(self.T_cue_aligned_sel)], 'grey', alpha = 0.1,  linewidth = 0.5)
@@ -3193,7 +3226,7 @@ class Mode(Session):
                         
                     for t in self.l_test_idx:
                         activity = self.dff[0, l_trials[t]][good_neurons]
-                        activity = activity - np.tile(np.mean(activityRL, axis=1)[:, None], (1, activity.shape[1]))
+                        # activity = activity - np.tile(np.mean(activityRL, axis=1)[:, None], (1, activity.shape[1]))
                         proj_allDim = np.dot(activity.T, orthonormal_basis)
                         if not normalize:
                             plt.plot(x, proj_allDim[:len(self.T_cue_aligned_sel)], 'grey', alpha = 0.1, linewidth = 0.5)
@@ -3201,7 +3234,7 @@ class Mode(Session):
 
                     for t in self.r_test_opto_idx:
                         activity = self.dff[0, r_trials_opto[t]][good_neurons] 
-                        activity = activity - np.tile(np.mean(activityRL, axis=1)[:, None], (1, activity.shape[1]))
+                        # activity = activity - np.tile(np.mean(activityRL, axis=1)[:, None], (1, activity.shape[1]))
                         proj_allDim = np.dot(activity.T, orthonormal_basis)
                         if not normalize:
                             plt.plot(x, proj_allDim[:len(self.T_cue_aligned_sel)], 'r', alpha = 0.1,  linewidth = 0.5)
@@ -3209,7 +3242,7 @@ class Mode(Session):
 
                     for t in self.l_test_opto_idx:
                         activity = self.dff[0, l_trials_opto[t]][good_neurons]
-                        activity = activity - np.tile(np.mean(activityRL, axis=1)[:, None], (1, activity.shape[1]))
+                        # activity = activity - np.tile(np.mean(activityRL, axis=1)[:, None], (1, activity.shape[1]))
                         proj_allDim = np.dot(activity.T, orthonormal_basis)
                         if not normalize:
                             plt.plot(x, proj_allDim[:len(self.T_cue_aligned_sel)], 'r', alpha = 0.1, linewidth = 0.5)  
@@ -3218,31 +3251,34 @@ class Mode(Session):
                     if normalize:
                         # Get mean and STD
                         
-
-
-                                                
-                        # control test trials
-                        activityRL_test = cat((activityRL_testR, activityRL_testL), axis=1)
-                        activityRL_test = activityRL_test - np.tile(np.mean(activityRL, axis=1)[:, None], (1, activityRL_test.shape[1]))  # remove mean
+                        activityRL_test = np.array(activityRL_testR)
                         proj_allDim = np.dot(activityRL_test.T, orthonormal_basis)
-                        proj_allDim_ctl = np.mean([proj_allDim[:len(self.T_cue_aligned_sel)], proj_allDim[len(self.T_cue_aligned_sel):]], axis=0)
+                        proj_allDim_ctl = proj_allDim
                         
-                        meantrain, meanstd = np.mean(proj_allDim_ctl), np.std(proj_allDim_ctl)
-                        proj_allDim_ctl = (proj_allDim_ctl - meantrain) / meanstd
+    
+                        activityRL_test_opto = np.array(activityRL_testR_opto)
+                        proj_allDim_opto = np.dot(activityRL_test_opto.T, orthonormal_basis)
                         
-                        ctl_traces = (ctl_traces - meantrain) / meanstd
-
+                        # return ctl_traces, opto_traces, proj_allDim_ctl, proj_allDim_opto
+                        # meantrain, meanstd = np.mean(cat((proj_allDim_ctl, proj_allDim_opto))), np.std(cat((proj_allDim_ctl, proj_allDim_opto)))
                         
-                        # opto trials
-                        activityRL_test = cat((activityRL_testR_opto, activityRL_testL_opto), axis=1)
-                        activityRL_test = activityRL_test - np.tile(np.mean(activityRL, axis=1)[:, None], (1, activityRL_test.shape[1]))  # remove mean
-                        proj_allDim = np.dot(activityRL_test.T, orthonormal_basis)
-                        proj_allDim_opto = np.mean([proj_allDim[:len(self.T_cue_aligned_sel)], proj_allDim[len(self.T_cue_aligned_sel):]], axis=0)
+                        cat_all_trials = cat((ctl_traces,opto_traces),axis=0)
+                        std_baseline = np.mean(np.std(cat_all_trials[:, self.sample-int(1.5/self.fs):self.sample], axis=0))
                         
-                        meantrain, meanstd = np.mean(proj_allDim_opto), np.std(proj_allDim_opto)
-                        proj_allDim_opto = (proj_allDim_opto - meantrain) / meanstd
+                        # proj_allDim_opto = (proj_allDim_opto - meantrain) / meanstd
+                        # proj_allDim_ctl = (proj_allDim_ctl - meantrain) / meanstd
+                        proj_allDim_opto = proj_allDim_opto / std_baseline
+                        proj_allDim_ctl = proj_allDim_ctl / std_baseline
+                        # meantrain, meanstd = np.mean(cat((ctl_traces, opto_traces))), np.std(cat((ctl_traces, opto_traces)))
                         
-                        opto_traces = (opto_traces - meantrain) / meanstd
+                        ctl_traces = ctl_traces / std_baseline
+                        opto_traces = opto_traces / std_baseline
+                        
+                        # ctl_traces = (ctl_traces - meantrain) / meanstd
+                        # opto_traces = (opto_traces - meantrain) / meanstd
+                        
+                        # proj_allDim_ctl = np.mean(ctl_traces, axis=0)
+                        # proj_allDim_opto = np.mean(opto_traces, axis=0)
                         
                         plt.plot(x, proj_allDim_ctl, 'black', linewidth = 2)
                         plt.plot(x, proj_allDim_opto, 'r', linewidth = 2)
@@ -3268,18 +3304,16 @@ class Mode(Session):
     
                         
                         # control test trials
-                        activityRL_test = cat((activityRL_testR, activityRL_testL), axis=1)
-                        activityRL_test = activityRL_test - np.tile(np.mean(activityRL, axis=1)[:, None], (1, activityRL_test.shape[1]))  # remove mean
+                        activityRL_test = np.array(activityRL_testR)
                         proj_allDim = np.dot(activityRL_test.T, orthonormal_basis)
-                        proj_allDim_ctl = np.mean([proj_allDim[:len(self.T_cue_aligned_sel)], proj_allDim[len(self.T_cue_aligned_sel):]], axis=0)
-                        
+                        proj_allDim_ctl = proj_allDim
+
                         
                         # opto trials
-                        activityRL_test = cat((activityRL_testR_opto, activityRL_testL_opto), axis=1)
-                        activityRL_test = activityRL_test - np.tile(np.mean(activityRL, axis=1)[:, None], (1, activityRL_test.shape[1]))  # remove mean
+                        activityRL_test = np.array(activityRL_testR_opto)
+
                         proj_allDim = np.dot(activityRL_test.T, orthonormal_basis)
-                        proj_allDim_opto = np.mean([proj_allDim[:len(self.T_cue_aligned_sel)], proj_allDim[len(self.T_cue_aligned_sel):]], axis=0)
-                        
+                        proj_allDim_opto = proj_allDim
                         
                         plt.plot(x, proj_allDim_ctl, 'grey', linewidth = 2)
                         plt.plot(x, proj_allDim_opto, 'r', linewidth = 2)
@@ -3346,16 +3380,34 @@ class Mode(Session):
                 return CD_input_mode, np.mean(activityRL, axis=1)[:, None]
             
             if return_delta: 
-                if plot_ctl_opto:
-                    stimperiod = range(self.delay+int(0/self.fs), self.delay+int(1/self.fs))
-                    baseline = range(self.sample-int(1.5/self.fs), self.sample)
+                if timecourse: 
+                    ctl_traces,opto_traces =np.array(ctl_traces),np.array(opto_traces)
+                    # proj_allDim_ctl = np.mean(ctl_traces, axis=0)
+                    # proj_allDim_opto = np.mean(opto_traces, axis=0)
+                    var = [np.sqrt(np.std(ctl_traces, axis=0)[i] ** 2 + np.std(opto_traces, axis=0)[i] ** 2) for i in range(opto_traces.shape[1])]
+                    delta = np.array(proj_allDim_ctl - proj_allDim_opto) / np.array(var)
                     
-                    var = np.sqrt(np.sum((np.std(ctl_traces, axis=0)[baseline] + np.std(opto_traces, axis=0)[baseline])))
+                    #flip sign if all negative
+                    # if sum(np.sign(delta)[self.delay : self.delay + int(1.5/self.fs)] == -1)/len(np.sign(delta)[self.delay : self.delay + int(1.5/self.fs)] == -1) > 0.9:
+                    #     delta = -delta
+                    return CD_input_mode, delta
+                
+                elif plot_ctl_opto:
+                    stimperiod = range(self.delay+int(0/self.fs), self.delay+int(1/self.fs))
+                    stimperiod = range(self.delay+int(0.5/self.fs), self.delay+int(1.3/self.fs))
+
+                    baseline = range(self.sample-int(1.5/self.fs), self.sample)
+                    baseline = range(self.delay+int(0.6/self.fs), self.delay+int(1.2/self.fs))
+                    baseline = stimperiod
+                    
+                    var = np.sqrt(np.mean(np.std(ctl_traces, axis=0)[baseline]) ** 2 + np.mean(np.std(opto_traces, axis=0)[baseline]) ** 2)
                     delta = np.abs(proj_allDim_ctl[stimperiod] - proj_allDim_opto[stimperiod]) / var
+                    
                 else:
                     responseperiod = range(self.response-int(0.3/self.fs), self.response+int(0.1/self.fs))
+                    responseperiod = range(self.delay+int(0.5/self.fs), self.delay+int(1.3/self.fs))
                     
-                    var = np.sqrt(np.sum((np.std(r_traces, axis=0)[responseperiod] + np.std(l_traces, axis=0)[responseperiod])))
+                    var = np.sqrt(np.mean(np.std(r_traces, axis=0)[responseperiod]) ** 2 + np.mean(np.std(l_traces, axis=0)[responseperiod]) ** 2)
                     delta = np.abs(proj_allDim[:len(self.T_cue_aligned_sel)][responseperiod] - proj_allDim[len(self.T_cue_aligned_sel):][responseperiod]) / var
                     
                 return CD_input_mode, np.mean(delta)
@@ -3629,7 +3681,7 @@ class Mode(Session):
             
             responseperiod = range(self.response-int(0.3/self.fs), self.response+int(0.1/self.fs))
             
-            var = np.sqrt(np.sum((np.std(r_traces, axis=0)[responseperiod] + np.std(l_traces, axis=0)[responseperiod])))
+            var = np.sqrt(np.mean(np.std(r_traces, axis=0)[responseperiod]) ** 2 + np.mean(np.std(l_traces, axis=0)[responseperiod]) ** 2)
             delta = (proj_allDim[:len(self.T_cue_aligned_sel)][responseperiod] - proj_allDim[len(self.T_cue_aligned_sel):][responseperiod]) / var
             
             return CD_intrinsic, np.mean(np.abs(delta))
