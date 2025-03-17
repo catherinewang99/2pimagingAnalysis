@@ -191,8 +191,8 @@ all_matched_paths = [
         r'H:\data\BAYLORCW044\python\2024_06_18'],
 
             [r'H:\data\BAYLORCW046\python\2024_05_29',
-             r'H:\data\BAYLORCW046\python\2024_06_07',
-             r'H:\data\BAYLORCW046\python\2024_06_24'],
+             r'H:\data\BAYLORCW046\python\2024_06_24',
+             r'H:\data\BAYLORCW046\python\2024_06_28'],
 
 
             [r'H:\data\BAYLORCW046\python\2024_05_30',
@@ -348,6 +348,103 @@ alls1list = np.mean(alls1list, axis=0)
 alld1 = np.mean(alld1, axis=0)
 allr1 = np.mean(allr1, axis=0)
 allns1 = np.mean(allns1, axis=0)
+
+#%% Get number to make SANKEY diagram DR (no sample neurons)
+
+# naivepath, learningpath, expertpath =[r'F:\data\BAYLORCW037\python\2023_11_21',
+#             r'F:\data\BAYLORCW037\python\2023_12_08',
+#             r'F:\data\BAYLORCW037\python\2023_12_15',]
+
+# p=0.0005
+p=0.001
+retained_sample = []
+recruited_sample = []
+retained_delay = []
+recruited_delay = []
+dropped_delay = []
+dropped_sample = []
+alls1list, alld1, allr1, allns1 = [],[],[],[]
+for paths in all_matched_paths: # For each mouse/FOV
+    ret_s = []
+    recr_s = []
+    ret_d, recr_d = [],[]
+    drop_d, drop_s = [], []
+    
+    s1list, d1, r1, ns1 = np.zeros(4),np.zeros(4),np.zeros(4),np.zeros(4)
+
+    s1 = session.Session(paths[1], use_reg=True, triple=True, use_background_sub=False) # Naive
+
+    sample_epoch = range(s1.sample, s1.delay)
+    delay_epoch = range(s1.delay+int(1.5 * 1/s1.fs), s1.response)
+    response_epoch = range(s1.response, s1.response + int(2*1/s1.fs))
+    
+    # naive_sample_sel = s1.get_epoch_selective(sample_epoch, p=p)
+    
+    naive_delay_sel = s1.get_epoch_selective(delay_epoch, p=p)
+    naive_delay_sel = [n for n in naive_delay_sel]
+    
+    naive_response_sel = s1.get_epoch_selective(response_epoch, p=p)
+    naive_response_sel = [n for n in naive_response_sel if n not in naive_delay_sel]
+
+    naive_nonsel = [n for n in s1.good_neurons if n not in naive_delay_sel and n not in naive_response_sel]
+
+    s2 = session.Session(paths[2], use_reg=True, triple=True) # Learning or expert
+
+
+    for n in naive_delay_sel:
+
+        if s2.is_selective(s2.good_neurons[np.where(s1.good_neurons ==n)[0][0]], delay_epoch, p=p):
+            d1[1] += 1
+            ret_d += [(n, s2.good_neurons[np.where(s1.good_neurons == n)[0][0]])]
+
+        elif s2.is_selective(s2.good_neurons[np.where(s1.good_neurons ==n)[0][0]], response_epoch, p=p):
+            d1[2] += 1
+        else:
+            d1[3] += 1
+            drop_d += [(n, s2.good_neurons[np.where(s1.good_neurons == n)[0][0]])]
+    
+    
+    for n in naive_response_sel:
+
+        if s2.is_selective(s2.good_neurons[np.where(s1.good_neurons ==n)[0][0]], delay_epoch, p=p):
+            r1[1] += 1
+
+        elif s2.is_selective(s2.good_neurons[np.where(s1.good_neurons ==n)[0][0]], response_epoch, p=p):
+            r1[2] += 1
+        else:
+            r1[3] += 1
+    
+    
+    for n in naive_nonsel:
+
+        if s2.is_selective(s2.good_neurons[np.where(s1.good_neurons ==n)[0][0]], delay_epoch, p=p):
+            ns1[1] += 1
+            recr_d += [(n, s2.good_neurons[np.where(s1.good_neurons ==n)[0][0]])]
+
+        elif s2.is_selective(s2.good_neurons[np.where(s1.good_neurons ==n)[0][0]], response_epoch, p=p):
+            ns1[2] += 1
+        else:
+            ns1[3] += 1
+
+    d1, r1, ns1 = d1 / len(s1.good_neurons), r1 / len(s1.good_neurons), ns1 / len(s1.good_neurons)
+    
+    alld1 += [d1]
+    allr1 += [r1] 
+    allns1 += [ns1]
+    
+    retained_sample += [ret_s]
+    recruited_sample += [recr_s]
+    dropped_sample += [drop_s]
+    retained_delay += [ret_d]
+    recruited_delay += [recr_d]
+    dropped_delay += [drop_d]
+
+alld1 = np.mean(alld1, axis=0)
+allr1 = np.mean(allr1, axis=0)
+allns1 = np.mean(allns1, axis=0)
+
+
+
 #%% Look at specific neurons    
 # retained_sample,recruited_sample
 naivepaths = agg_matched_paths[0]

@@ -174,31 +174,32 @@ naivepath, learningpath, expertpath = [r'F:\data\BAYLORCW032\python\2023_10_05',
   r'F:\data\BAYLORCW032\python\2023_10_19',
   r'F:\data\BAYLORCW032\python\2023_10_24',]
 
-naivepath, learningpath, expertpath = [r'H:\data\BAYLORCW046\python\2024_05_31',
-                                         r'H:\data\BAYLORCW046\python\2024_06_11',
-                                         r'H:\data\BAYLORCW046\python\2024_06_26'
-                                         ]
+# naivepath, learningpath, expertpath = [r'H:\data\BAYLORCW046\python\2024_05_31',
+#                                           r'H:\data\BAYLORCW046\python\2024_06_11',
+#                                           r'H:\data\BAYLORCW046\python\2024_06_26'
+#                                           ]
 
-l2 = Mode(expertpath, lickdir=False, use_reg = True, triple=True, proportion_train=1, proportion_opto_train=1)
-input_vec, mean = l2.input_vector(by_trialtype=False, plot=True, return_applied=True)
-# l2.applied_input_vector(input_vec, mean)
-cd_choice_exp, _ = l2.plot_CD(mode_input='choice', plot=False)
-
-
-l1 = Mode(learningpath, lickdir=False, use_reg = True, triple=True, proportion_opto_train=1)
-# input_vec, mean = l1.input_vector(by_trialtype=False, plot=True, return_applied=True)
-l1.applied_input_vector(input_vec, mean)
-l1.applied_input_vector(input_vec, mean, plot_ctl_opto=False)
-cd_choice, _ = l1.plot_CD(mode_input='choice', plot=False)
+# l2 = Mode(expertpath, lickdir=False, use_reg = True, triple=True, proportion_train=1, proportion_opto_train=1)
+# input_vec, mean = l2.input_vector(by_trialtype=False, plot=True, return_applied=True)
+# # l2.applied_input_vector(input_vec, mean)
+# cd_choice_exp, _ = l2.plot_CD(mode_input='choice', plot=False)
 
 
+l1 = Mode(expertpath, lickdir=False, use_reg = True, triple=True, proportion_opto_train=0.5)
+input_vec, mean = l1.input_vector(by_trialtype=False, plot=True, return_applied=True, normalize=True,
+                                  save = r'H:\COSYNE 2025\CW32_expert_input_vector_projection_SEM.pdf')
+# l1.applied_input_vector(input_vec, mean)
+# l1.applied_input_vector(input_vec, mean, plot_ctl_opto=False)
+# cd_choice, _ = l1.plot_CD(mode_input='choice', plot=False)
 
 
-l1 = Mode(naivepath, lickdir=False, use_reg = True, triple=True, proportion_train=1, proportion_opto_train=1)
-# input_vec, mean = l1.input_vector(by_trialtype=False, plot=True, return_applied=True)
-l1.applied_input_vector(input_vec, mean)
-l1.applied_input_vector(input_vec, mean, plot_ctl_opto=False)
-cd_choice, _ = l1.plot_CD(mode_input='choice', plot=False)
+
+
+# l1 = Mode(naivepath, lickdir=False, use_reg = True, triple=True, proportion_train=1, proportion_opto_train=1)
+# # input_vec, mean = l1.input_vector(by_trialtype=False, plot=True, return_applied=True)
+# l1.applied_input_vector(input_vec, mean)
+# l1.applied_input_vector(input_vec, mean, plot_ctl_opto=False)
+# cd_choice, _ = l1.plot_CD(mode_input='choice', plot=False)
 
 
 
@@ -274,7 +275,7 @@ for paths in all_matched_paths:
 
     # Angle between trial type input vector and CD
     CD_angle += [(cos_sim(input_vector, cd_choice), cos_sim(input_vector_exp, cd_choice_exp))]
-    rotation_learning += [cos_sim(input_vector, input_vector_exp)]
+    rotation_learning += [(cos_sim(input_vector_nai, input_vector), cos_sim(input_vector, input_vector_exp))]
     all_deltas += [(delta_nai, delta, delta_exp)]
     cd_delta += [(cd_delta_nai, cd_delta_lea, cd_delta_exp)]
     input_cd += [(input_vector_nai, input_vector, input_vector_exp)]
@@ -284,13 +285,20 @@ input_cd = np.array(input_cd)
 
 
 # Plot angle between input vectors
-plt.bar([0],[np.mean(rotation_learning)])
-plt.scatter(np.zeros(len(rotation_learning)), rotation_learning)
+# plt.bar([0],[np.mean(rotation_learning)])
+# plt.scatter(np.zeros(len(rotation_learning)), rotation_learning)
 # for i in range(len(L_angles)):
 #     plt.plot([0,1],[L_angles[i,0], L_angles[i,1]], color='grey')
-plt.xticks([0],['learning-->expert'])
+plt.bar([0],np.mean(rotation_learning[:,1]), color='grey')
+# plt.scatter(np.zeros(len(rotation_learning)), np.array(rotation_learning)[:, 0])
+plt.scatter(np.zeros(len(rotation_learning)), np.array(rotation_learning)[:, 1], color = '#BE1E2D')
+# for i in range(len(rotation_learning)):
+#     plt.plot([0,1],[rotation_learning[i,0], rotation_learning[i,1]], color='grey')
+# plt.xticks([0,1],['naive-->learning', 'learning-->expert'])
 plt.ylabel('Dot product')
 plt.title('Angle btw input vectors over learning')
+plt.ylim(top=1, bottom=-1)
+plt.savefig(r'H:\COSYNE 2025\input_vector_rotation_mod.pdf')
 plt.show()
 
 
@@ -303,6 +311,7 @@ for i in range(len(CD_angle)):
 plt.xticks([0,1],['Learning','Expert'])
 plt.ylabel('Dot product')
 plt.title('Input vector alignment to choice CD')
+plt.savefig(r'H:\COSYNE 2025\input_vector_choicecd_angle.pdf')
 plt.show()
 
 # Plot the deltas over learning
@@ -356,7 +365,7 @@ for paths in all_matched_paths:
     l1 = Mode(paths[0], lickdir=False, use_reg = True, triple=True,
                 proportion_train=proportion_train, proportion_opto_train=proportion_opto_train)
                # proportion_train=1, proportion_opto_train=1)
-    input_vector_nai, delta_nai = l1.input_vector(by_trialtype=False, plot=True, return_delta = True, timecourse=True)
+    input_vector_nai, delta_nai = l1.input_vector(by_trialtype=False, plot=True, return_delta = True, timecourse=True, normalize=False)
     # _, cd_delta_nai = l1.input_vector(by_trialtype=False, plot=True, return_delta = True, plot_ctl_opto=False)
 
 
@@ -364,7 +373,7 @@ for paths in all_matched_paths:
                 proportion_train=proportion_train, proportion_opto_train=proportion_opto_train)
                # proportion_train=1, proportion_opto_train=1)
 
-    input_vector, delta = l1.input_vector(by_trialtype=False, plot=True, return_delta = True, timecourse=True)
+    input_vector, delta = l1.input_vector(by_trialtype=False, plot=True, return_delta = True, timecourse=True, normalize=False)
     # cd_choice, _ = l1.plot_CD(mode_input='choice', plot=False)
     # _, cd_delta_lea = l1.input_vector(by_trialtype=False, plot=True, return_delta = True, plot_ctl_opto=False)
 
@@ -373,7 +382,7 @@ for paths in all_matched_paths:
                 proportion_train=proportion_train, proportion_opto_train=proportion_opto_train)
                # proportion_train=1, proportion_opto_train=1)
 
-    input_vector_exp, delta_exp = l2.input_vector(by_trialtype=False, plot=True, return_delta = True, timecourse=True)
+    input_vector_exp, delta_exp = l2.input_vector(by_trialtype=False, plot=True, return_delta = True, timecourse=True, normalize=False)
     # cd_choice_exp, _ = l2.plot_CD(mode_input='choice', plot=False)
     # _, cd_delta_exp = l2.input_vector(by_trialtype=False, plot=True, return_delta = True, plot_ctl_opto=False)
 
@@ -445,7 +454,7 @@ ax[2].plot(np.arange(-6.97,4,1/6)[:61], np.mean(edelta, axis=0), color='purple')
 
 ax[0].set_ylabel('Delta between control vs stim')
 ax[1].set_xlabel('Time from Go cue (s)')
-plt.savefig(r'H:\COSYNE 2025\inputvectordelta_timecourse.pdf')
+# plt.savefig(r'H:\COSYNE 2025\inputvectordelta_timecourse.pdf')
 plt.show()
 # Bar plot the peak of every FOV
 naive_peaks = [max(n[int(3.8*6):]) for n in ndelta]
@@ -458,7 +467,7 @@ plt.scatter(np.ones(len(learning_peaks)), learning_peaks)
 plt.scatter(np.ones(len(expert_peaks)) * 2, expert_peaks)
 plt.ylabel('Peak deltas')
 plt.xticks([0,1,2],['Naive', 'Learning', 'Expert'])
-plt.savefig(r'H:\COSYNE 2025\inputvectordelta_peak.pdf')
+# plt.savefig(r'H:\COSYNE 2025\inputvectordelta_peak.pdf')
 plt.show()
 
 
@@ -473,8 +482,12 @@ plt.scatter(np.ones(len(learning_peaks)), learning_peaks)
 plt.scatter(np.ones(len(expert_peaks)) * 2, expert_peaks)
 plt.ylabel('Average deltas')
 plt.xticks([0,1,2],['Naive', 'Learning', 'Expert'])
-plt.savefig(r'H:\COSYNE 2025\inputvectordelta_mean.pdf')
+# plt.savefig(r'H:\COSYNE 2025\inputvectordelta_mean.pdf')
 plt.show()
+
+#%% instead of delta, look at all traces concatenated together?
+
+
 
 #%% Correlate behavior recovery, robustness, etc.
 CD_angle, deltas, beh, frac, modularity , cd_proj_delta = [],[],[],[],[],[]
@@ -486,14 +499,16 @@ for paths in all_matched_paths:
     # _, cd_delta_nai = l1.input_vector(by_trialtype=False, plot=True, return_delta = True, plot_ctl_opto=False)
 
     l1 = Mode(paths[1], lickdir=False, use_reg = True, triple=True, proportion_train=1, proportion_opto_train=1)
+    # l1.exclude_sample_orthog = True
     input_vector, delta = l1.input_vector(by_trialtype=False, plot=True, return_delta = True)
-    cd_choice, _ = l1.plot_CD(mode_input='choice', plot=False)
+    cd_choice, _ = l1.plot_CD(mode_input='stimulus', plot=False)
     _, cd_delta_lea = l1.input_vector(by_trialtype=False, plot=True, return_delta = True, plot_ctl_opto=False)
 
 
     l2 = Mode(paths[2], lickdir=False, use_reg = True, triple=True, proportion_train=1, proportion_opto_train=1)
+    # l2.exclude_sample_orthog = True
     input_vector_exp, delta_exp = l2.input_vector(by_trialtype=False, plot=True, return_delta = True)
-    cd_choice_exp, _ = l2.plot_CD(mode_input='choice', plot=False)
+    cd_choice_exp, _ = l2.plot_CD(mode_input='stimulus', plot=False)
     _, cd_delta_exp = l2.input_vector(by_trialtype=False, plot=True, return_delta = True, plot_ctl_opto=False)
 
     adjusted_p = 0.01
@@ -595,6 +610,26 @@ r_value, p_value = pearsonr(CD_angle[:,1], deltas[:,1])
 print(r_value, p_value)
 r_value, p_value = pearsonr(cat(CD_angle), cat(deltas))
 print(r_value, p_value)
+
+
+# Plot correlation between diff in angle and behavioral recovery over learning
+
+plt.scatter(np.array(CD_angle)[:, 1] - np.array(CD_angle)[:, 0], deltas[:, 1] - deltas[:, 0])
+# plt.scatter(np.array(CD_angle)[:, 1], deltas[:, 1], label='Expert')
+plt.xlabel('Angle between cd_choice and input')
+plt.ylabel('Behavior recovery')
+plt.title('Angle vs behavior')
+# plt.legend()
+plt.show()
+
+
+r_value, p_value = pearsonr(CD_angle[:,0], deltas[:,0])
+print(r_value, p_value)
+r_value, p_value = pearsonr(CD_angle[:,1], deltas[:,1])
+print(r_value, p_value)
+r_value, p_value = pearsonr(cat(CD_angle), cat(deltas))
+print(r_value, p_value)
+
 
 # Plot correlation between angle and behavioral performance
 plt.scatter(np.array(CD_angle)[:, 0], beh[:, 0], label='Learning')

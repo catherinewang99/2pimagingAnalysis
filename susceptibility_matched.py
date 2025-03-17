@@ -18,6 +18,8 @@ from activityMode import Mode
 from scipy import stats
 cat=np.concatenate
 from scipy.stats import pearsonr
+from scipy.stats import f_oneway
+from statsmodels.stats.multicomp import pairwise_tukeyhsd
 
 all_paths = [[    
             r'F:\data\BAYLORCW032\python\2023_10_05',
@@ -132,28 +134,28 @@ agg_matched_paths = [[
 
 all_matched_paths = [
     
-            [r'F:\data\BAYLORCW032\python\2023_10_05',
-              r'F:\data\BAYLORCW032\python\2023_10_19',
-              r'F:\data\BAYLORCW032\python\2023_10_24',
-          ],
+             [r'F:\data\BAYLORCW032\python\2023_10_05',
+               r'F:\data\BAYLORCW032\python\2023_10_19',
+               r'F:\data\BAYLORCW032\python\2023_10_24',
+           ],
          
            # [ r'F:\data\BAYLORCW034\python\2023_10_12',
            #    r'F:\data\BAYLORCW034\python\2023_10_22',
            #    r'F:\data\BAYLORCW034\python\2023_10_27',
            #    r'F:\data\BAYLORCW034\python\cellreg\layer{}\1012_1022_1027pairs_proc.npy'],
          
-            [r'F:\data\BAYLORCW036\python\2023_10_09',
-            r'F:\data\BAYLORCW036\python\2023_10_19',
-            r'F:\data\BAYLORCW036\python\2023_10_30',
-           ],
+             [r'F:\data\BAYLORCW036\python\2023_10_09',
+             r'F:\data\BAYLORCW036\python\2023_10_19',
+             r'F:\data\BAYLORCW036\python\2023_10_30',
+            ],
          
-         [r'F:\data\BAYLORCW037\python\2023_11_21',
-            r'F:\data\BAYLORCW037\python\2023_12_08',
-            r'F:\data\BAYLORCW037\python\2023_12_15',],
+          [r'F:\data\BAYLORCW037\python\2023_11_21',
+             r'F:\data\BAYLORCW037\python\2023_12_08',
+             r'F:\data\BAYLORCW037\python\2023_12_15',],
          
-         [r'F:\data\BAYLORCW035\python\2023_10_26',
-            r'F:\data\BAYLORCW035\python\2023_12_07',
-            r'F:\data\BAYLORCW035\python\2023_12_15',],
+          [r'F:\data\BAYLORCW035\python\2023_10_26',
+             r'F:\data\BAYLORCW035\python\2023_12_07',
+             r'F:\data\BAYLORCW035\python\2023_12_15',],
          
          [r'H:\data\BAYLORCW044\python\2024_05_22',
           r'H:\data\BAYLORCW044\python\2024_06_06',
@@ -208,12 +210,12 @@ for paths in all_matched_paths: # For each mouse/FOV
     exp_susc_all, p_e = s3.susceptibility(period = stim_period, p=p_s, return_n=True)
 
     # Delay selective
-    bucket = sample_epoch
-    sample_nai, sample_lea, sample_exp = s1.get_epoch_selective(sample_epoch, p=p), s2.get_epoch_selective(sample_epoch, p=p), s3.get_epoch_selective(sample_epoch, p=p)
-    delay_nai, delay_lea, delay_exp = s1.get_epoch_selective(delay_epoch, p=p), s2.get_epoch_selective(delay_epoch, p=p), s3.get_epoch_selective(delay_epoch, p=p)
-    naive_delay = [n for n in sample_nai if n not in delay_nai]
-    learning_delay = [n for n in sample_lea if n not in delay_lea]
-    expert_delay = [n for n in sample_exp if n not in delay_exp]
+    # bucket = sample_epoch
+    # sample_nai, sample_lea, sample_exp = s1.get_epoch_selective(sample_epoch, p=p), s2.get_epoch_selective(sample_epoch, p=p), s3.get_epoch_selective(sample_epoch, p=p)
+    # delay_nai, delay_lea, delay_exp = s1.get_epoch_selective(delay_epoch, p=p), s2.get_epoch_selective(delay_epoch, p=p), s3.get_epoch_selective(delay_epoch, p=p)
+    # naive_delay = [n for n in sample_nai if n not in delay_nai]
+    # learning_delay = [n for n in sample_lea if n not in delay_lea]
+    # expert_delay = [n for n in sample_exp if n not in delay_exp]
     
     
     # Sample selective
@@ -223,16 +225,16 @@ for paths in all_matched_paths: # For each mouse/FOV
     # learning_delay = [n for n in sample_lea]
     # expert_delay = [n for n in sample_exp]
     
-    # all_naive_susc += [len(naive_susc) / len(s1.good_neurons)]
-    # all_lea_susc += [len(lea_susc)  / len(s2.good_neurons)]
-    # all_exp_susc += [len(exp_susc) / len(s3.good_neurons)]
-    if len(s1.selective_neurons) == 0:
-        all_naive_susc += [0]
-    else:
-        all_naive_susc += [len(naive_susc) / len(naive_delay)]
+    all_naive_susc += [len(naive_susc_all) / len(s1.good_neurons)]
+    all_lea_susc += [len(lea_susc_all)  / len(s2.good_neurons)]
+    all_exp_susc += [len(exp_susc_all) / len(s3.good_neurons)]
+    # if len(s1.selective_neurons) == 0:
+    #     all_naive_susc += [0]
+    # else:
+    #     all_naive_susc += [len(naive_susc) / len(naive_delay)]
         
-    all_lea_susc += [len(lea_susc)  / len(learning_delay)]
-    all_exp_susc += [len(exp_susc) / len(expert_delay)]
+    # all_lea_susc += [len(lea_susc)  / len(learning_delay)]
+    # all_exp_susc += [len(exp_susc) / len(expert_delay)]
     
     p_naive += [p_n]
     p_learning += [p_l]
@@ -248,17 +250,18 @@ p_expert = [np.array(p) for p in p_expert]
 f=plt.figure()
 
 plt.bar(range(3), [np.mean(all_naive_susc), np.mean(all_lea_susc), np.mean(all_exp_susc)])
-plt.scatter(np.zeros(len(all_naive_susc)), all_naive_susc)
-plt.scatter(np.ones(len(all_lea_susc)), all_lea_susc)
-plt.scatter(np.ones(len(all_exp_susc))*2, all_exp_susc)
+
 
 for i in range(len(all_exp_susc)):
     plt.plot([0,1], [all_naive_susc[i], all_lea_susc[i]], color='grey')
     plt.plot([1,2], [all_lea_susc[i], all_exp_susc[i]], color='grey')
-    
+plt.scatter(np.zeros(len(all_naive_susc)), all_naive_susc,facecolors='white', edgecolors='red')
+plt.scatter(np.ones(len(all_lea_susc)), all_lea_susc,facecolors='white', edgecolors='yellow')
+plt.scatter(np.ones(len(all_exp_susc))*2, all_exp_susc,facecolors='white', edgecolors='blue')
 plt.ylabel('Proportion of susc neurons')
 plt.xticks([0,1,2], ['Naive', 'Learning', 'Expert'])
 plt.title('Proportion of susceptible neurons over learning')
+plt.savefig(r'H:\COSYNE 2025\proportion_susceptible.pdf')
 # plt.ylim(bottom=0.5)
 plt.show()
 
@@ -627,7 +630,7 @@ for paths in all_matched_paths: # For each mouse/FOV
     
     s1list, d1, r1, ns1 = np.zeros(4),np.zeros(4),np.zeros(4),np.zeros(4)
 
-    s1 = session.Session(paths[0], use_reg=True, triple=True, use_background_sub=False) # Learning
+    s1 = session.Session(paths[1], use_reg=True, triple=True, use_background_sub=False) # Learning
     stim_period = range(s1.delay+int(0.5/s1.fs), s1.delay+int(1.2/s1.fs))
 
     naive_sample_sel, _ = s1.susceptibility(period = stim_period, p=p_s, return_n=True)
@@ -742,10 +745,38 @@ plt.legend()
 plt.ylabel('Number of neurons')
 plt.xticks([0,1], ['Learning', 'Expert'])
 
+#%% Plot and save some susceptible neurons
+        #     [r'H:\data\BAYLORCW044\python\2024_05_23',
+        #      r'H:\data\BAYLORCW044\python\2024_06_04',
+        # r'H:\data\BAYLORCW044\python\2024_06_18'],
 
+            # [r'H:\data\BAYLORCW046\python\2024_05_29',
+            #  r'H:\data\BAYLORCW046\python\2024_06_07',
+            #  r'H:\data\BAYLORCW046\python\2024_06_24'],
+
+            # [r'H:\data\BAYLORCW046\python\2024_05_29',
+            #  r'H:\data\BAYLORCW046\python\2024_06_24',
+            #  r'H:\data\BAYLORCW046\python\2024_06_28'],
+_,    learningpath,  expertpath =                [r'H:\data\BAYLORCW046\python\2024_05_29',
+             r'H:\data\BAYLORCW046\python\2024_06_24',
+             r'H:\data\BAYLORCW046\python\2024_06_28']
+counter = 0
+# plt.savefig(r'H:\COSYNE 2025\proportion_susceptible.pdf')
+
+for paths in all_matched_paths: # For each mouse/FOV
+    nlist = dropped_sample[counter]
+    # learningpath = r'H:\data\BAYLORCW044\python\2024_06_06'
+    s1 = session.Session(paths[1], use_reg=True, triple=True, use_background_sub=False) # Learning
+    # expertpath = r'H:\data\BAYLORCW044\python\2024_06_19'
+    s2 = session.Session(paths[2], use_reg=True, triple=True, use_background_sub=False) # Learning
+    for n in nlist:
+        s1.plot_rasterPSTH_sidebyside(n[0])#, fixaxis=(-0.1,2.2))
+        s2.plot_rasterPSTH_sidebyside(n[1])#, fixaxis=(-0.1,2.2))
+
+    counter += 1
 #%% Sankey of sig susc cells - delay neurons only (lea or exp)
 p_s=0.05
-p=0.01
+p=0.05
 retained_sample = []
 recruited_sample = []
 retained_delay = []
@@ -768,7 +799,7 @@ for paths in all_matched_paths: # For each mouse/FOV
     s1 = session.Session(paths[1], use_reg=True, triple=True, use_background_sub=False) # Learning
     stim_period = range(s1.delay+int(0.5/s1.fs), s1.delay+int(1.2/s1.fs))
 
-    naive_sample_sel = s1.susceptibility(period = stim_period, p=p_s, return_n=True)
+    naive_sample_sel,_ = s1.susceptibility(period = stim_period, p=p_s, return_n=True)
 
     
     # Get functional group info
@@ -781,7 +812,7 @@ for paths in all_matched_paths: # For each mouse/FOV
 
 
     s2 = session.Session(paths[2], use_reg=True, triple=True) # Expert
-    exp_susc = s2.susceptibility(period = stim_period, p=p_s, return_n=True)
+    exp_susc,_ = s2.susceptibility(period = stim_period, p=p_s, return_n=True)
     exp_delay_sel = s2.get_epoch_selective(delay_epoch, p=p)
     
     naive_sample_sel = [n for n in naive_sample_sel if n in naive_delay_sel or s2.good_neurons[np.where(s1.good_neurons == n)[0][0]] in exp_delay_sel]
@@ -863,6 +894,202 @@ alls1list = np.mean(alls1list, axis=0)
 alld1 = np.mean(alld1, axis=0)
 allr1 = np.mean(allr1, axis=0)
 allns1 = np.mean(allns1, axis=0)
+
+
+#%% Compare variability of opto response within session vs across sessions FIXME 3/10
+
+# compare just opto trial stim period activity
+s1 = session.Session(paths[1], use_reg=True, triple=True, use_background_sub=False) # Learning
+idx = 6
+n = s1.good_neurons[idx]
+stim_period = range(s1.delay+int(0.5/s1.fs), s1.delay+int(1.3/s1.fs))
+
+good_non_stim_trials_set = set(s1.i_good_non_stim_trials)
+good_stim_trials_set = set(s1.i_good_stim_trials)
+    
+control_trials_left = np.random.permutation([t for t in s1.L_trials if t in good_non_stim_trials_set])
+pert_trials_left = np.random.permutation([t for t in s1.L_trials if t in good_stim_trials_set])
+
+control_trials_right = np.random.permutation([t for t in s1.R_trials if t in good_non_stim_trials_set])
+pert_trials_right = np.random.permutation([t for t in s1.R_trials if t in good_stim_trials_set])
+
+L_trials_ctl_first, L_trials_ctl_second = control_trials_left[:int(len(control_trials_left) / 2)], control_trials_left[int(len(control_trials_left) / 2):]
+L_trials_opto_first, L_trials_opto_second = pert_trials_left[:int(len(pert_trials_left) / 2)], pert_trials_left[int(len(pert_trials_left) / 2):]
+
+R_trials_ctl_first, R_trials_ctl_second = control_trials_right[:int(len(control_trials_right) / 2)], control_trials_right[int(len(control_trials_right) / 2):]
+R_trials_opto_first, R_trials_opto_second = pert_trials_right[:int(len(pert_trials_right) / 2)], pert_trials_right[int(len(pert_trials_right) / 2):]
+
+first_half = cat((L_trials_opto_first, R_trials_opto_first))
+second_half = cat((L_trials_opto_second, R_trials_opto_second))
+
+within_sess_first = np.array([s1.dff[0, t][n, stim_period] for t in first_half])
+within_sess_second = np.array([s1.dff[0, t][n, stim_period] for t in second_half])
+
+
+s2 = session.Session(paths[2], use_reg=True, triple=True) # Expert
+n = s2.good_neurons[idx]
+
+good_stim_trials_set = set(s2.i_good_stim_trials)
+across_session = np.array([s2.dff[0, t][n, stim_period] for t in good_stim_trials_set])
+
+F = f_oneway(np.mean(within_sess_first,axis=0), 
+             np.mean(within_sess_second,axis=0), 
+             np.mean(across_session,axis=0))
+
+if F.pvalue < 0.01:
+
+    # Combine data into one array
+    data = np.concatenate([np.mean(within_sess_first,axis=0), 
+                             np.mean(within_sess_second,axis=0), 
+                             np.mean(across_session,axis=0)])
+    
+    # Create group labels
+    labels = (["Group 1"] * within_sess_first.shape[1]) + (["Group 2"] * within_sess_second.shape[1]) + (["Group 3"] * across_session.shape[1])
+    
+    tukey = pairwise_tukeyhsd(data, labels, alpha=0.05)
+    
+    print(tukey)
+    # compare control activity - opto activity variance during stim period
+
+
+
+
+
+#%% Sannkey of sig susceptibly cells WITHIN SESSION CONTROL
+
+p_s=0.01
+p=0.01
+retained_sample = []
+recruited_sample = []
+retained_delay = []
+recruited_delay = []
+dropped_delay = []
+dropped_sample = []
+alls1list, alld1, allr1, allns1 = [],[],[],[] # s1: susc ns: non susc
+
+learning_SDR = []
+expert_SDR = []
+
+for paths in all_matched_paths: # For each mouse/FOV
+    ret_s = []
+    recr_s = []
+    ret_d, recr_d = [],[]
+    drop_d, drop_s = [], []
+    
+    s1list, d1, r1, ns1 = np.zeros(4),np.zeros(4),np.zeros(4),np.zeros(4)
+
+    s1 = session.Session(paths[1], use_reg=True, triple=True) # Learning
+    stim_period = range(s1.delay+int(0.5/s1.fs), s1.delay+int(1.3/s1.fs))
+    
+    good_non_stim_trials_set = set(s1.i_good_non_stim_trials)
+    good_stim_trials_set = set(s1.i_good_stim_trials)
+        
+    control_trials_left = np.random.permutation([t for t in s1.L_trials if t in good_non_stim_trials_set])
+    pert_trials_left = np.random.permutation([t for t in s1.L_trials if t in good_stim_trials_set])
+    
+    control_trials_right = np.random.permutation([t for t in s1.R_trials if t in good_non_stim_trials_set])
+    pert_trials_right = np.random.permutation([t for t in s1.R_trials if t in good_stim_trials_set])
+    
+    L_trials_ctl_first, L_trials_ctl_second = control_trials_left[:int(len(control_trials_left) / 2)], control_trials_left[int(len(control_trials_left) / 2):]
+    L_trials_opto_first, L_trials_opto_second = pert_trials_left[:int(len(pert_trials_left) / 2)], pert_trials_left[int(len(pert_trials_left) / 2):]
+    
+    R_trials_ctl_first, R_trials_ctl_second = control_trials_right[:int(len(control_trials_right) / 2)], control_trials_right[int(len(control_trials_right) / 2):]
+    R_trials_opto_first, R_trials_opto_second = pert_trials_right[:int(len(pert_trials_right) / 2)], pert_trials_right[int(len(pert_trials_right) / 2):]
+
+    naive_sample_sel, _ = s1.susceptibility(period = stim_period, p=p_s, return_n=True,
+                                            provide_trials = (L_trials_ctl_first, L_trials_opto_first,
+                                                              R_trials_ctl_first, R_trials_opto_first))
+    
+    naive_nonsel = [n for n in s1.good_neurons if n not in naive_sample_sel] # non susc population
+
+    exp_susc, _ = s1.susceptibility(period = stim_period, p=p_s, return_n=True,
+                                    provide_trials = (L_trials_ctl_second, L_trials_opto_second,
+                                                      R_trials_ctl_second, R_trials_opto_second))
+    
+    # Get functional group info
+    
+    
+    for n in naive_sample_sel:
+        if n in exp_susc:
+            s1list[0] += 1
+            # ret_s += [(n, s2.good_neurons[np.where(s1.good_neurons == n)[0][0]])]
+
+        else:
+            s1list[3] += 1
+            # drop_s += [(n, s2.good_neurons[np.where(s1.good_neurons == n)[0][0]])]
+
+    
+    for n in naive_nonsel:
+        if n in exp_susc:
+            ns1[0] += 1
+            # recr_s += [(n, s2.good_neurons[np.where(s1.good_neurons ==n)[0][0]])]
+
+        else:
+            ns1[3] += 1
+    print(s1list)
+
+    s1list, d1, r1, ns1 = s1list / len(s1.good_neurons), d1 / len(s1.good_neurons), r1 / len(s1.good_neurons), ns1 / len(s1.good_neurons)
+
+    alls1list += [s1list]
+    alld1 += [d1]
+    allr1 += [r1] 
+    allns1 += [ns1]
+    
+    retained_sample += [ret_s]
+    recruited_sample += [recr_s]
+    dropped_sample += [drop_s]
+    retained_delay += [ret_d]
+    recruited_delay += [recr_d]
+    dropped_delay += [drop_d]
+
+alls1list = np.mean(alls1list, axis=0) 
+alld1 = np.mean(alld1, axis=0)
+allr1 = np.mean(allr1, axis=0)
+allns1 = np.mean(allns1, axis=0)
+
+#%% Plot top contributors from input vectors
+
+s1 = Mode(paths[1], lickdir=False, use_reg = True, triple=True, proportion_train=1, proportion_opto_train=1)
+input_vector, delta = s1.input_vector(by_trialtype=False, plot=True, return_delta = True)
+
+stim_period = range(s1.delay+int(0.5/s1.fs), s1.delay+int(1.3/s1.fs))
+
+good_non_stim_trials_set = set(s1.i_good_non_stim_trials)
+good_stim_trials_set = set(s1.i_good_stim_trials)
+    
+control_trials_left = np.random.permutation([t for t in s1.L_trials if t in good_non_stim_trials_set])
+pert_trials_left = np.random.permutation([t for t in s1.L_trials if t in good_stim_trials_set])
+
+control_trials_right = np.random.permutation([t for t in s1.R_trials if t in good_non_stim_trials_set])
+pert_trials_right = np.random.permutation([t for t in s1.R_trials if t in good_stim_trials_set])
+
+L_trials_ctl_first, L_trials_ctl_second = control_trials_left[:int(len(control_trials_left) / 2)], control_trials_left[int(len(control_trials_left) / 2):]
+L_trials_opto_first, L_trials_opto_second = pert_trials_left[:int(len(pert_trials_left) / 2)], pert_trials_left[int(len(pert_trials_left) / 2):]
+
+R_trials_ctl_first, R_trials_ctl_second = control_trials_right[:int(len(control_trials_right) / 2)], control_trials_right[int(len(control_trials_right) / 2):]
+R_trials_opto_first, R_trials_opto_second = pert_trials_right[:int(len(pert_trials_right) / 2)], pert_trials_right[int(len(pert_trials_right) / 2):]
+
+naive_sample_sel, _ = s1.susceptibility(period = stim_period, p=p_s, return_n=True,
+                                        provide_trials = (L_trials_ctl_first, L_trials_opto_first,
+                                                          R_trials_ctl_first, R_trials_opto_first))
+
+naive_nonsel = [n for n in s1.good_neurons if n not in naive_sample_sel] # non susc population
+
+exp_susc, _ = s1.susceptibility(period = stim_period, p=p_s, return_n=True,
+                                provide_trials = (L_trials_ctl_second, L_trials_opto_second,
+                                                  R_trials_ctl_second, R_trials_opto_second))
+
+plt.hist(input_vector)
+plt.title('Input vector weight distr')
+plt.show()
+
+sorted_n = s1.good_neurons[np.argsort(input_vector)]
+#%%
+n=715
+
+s1.plot_raster_and_PSTH(n,trials=(R_trials_opto_first, L_trials_opto_first))
+s1.plot_raster_and_PSTH(n,trials=(R_trials_opto_second, L_trials_opto_second))
+
 
 #%% Plot some susceptible neurons
 s1 = session.Session(paths[1], use_reg=True, triple=True, use_background_sub=False) # Learning

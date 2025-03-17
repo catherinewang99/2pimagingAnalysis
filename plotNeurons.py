@@ -99,6 +99,68 @@ for i in l1.good_neurons[:10]:
 # # # #     # l1.plot_selectivity(n)
 #     l1.plot_rasterPSTH_sidebyside(n)
 # #     l1.plot_raster_and_PSTH(n, bias= True)
+#%% Look for good example neurons that become robust after being silenced
+#  [r'H:\data\BAYLORCW044\python\2024_05_22',
+#   r'H:\data\BAYLORCW044\python\2024_06_06',
+# r'H:\data\BAYLORCW044\python\2024_06_19'],
+
+ 
+#     [r'H:\data\BAYLORCW044\python\2024_05_23',
+#      r'H:\data\BAYLORCW044\python\2024_06_04',
+# r'H:\data\BAYLORCW044\python\2024_06_18'],
+
+#     [r'H:\data\BAYLORCW046\python\2024_05_29',
+#      r'H:\data\BAYLORCW046\python\2024_06_24',
+#      r'H:\data\BAYLORCW046\python\2024_06_28'], # Modified dates (use 6/7, 6/24?)
+
+
+#     [r'H:\data\BAYLORCW046\python\2024_05_30',
+#      r'H:\data\BAYLORCW046\python\2024_06_10',
+#      r'H:\data\BAYLORCW046\python\2024_06_27'],
+
+#     [r'H:\data\BAYLORCW046\python\2024_05_31',
+#      r'H:\data\BAYLORCW046\python\2024_06_11',
+#      r'H:\data\BAYLORCW046\python\2024_06_26'
+#      ]
+
+naivepath, learningpath, expertpath =[r'F:\data\BAYLORCW036\python\2023_10_09',
+ r'F:\data\BAYLORCW036\python\2023_10_19',
+ r'F:\data\BAYLORCW036\python\2023_10_30',
+]
+s1 = session.Session(learningpath, use_reg = True, triple=True, baseline_normalization="median_zscore")
+for i in s1.get_epoch_selective(range(s1.delay, s1.response)):
+    s1.plot_rasterPSTH_sidebyside(i)
+    
+l2 =  session.Session(expertpath, use_reg = True, triple=True, baseline_normalization="median_zscore")
+n = l2.good_neurons[np.where(s1.good_neurons == 1315)[0][0]]
+l2.plot_rasterPSTH_sidebyside(n)
+
+l0 =  session.Session(naivepath, use_reg = True, triple=True, baseline_normalization="median_zscore")
+n = l0.good_neurons[np.where(s1.good_neurons == 1315)[0][0]]
+l0.plot_rasterPSTH_sidebyside(n)
+
+#%% Look for neurons that are not delay selective in naive but selective in later 
+# naivepath, learningpath, expertpath = [r'F:']
+
+
+# [r'F:\data\BAYLORCW036\python\2023_10_09',
+#  r'F:\data\BAYLORCW036\python\2023_10_19',
+#  r'F:\data\BAYLORCW036\python\2023_10_30',
+# ]
+
+s1 = session.Session(learningpath, use_reg = True, triple=True, baseline_normalization="median_zscore")
+l0 =  session.Session(naivepath, use_reg = True, triple=True, baseline_normalization="median_zscore")
+l2 =  session.Session(expertpath, use_reg = True, triple=True, baseline_normalization="median_zscore")
+
+naivedelaysel = l0.get_epoch_selective(range(l0.delay, l0.response))
+for i in s1.get_epoch_selective(range(s1.delay, s1.response)):
+    n = l0.good_neurons[np.where(s1.good_neurons == i)[0][0]]
+    nexp = l2.good_neurons[np.where(s1.good_neurons == i)[0][0]]
+    if n not in naivedelaysel:
+        l0.plot_rasterPSTH_sidebyside(n)
+        s1.plot_rasterPSTH_sidebyside(i)
+        l2.plot_rasterPSTH_sidebyside(nexp)
+
 
 #%% LEARNING
 naivepath, learningpath, expertpath = [r'H:\data\BAYLORCW046\python\2024_05_29',

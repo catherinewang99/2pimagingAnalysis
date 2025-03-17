@@ -79,7 +79,7 @@ class Mode(Session):
                          filter_good_neurons=filter_good_neurons) 
         
         self.lickdir = lickdir
-        self.z_score_baseline()
+        # self.z_score_baseline()
         
         if len(responsive_neurons) == 0:
             _ = self.get_stim_responsive_neurons()
@@ -2888,8 +2888,10 @@ class Mode(Session):
                      return_delta=False, timecourse = False,
                      normalize=True,
                      plot=False, plot_ctl_opto = True,
+                     return_traces = False,
                      return_opto=False, return_applied=False,
-                     remove_unresponsive=False):
+                     remove_unresponsive=False,
+                     save=False):
         """
         Get the input vector by subtracting the optogenetic stimulation CD projection
         from the control trial projection
@@ -3295,7 +3297,8 @@ class Mode(Session):
                         plt.axvline(-3, color = 'grey', alpha=0.5, ls = '--')
                         plt.axvline(0, color = 'grey', alpha=0.5, ls = '--')
                         plt.ylabel('CD_input projection (a.u.)')
-                        
+                        if save:
+                            plt.savefig(save)
                         plt.show()
                         
                         
@@ -3322,7 +3325,8 @@ class Mode(Session):
                         plt.axvline(-3, color = 'grey', alpha=0.5, ls = '--')
                         plt.axvline(0, color = 'grey', alpha=0.5, ls = '--')
                         plt.ylabel('CD_input projection (a.u.)')
-                        
+                        if save:
+                            plt.savefig(save)
                         plt.show()
                     
                 else:
@@ -3372,7 +3376,9 @@ class Mode(Session):
                     plt.axvline(-3, color = 'grey', alpha=0.5, ls = '--')
                     plt.axvline(0, color = 'grey', alpha=0.5, ls = '--')
                     plt.ylabel('CD_input projection (a.u.)')
-                    
+                    if save:
+                        print('saving')
+                        plt.savefig(save)
                     plt.show()
                     
                 

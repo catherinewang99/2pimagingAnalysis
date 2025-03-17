@@ -158,6 +158,55 @@ def filter_idmap(idmap, minsize=15):
 
     return idmap_filtered
 
+
+#%% Plot example neurons for COSYNE
+naivepath, learningpath, expertpath = [r'H:\data\BAYLORCW046\python\2024_05_31',
+                    r'H:\data\BAYLORCW046\python\2024_06_11',
+                  r'H:\data\BAYLORCW046\python\2024_06_26',]
+
+naivepath, learningpath, expertpath =  [r'H:\data\BAYLORCW044\python\2024_05_22',
+                  r'H:\data\BAYLORCW044\python\2024_06_06',
+                r'H:\data\BAYLORCW044\python\2024_06_19']
+l1 = Mode(learningpath, use_reg = True, triple=True, baseline_normalization="median_zscore")
+
+_, l = l1.get_trace_matrix(62) # or 4
+
+# Get just the delay activity
+l_delay = [ltrial[l1.delay:l1.response] for ltrial in l]
+
+l_delay_mean = np.reshape(np.mean(l_delay, axis=1), (1,-1))
+l_delay_cat = np.reshape(cat(l_delay), (1, -1))
+
+ax = plt.imshow(l_delay_mean, cmap='gray', interpolation='nearest', aspect='auto')
+plt.colorbar(ax)
+
+l2 = Mode(expertpath, use_reg = True, triple=True, baseline_normalization="median_zscore")
+n = l2.good_neurons[np.where(l1.good_neurons == 62)[0][0]]
+_, l = l2.get_trace_matrix(n) # or 4
+
+# Get just the delay activity
+l_delay = [ltrial[l2.delay:l2.response] for ltrial in l]
+
+l_delay_mean_exp = np.reshape(np.mean(l_delay, axis=1), (1,-1))
+l_delay_cat_exp = np.reshape(cat(l_delay), (1,-1))
+
+ax = plt.imshow(l_delay_mean_exp, cmap='gray', interpolation='nearest', aspect='auto')
+plt.colorbar(ax)
+
+f = plt.figure(figsize=(15,1))
+ax = plt.imshow(np.hstack((l_delay_mean,l_delay_mean_exp)), cmap='gray', interpolation='nearest', aspect='auto', vmin=1.5, vmax=10)
+plt.colorbar(ax)
+plt.axvline(l_delay_mean.shape[1], color='red')
+plt.title('Mean delay activity')
+# plt.savefig(r'H:\COSYNE 2025\CW46_singleneuronunreliable_n4_meanactivity.pdf')
+
+f = plt.figure(figsize=(15,1))
+ax = plt.imshow(np.hstack((l_delay_cat,l_delay_cat_exp)), cmap='gray', interpolation='nearest', aspect='auto')
+plt.colorbar(ax)
+plt.axvline(l_delay_cat.shape[1], color='red')
+plt.title('All delay activity')
+# plt.savefig(r'H:\COSYNE 2025\CW46_singleneuronunreliable_n4_alldelayactivity.pdf')
+
 #%% Get clusters CW46 FOV 3
 naivepath, learningpath, expertpath = [r'H:\data\BAYLORCW046\python\2024_05_31',
                     r'H:\data\BAYLORCW046\python\2024_06_11',

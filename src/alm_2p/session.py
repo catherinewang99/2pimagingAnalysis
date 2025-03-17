@@ -332,7 +332,9 @@ class Session:
                 # self.normalize_all_by_histogram()
                 # self.normalize_all_by_baseline()
                 print(self.dff[0,0][0,0])
+                
                 self.normalize_z_score()    
+                
                 print(self.dff[0,0][0,0])
 
         self.i_good_non_stim_trials = [t for t in self.i_good_trials if not self.stim_ON[t] and not self.early_lick[t]]
@@ -651,7 +653,7 @@ class Session:
         # self.normalize_all_by_baseline()
         self.normalize_all_by_neural_baseline(self.baseline_normalization)
 
-        self.normalize_z_score()    
+        # self.normalize_z_score()    
         
         
         print('New number of good trials: {}'.format(len(self.i_good_trials)))
@@ -1184,6 +1186,7 @@ class Session:
         If `dff_avg`, (default behavior), calculates F0 separately for each neuron,
         defined by its trial-averaged F for the 3 timebins preceding the sample period.
         F0 is then subtracted and divided from each trace on each trial.
+        
         If `median_zscore`, calculates a median filter with window size 30 and
         calculates a moving median mean and standard deviation from the last half second
         of the baseline period.
@@ -2490,7 +2493,10 @@ class Session:
         else:
             return False
         
-    def plot_raster_and_PSTH(self, neuron_num, opto=False, bias=False, lickdir=False, fixaxis = False, save=[]):
+    def plot_raster_and_PSTH(self, neuron_num, 
+                             opto=False, bias=False, 
+                             trials=[],
+                             lickdir=False, fixaxis = False, save=[]):
         """Plot heatmap then averaged L/R trace for a single neuron
                                 
         Parameters
@@ -2507,7 +2513,13 @@ class Session:
             Fix top and bottom of yaxis scale
             
         """
-        if not opto:
+        if len(trials) != 0:
+            rtrials, ltrials = trials
+            R, L = self.get_trace_matrix(neuron_num, rtrials=rtrials, ltrials=ltrials)
+            r,l=R,L
+            title = "Neuron {}: Opto Raster and PSTH".format(neuron_num)
+
+        elif not opto:
             R, L = self.get_trace_matrix(neuron_num, lickdir = lickdir)
             r, l = self.get_trace_matrix(neuron_num, lickdir = lickdir)
             title = "Neuron {}: Raster and PSTH".format(neuron_num)
@@ -2690,7 +2702,7 @@ class Session:
         plt.show()
         
 
-    def plot_ctl_stim(self, neuron_num):
+    def plot_ctl_stim(self, neuron_num, save=False):
         """Plot averaged trace for ctl and stim trials, group across trial type
                                 
         Parameters
@@ -2724,12 +2736,12 @@ class Session:
         
         x = range(self.time_cutoff)
 
-        plt.plot(x, ctl_av, color='black')
+        plt.plot(x, ctl_av, color='black', ls='--')
         plt.plot(x, ctl_av_opto, color='red')
 
-        plt.fill_between(x, ctl_av - err, 
-                 ctl_av + err,
-                 color='lightgrey')
+        # plt.fill_between(x, ctl_av - err, 
+        #          ctl_av + err,
+        #          color='lightgrey')
         plt.fill_between(x, ctl_av_opto - err_opto, 
                  ctl_av_opto + err_opto,
                  color='pink')
@@ -2744,7 +2756,8 @@ class Session:
         
         plt.ylabel('dF/F0')
         
-        
+        if save:
+            plt.savefig(save)
         plt.show()
         
     def plot_heatmap_across_sess(self, neuron, return_arr=False):
@@ -3500,7 +3513,7 @@ class Session:
     
     def susceptibility(self, p=0.05, period=None, baseline=False, 
                            return_n=False, exc_supr=False, all_n=False,
-                           side=False,
+                           side=False, provide_trials = [],
                            by_trial_type = True,
                            flexible=False):
         """
@@ -3557,9 +3570,12 @@ class Session:
 
             else:
                 # **LEFT SIDE**
-                control_trials = [t for t in self.L_trials if t in good_non_stim_trials_set]
-                pert_trials = [t for t in self.L_trials if t in good_stim_trials_set]
-                pert_trials_left = pert_trials
+                if len(provide_trials) == 0:
+                    control_trials = [t for t in self.L_trials if t in good_non_stim_trials_set]
+                    pert_trials = [t for t in self.L_trials if t in good_stim_trials_set]
+                else:
+                    
+                    control_trials, pert_trials, _, _ = provide_trials
 
                 control_left = np.array([self.dff[0, l][n, period] for l in control_trials])
                 pert_left = np.array([self.dff[0, l][n, period] for l in pert_trials])
@@ -3580,10 +3596,12 @@ class Session:
                 diff = np.abs(np.mean(control_left, axis=0) - np.mean(pert_left, axis=0))
         
                 # **RIGHT SIDE**
-                control_trials = [t for t in self.R_trials if t in good_non_stim_trials_set]
-                pert_trials = [t for t in self.R_trials if t in good_stim_trials_set]
-            
-
+                if len(provide_trials) == 0:
+    
+                    control_trials = [t for t in self.R_trials if t in good_non_stim_trials_set]
+                    pert_trials = [t for t in self.R_trials if t in good_stim_trials_set]
+                else:
+                    _, _, control_trials, pert_trials = provide_trials
         
                 control = np.array([self.dff[0, l][n, period] for l in control_trials])
                 pert = np.array([self.dff[0, l][n, period] for l in pert_trials])
