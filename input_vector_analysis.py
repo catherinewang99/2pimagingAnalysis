@@ -185,9 +185,12 @@ naivepath, learningpath, expertpath = [r'F:\data\BAYLORCW032\python\2023_10_05',
 # cd_choice_exp, _ = l2.plot_CD(mode_input='choice', plot=False)
 
 
-l1 = Mode(expertpath, lickdir=False, use_reg = True, triple=True, proportion_opto_train=0.5)
-input_vec, mean = l1.input_vector(by_trialtype=False, plot=True, return_applied=True, normalize=True,
-                                  save = r'H:\COSYNE 2025\CW32_expert_input_vector_projection_SEM.pdf')
+l1 = Mode(learningpath, lickdir=False, use_reg = True, triple=True, proportion_opto_train=0.5)
+input_vec, mean = l1.input_vector(by_trialtype=False, plot=True, return_applied=True, normalize=True)
+                                   # save = r'H:\COSYNE 2025\CW32_learning_input_vector_projection_SEM_vxyz.pdf')
+# l1 = Mode(expertpath, lickdir=False, use_reg = True, triple=True, proportion_opto_train=0.5)
+# input_vec, mean = l1.input_vector(by_trialtype=False, plot=True, return_applied=True, normalize=True,
+#                                   save = r'H:\COSYNE 2025\CW32_expert_input_vector_projection_SEM_vxy.pdf')
 # l1.applied_input_vector(input_vec, mean)
 # l1.applied_input_vector(input_vec, mean, plot_ctl_opto=False)
 # cd_choice, _ = l1.plot_CD(mode_input='choice', plot=False)
@@ -289,16 +292,20 @@ input_cd = np.array(input_cd)
 # plt.scatter(np.zeros(len(rotation_learning)), rotation_learning)
 # for i in range(len(L_angles)):
 #     plt.plot([0,1],[L_angles[i,0], L_angles[i,1]], color='grey')
+
 plt.bar([0],np.mean(rotation_learning[:,1]), color='grey')
+
 # plt.scatter(np.zeros(len(rotation_learning)), np.array(rotation_learning)[:, 0])
-plt.scatter(np.zeros(len(rotation_learning)), np.array(rotation_learning)[:, 1], color = '#BE1E2D')
+jitter_strength = 0.02
+x_jittered = np.zeros(len(rotation_learning)) + np.random.normal(0, jitter_strength, size=len(np.zeros(len(rotation_learning))))
+plt.scatter(x_jittered, np.array(rotation_learning)[:, 1], color = '#BE1E2D')
 # for i in range(len(rotation_learning)):
 #     plt.plot([0,1],[rotation_learning[i,0], rotation_learning[i,1]], color='grey')
 # plt.xticks([0,1],['naive-->learning', 'learning-->expert'])
 plt.ylabel('Dot product')
 plt.title('Angle btw input vectors over learning')
 plt.ylim(top=1, bottom=-1)
-plt.savefig(r'H:\COSYNE 2025\input_vector_rotation_mod.pdf')
+plt.savefig(r'H:\COSYNE 2025\input_vector_rotation_mod_jittered.pdf')
 plt.show()
 
 

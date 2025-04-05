@@ -140,28 +140,77 @@ n = l0.good_neurons[np.where(s1.good_neurons == 1315)[0][0]]
 l0.plot_rasterPSTH_sidebyside(n)
 
 #%% Look for neurons that are not delay selective in naive but selective in later 
-# naivepath, learningpath, expertpath = [r'F:']
+all_matched_paths = [
+    
+             [r'F:\data\BAYLORCW032\python\2023_10_05',
+               r'F:\data\BAYLORCW032\python\2023_10_19',
+               r'F:\data\BAYLORCW032\python\2023_10_24',
+           ],
+         
+           # [ r'F:\data\BAYLORCW034\python\2023_10_12',
+           #    r'F:\data\BAYLORCW034\python\2023_10_22',
+           #    r'F:\data\BAYLORCW034\python\2023_10_27',
+           #    r'F:\data\BAYLORCW034\python\cellreg\layer{}\1012_1022_1027pairs_proc.npy'],
+         
+             [r'F:\data\BAYLORCW036\python\2023_10_09',
+             r'F:\data\BAYLORCW036\python\2023_10_19',
+             r'F:\data\BAYLORCW036\python\2023_10_30',
+            ],
+         
+          [r'F:\data\BAYLORCW037\python\2023_11_21',
+             r'F:\data\BAYLORCW037\python\2023_12_08',
+             r'F:\data\BAYLORCW037\python\2023_12_15',],
+         
+          [r'F:\data\BAYLORCW035\python\2023_10_26',
+             r'F:\data\BAYLORCW035\python\2023_12_07',
+             r'F:\data\BAYLORCW035\python\2023_12_15',],
+         
+         [r'H:\data\BAYLORCW044\python\2024_05_22',
+          r'H:\data\BAYLORCW044\python\2024_06_06',
+        r'H:\data\BAYLORCW044\python\2024_06_19'],
 
+         
+            [r'H:\data\BAYLORCW044\python\2024_05_23',
+             r'H:\data\BAYLORCW044\python\2024_06_04',
+        r'H:\data\BAYLORCW044\python\2024_06_18'],
 
-# [r'F:\data\BAYLORCW036\python\2023_10_09',
-#  r'F:\data\BAYLORCW036\python\2023_10_19',
-#  r'F:\data\BAYLORCW036\python\2023_10_30',
-# ]
+            # [r'H:\data\BAYLORCW046\python\2024_05_29',
+            #  r'H:\data\BAYLORCW046\python\2024_06_07',
+            #  r'H:\data\BAYLORCW046\python\2024_06_24'],
 
-s1 = session.Session(learningpath, use_reg = True, triple=True, baseline_normalization="median_zscore")
-l0 =  session.Session(naivepath, use_reg = True, triple=True, baseline_normalization="median_zscore")
-l2 =  session.Session(expertpath, use_reg = True, triple=True, baseline_normalization="median_zscore")
+            [r'H:\data\BAYLORCW046\python\2024_05_29',
+             r'H:\data\BAYLORCW046\python\2024_06_24',
+             r'H:\data\BAYLORCW046\python\2024_06_28'],
 
-naivedelaysel = l0.get_epoch_selective(range(l0.delay, l0.response))
-for i in s1.get_epoch_selective(range(s1.delay, s1.response)):
-    n = l0.good_neurons[np.where(s1.good_neurons == i)[0][0]]
-    nexp = l2.good_neurons[np.where(s1.good_neurons == i)[0][0]]
-    if n not in naivedelaysel:
-        l0.plot_rasterPSTH_sidebyside(n)
-        s1.plot_rasterPSTH_sidebyside(i)
-        l2.plot_rasterPSTH_sidebyside(nexp)
+            [r'H:\data\BAYLORCW046\python\2024_05_30',
+             r'H:\data\BAYLORCW046\python\2024_06_10',
+             r'H:\data\BAYLORCW046\python\2024_06_27'],
 
+            [r'H:\data\BAYLORCW046\python\2024_05_31',
+             r'H:\data\BAYLORCW046\python\2024_06_11',
+             r'H:\data\BAYLORCW046\python\2024_06_26'
+             ]
+         
+        ]
+for paths in all_matched_paths:
+    
+    naivepath, learningpath, expertpath =  [r'F:\data\BAYLORCW035\python\2023_10_26',
+       r'F:\data\BAYLORCW035\python\2023_12_07',
+       r'F:\data\BAYLORCW035\python\2023_12_15',]
+    s1 = session.Session(learningpath, use_reg = True, triple=True, baseline_normalization="median_zscore")
+    l0 =  session.Session(naivepath, use_reg = True, triple=True, baseline_normalization="median_zscore")
+    l2 =  session.Session(expertpath, use_reg = True, triple=True, baseline_normalization="median_zscore")
+    
+    naivedelaysel = l0.get_epoch_selective(range(l0.delay, l0.response))
+    for i in s1.get_epoch_selective(range(s1.delay, s1.response)):
+        n = l0.good_neurons[np.where(s1.good_neurons == i)[0][0]]
+        nexp = l2.good_neurons[np.where(s1.good_neurons == i)[0][0]]
+        if n not in naivedelaysel:
+            l0.plot_rasterPSTH_sidebyside(n)
+            s1.plot_rasterPSTH_sidebyside(i)
+            l2.plot_rasterPSTH_sidebyside(nexp)
 
+savepath = r'H:\COSYNE 2025\proportion_susceptible.pdf'
 #%% LEARNING
 naivepath, learningpath, expertpath = [r'H:\data\BAYLORCW046\python\2024_05_29',
  r'H:\data\BAYLORCW046\python\2024_06_07',
