@@ -10,7 +10,7 @@ sys.path.append("C:\scripts\Imaging analysis")
 import numpy as np
 import scipy.io as scio
 import matplotlib.pyplot as plt
-from session import Session
+from alm_2p import session
 import os
 from numpy import concatenate as cat
 
