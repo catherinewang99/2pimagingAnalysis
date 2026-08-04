@@ -939,32 +939,34 @@ class Mode(Session):
             activity = self.dff[0, r_trials[t]][self.good_neurons] 
             activity = activity - np.tile(np.mean(activityRL_train, axis=1)[:, None], (1, activity.shape[1]))
             proj_allDim = np.dot(activity.T, orthonormal_basis)
-            plt.plot(x, proj_allDim[:len(self.T_cue_aligned_sel), i_pc], 'b', alpha = 0.5,  linewidth = 0.5)
+            if plot:
+                plt.plot(x, proj_allDim[:len(self.T_cue_aligned_sel), i_pc], 'b', alpha = 0.5,  linewidth = 0.5)
             
         for t in self.l_test_idx:
             activity = self.dff[0, l_trials[t]][self.good_neurons]
             activity = activity - np.tile(np.mean(activityRL_train, axis=1)[:, None], (1, activity.shape[1]))
             proj_allDim = np.dot(activity.T, orthonormal_basis)
-            plt.plot(x, proj_allDim[:len(self.T_cue_aligned_sel), i_pc], 'r', alpha = 0.5, linewidth = 0.5)
+            if plot:
+                plt.plot(x, proj_allDim[:len(self.T_cue_aligned_sel), i_pc], 'r', alpha = 0.5, linewidth = 0.5)
             
         # Correct trials
         activityRL_test = activityRL_test - np.tile(np.mean(activityRL_train, axis=1)[:, None], (1, activityRL_test.shape[1]))  # remove mean
         proj_allDim = np.dot(activityRL_test.T, orthonormal_basis)
 
-        
-        # ax = axs.flatten()[0]
-        plt.plot(x, proj_allDim[:len(self.T_cue_aligned_sel), i_pc], 'b', linewidth = 2)
-        plt.plot(x, proj_allDim[len(self.T_cue_aligned_sel):, i_pc], 'r', linewidth = 2)
-        plt.title("Choice decoder projections")
-        plt.axvline(-4.3, color = 'grey', alpha=0.5, ls = '--')
-        plt.axvline(-3, color = 'grey', alpha=0.5, ls = '--')
-        plt.axvline(0, color = 'grey', alpha=0.5, ls = '--')
-        plt.ylabel('CD_delay projection (a.u.)')
-        
-        if save is not None:
-            plt.savefig(save)
+        if plot:
+            # ax = axs.flatten()[0]
+            plt.plot(x, proj_allDim[:len(self.T_cue_aligned_sel), i_pc], 'b', linewidth = 2)
+            plt.plot(x, proj_allDim[len(self.T_cue_aligned_sel):, i_pc], 'r', linewidth = 2)
+            plt.title("Choice decoder projections")
+            plt.axvline(-4.3, color = 'grey', alpha=0.5, ls = '--')
+            plt.axvline(-3, color = 'grey', alpha=0.5, ls = '--')
+            plt.axvline(0, color = 'grey', alpha=0.5, ls = '--')
+            plt.ylabel('CD_delay projection (a.u.)')
             
-        plt.show()
+            if save is not None:
+                plt.savefig(save)
+                
+            plt.show()
         # axs[0, 0].set_ylabel('Activity proj.')
         # axs[3, 0].set_xlabel('Time')
         

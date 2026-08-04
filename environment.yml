@@ -1,0 +1,14 @@
+name: imaging-analysis
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - python=3.9
+  - ipykernel
+  - numpy
+  - matplotlib
+  - scipy
+  - scikit-learn
+  - statsmodels
+  - pandas
+  - sympy

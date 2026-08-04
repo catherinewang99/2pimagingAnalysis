@@ -55,7 +55,7 @@ tstat = np.array(tstat)[include_idx]
 
 tstatidx = np.where(np.array(tstat) > 0)[0]
 neurons = np.array(neurons)[tstatidx]
-L_traces, _ = s1.get_trace_matrix_multiple(neurons) 
+L_traces, _ = s1.get_trace_matrix_multiple(neurons, trialtype=True) 
 
 # add a normalizing step for every neuron
 L_traces = np.array([z_score_normalize(L_traces[i]) for i in range(L_traces.shape[0])])
@@ -69,17 +69,25 @@ neuron_idx = neuron_idx[:threshold_response]
 #
 sorted_neurons = neurons[neuron_idx]
 good_idx = [np.where(s1.good_neurons == n)[0][0] for n in sorted_neurons]
+
+#%% Sort by the original order of the other trial type
+_, L_traces = s1.get_trace_matrix_multiple(neurons, trialtype=True) # Diff trial type to show negative result
+# add a normalizing step for every neuron
+L_traces = np.array([z_score_normalize(L_traces[i]) for i in range(L_traces.shape[0])])
+
 #%%
 s2 = Session(naivepath, use_reg=True, triple=True)
 
 neurons = s2.good_neurons[good_idx]
 L_traces_naive, _ = s2.get_trace_matrix_multiple(neurons)
+# _, L_traces_naive = s2.get_trace_matrix_multiple(neurons)
+
 L_traces_naive = np.array([z_score_normalize(L_traces_naive[i]) for i in range(L_traces_naive.shape[0])])
 
 #%% Save to file
 savepath = r'H:\data\BAYLORCW046\python'
-scio.savemat(savepath+r'\expert_delay.mat', {'expert_stack': L_traces[neuron_idx, int(2*1/s1.fs):]})
-scio.savemat(savepath+r'\naive_delay.mat', {'naive_stack': L_traces_naive[:, int(2*1/s1.fs):]})
+scio.savemat(savepath+r'\expert_delay_othertt.mat', {'expert_stack': L_traces[neuron_idx, int(2*1/s1.fs):]})
+scio.savemat(savepath+r'\naive_delay_othertt.mat', {'naive_stack': L_traces_naive[:, int(2*1/s1.fs):]})
 
 
 
@@ -112,7 +120,8 @@ tstat = np.array(tstat)[include_idx]
 
 tstatidx = np.where(np.array(tstat) < 0)[0]
 neurons = np.array(neurons)[tstatidx]
-L_traces, _ = s1.get_trace_matrix_multiple(neurons) 
+# L_traces, _ = s1.get_trace_matrix_multiple(neurons) 
+_, L_traces = s1.get_trace_matrix_multiple(neurons) # Diff trial type to show negative result
 
 # add a normalizing step for every neuron
 L_traces = np.array([z_score_normalize(L_traces[i]) for i in range(L_traces.shape[0])])
@@ -128,13 +137,14 @@ good_idx = [np.where(s1.good_neurons == n)[0][0] for n in sorted_neurons]
 s2 = Session(naivepath, use_reg=True, triple=True)
 
 neurons = s2.good_neurons[good_idx]
-L_traces_naive, _ = s2.get_trace_matrix_multiple(neurons)
+# L_traces_naive, _ = s2.get_trace_matrix_multiple(neurons)
+_, L_traces_naive = s2.get_trace_matrix_multiple(neurons)
 L_traces_naive = np.array([z_score_normalize(L_traces_naive[i]) for i in range(L_traces_naive.shape[0])])
 
 #%% Save to file
 savepath = r'H:\data\BAYLORCW046\python'
-scio.savemat(savepath+r'\expert_response.mat', {'expert_response_stack': L_traces[neuron_idx, int(2*1/s1.fs):]})
-scio.savemat(savepath+r'\naive_response.mat', {'naive_response_stack': L_traces_naive[neuron_idx, int(2*1/s1.fs):]})
+scio.savemat(savepath+r'\expert_response_othertt.mat', {'expert_response_stack': L_traces[neuron_idx, int(2*1/s1.fs):]})
+scio.savemat(savepath+r'\naive_response_othertt.mat', {'naive_response_stack': L_traces_naive[neuron_idx, int(2*1/s1.fs):]})
 
 #%% Normalize both delay and response heatmaps to each other
 

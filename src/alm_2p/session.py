@@ -3117,7 +3117,7 @@ class Session:
     def selectivity_optogenetics(self, save=False, p = 0.0001, lickdir = False, 
                                  return_traces = False, exclude_unselective=False,
                                  fix_axis = [], selective_neurons = [], downsample=False,
-                                 bootstrap=False):
+                                 bootstrap=False, return_p_np=False):
         """Plots overall selectivity trace across opto vs control trials
         
         Uses late delay epoch to calculate selectivity
@@ -3139,49 +3139,51 @@ class Session:
 
         # x = np.arange(-5.97,4,self.fs)[:self.time_cutoff] if 'CW03' not in self.path else np.arange(-6.97,4,self.fs)[:self.time_cutoff]
         x = np.arange(-6.97,4,self.fs)[:self.time_cutoff]
-        # Late delay selective neurons
-        delay_neurons = self.get_epoch_selective(range(self.response-int(1*(1/self.fs)), self.response), p=p)
-        # delay_neurons = self.get_epoch_selective(range(self.delay, self.response), p=p)
-        control_sel = []
-        opto_sel = []
-                      
-        if len(delay_neurons) == 0:
-            return None, None
-        for n in delay_neurons:
-            # L_pref, screenl, screenr = self.screen_preference(n, range(self.delay, self.response), bootstrap=bootstrap)
-            L_pref, screenl, screenr = self.screen_preference(n, range(self.response-int(1*(1/self.fs)), self.response), bootstrap=bootstrap)
-            all_exclude_trials = cat((screenl, screenr)) if not bootstrap else []
-            if L_pref:
-                nonpref, pref = self.get_trace_matrix(n, lickdir=lickdir, trialtype=True, remove_trial=all_exclude_trials)
-                optonp, optop = self.get_trace_matrix(n, opto=True, both=False, lickdir=lickdir, remove_trial=all_exclude_trials)
-            else:
-                pref, nonpref = self.get_trace_matrix(n, lickdir=lickdir, trialtype=True, remove_trial=all_exclude_trials)
-                optop, optonp = self.get_trace_matrix(n, opto=True, both=False, lickdir=lickdir, remove_trial=all_exclude_trials)
-                
-            
-            control_sel += [np.mean(pref, axis=0)-np.mean(nonpref,axis=0)]
-            opto_sel += [np.mean(optop, axis=0)-np.mean(optonp, axis=0)]
-            
-        if exclude_unselective:
-            keep_n = [c for c in range(len(control_sel)) if np.mean(np.array(control_sel[c])[range(self.response-int(1.5*(1/self.fs)), self.response)]) > 0.3]
-            control_sel = np.array(control_sel)[keep_n]
-            opto_sel = np.array(opto_sel)[keep_n]
-            
-        sel = np.mean(control_sel, axis=0)
-        selo = np.mean(opto_sel, axis=0)
 
-        err = np.std(control_sel, axis=0) / np.sqrt(len(delay_neurons))
-        erro = np.std(opto_sel, axis=0) / np.sqrt(len(delay_neurons))
-        
-        if return_traces:
-            
-            if downsample:
-
-                control_sel, opto_sel = self.dodownsample(control_sel), self.dodownsample(opto_sel)
+        if not return_p_np:
+            # Late delay selective neurons
+            delay_neurons = self.get_epoch_selective(range(self.response-int(1*(1/self.fs)), self.response), p=p)
+            # delay_neurons = self.get_epoch_selective(range(self.delay, self.response), p=p)
+            control_sel = []
+            opto_sel = []
+                        
+            if len(delay_neurons) == 0:
+                return None, None
+            for n in delay_neurons:
+                # L_pref, screenl, screenr = self.screen_preference(n, range(self.delay, self.response), bootstrap=bootstrap)
+                L_pref, screenl, screenr = self.screen_preference(n, range(self.response-int(1*(1/self.fs)), self.response), bootstrap=bootstrap)
+                all_exclude_trials = cat((screenl, screenr)) if not bootstrap else []
+                if L_pref:
+                    nonpref, pref = self.get_trace_matrix(n, lickdir=lickdir, trialtype=True, remove_trial=all_exclude_trials)
+                    optonp, optop = self.get_trace_matrix(n, opto=True, both=False, lickdir=lickdir, remove_trial=all_exclude_trials)
+                else:
+                    pref, nonpref = self.get_trace_matrix(n, lickdir=lickdir, trialtype=True, remove_trial=all_exclude_trials)
+                    optop, optonp = self.get_trace_matrix(n, opto=True, both=False, lickdir=lickdir, remove_trial=all_exclude_trials)
+                    
                 
-            return np.array(control_sel), np.array(opto_sel)
+                control_sel += [np.mean(pref, axis=0)-np.mean(nonpref,axis=0)]
+                opto_sel += [np.mean(optop, axis=0)-np.mean(optonp, axis=0)]
+                
+            if exclude_unselective:
+                keep_n = [c for c in range(len(control_sel)) if np.mean(np.array(control_sel[c])[range(self.response-int(1.5*(1/self.fs)), self.response)]) > 0.3]
+                control_sel = np.array(control_sel)[keep_n]
+                opto_sel = np.array(opto_sel)[keep_n]
+                
+            sel = np.mean(control_sel, axis=0)
+            selo = np.mean(opto_sel, axis=0)
+
+            err = np.std(control_sel, axis=0) / np.sqrt(len(delay_neurons))
+            erro = np.std(opto_sel, axis=0) / np.sqrt(len(delay_neurons))
             
-        if False:
+            if return_traces:
+                
+                if downsample:
+
+                    control_sel, opto_sel = self.dodownsample(control_sel), self.dodownsample(opto_sel)
+                    
+                return np.array(control_sel), np.array(opto_sel)
+            
+        else:
                 
             # Get late delay selective neurons
             contra_neurons, ipsi_neurons, contra_trace, ipsi_trace = self.contra_ipsi_pop(range(self.response-int(1.5*(1/self.fs)), self.response), 
@@ -4329,14 +4331,14 @@ class Session:
         a=np.array(a)
         
         if len(a.shape) == 1:
-            x = np.arange(-6.97,6,1/30)[:self.time_cutoff*2]
-            nums = np.interp(x, np.arange(-6.97,6,1/15)[:self.time_cutoff], a)
+            x = np.arange(-6.97,6,1/30)[:a.shape[0]*2]
+            nums = np.interp(x, np.arange(-6.97,6,1/15)[:a.shape[0]], a)
             b = np.vstack((b, scipy.signal.decimate(nums, 5)))
             return b[1:]
 
         for i in range(len(a)):
-            x = np.arange(-6.97,6,1/30)[:self.time_cutoff*2]
-            nums = np.interp(x, np.arange(-6.97,6,1/15)[:self.time_cutoff], a[i])
+            x = np.arange(-6.97,6,1/30)[:a.shape[1]*2]
+            nums = np.interp(x, np.arange(-6.97,6,1/15)[:a.shape[1]], a[i])
             b = np.vstack((b, scipy.signal.decimate(nums, 5)))
         
         return b[1:]

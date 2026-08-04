@@ -116,7 +116,35 @@ allnaivepaths = [r'F:\data\BAYLORCW032\python\2023_10_05',
             r'H:\data\BAYLORCW046\python\2024_05_30',
             r'H:\data\BAYLORCW046\python\2024_05_31',
             ]
-for naivepath in allnaivepaths:
+
+allexpertpaths = [
+              r'F:\data\BAYLORCW032\python\2023_10_24',
+            # r'F:\data\BAYLORCW034\python\2023_10_27',
+            r'F:\data\BAYLORCW036\python\2023_10_30',
+            r'F:\data\BAYLORCW035\python\2023_12_15',
+            r'F:\data\BAYLORCW037\python\2023_12_15',
+            
+            r'H:\data\BAYLORCW044\python\2024_06_19',
+            r'H:\data\BAYLORCW044\python\2024_06_18',
+            
+            r'H:\data\BAYLORCW046\python\2024_06_28',
+            r'H:\data\BAYLORCW046\python\2024_06_27',
+            r'H:\data\BAYLORCW046\python\2024_06_26',
+            ]
+
+matchedpaths = [r'F:\data\BAYLORCW032\python\2023_10_05',
+                r'F:\data\BAYLORCW036\python\2023_10_09',
+                # r'F:\data\BAYLORCW035\python\2023_10_26',
+                
+                
+                r'F:\data\BAYLORCW032\python\2023_10_24',
+                r'F:\data\BAYLORCW036\python\2023_10_30',
+            # r'F:\data\BAYLORCW035\python\2023_12_15',
+    ]
+
+c = 0
+            
+for naivepath in matchedpaths:
 
     s2 = Mode(naivepath, 
               # use_reg = True, triple=True, 
@@ -238,7 +266,7 @@ for naivepath in allnaivepaths:
     plt.plot(np.arange(-6.97,4, s2.fs)[:PSTH_no_correct_test_mean.shape[1]], proj_allDim[PSTH_yes_correct_test_mean.shape[1]:], 'r', linewidth = 2)
     plt.scatter([np.arange(-6.97,4, s2.fs)[r_cue]], [proj_allDim[:PSTH_yes_correct_test_mean.shape[1]][r_cue]], color='blue', s=50)
     plt.scatter([np.arange(-6.97,4, s2.fs)[l_cue]], [proj_allDim[PSTH_yes_correct_test_mean.shape[1]:][l_cue]], color='red', s=50)
-    plt.title("Applied decoder projections")
+    plt.title("Applied decoder projections: {}".format(naivepath))
     # plt.axvline(-4.3, color = 'grey', alpha=0.5, ls = '--')
     # plt.axvline(-3, color = 'grey', alpha=0.5, ls = '--')
     # plt.axvline(0, color = 'grey', alpha=0.5, ls = '--')
@@ -246,7 +274,26 @@ for naivepath in allnaivepaths:
     
         
     plt.show()
+    
+    r_sem = np.std(proj_allDimR,axis=0) / np.sqrt(len(proj_allDimR))
+    l_sem = np.std(proj_allDimL,axis=0) / np.sqrt(len(proj_allDimL))
+    plt.plot(np.arange(-6.97,4, s2.fs)[:PSTH_yes_correct_test_mean.shape[1]], proj_allDim[:PSTH_yes_correct_test_mean.shape[1]], 'b', linewidth = 2)
+    plt.plot(np.arange(-6.97,4, s2.fs)[:PSTH_no_correct_test_mean.shape[1]], proj_allDim[PSTH_yes_correct_test_mean.shape[1]:], 'r', linewidth = 2)
+    plt.fill_between(x=np.arange(-6.97,4, s2.fs)[:PSTH_yes_correct_test_mean.shape[1]], 
+                     y1=proj_allDim[:PSTH_yes_correct_test_mean.shape[1]] - r_sem,
+                     y2=proj_allDim[:PSTH_yes_correct_test_mean.shape[1]] + r_sem, color='lightblue')
+    plt.fill_between(x=np.arange(-6.97,4, s2.fs)[:PSTH_no_correct_test_mean.shape[1]], 
+                     y1=proj_allDim[PSTH_yes_correct_test_mean.shape[1]:] - l_sem,
+                     y2=proj_allDim[PSTH_yes_correct_test_mean.shape[1]:] + l_sem, color='pink')
+    plt.axvline(np.arange(-6.97,4, s2.fs)[r_cue], ls='--', c='black')
+    plt.axvline(np.arange(-6.97,4, s2.fs)[l_cue], ls='--', c='grey')
+    plt.title(naivepath)
+    
+    plt.savefig('F:\data\{}earlylick.pdf'.format(c))
+    plt.show()
 
+    c+=1
+    
 #%%
 # project onto learning and expert sessions
 s2 = Mode(expertpath, use_reg = True, triple=True, 

@@ -3,8 +3,8 @@ vmin = min([expert_response_stack(:); expert_stack(:); naive_response_stack(:); 
 vmax = max([expert_response_stack(:); expert_stack(:); naive_response_stack(:); naive_stack(:)]);
 %% 
 % Load or define your data matrices (e.g., right_stack, left_stack, right_stack_post, left_stack_post)
-vmin = min([expert_stack(:); naive_stack(:)])+3.7;
-vmax = max([expert_stack(:); naive_stack(:)])-1.5;
+vmin = min([expert_stack(:); naive_stack(:)])+2.0; %3.7, -1.5 | 2.7, 1.8
+vmax = max([expert_stack(:); naive_stack(:)])+0.2;
 
 % Set the 'parula' colormap
 colormap(parula);
@@ -51,8 +51,8 @@ xline(71, '--w');
 % xline(35, '--w');
 
 % Save the figures as needed
-print(f1, 'H:\data\BAYLORCW044\python\expert_delay_neurons.pdf', '-dpdf', '-bestfit');
-print(f2, 'H:\data\BAYLORCW044\python\naive_delay_neurons.pdf', '-dpdf', '-bestfit');
+print(f1, 'H:\data\BAYLORCW046\python\expert_delay_neurons_othertt.pdf', '-dpdf', '-bestfit');
+print(f2, 'H:\data\BAYLORCW046\python\naive_delay_neurons_othertt.pdf', '-dpdf', '-bestfit');
 % print(f3, 'F:\data\SFN 2023\nsession2_right_trials.pdf', '-dpdf', '-bestfit');
 % print(f4, 'F:\data\SFN 2023\nsession2_left_trials.pdf', '-dpdf', '-bestfit');
 
@@ -109,8 +109,8 @@ xline(71, '--w');
 % xline(35, '--w');
 
 % Save the figures as needed
-print(f1, 'H:\data\BAYLORCW044\python\expert_response_neurons.pdf', '-dpdf', '-bestfit');
-print(f2, 'H:\data\BAYLORCW044\python\naive_response_neurons.pdf', '-dpdf', '-bestfit');
+print(f1, 'H:\data\BAYLORCW046\python\expert_response_neurons_othertt.pdf', '-dpdf', '-bestfit');
+print(f2, 'H:\data\BAYLORCW046\python\naive_response_neurons_othertt.pdf', '-dpdf', '-bestfit');
 % print(f3, 'F:\data\SFN 2023\nsession2_right_trials.pdf', '-dpdf', '-bestfit');
 % print(f4, 'F:\data\SFN 2023\nsession2_left_trials.pdf', '-dpdf', '-bestfit');
 

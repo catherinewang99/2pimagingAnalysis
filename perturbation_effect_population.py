@@ -218,6 +218,60 @@ plt.violinplot(contra_frac_exc, vert=False)
 plt.violinplot(-contra_frac_sup, vert=False)
 plt.yticks([0,1,2], ['Expert', 'Learning', 'Naive'])
 
+#%% Effect of ipsi silencing over learning
+late_ipsi_paths = [r'F:\data\BAYLORCW032\python\2023_10_23',
+         r'F:\data\BAYLORCW036\python\2023_10_20',
+         r'F:\data\BAYLORCW034\python\2023_10_24',
+         r'F:\data\BAYLORCW035\python\2023_12_06',
+         # r'F:\data\BAYLORCW037\python\2023_11_22'
+         ]
+
+early_ipsi_paths =  [r'F:\data\BAYLORCW032\python\2023_10_11',
+                     r'F:\data\BAYLORCW036\python\2023_10_07',
+                     r'F:\data\BAYLORCW034\python\2023_10_10',
+                     r'F:\data\BAYLORCW035\python\2023_10_27',
+                     ]
+ipsi_paths = [early_ipsi_paths, late_ipsi_paths]
+
+allsup, allexc=[],[]
+for paths in ipsi_paths:
+    contra_frac_sup, contra_frac_exc = [], []
+
+    for path in paths:
+    
+        l1 = quality.QC(path=path, use_reg=False, triple=False, use_background_sub=True, baseline_normalization="median_zscore")
+        
+        _, sig_n = l1.stim_effect_per_neuron()
+            
+        contra_frac_sup += [len(np.where(sig_n < 0)[0]) / len(sig_n)]
+        contra_frac_exc += [len(np.where(sig_n > 0)[0]) / len(sig_n)]
+        
+    allsup += [contra_frac_sup]
+    allexc += [contra_frac_exc]
+    
+    
+    
+    
+f=plt.figure()
+
+for i in range(2):
+    
+    plt.scatter(cat((allexc[i], -1 * np.array(allsup[i]))), np.ones(len(cat((allexc[i], allsup[i])))) * (i), facecolors='none', edgecolors='grey')
+
+    plt.barh([i], [np.mean(allexc[i])], color = 'r', edgecolor = 'black', label = 'Excited')
+    plt.barh([i], [-np.mean(allsup[i])], color = 'b', edgecolor = 'black', label = 'Inhibited')
+    
+
+    
+    
+plt.axvline(0)
+plt.yticks([0,1], ['Early', 'Late'])
+plt.ylabel('Stage')
+plt.xlabel('Fraction of neurons with significant dF/F0 change')
+# plt.title("Perturbation effect over learning (n = {} neurons)".format(total_n))
+plt.legend()
+
+
 
 #%% Changes at over opto corruption
 

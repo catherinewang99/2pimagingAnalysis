@@ -593,7 +593,7 @@ plt.show()
 all_paths = [[    r'F:\data\BAYLORCW032\python\2023_10_05',
             # r'F:\data\BAYLORCW034\python\2023_10_12',
             r'F:\data\BAYLORCW036\python\2023_10_09',
-            r'F:\data\BAYLORCW035\python\2023_10_26',
+            r'F:data\BAYLORCW035\python\2023_10_26',
             r'F:\data\BAYLORCW037\python\2023_11_21',],
 
         [r'F:\data\BAYLORCW032\python\2023_10_19',
