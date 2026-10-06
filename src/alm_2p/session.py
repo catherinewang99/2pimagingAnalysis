@@ -3141,14 +3141,18 @@ class Session:
         x = np.arange(-6.97,4,self.fs)[:self.time_cutoff]
 
         if not return_p_np:
-            # Late delay selective neurons
-            delay_neurons = self.get_epoch_selective(range(self.response-int(1*(1/self.fs)), self.response), p=p)
-            # delay_neurons = self.get_epoch_selective(range(self.delay, self.response), p=p)
             control_sel = []
             opto_sel = []
-                        
-            if len(delay_neurons) == 0:
-                return None, None
+            if len(selective_neurons) == 0:
+                # Late delay selective neurons
+                delay_neurons = self.get_epoch_selective(range(self.response-int(1*(1/self.fs)), self.response), p=p)
+                # delay_neurons = self.get_epoch_selective(range(self.delay, self.response), p=p)
+                
+                            
+                if len(delay_neurons) == 0:
+                    return None, None
+            else:
+                delay_neurons = selective_neurons
             for n in delay_neurons:
                 # L_pref, screenl, screenr = self.screen_preference(n, range(self.delay, self.response), bootstrap=bootstrap)
                 L_pref, screenl, screenr = self.screen_preference(n, range(self.response-int(1*(1/self.fs)), self.response), bootstrap=bootstrap)
