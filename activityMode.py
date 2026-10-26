@@ -1473,7 +1473,8 @@ class Mode(Session):
 ## DECODING ANALYSIS ##
         
     def decision_boundary(self, mode_input='choice', opto=False, error=False, 
-                          persistence=False, ctl=False, remove_n = []):
+                          persistence=False, ctl=False, remove_n = [],
+                          provide_cd=[]):
         """
         Calculate decision boundary across trials of CD
         
@@ -1488,14 +1489,21 @@ class Mode(Session):
             
         remove_n : list, optional
             If not empty, remove these neurons from the calculation of decoding acc
+
+        provide_cd : list, optional
+            if not empty, provide the CD vector to use for decoding instead of calculating it from the data
         """
         
         idx_map = {'choice': 1, 'action':5, 'stimulus':0}
         idx = idx_map[mode_input]
 
-        orthonormal_basis, mean = self.plot_behaviorally_relevant_modes(plot=False, ctl=ctl) # one method
-        orthonormal_basis = orthonormal_basis[:, idx]
-        
+        if len(provide_cd) != 0:
+            orthonormal_basis = np.array(provide_cd)
+            mean = 0
+        else:
+            orthonormal_basis, mean = self.plot_behaviorally_relevant_modes(plot=False, ctl=ctl) # one method
+            orthonormal_basis = orthonormal_basis[:, idx]
+
         if len(remove_n) != 0:
             keep_n = [i for i in np.arange(len(self.good_neurons)) if i not in remove_n]
 
